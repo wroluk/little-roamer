@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#eee8d8" />
+    <meta name="description" content="A little four-wheel escape. A colorful, open-ended toy driving playground." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Little Roamer" />
+    <title>Little Roamer · Toy 4WD</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+  </head>
+  <body>
+    <main id="app" aria-label="Little Roamer driving playground">
+      <canvas id="game" aria-label="3D toy driving playground"></canvas>
+      <div class="vignette" aria-hidden="true"></div>
+      <header class="topbar">
+        <div class="wordmark"><span class="brand-icon" aria-hidden="true">↗</span><div>LITTLE ROAMER<span>THE FOUR-WHEEL PLAYGROUND</span></div></div>
+        <div class="top-actions">
+          <label class="area-picker"><span>EXPLORE</span><select id="area-select" aria-label="Choose an area to explore" disabled><option value="valley">Sunshine Valley</option><option value="highlands">Iceland Highlands</option></select></label>
+          <button id="pause" class="icon-button" aria-label="Pause game" title="Pause (Escape)" disabled>Ⅱ</button>
+          <button id="reset" class="reset-button" title="Return to the starting clearing (R)" disabled><span aria-hidden="true">↺</span> Reset car</button>
+        </div>
+      </header>
+      <div class="location-tag" aria-hidden="true"><span id="area-label">01 / THE GREAT OUTDOORS</span><div id="area-tagline">Take the scenic route.</div></div>
+      <div id="hint" class="driving-hint">No hurry. No finish line. Just a little room to roam.</div>
+      <div id="surface" class="surface-indicator" data-surface="dirt" aria-live="polite"><i></i><span id="surface-label">Packed dirt</span></div>
+      <section id="controls" class="controls" aria-label="Driving controls" hidden>
+        <div class="steering-cluster">
+          <div class="control-caption"><span>STEER</span><span>LEFT / RIGHT</span></div>
+          <div id="steer" class="steering-pad" role="slider" tabindex="0" aria-label="Steering, or use left and right arrow keys" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0">
+            <span class="steer-arrow left" aria-hidden="true">‹</span><div class="steer-track"></div><span class="steer-arrow right" aria-hidden="true">›</span>
+            <div id="steer-knob" class="steer-knob" aria-hidden="true"><span>|||</span></div>
+          </div>
+        </div>
+        <div class="pedal-cluster">
+          <div class="control-caption"><span>LET'S WANDER</span><span>HOLD TO DRIVE</span></div>
+          <div class="pedals">
+            <button id="reverse" class="pedal reverse" aria-label="Hold to reverse or brake"><span class="pedal-arrow" aria-hidden="true">↓</span><span>REVERSE</span></button>
+            <button id="forward" class="pedal forward" aria-label="Hold to drive forward"><span class="pedal-arrow" aria-hidden="true">↑</span><span>FORWARD</span></button>
+          </div>
+        </div>
+      </section>
+      <div id="toast" role="status" aria-live="polite"></div>
+      <div class="pwa-status" aria-live="polite"><span id="offline-status">Online play</span><button id="update-game" hidden>Update game</button></div>
+      <section id="welcome" class="overlay">
+        <div class="welcome-card">
+          <span id="welcome-eyebrow" class="eyebrow">A LITTLE FOUR-WHEEL ESCAPE</span>
+          <h1>Small wheels.<br /><span id="welcome-title">Big outside.</span></h1>
+          <p id="welcome-description">Over the hills, along the dusty trails, or somewhere entirely your own. There's no wrong turn.</p>
+          <button id="start" class="primary-button" disabled><span id="start-label">Building your little world…</span><span aria-hidden="true">↗</span></button>
+          <div class="welcome-instructions"><span><b>TOUCH</b> Steer left. Pedals right.</span><span><b>KEYBOARD</b> WASD or arrow keys</span></div>
+          <div id="loading-status" role="status" aria-live="polite">Packing a little sunshine</div>
+        </div>
+        <div class="welcome-footnote">OPEN SKIES. FOUR DRIVEN WHEELS. ABSOLUTELY NO PLANS.</div>
+      </section>
+      <section id="paused" class="overlay pause-overlay" hidden>
+        <div class="pause-card"><span class="eyebrow">A MOMENT IN THE OUTDOORS</span><h2>Parked for a bit.</h2><p>Your little adventure will be right here.</p><button id="resume" class="primary-button">Keep roaming <span aria-hidden="true">↗</span></button></div>
+      </section>
+      <section id="travelling" class="overlay travel-overlay" hidden aria-live="polite" aria-busy="true">
+        <div class="pause-card"><span class="eyebrow">A CHANGE OF SCENERY</span><h2>Taking the long way.</h2><p id="travel-status" role="status">Packing your next little adventure...</p></div>
+      </section>
+      <section id="error" class="overlay error-overlay" hidden>
+        <div class="pause-card"><span class="eyebrow">A BUMP IN THE ROAD</span><h2>We couldn't start the engine.</h2><p id="error-message"></p><button id="reload" class="primary-button">Try again <span aria-hidden="true">↻</span></button></div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

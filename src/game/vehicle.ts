@@ -1,0 +1,272 @@
+import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { driveForces, MAX_FORWARD_SPEED, MAX_REVERSE_SPEED, type DriveInput } from './driving';
+import { START } from './terrain';
+import { SURFACES, type Surface, type SurfaceId } from './surfaces';
+
+const WHEEL_RADIUS = 0.48;
+const REST_LENGTH = 0.38;
+const CONNECTIONS = [
+  { x: -0.91, y: 0, z: -1.02 }, { x: 0.91, y: 0, z: -1.02 },
+  { x: -0.91, y: 0, z: 1.0 }, { x: 0.91, y: 0, z: 1.0 },
+];
+const FORWARD = new THREE.Vector3(0, 0, -1);
+
+export class Vehicle {
+  readonly body: RAPIER.RigidBody;
+  readonly controller: RAPIER.DynamicRayCastVehicleController;
+  readonly model = new THREE.Group();
+  readonly wheels: THREE.Group[] = [];
+  readonly tires: THREE.Group[] = [];
+  readonly previousPosition = new THREE.Vector3();
+  readonly previousRotation = new THREE.Quaternion();
+  readonly position = new THREE.Vector3();
+  readonly rotation = new THREE.Quaternion();
+  readonly forward = new THREE.Vector3();
+  private steering = 0;
+  private readonly oldSuspension = [REST_LENGTH, REST_LENGTH, REST_LENGTH, REST_LENGTH];
+  private readonly suspension = [REST_LENGTH, REST_LENGTH, REST_LENGTH, REST_LENGTH];
+  private readonly oldWheelAngles = [0, 0, 0, 0];
+  private readonly wheelAngles = [0, 0, 0, 0];
+  private readonly velocity = new THREE.Vector3();
+  private readonly up = new THREE.Vector3();
+  private surface: Surface = SURFACES.dirt;
+
+  constructor(
+    scene: THREE.Scene,
+    readonly world: RAPIER.World,
+    readonly spawn = START,
+    private readonly climbingPower = 1,
+    private readonly surfaceAt: (x: number, z: number) => SurfaceId = () => 'dirt',
+  ) {
+    this.body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic()
+      .setTranslation(spawn.x, spawn.y, spawn.z)
+      .setLinearDamping(0.14).setAngularDamping(1.9).setCcdEnabled(true).setCanSleep(false));
+    world.createCollider(RAPIER.ColliderDesc.cuboid(0.73, 0.26, 1.37)
+      .setTranslation(0, 0.03, 0).setMass(90).setFriction(0.35).setRestitution(0), this.body);
+    world.createCollider(RAPIER.ColliderDesc.cuboid(0.63, 0.35, 0.61)
+      .setTranslation(0, 0.61, 0.15).setMass(5).setFriction(0.35), this.body);
+    this.controller = world.createVehicleController(this.body);
+    this.controller.indexUpAxis = 1;
+    this.controller.setIndexForwardAxis = 2;
+    for (const point of CONNECTIONS) {
+      const i = this.controller.numWheels();
+      this.controller.addWheel(point, { x: 0, y: -1, z: 0 }, { x: -1, y: 0, z: 0 }, REST_LENGTH, WHEEL_RADIUS);
+      this.controller.setWheelSuspensionStiffness(i, 30);
+      this.controller.setWheelSuspensionCompression(i, 4.4);
+      this.controller.setWheelSuspensionRelaxation(i, 5.2);
+      this.controller.setWheelMaxSuspensionTravel(i, 0.28);
+      this.controller.setWheelMaxSuspensionForce(i, 5000);
+      this.controller.setWheelFrictionSlip(i, 2.4);
+      this.controller.setWheelSideFrictionStiffness(i, 0.85);
+    }
+    this.createModel();
+    scene.add(this.model);
+    this.capture();
+    this.previousPosition.copy(this.position);
+    this.previousRotation.copy(this.rotation);
+    this.syncVisuals(1);
+  }
+
+  private createModel() {
+    const mat = (color: string, roughness = 0.7) => new THREE.MeshStandardMaterial({ color, roughness, flatShading: true });
+    const paint = mat('#ed754b');
+    const dark = mat('#293e3d');
+    const roof = mat('#ffebc4');
+    const glass = mat('#397b7d', 0.25);
+    const tire = mat('#293638');
+    const hub = mat('#efe2be');
+    const lights = new THREE.MeshStandardMaterial({ color: '#fff3cc', emissive: '#ffe4a6', emissiveIntensity: 0.3 });
+    const taillights = mat('#b54939');
+    const box = (w: number, h: number, d: number, x: number, y: number, z: number, material: THREE.Material) => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      this.model.add(mesh);
+      return mesh;
+    };
+    box(1.53, 0.49, 2.78, 0, 0.11, 0, paint);
+    box(1.42, 0.14, 0.93, 0, 0.42, -0.85, paint);
+    box(1.3, 0.7, 1.27, 0, 0.67, 0.18, roof);
+    box(1.15, 0.46, 0.035, 0, 0.69, -0.471, glass);
+    box(1.15, 0.42, 0.035, 0, 0.69, 0.826, glass);
+    for (const side of [-1, 1]) {
+      box(0.027, 0.43, 0.91, side * 0.66, 0.69, 0.12, glass);
+      box(0.04, 0.47, 0.06, side * 0.68, 0.69, 0.19, roof);
+      box(0.045, 0.06, 0.22, side * 0.783, 0.24, 0.35, dark);
+      box(0.13, 0.22, 0.28, side * 0.87, 0.53, -0.41, paint);
+      box(0.31, 0.2, 0.05, side * 0.51, 0.18, -1.405, lights);
+      box(0.21, 0.17, 0.05, side * 0.52, 0.18, 1.405, taillights);
+      box(0.26, 0.17, 0.84, side * 0.78, 0.02, -1, paint);
+      box(0.26, 0.17, 0.84, side * 0.78, 0.02, 1, paint);
+      box(0.07, 0.12, 1.18, side * 0.51, 1.15, 0.15, dark);
+    }
+    box(1.48, 0.16, 1.44, 0, 1.07, 0.17, roof);
+    box(1.7, 0.16, 0.18, 0, -0.12, -1.48, dark);
+    box(1.7, 0.16, 0.18, 0, -0.12, 1.48, dark);
+    box(0.53, 0.16, 0.06, 0, 0.13, -1.413, dark);
+    box(0.6, 0.32, 0.69, 0.15, 1.32, 0.24, mat('#a7b886'));
+    box(0.65, 0.035, 0.065, 0.15, 1.495, 0.24, roof);
+    box(1.19, 0.08, 0.09, 0, 1.19, -0.28, dark);
+    box(1.19, 0.08, 0.09, 0, 1.19, 0.65, dark);
+
+    const tireGeo = new THREE.CylinderGeometry(WHEEL_RADIUS, WHEEL_RADIUS, 0.36, 12);
+    const hubGeo = new THREE.CylinderGeometry(0.27, 0.27, 0.375, 8);
+    tireGeo.rotateZ(Math.PI / 2);
+    hubGeo.rotateZ(Math.PI / 2);
+    const treadGeo = new THREE.BoxGeometry(0.39, 0.065, 0.17);
+    for (const connection of CONNECTIONS) {
+      const wheel = new THREE.Group();
+      const spinner = new THREE.Group();
+      const rubber = new THREE.Mesh(tireGeo, tire);
+      const rim = new THREE.Mesh(hubGeo, hub);
+      rubber.castShadow = true;
+      rim.castShadow = true;
+      spinner.add(rubber, rim);
+      for (let j = 0; j < 12; j++) {
+        const angle = j * Math.PI / 6;
+        const tread = new THREE.Mesh(treadGeo, dark);
+        tread.position.set(0, Math.cos(angle) * 0.46, Math.sin(angle) * 0.46);
+        tread.rotation.x = angle;
+        spinner.add(tread);
+      }
+      wheel.add(spinner);
+      wheel.position.set(connection.x, -REST_LENGTH, connection.z);
+      this.model.add(wheel);
+      this.wheels.push(wheel);
+      this.tires.push(spinner);
+    }
+    const spare = new THREE.Mesh(tireGeo, tire);
+    spare.rotation.y = Math.PI / 2;
+    spare.position.set(0, 0.53, 1.51);
+    spare.scale.setScalar(0.84);
+    spare.castShadow = true;
+    this.model.add(spare);
+    const spareHub = new THREE.Mesh(hubGeo, hub);
+    spareHub.rotation.copy(spare.rotation);
+    spareHub.position.copy(spare.position);
+    spareHub.scale.copy(spare.scale);
+    this.model.add(spareHub);
+
+    // Batch immutable parts by material; suspension/steering groups stay separate.
+    const batch = (group: THREE.Group) => {
+      const batches = new Map<THREE.Material, THREE.BufferGeometry[]>();
+      for (const child of [...group.children]) {
+        if (!(child instanceof THREE.Mesh) || Array.isArray(child.material)) continue;
+        child.updateMatrix();
+        const transformed = child.geometry.clone().applyMatrix4(child.matrix);
+        const geometries = batches.get(child.material) ?? [];
+        geometries.push(transformed);
+        batches.set(child.material, geometries);
+        group.remove(child);
+      }
+      for (const [material, geometries] of batches) {
+        const geometry = mergeGeometries(geometries);
+        if (!geometry) throw new Error('The toy car geometry could not be assembled.');
+        for (const part of geometries) part.dispose();
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        group.add(mesh);
+      }
+    };
+    for (const spinner of this.tires) batch(spinner);
+    batch(this.model);
+  }
+
+  get speed() {
+    this.forward.copy(FORWARD).applyQuaternion(this.body.rotation());
+    return this.velocity.copy(this.body.linvel()).dot(this.forward);
+  }
+
+  get currentSurface() { return this.surface; }
+
+  beforeStep(input: DriveInput, dt: number) {
+    this.previousPosition.copy(this.position);
+    this.previousRotation.copy(this.rotation);
+    const speed = this.speed;
+    this.surface = SURFACES[this.surfaceAt(this.position.x, this.position.z)];
+    const forces = driveForces(input, speed);
+    const steerLimit = THREE.MathUtils.lerp(0.51, 0.25, Math.min(1, Math.abs(speed) / 15))
+      * this.surface.steering;
+    this.steering = THREE.MathUtils.damp(this.steering, -input.steer * steerLimit, 9, dt);
+    for (let i = 0; i < 4; i++) {
+      this.oldSuspension[i] = this.suspension[i];
+      this.oldWheelAngles[i] = this.wheelAngles[i];
+      this.controller.setWheelSteering(i, i < 2 ? this.steering : 0);
+      this.controller.setWheelEngineForce(i, -forces.engine * this.climbingPower * this.surface.power);
+      this.controller.setWheelBrake(i, forces.brake + this.surface.rollingBrake);
+      this.controller.setWheelFrictionSlip(i, 2.4 * this.surface.grip);
+      this.controller.setWheelSideFrictionStiffness(i, 0.85 * this.surface.grip);
+    }
+    this.controller.updateVehicle(dt, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC);
+    const velocity = this.body.linvel();
+    const drag = Math.exp(-this.surface.drag * dt);
+    this.body.setLinvel({ x: velocity.x * drag, y: velocity.y, z: velocity.z * drag }, true);
+    // Gentle pitch/roll assistance, only on grounded upright wheels; yaw remains free.
+    const contacts = this.contactCount();
+    this.up.set(0, 1, 0).applyQuaternion(this.body.rotation());
+    if (contacts >= 2 && this.up.y > 0.35) {
+      const omega = this.body.angvel();
+      this.body.applyTorqueImpulse({
+        x: (this.up.z * -75 - omega.x * 8) * dt,
+        y: 0,
+        z: (this.up.x * 75 - omega.z * 8) * dt,
+      }, true);
+    }
+  }
+
+  capture() {
+    const velocity = this.body.linvel();
+    const horizontalSpeed = Math.hypot(velocity.x, velocity.z);
+    const limit = (this.speed < -0.65 ? MAX_REVERSE_SPEED : MAX_FORWARD_SPEED) * this.surface.speed;
+    if (horizontalSpeed > limit) {
+      const scale = limit / horizontalSpeed;
+      this.body.setLinvel({ x: velocity.x * scale, y: velocity.y, z: velocity.z * scale }, true);
+    }
+    this.position.copy(this.body.translation());
+    this.rotation.copy(this.body.rotation());
+    for (let i = 0; i < 4; i++) {
+      this.suspension[i] = this.controller.wheelSuspensionLength(i) ?? REST_LENGTH;
+      this.wheelAngles[i] = this.controller.wheelRotation(i) ?? 0;
+    }
+  }
+
+  contactCount() {
+    let contacts = 0;
+    for (let i = 0; i < 4; i++) contacts += Number(this.controller.wheelIsInContact(i));
+    return contacts;
+  }
+
+  syncVisuals(alpha: number) {
+    this.model.position.lerpVectors(this.previousPosition, this.position, alpha);
+    this.model.quaternion.slerpQuaternions(this.previousRotation, this.rotation, alpha);
+    for (let i = 0; i < 4; i++) {
+      this.wheels[i].position.y = -THREE.MathUtils.lerp(this.oldSuspension[i], this.suspension[i], alpha);
+      this.wheels[i].rotation.y = i < 2 ? this.steering : 0;
+      this.tires[i].rotation.x = THREE.MathUtils.lerp(this.oldWheelAngles[i], this.wheelAngles[i], alpha);
+    }
+  }
+
+  reset() {
+    this.body.setTranslation(this.spawn, true);
+    this.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
+    this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    this.body.resetForces(true);
+    this.body.resetTorques(true);
+    this.steering = 0;
+    this.surface = SURFACES[this.surfaceAt(this.spawn.x, this.spawn.z)];
+    for (let i = 0; i < 4; i++) {
+      this.controller.setWheelEngineForce(i, 0);
+      this.controller.setWheelBrake(i, 0);
+      this.controller.setWheelSteering(i, 0);
+    }
+    this.capture();
+    this.previousPosition.copy(this.position);
+    this.previousRotation.copy(this.rotation);
+    this.syncVisuals(1);
+  }
+}
