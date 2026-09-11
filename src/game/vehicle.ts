@@ -12,6 +12,14 @@ const CONNECTIONS = [
   { x: -0.91, y: 0, z: 1.0 }, { x: 0.91, y: 0, z: 1.0 },
 ];
 const FORWARD = new THREE.Vector3(0, 0, -1);
+const SURFACE_BLEND_SECONDS = 0.26;
+
+export type WheelTerrainState = {
+  readonly position: THREE.Vector3;
+  surface: Surface;
+  grounded: boolean;
+  intensity: number;
+};
 
 export class Vehicle {
   readonly body: RAPIER.RigidBody;
@@ -24,6 +32,9 @@ export class Vehicle {
   readonly position = new THREE.Vector3();
   readonly rotation = new THREE.Quaternion();
   readonly forward = new THREE.Vector3();
+  readonly terrainWheels: WheelTerrainState[] = CONNECTIONS.map(() => ({
+    position: new THREE.Vector3(), surface: SURFACES.dirt, grounded: false, intensity: 0,
+  }));
   private steering = 0;
   private readonly oldSuspension = [REST_LENGTH, REST_LENGTH, REST_LENGTH, REST_LENGTH];
   private readonly suspension = [REST_LENGTH, REST_LENGTH, REST_LENGTH, REST_LENGTH];
@@ -31,7 +42,17 @@ export class Vehicle {
   private readonly wheelAngles = [0, 0, 0, 0];
   private readonly velocity = new THREE.Vector3();
   private readonly up = new THREE.Vector3();
+  private readonly wheelOffset = new THREE.Vector3();
+  private readonly wheelWaterDepth = [0, 0, 0, 0];
+  private readonly surfaceCounts: Record<SurfaceId, number> = {
+    dirt: 0, grass: 0, ash: 0, lava: 0, moss: 0, ice: 0, water: 0,
+  };
   private surface: Surface = SURFACES.dirt;
+  private candidateSurface: SurfaceId = 'dirt';
+  private candidateTime = 0;
+  private blended = { power: 1, drag: 0, speed: 1, steering: 1, feedback: 0 };
+  private terrainIntensity = 0;
+  private terrainTime = 0;
 
   constructor(
     scene: THREE.Scene,
@@ -39,6 +60,7 @@ export class Vehicle {
     readonly spawn = START,
     private readonly climbingPower = 1,
     private readonly surfaceAt: (x: number, z: number) => SurfaceId = () => 'dirt',
+    private readonly waterHeight: (x: number, z: number) => number | null = () => null,
   ) {
     this.body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(spawn.x, spawn.y, spawn.z)
@@ -182,28 +204,108 @@ export class Vehicle {
   }
 
   get currentSurface() { return this.surface; }
+  get terrainFeedback() { return this.blended.feedback * this.terrainIntensity; }
+  get terrainHandling() { return this.blended; }
+  get wheelSurfaces() { return this.terrainWheels.map(wheel => wheel.surface.id); }
 
   beforeStep(input: DriveInput, dt: number) {
     this.previousPosition.copy(this.position);
     this.previousRotation.copy(this.rotation);
     const speed = this.speed;
-    this.surface = SURFACES[this.surfaceAt(this.position.x, this.position.z)];
+    this.terrainTime += dt;
+    const centerSurface = SURFACES[this.surfaceAt(this.position.x, this.position.z)];
+    for (const id in this.surfaceCounts) this.surfaceCounts[id as SurfaceId] = 0;
+    const bodyRotation = this.body.rotation();
+    const bodyPosition = this.body.translation();
+    let power = 0;
+    let dragTotal = 0;
+    let speedScale = 0;
+    let steering = 0;
+    let feedback = 0;
+    let intensity = 0;
+    for (let i = 0; i < 4; i++) {
+      const wheel = this.terrainWheels[i];
+      this.wheelOffset.set(CONNECTIONS[i].x, 0, CONNECTIONS[i].z).applyQuaternion(bodyRotation);
+      wheel.position.set(
+        bodyPosition.x + this.wheelOffset.x,
+        bodyPosition.y - (this.controller.wheelSuspensionLength(i) ?? REST_LENGTH) - WHEEL_RADIUS,
+        bodyPosition.z + this.wheelOffset.z,
+      );
+      wheel.grounded = this.controller.wheelIsInContact(i);
+      const contactPoint = wheel.grounded ? this.controller.wheelContactPoint(i) : null;
+      if (contactPoint) wheel.position.set(contactPoint.x, contactPoint.y, contactPoint.z);
+      wheel.surface = wheel.grounded
+        ? SURFACES[this.surfaceAt(wheel.position.x, wheel.position.z)]
+        : centerSurface;
+      const waterDepth = wheel.surface.id === 'water'
+        ? Math.max(0, Math.min(1, ((this.waterHeight(wheel.position.x, wheel.position.z) ?? wheel.position.y)
+          - wheel.position.y) / 0.45))
+        : 1;
+      this.wheelWaterDepth[i] = wheel.surface.id === 'water' ? waterDepth : 0;
+      this.surfaceCounts[wheel.surface.id]++;
+      power += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(0.72, wheel.surface.power, waterDepth) : wheel.surface.power;
+      dragTotal += wheel.surface.drag * (wheel.surface.id === 'water' ? THREE.MathUtils.lerp(0.45, 1, waterDepth) : 1);
+      speedScale += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(0.68, wheel.surface.speed, waterDepth) : wheel.surface.speed;
+      steering += wheel.surface.steering;
+      feedback += wheel.surface.feedback;
+      wheel.intensity = wheel.grounded
+        ? Math.min(1, Math.max(0, (Math.abs(speed) - 0.5) / 8) * (input.forward || input.reverse ? 1 : 0.55))
+        : 0;
+      intensity += wheel.intensity;
+    }
+    let dominant = centerSurface.id;
+    for (const wheel of this.terrainWheels) {
+      if (this.surfaceCounts[wheel.surface.id] > this.surfaceCounts[dominant]) dominant = wheel.surface.id;
+    }
+    if (dominant === this.surface.id) {
+      this.candidateSurface = dominant;
+      this.candidateTime = 0;
+    } else {
+      if (dominant !== this.candidateSurface) {
+        this.candidateSurface = dominant;
+        this.candidateTime = 0;
+      }
+      this.candidateTime += dt;
+      if (this.candidateTime >= 0.12) {
+        this.surface = SURFACES[dominant];
+        this.candidateTime = 0;
+      }
+    }
+    const blend = 1 - Math.exp(-dt / SURFACE_BLEND_SECONDS);
+    this.blended.power += (power / 4 - this.blended.power) * blend;
+    this.blended.drag += (dragTotal / 4 - this.blended.drag) * blend;
+    this.blended.speed += (speedScale / 4 - this.blended.speed) * blend;
+    this.blended.steering += (steering / 4 - this.blended.steering) * blend;
+    this.blended.feedback += (feedback / 4 - this.blended.feedback) * blend;
+    this.terrainIntensity += (intensity / 4 - this.terrainIntensity) * blend;
     const forces = driveForces(input, speed);
     const steerLimit = THREE.MathUtils.lerp(0.51, 0.25, Math.min(1, Math.abs(speed) / 15))
-      * this.surface.steering;
+      * this.blended.steering;
     this.steering = THREE.MathUtils.damp(this.steering, -input.steer * steerLimit, 9, dt);
     for (let i = 0; i < 4; i++) {
       this.oldSuspension[i] = this.suspension[i];
       this.oldWheelAngles[i] = this.wheelAngles[i];
       this.controller.setWheelSteering(i, i < 2 ? this.steering : 0);
-      this.controller.setWheelEngineForce(i, -forces.engine * this.climbingPower * this.surface.power);
-      this.controller.setWheelBrake(i, forces.brake + this.surface.rollingBrake);
-      this.controller.setWheelFrictionSlip(i, 2.4 * this.surface.grip);
-      this.controller.setWheelSideFrictionStiffness(i, 0.85 * this.surface.grip);
+      const wheelSurface = this.terrainWheels[i].surface;
+      this.controller.setWheelEngineForce(i, -forces.engine * this.climbingPower * this.blended.power);
+      this.controller.setWheelBrake(i, forces.brake * wheelSurface.brakeEffect + wheelSurface.rollingBrake);
+      this.controller.setWheelFrictionSlip(i, 2.4 * wheelSurface.longitudinalGrip);
+      this.controller.setWheelSideFrictionStiffness(i, 0.85 * wheelSurface.lateralGrip);
+      this.controller.setWheelSuspensionStiffness(i, wheelSurface.suspensionStiffness);
+      this.controller.setWheelSuspensionCompression(i, wheelSurface.suspensionCompression);
+      this.controller.setWheelSuspensionRelaxation(i, wheelSurface.suspensionRelaxation);
+      const wheel = this.terrainWheels[i];
+      const phase = this.terrainTime * Math.PI * 2 * (5 + i * 0.9)
+        + wheel.position.x * 0.37 + wheel.position.z * 0.29;
+      const roughness = wheelSurface.id === 'water'
+        ? wheelSurface.roughness * THREE.MathUtils.lerp(0.65, 1.1, this.wheelWaterDepth[i])
+        : wheelSurface.roughness;
+      this.controller.setWheelSuspensionRestLength(i,
+        REST_LENGTH + Math.sin(phase) * roughness * wheel.intensity);
     }
     this.controller.updateVehicle(dt, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC);
     const velocity = this.body.linvel();
-    const drag = Math.exp(-this.surface.drag * dt);
+    const drag = Math.exp(-this.blended.drag * dt);
     this.body.setLinvel({ x: velocity.x * drag, y: velocity.y, z: velocity.z * drag }, true);
     // Gentle pitch/roll assistance, only on grounded upright wheels; yaw remains free.
     const contacts = this.contactCount();
@@ -221,7 +323,7 @@ export class Vehicle {
   capture() {
     const velocity = this.body.linvel();
     const horizontalSpeed = Math.hypot(velocity.x, velocity.z);
-    const limit = (this.speed < -0.65 ? MAX_REVERSE_SPEED : MAX_FORWARD_SPEED) * this.surface.speed;
+    const limit = (this.speed < -0.65 ? MAX_REVERSE_SPEED : MAX_FORWARD_SPEED) * this.blended.speed;
     if (horizontalSpeed > limit) {
       const scale = limit / horizontalSpeed;
       this.body.setLinvel({ x: velocity.x * scale, y: velocity.y, z: velocity.z * scale }, true);
@@ -259,6 +361,14 @@ export class Vehicle {
     this.body.resetTorques(true);
     this.steering = 0;
     this.surface = SURFACES[this.surfaceAt(this.spawn.x, this.spawn.z)];
+    this.candidateSurface = this.surface.id;
+    this.candidateTime = 0;
+    this.blended = {
+      power: this.surface.power, drag: this.surface.drag, speed: this.surface.speed,
+      steering: this.surface.steering, feedback: this.surface.feedback,
+    };
+    this.terrainTime = 0;
+    this.terrainIntensity = 0;
     for (let i = 0; i < 4; i++) {
       this.controller.setWheelEngineForce(i, 0);
       this.controller.setWheelBrake(i, 0);

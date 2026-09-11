@@ -188,3 +188,26 @@ test('camera sphere sweep shortens the boom before an obstruction and stays leve
     assert.ok(camera.position.y > surfaceHeight(camera.position.x, camera.position.z));
   } finally { world.free(); }
 });
+
+test('terrain camera feedback is visible but remains within its collision-safe bound', () => {
+  const { world, vehicle, tick } = simulation();
+  try {
+    const steadyCamera = new THREE.PerspectiveCamera(48, 1.5, 0.15, 250);
+    const roughCamera = new THREE.PerspectiveCamera(48, 1.5, 0.15, 250);
+    const steady = new FollowCamera(steadyCamera, world, vehicle);
+    const rough = new FollowCamera(roughCamera, world, vehicle);
+    steady.update(1 / 60);
+    rough.update(1 / 60);
+    let maximumOffset = 0;
+    for (let i = 0; i < 120; i++) {
+      tick(1, forward);
+      steady.update(1 / 60, false, 0);
+      rough.update(1 / 60, false, 0.1);
+      maximumOffset = Math.max(maximumOffset, steadyCamera.position.distanceTo(roughCamera.position));
+    }
+    assert.ok(maximumOffset > 0.01, `camera feedback offset=${maximumOffset}`);
+    assert.ok(maximumOffset <= 0.12, `camera feedback exceeded bound: ${maximumOffset}`);
+    assert.deepEqual(roughCamera.up.toArray(), [0, 1, 0]);
+    assert.ok(roughCamera.position.y > surfaceHeight(roughCamera.position.x, roughCamera.position.z));
+  } finally { world.free(); }
+});

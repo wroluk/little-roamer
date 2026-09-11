@@ -14,6 +14,7 @@ export class FollowCamera {
   private readonly shape = new RAPIER.Ball(0.4);
   private readonly identity = { x: 0, y: 0, z: 0, w: 1 };
   private initialized = false;
+  private feedbackTime = 0;
 
   constructor(
     readonly camera: THREE.PerspectiveCamera,
@@ -23,9 +24,10 @@ export class FollowCamera {
     private readonly scenic = false,
   ) {}
 
-  reset() { this.initialized = false; }
+  reset() { this.initialized = false; this.feedbackTime = 0; }
 
-  update(dt: number, showcase = false) {
+  update(dt: number, showcase = false, feedback = 0) {
+    this.feedbackTime += dt;
     const car = this.vehicle.model;
     this.forward.set(0, 0, -1).applyQuaternion(car.quaternion);
     if (Math.hypot(this.forward.x, this.forward.z) > 0.2) {
@@ -44,6 +46,10 @@ export class FollowCamera {
       this.wanted.copy(car.position).add(new THREE.Vector3(12, 8, 13));
       this.target.copy(car.position).add(new THREE.Vector3(-5.5, 0.5, -2));
       if (portrait) this.target.copy(car.position).add(new THREE.Vector3(0, 0, -4));
+    }
+    if (!showcase && feedback > 0) {
+      this.wanted.y += Math.sin(this.feedbackTime * 43) * feedback;
+      this.wanted.addScaledVector(this.forward, Math.sin(this.feedbackTime * 29 + 0.8) * feedback * 0.35);
     }
     this.wanted.y = Math.max(this.wanted.y, this.groundHeight(this.wanted.x, this.wanted.z) + 1);
     if (!this.initialized) this.smoothed.copy(this.wanted);

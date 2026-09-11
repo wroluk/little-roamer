@@ -34,8 +34,10 @@ button:disabled { cursor: wait; }
 .location-tag > span { font-size: 8px; font-weight: 800; letter-spacing: 1.6px; }
 .location-tag > div { font-family: Georgia, serif; font-style: italic; font-size: 22px; margin-top: 5px; }
 .driving-hint { position: absolute; left: 50%; bottom: max(32px, env(safe-area-inset-bottom)); transform: translateX(-50%); font-size: 10px; font-weight: 600; text-align: center; letter-spacing: .3px; color: #fdf9e9; text-shadow: 0 1px 5px #203c37; pointer-events: none; max-width: 260px; transition: opacity 1s; }
-.surface-indicator { position: absolute; left: 50%; bottom: max(55px, calc(env(safe-area-inset-bottom) + 24px)); transform: translateX(-50%); display: flex; align-items: center; gap: 7px; min-height: 27px; padding: 5px 11px; border: 1px solid #ffffff55; border-radius: 20px; background: #253e39a8; color: #fff9e9; font-size: 8px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; pointer-events: none; transition: opacity .4s, background .3s; }
+.surface-indicator { position: absolute; left: 50%; bottom: max(55px, calc(env(safe-area-inset-bottom) + 24px)); transform: translateX(-50%); display: flex; align-items: center; gap: 7px; min-height: 27px; padding: 5px 11px; border: 1px solid #ffffff55; border-radius: 20px; background: #253e39a8; color: #fff9e9; font-size: 8px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; pointer-events: none; transition: opacity .4s, background .3s, transform .22s; }
 .surface-indicator i { width: 9px; height: 9px; border-radius: 50%; background: #d7ae72; box-shadow: inset 0 0 0 1px #ffffff55; }
+.surface-indicator b { padding-left: 7px; border-left: 1px solid #ffffff55; color: #fff9e9c9; font-size: 7px; font-weight: 600; letter-spacing: .8px; }
+.surface-indicator.changed { transform: translateX(-50%) scale(1.12); }
 .surface-indicator[data-surface="grass"] i { background: #84a75e; }
 .surface-indicator[data-surface="ash"] i { background: #47545a; }
 .surface-indicator[data-surface="lava"] i { background: #252f33; }
@@ -155,4 +157,5 @@ h2 { font-family: Georgia, serif; font-size: 34px; letter-spacing: -1px; font-we
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
+  .surface-indicator.changed { transform: translateX(-50%); }
 }

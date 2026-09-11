@@ -87,17 +87,20 @@ to distinct vehicle behavior rather than being purely decorative:
 
 | Surface | Driving feel |
 | --- | --- |
-| Packed dirt | Fastest, most responsive baseline |
-| Soft grass | Slightly slower with softer steering and more rolling resistance |
-| Loose black sand | Reduced acceleration and grip; noticeably drags the car |
-| Rough lava | Bumpy-looking dark flow with strong rolling resistance and a lower safe speed |
-| Springy moss | Moderate grip and speed with soft resistance |
-| Glacier ice | Very low lateral grip and gentle steering; long coasting distance |
-| Glacial river | Slowest surface, with water drag, reduced traction, and wheel spray |
+| Packed dirt | Predictable and responsive, with subtle natural trail vibration and tan dust |
+| Soft grass | Softer, uneven suspension response, resistance, and occasional grass clippings |
+| Loose black sand | Wheels dig in and slide laterally over rippled ground, throwing dense dark dust |
+| Rough lava | Slow, firm suspension chatter with small dark pebbles |
+| Springy moss | Soft suspension and a gentle rebound with moss flecks |
+| Glacier ice | Keeps momentum but turns and brakes slowly over imperfect ice, with light powder |
+| Glacial river | Very slow, with depth-scaled drag, rocky-bed suspension shake, and bright spray |
 
-All four raycast wheels receive the active surface's grip and power profile.
-Speed limits and resistance also change, while direction-change braking,
-four-wheel drive, suspension, reset, and collision behavior stay consistent.
+Each grounded raycast wheel uses the surface directly beneath it, so straddling
+ice, ash, or dirt creates stable mixed traction. Vehicle-wide power, drag,
+speed, and suspension blend over a fraction of a second instead of snapping at
+terrain boundaries. The surface chip briefly shows a trait such as **Slippery**
+or **Rocky & rough**, while restrained camera feedback makes roughness readable
+without inheriting the car's roll or bypassing collision avoidance.
 
 ## Play on an iPad
 

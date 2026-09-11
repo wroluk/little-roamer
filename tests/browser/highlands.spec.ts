@@ -17,6 +17,13 @@ type State = {
   geometries: number;
   textures: number;
   drawCalls: number;
+  wheelSurfaces: string[];
+  terrainFeedback: number;
+  terrainParticles: number;
+  terrainParticleCapacity: number;
+  terrainEffectUsesInstanceColors: boolean;
+  reducedMotion: boolean;
+  cameraFeedbackApplied: number;
 };
 type Game = { snapshot(): State; fords: Ford[]; ascents: Ascent[]; placeVehicle(x: number, z: number, heading: number): void };
 const state = (page: Page): Promise<State> =>
@@ -162,4 +169,33 @@ test('visible terrain changes the live handling profile and surface indicator', 
     })).toEqual({ surface: location.id, label: location.label });
     await expect(page.locator('#surface')).toHaveAttribute('data-surface', location.id);
   }
+});
+
+test('terrain emits bounded wheel-local feedback without inflating draw calls', async ({ page }) => {
+  await enter(page);
+  await page.waitForTimeout(1300);
+  await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__
+    .placeVehicle(-8, -172, 0));
+  await expect(page.locator('#surface')).toHaveAttribute('data-surface', 'ice');
+  await expect(page.locator('#surface')).toHaveClass(/changed/);
+  await page.waitForTimeout(1300);
+  await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__
+    .placeVehicle(220, -10, 0));
+  await expect(page.locator('#surface')).toHaveAttribute('data-surface', 'ash');
+  await expect(page.locator('#surface')).toHaveClass(/changed/);
+  const baseline = await state(page);
+  await page.keyboard.down('KeyW');
+  await expect.poll(async () => (await state(page)).terrainParticles).toBeGreaterThan(0);
+  const active = await state(page);
+  await page.keyboard.up('KeyW');
+  expect(active.terrainParticleCapacity).toBe(72);
+  expect(active.terrainParticles).toBeLessThanOrEqual(active.terrainParticleCapacity);
+  expect(active.drawCalls).toBeLessThanOrEqual(baseline.drawCalls + 2);
+  expect(active.terrainEffectUsesInstanceColors).toBe(true);
+  expect(active.terrainFeedback).toBeGreaterThan(0);
+  expect(active.cameraFeedbackApplied).toBe(active.terrainFeedback);
+  await expect(page.locator('#surface-trait')).toHaveText('Loose & sliding');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect.poll(async () => (await state(page)).reducedMotion).toBe(true);
+  expect((await state(page)).cameraFeedbackApplied).toBe(0);
 });
