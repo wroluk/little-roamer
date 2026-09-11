@@ -52,6 +52,7 @@ export class Vehicle {
   private candidateTime = 0;
   private blended = { power: 1, drag: 0, speed: 1, steering: 1, feedback: 0 };
   private terrainIntensity = 0;
+  private maximumWaterDepth = 0;
   private terrainTime = 0;
 
   constructor(
@@ -207,6 +208,7 @@ export class Vehicle {
   get terrainFeedback() { return this.blended.feedback * this.terrainIntensity; }
   get terrainHandling() { return this.blended; }
   get wheelSurfaces() { return this.terrainWheels.map(wheel => wheel.surface.id); }
+  get waterDepth() { return this.maximumWaterDepth; }
 
   beforeStep(input: DriveInput, dt: number) {
     this.previousPosition.copy(this.position);
@@ -223,6 +225,7 @@ export class Vehicle {
     let steering = 0;
     let feedback = 0;
     let intensity = 0;
+    this.maximumWaterDepth = 0;
     for (let i = 0; i < 4; i++) {
       const wheel = this.terrainWheels[i];
       this.wheelOffset.set(CONNECTIONS[i].x, 0, CONNECTIONS[i].z).applyQuaternion(bodyRotation);
@@ -238,14 +241,20 @@ export class Vehicle {
         ? SURFACES[this.surfaceAt(wheel.position.x, wheel.position.z)]
         : centerSurface;
       const waterDepth = wheel.surface.id === 'water'
-        ? Math.max(0, Math.min(1, ((this.waterHeight(wheel.position.x, wheel.position.z) ?? wheel.position.y)
-          - wheel.position.y) / 0.45))
-        : 1;
-      this.wheelWaterDepth[i] = wheel.surface.id === 'water' ? waterDepth : 0;
+        ? Math.max(0, (this.waterHeight(wheel.position.x, wheel.position.z) ?? wheel.position.y)
+          - wheel.position.y)
+        : 0;
+      this.wheelWaterDepth[i] = waterDepth;
+      this.maximumWaterDepth = Math.max(this.maximumWaterDepth, waterDepth);
+      const fordDepth = Math.min(1, waterDepth / 0.45);
+      const deepStall = smoothStep((waterDepth - 0.65) / 0.3);
       this.surfaceCounts[wheel.surface.id]++;
-      power += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(0.72, wheel.surface.power, waterDepth) : wheel.surface.power;
-      dragTotal += wheel.surface.drag * (wheel.surface.id === 'water' ? THREE.MathUtils.lerp(0.45, 1, waterDepth) : 1);
-      speedScale += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(0.68, wheel.surface.speed, waterDepth) : wheel.surface.speed;
+      const shallowPower = THREE.MathUtils.lerp(0.72, wheel.surface.power, fordDepth);
+      power += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(shallowPower, 0, deepStall) : wheel.surface.power;
+      const shallowDrag = wheel.surface.drag * THREE.MathUtils.lerp(0.45, 1, fordDepth);
+      dragTotal += wheel.surface.id === 'water' ? shallowDrag + deepStall * 18 : wheel.surface.drag;
+      const shallowSpeed = THREE.MathUtils.lerp(0.68, wheel.surface.speed, fordDepth);
+      speedScale += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(shallowSpeed, 0.01, deepStall) : wheel.surface.speed;
       steering += wheel.surface.steering;
       feedback += wheel.surface.feedback;
       wheel.intensity = wheel.grounded
@@ -298,10 +307,15 @@ export class Vehicle {
       const phase = this.terrainTime * Math.PI * 2 * (5 + i * 0.9)
         + wheel.position.x * 0.37 + wheel.position.z * 0.29;
       const roughness = wheelSurface.id === 'water'
-        ? wheelSurface.roughness * THREE.MathUtils.lerp(0.65, 1.1, this.wheelWaterDepth[i])
+        ? wheelSurface.roughness * THREE.MathUtils.lerp(0.65, 1.1, Math.min(1, this.wheelWaterDepth[i] / 0.45))
         : wheelSurface.roughness;
       this.controller.setWheelSuspensionRestLength(i,
         REST_LENGTH + Math.sin(phase) * roughness * wheel.intensity);
+    }
+
+    function smoothStep(value: number) {
+      const t = Math.max(0, Math.min(1, value));
+      return t * t * (3 - 2 * t);
     }
     this.controller.updateVehicle(dt, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC);
     const velocity = this.body.linvel();

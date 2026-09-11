@@ -17,6 +17,7 @@ type State = {
   geometries: number;
   textures: number;
   drawCalls: number;
+  targetDistance: number;
   wheelSurfaces: string[];
   terrainFeedback: number;
   terrainParticles: number;
@@ -24,6 +25,7 @@ type State = {
   terrainEffectUsesInstanceColors: boolean;
   reducedMotion: boolean;
   cameraFeedbackApplied: number;
+  waterDepth: number;
 };
 type Game = { snapshot(): State; fords: Ford[]; ascents: Ascent[]; placeVehicle(x: number, z: number, heading: number): void };
 const state = (page: Page): Promise<State> =>
@@ -55,6 +57,7 @@ test('choose Iceland, drive, reset within Iceland, return to valley and release 
     const start = await state(page);
     expect(start.area).toBe('highlands');
     expect(start.bounds).toBeGreaterThanOrEqual(valley.bounds * 3);
+    await expect.poll(async () => (await state(page)).targetDistance).toBeLessThan(14);
     expect(start.input).toEqual({ steer: 0, forward: false, reverse: false });
     await page.keyboard.down('KeyW');
     await expect.poll(async () => (await state(page)).position.z).toBeLessThan(start.position.z - 8);
@@ -198,4 +201,18 @@ test('terrain emits bounded wheel-local feedback without inflating draw calls', 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect.poll(async () => (await state(page)).reducedMotion).toBe(true);
   expect((await state(page)).cameraFeedbackApplied).toBe(0);
+});
+
+test('deep unmarked water stalls the car while directing the player to reset', async ({ page }) => {
+  await enter(page);
+  await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__
+    .placeVehicle(16, 51.812, 0));
+  await expect.poll(async () => (await state(page)).waterDepth).toBeGreaterThan(1);
+  const start = await state(page);
+  await page.keyboard.down('KeyW');
+  await page.waitForTimeout(3500);
+  await page.keyboard.up('KeyW');
+  const stopped = await state(page);
+  expect(Math.hypot(stopped.position.x - start.position.x, stopped.position.z - start.position.z)).toBeLessThan(0.5);
+  await expect(page.locator('#surface-trait')).toHaveText('Too deep · reset');
 });

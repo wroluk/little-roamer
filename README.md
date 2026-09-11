@@ -76,9 +76,10 @@ river-driving simulation: there is no drowning, lava damage, or vehicle damage.
 Iceland Highlands spans **480 x 480 world metres**, versus the valley's
 150 x 150: **10.24 times the exploration area**. Visit Eldfell and Raudafell's
 rounded craters, moss-covered lava fields, basalt columns, the blue-striped
-Blajokull glacier, and Moss, Sky, and Ember fords. The streams are at most
-0.43 metres deep. The highlands car has extra climbing torque for long slopes,
-but the same forward/reverse speed limits and braking behavior as the valley.
+Blajokull glacier, and Moss, Sky, and Ember fords. The amber-post crossings
+retain broad shallow beds, while unmarked river stretches contain much deeper
+pools. The highlands car has extra climbing torque for long slopes, but the
+same forward/reverse speed limits and braking behavior as the valley.
 
 ## Terrain handling
 
@@ -101,6 +102,11 @@ speed, and suspension blend over a fraction of a second instead of snapping at
 terrain boundaries. The surface chip briefly shows a trait such as **Slippery**
 or **Rocky & rough**, while restrained camera feedback makes roughness readable
 without inheriting the car's roll or bypassing collision avoidance.
+
+Marked fords remain shallow and passable. Beyond roughly 0.65 metres, water
+resistance rises nonlinearly and engine power fades; pools around one metre deep
+stall the car instead of allowing an unmarked crossing. Back out before the
+water becomes too deep, or use **Reset car** if the engine is fully submerged.
 
 ## Play on an iPad
 

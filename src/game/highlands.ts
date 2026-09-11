@@ -11,7 +11,7 @@ export {
   FORDS, GLACIER, GLACIER_ASCENT, VOLCANO_ASCENT, HIGHLANDS_HALF, HIGHLANDS_GRID, HIGHLANDS_CELL, HIGHLANDS_START,
   HIGHLANDS_WATER_Y, VOLCANOES, highlandsHeight, highlandsSurfaceHeight,
   highlandsSamples, highlandsWaterAt, highlandsWaterHeight,
-  highlandsSurfaceAt,
+  highlandsSurfaceAt, riverCenter, riverDeepening,
 } from './highlands-terrain';
 
 function matchingHull(world: RAPIER.World, geometry: THREE.BufferGeometry, matrix: THREE.Matrix4) {

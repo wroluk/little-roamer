@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import {
   FORDS, GLACIER_ASCENT, VOLCANO_ASCENT, HIGHLANDS_HALF, HIGHLANDS_START,
-  highlandsSamples, highlandsSurfaceHeight, highlandsWaterHeight,
+  highlandsSamples, highlandsSurfaceHeight, highlandsWaterHeight, riverCenter,
 } from '../src/game/highlands';
 import { Vehicle } from '../src/game/vehicle';
 import { FollowCamera } from '../src/game/camera';
@@ -64,6 +64,21 @@ test('Iceland rendered triangles, raycast ground heights, and submerged ford bed
       assert.ok(depth > 0.08 && depth < 0.7, `${ford.name}: water depth ${depth}`);
     }
   } finally { world.free(); disposeScene(scene); }
+});
+
+test('river has deep pools away from consistently shallow marked fords', () => {
+  let deepest = 0;
+  for (let x = -220; x <= 220; x += 4) {
+    const z = riverCenter(x);
+    const water = highlandsWaterHeight(x, z);
+    assert.notEqual(water, null);
+    deepest = Math.max(deepest, water! - highlandsSurfaceHeight(x, z));
+  }
+  assert.ok(deepest > 1.2, `deepest unmarked river pool was ${deepest}`);
+  for (const ford of FORDS) {
+    const depth = ford.waterY - highlandsSurfaceHeight(ford.x, ford.z);
+    assert.ok(depth > 0.08 && depth < 0.7, `${ford.name}: ford depth ${depth}`);
+  }
 });
 
 test('four-wheel vehicle crosses every ford in both directions with a level, unobstructed camera', () => {

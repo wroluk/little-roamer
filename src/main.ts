@@ -78,7 +78,7 @@ async function boot() {
     try {
       area.build(scene, world);
       const vehicle = new Vehicle(scene, world, area.spawn, area.climbingPower, area.surfaceAt, area.waterHeight);
-      const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight, area.id === 'highlands');
+      const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight);
       // Populate scene queries and settle all four wheels before handing over control.
       for (let i = 0; i < 90; i++) {
         vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
@@ -103,7 +103,7 @@ async function boot() {
     ambient.color.set(area.id === 'highlands' ? '#e9f5ff' : '#fef3d6');
     ambient.groundColor.set(area.groundLight);
     sun.color.set(area.sunlight);
-    camera.fov = area.id === 'highlands' ? 54 : 48;
+    camera.fov = 48;
     camera.updateProjectionMatrix();
     document.body.dataset.area = area.id;
     areaSelect.value = area.id;
@@ -261,6 +261,7 @@ async function boot() {
           surface: vehicle.currentSurface.id,
           wheelSurfaces: vehicle.wheelSurfaces,
           terrainFeedback: vehicle.terrainFeedback,
+          waterDepth: vehicle.waterDepth,
           terrainParticles: terrainEffects.count,
           terrainParticleCapacity: terrainEffects.capacity,
           terrainEffectUsesInstanceColors: terrainEffects.usesInstanceColors,
@@ -320,10 +321,17 @@ async function boot() {
       terrainEffects.update(Math.min(elapsed, 0.05), vehicle);
       const surface = vehicle.currentSurface;
       const surfaceHud = element('surface');
+      if (surface.id === 'water') {
+        element('surface-trait').textContent = vehicle.waterDepth >= 0.85
+          ? 'Too deep · reset'
+          : surface.trait;
+      }
       if (surfaceHud.dataset.surface !== surface.id) {
         surfaceHud.dataset.surface = surface.id;
         element('surface-label').textContent = surface.label;
-        element('surface-trait').textContent = surface.trait;
+        element('surface-trait').textContent = surface.id === 'water' && vehicle.waterDepth >= 0.85
+          ? 'Too deep · reset'
+          : surface.trait;
         surfaceHud.classList.remove('changed');
         if (!reducedMotion.matches && performance.now() - lastSurfaceCue > 1200) {
           lastSurfaceCue = performance.now();

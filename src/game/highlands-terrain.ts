@@ -41,6 +41,19 @@ export function riverDistance(x: number, z: number) {
   return Math.min(main, branch);
 }
 
+export function riverDeepening(x: number, z: number, distance = riverDistance(x, z)) {
+  const channel = 1 - smooth((distance + 7) / 7);
+  const wave = 0.5 + 0.5 * Math.sin(x * 0.037 + 1.8 * Math.sin(x * 0.013));
+  const pools = smooth((wave - 0.48) / 0.38);
+  let fordProtection = 0;
+  for (const ford of FORDS) {
+    const across = 1 - smooth((Math.abs(x - ford.x) - 11) / 18);
+    const along = 1 - smooth((Math.abs(z - ford.z) - 18) / 25);
+    fordProtection = Math.max(fordProtection, across * along);
+  }
+  return 1.05 * channel * pools * (1 - fordProtection);
+}
+
 export function glacierAmount(x: number, z: number) {
   return Math.hypot((x - GLACIER.x) / GLACIER.radiusX, (z - GLACIER.z) / GLACIER.radiusZ);
 }
@@ -85,7 +98,8 @@ export function highlandsHeight(x: number, z: number): number {
   const distance = riverDistance(x, z);
   // All water is shallow. Broad eased banks are part of this same heightfield,
   // never separate ramps or colliders. The glacier meltwater source has a wide valley.
-  height = -0.08 + (height + 0.08) * smooth((distance + 3) / 22);
+  const riverBed = -0.08 - riverDeepening(x, z, distance);
+  height = riverBed + (height - riverBed) * smooth((distance + 3) / 22);
   return height;
 }
 

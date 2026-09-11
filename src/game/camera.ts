@@ -21,7 +21,6 @@ export class FollowCamera {
     readonly world: RAPIER.World,
     readonly vehicle: Vehicle,
     private readonly groundHeight = surfaceHeight,
-    private readonly scenic = false,
   ) {}
 
   reset() { this.initialized = false; this.feedbackTime = 0; }
@@ -36,10 +35,10 @@ export class FollowCamera {
       this.heading += delta * (this.initialized ? 1 - Math.exp(-dt * 4) : 1);
     }
     this.forward.set(-Math.sin(this.heading), 0, -Math.cos(this.heading));
-    this.target.copy(car.position).addScaledVector(this.forward, this.scenic ? 4 : 1.4);
-    this.target.y += this.scenic ? 1.8 : 0.8;
+    this.target.copy(car.position).addScaledVector(this.forward, 1.4);
+    this.target.y += 0.8;
     const portrait = this.camera.aspect < 1;
-    const distance = this.scenic ? (portrait ? 16 : 14.5) : (portrait ? 13.5 : 11.5);
+    const distance = portrait ? 13.5 : 11.5;
     this.wanted.copy(car.position).addScaledVector(this.forward, -distance);
     this.wanted.y += portrait ? 8.5 : 7.3;
     if (showcase) {

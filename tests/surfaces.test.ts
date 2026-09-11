@@ -173,3 +173,25 @@ test('deeper water produces stronger blended drag than shallow water', () => {
     disposeScene(deep.scene);
   }
 });
+
+test('one-metre water stalls forward progress while ford-depth water remains passable', () => {
+  const ford = surfaceVehicle(() => 'water', () => 0.4);
+  const deep = surfaceVehicle(() => 'water', () => 1.05);
+  try {
+    const fordStart = ford.vehicle.position.z;
+    const deepStart = deep.vehicle.position.z;
+    ford.tick(360, { steer: 0, forward: true, reverse: false });
+    deep.tick(360, { steer: 0, forward: true, reverse: false });
+    const fordProgress = fordStart - ford.vehicle.position.z;
+    const deepProgress = deepStart - deep.vehicle.position.z;
+    assert.ok(fordProgress > 8, `ford progress=${fordProgress}`);
+    assert.ok(deepProgress < 0.5, `deep-water progress=${deepProgress}`);
+    assert.ok(deep.vehicle.waterDepth >= 0.95);
+    assert.ok(deep.vehicle.terrainHandling.drag > ford.vehicle.terrainHandling.drag * 4);
+  } finally {
+    ford.world.free();
+    deep.world.free();
+    disposeScene(ford.scene);
+    disposeScene(deep.scene);
+  }
+});
