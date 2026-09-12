@@ -28,7 +28,9 @@ export class TerrainEffects {
     dirt: new THREE.Color('#d7ae72'), grass: new THREE.Color('#91ad67'),
     ash: new THREE.Color('#3f4849'), lava: new THREE.Color('#242c2d'),
     moss: new THREE.Color('#7f995d'), ice: new THREE.Color('#c5edf2'),
-    water: new THREE.Color('#bcebed'),
+    water: new THREE.Color('#bcebed'), snow: new THREE.Color('#e8f4ef'),
+    mud: new THREE.Color('#665744'), rock: new THREE.Color('#7b8582'),
+    sand: new THREE.Color('#bca77e'),
   } satisfies Record<SurfaceId, THREE.Color>;
   private readonly emitDebt = [0, 0, 0, 0];
   private next = 0;

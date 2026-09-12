@@ -6,11 +6,12 @@ import { FollowCamera } from './game/camera';
 import { FixedClock } from './game/driving';
 import { RAMPS } from './game/terrain';
 import { FORDS, VOLCANOES, GLACIER, GLACIER_ASCENT, VOLCANO_ASCENT } from './game/highlands';
-import { AREAS, isAreaId, type Area, type AreaId } from './game/areas';
+import { AREAS, isAreaId, type Area, type AreaId, type AreaRuntime } from './game/areas';
 import { disposeScene } from './game/dispose';
 import { TerrainEffects } from './game/terrain-effects';
 import { Controls, element } from './ui/controls';
 import { registerOfflinePlay } from './pwa';
+import { navigationReading } from './game/navigation';
 
 type Mode = 'loading' | 'ready' | 'playing' | 'paused' | 'error';
 let mode: Mode = 'loading';
@@ -69,15 +70,27 @@ async function boot() {
   element('loading-status').textContent = 'Waking up four little wheels';
   await RAPIER.init();
   if (hasFailed()) return;
-  function createArea(area: Area) {
+  async function createArea(area: Area) {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(area.sky);
     scene.fog = new THREE.Fog(area.sky, area.fogNear, area.fogFar);
     const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
     world.timestep = 1 / 60;
+    let runtime: AreaRuntime | void = undefined;
     try {
-      area.build(scene, world);
-      const vehicle = new Vehicle(scene, world, area.spawn, area.climbingPower, area.surfaceAt, area.waterHeight);
+      runtime = area.build(scene, world, showError);
+      await runtime?.ensureReady(area.spawn.x, area.spawn.z);
+      // Newly streamed fixed colliders enter Rapier's scene-query broad phase on a world step.
+      world.step();
+      const vehicle = new Vehicle(
+        scene,
+        world,
+        area.spawn,
+        area.climbingPower,
+        area.surfaceAt,
+        area.waterHeight,
+        (x, z) => runtime?.shrubBumpAt(x, z) ?? 0,
+      );
       const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight);
       // Populate scene queries and settle all four wheels before handing over control.
       for (let i = 0; i < 90; i++) {
@@ -87,8 +100,9 @@ async function boot() {
       }
       vehicle.syncVisuals(1);
       const terrainEffects = new TerrainEffects(scene, area.waterHeight);
-      return { scene, world, vehicle, follow, terrainEffects };
+      return { scene, world, vehicle, follow, terrainEffects, runtime };
     } catch (error) {
+      runtime?.dispose();
       world.free();
       disposeScene(scene);
       throw error;
@@ -96,11 +110,23 @@ async function boot() {
   }
   const requestedArea = new URLSearchParams(window.location.search).get('area');
   let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'valley'];
-  let { scene, world, vehicle, follow, terrainEffects } = createArea(area);
+  document.body.dataset.area = area.id;
+  element('loading-status').textContent = area.id === 'northern-reach'
+    ? 'Preparing the road ahead...'
+    : 'Waking up four little wheels';
+  const initial = await createArea(area);
+  if (hasFailed()) {
+    initial.runtime?.dispose();
+    initial.terrainEffects.dispose();
+    initial.world.free();
+    disposeScene(initial.scene);
+    return;
+  }
+  let { scene, world, vehicle, follow, terrainEffects, runtime } = initial;
   const areaSelect = element<HTMLSelectElement>('area-select');
   function presentArea() {
     scene.add(ambient, sun, sun.target);
-    ambient.color.set(area.id === 'highlands' ? '#e9f5ff' : '#fef3d6');
+    ambient.color.set(area.ambientLight);
     ambient.groundColor.set(area.groundLight);
     sun.color.set(area.sunlight);
     camera.fov = 48;
@@ -110,14 +136,12 @@ async function boot() {
     element('area-label').textContent = area.label;
     element('area-tagline').textContent = area.tagline;
     element('welcome-description').textContent = area.description;
-    element('welcome-eyebrow').textContent = area.id === 'highlands' ? 'ICELAND HIGHLANDS / FIRE & ICE' : 'A LITTLE FOUR-WHEEL ESCAPE';
-    element('welcome-title').textContent = area.id === 'highlands' ? 'Wilder outside.' : 'Big outside.';
+    element('welcome-eyebrow').textContent = area.welcomeEyebrow;
+    element('welcome-title').textContent = area.welcomeTitle;
     element('hint').textContent = area.hint;
     element('surface-label').textContent = vehicle.currentSurface.label;
     element('surface-trait').textContent = vehicle.currentSurface.trait;
-    element('loading-status').textContent = area.id === 'highlands'
-      ? 'A bigger escape. Find the amber river-crossing posts.'
-      : 'All packed. The valley is yours.';
+    element('loading-status').textContent = area.readyMessage;
     element<HTMLButtonElement>('reset').title = `Return to the ${area.name} starting area (R)`;
   }
   presentArea();
@@ -130,6 +154,41 @@ async function boot() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let surfaceCueTimer = 0;
   let lastSurfaceCue = -Infinity;
+  let resetInProgress = false;
+  let pauseAfterReset = false;
+  const navigationForward = new THREE.Vector3(0, 0, -1);
+  let displayedDirection = '';
+  let displayedDegrees = -1;
+  let displayedElevation = Number.NaN;
+
+  function updateNavigation() {
+    navigationForward.set(0, 0, -1).applyQuaternion(vehicle.rotation);
+    const reading = navigationReading(
+      navigationForward.x,
+      navigationForward.z,
+      area.surfaceHeight(vehicle.position.x, vehicle.position.z),
+    );
+    const degrees = Math.round(reading.heading) % 360;
+    if (reading.direction !== displayedDirection) {
+      displayedDirection = reading.direction;
+      element('compass-direction').textContent = reading.direction;
+    }
+    if (degrees !== displayedDegrees) {
+      displayedDegrees = degrees;
+      element('compass-degrees').textContent = `${degrees.toString().padStart(3, '0')}°`;
+      element('navigation').style.setProperty('--heading', `${reading.heading.toFixed(1)}deg`);
+    }
+    if (reading.elevation !== displayedElevation) {
+      displayedElevation = reading.elevation;
+      element('altitude').textContent = `${reading.elevation} m`;
+    }
+    element('navigation').setAttribute(
+      'aria-label',
+      `Heading ${reading.direction}, ${degrees} degrees; terrain elevation ${reading.elevation} metres`,
+    );
+    return reading;
+  }
+  updateNavigation();
 
   const toast = (message: string) => {
     element('toast').textContent = message;
@@ -138,6 +197,10 @@ async function boot() {
     toastTimer = window.setTimeout(() => element('toast').classList.remove('visible'), 2500);
   };
   const pause = () => {
+    if (mode === 'loading' && resetInProgress) {
+      pauseAfterReset = true;
+      return;
+    }
     if (mode !== 'playing') return;
     mode = 'paused';
     controls?.setEnabled(false);
@@ -161,23 +224,64 @@ async function boot() {
     follow.reset();
     (document.activeElement as HTMLElement | null)?.blur();
   };
-  const reset = () => {
+  const reset = async () => {
     if (mode !== 'playing') return;
     controls?.clear();
+    if (runtime) {
+      mode = 'loading';
+      resetInProgress = true;
+      pauseAfterReset = false;
+      controls?.setEnabled(false);
+      areaSelect.disabled = true;
+      element<HTMLButtonElement>('pause').disabled = true;
+      element<HTMLButtonElement>('reset').disabled = true;
+      vehicle.model.visible = false;
+      element('travelling').hidden = false;
+      element('travel-status').textContent = 'Preparing terrain around the starting point...';
+      await runtime.ensureReady(area.spawn.x, area.spawn.z);
+      if (hasFailed()) {
+        resetInProgress = false;
+        return;
+      }
+      world.step();
+    }
     vehicle.reset();
+    for (let i = 0; i < 30; i++) {
+      vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
+      world.step();
+      vehicle.capture();
+    }
+    vehicle.syncVisuals(1);
     terrainEffects.clear();
     clock.reset();
     follow.reset();
+    vehicle.model.visible = true;
+    if (runtime) {
+      mode = 'playing';
+      resetInProgress = false;
+      element('travelling').hidden = true;
+      areaSelect.disabled = false;
+      element<HTMLButtonElement>('pause').disabled = false;
+      element<HTMLButtonElement>('reset').disabled = false;
+      controls?.setEnabled(true);
+      if (pauseAfterReset || document.hidden) {
+        pauseAfterReset = false;
+        pause();
+      }
+    }
     toast('Back on your wheels. Off you go.');
   };
-  controls = new Controls(pause, reset);
+  controls = new Controls(pause, () => { void reset().catch(showError); });
   element('start').addEventListener('click', resume);
   element('resume').addEventListener('click', resume);
   element('pause').addEventListener('click', pause);
-  element('reset').addEventListener('click', reset);
+  element('reset').addEventListener('click', () => { void reset().catch(showError); });
   areaSelect.addEventListener('focus', () => controls?.clear());
   async function travel(id: AreaId) {
-    if (mode === 'loading' || mode === 'error' || id === area.id) return;
+    if (mode === 'loading' || mode === 'error' || id === area.id) {
+      areaSelect.value = area.id;
+      return;
+    }
     mode = 'loading';
     controls?.setEnabled(false);
     clock.reset();
@@ -193,12 +297,20 @@ async function boot() {
     // Let the loading card paint before generating terrain and the physics mesh.
     await new Promise<void>(resolve => window.setTimeout(resolve, 40));
     if (hasFailed()) return;
-    const next = createArea(AREAS[id]);
+    const next = await createArea(AREAS[id]);
+    if (hasFailed()) {
+      next.runtime?.dispose();
+      next.terrainEffects.dispose();
+      next.world.free();
+      disposeScene(next.scene);
+      return;
+    }
     scene.remove(ambient, sun, sun.target);
+    runtime?.dispose();
     terrainEffects.dispose();
     world.free();
     disposeScene(scene);
-    ({ scene, world, vehicle, follow, terrainEffects } = next);
+    ({ scene, world, vehicle, follow, terrainEffects, runtime } = next);
     terrainEffects.setReduced(graphicsReduced);
     area = AREAS[id];
     presentArea();
@@ -279,12 +391,21 @@ async function boot() {
           geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures,
           cameraObstructed: world.intersectionWithShape(camera.position, camera.quaternion,
             cameraProbe, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC) !== null,
+          streaming: runtime?.stats ?? null,
+          navigation: updateNavigation(),
         }),
         get ramps() { return area.id === 'valley' ? RAMPS : []; },
         fords: FORDS, volcanoes: VOLCANOES, glacier: GLACIER,
         ascents: [GLACIER_ASCENT, VOLCANO_ASCENT],
-        placeVehicle: (x: number, z: number, heading: number) => {
+        placeVehicle: async (x: number, z: number, heading: number) => {
+          const previousMode = mode;
+          mode = 'loading';
           controls?.clear();
+          controls?.setEnabled(false);
+          vehicle.model.visible = false;
+          await runtime?.ensureReady(x, z);
+          if (hasFailed()) return;
+          world.step();
           vehicle.reset();
           terrainEffects.clear();
           vehicle.body.setTranslation({ x, y: area.surfaceHeight(x, z) + 1.2, z }, true);
@@ -293,9 +414,13 @@ async function boot() {
           vehicle.previousPosition.copy(vehicle.position);
           vehicle.previousRotation.copy(vehicle.rotation);
           vehicle.syncVisuals(1);
+          vehicle.model.visible = true;
           clock.reset();
           follow.reset();
+          mode = previousMode;
+          if (previousMode === 'playing') controls?.setEnabled(true);
         },
+        waitForStreamingIdle: () => runtime?.waitForIdle() ?? Promise.resolve(),
         get vehicle() { return vehicle; },
         get world() { return world; },
         get follow() { return follow; },
@@ -312,12 +437,14 @@ async function boot() {
     lastTime = now;
     if (document.hidden || mode === 'paused' || mode === 'loading') return;
     if (mode === 'playing') {
+      runtime?.update(vehicle.position.x, vehicle.position.z);
       const alpha = clock.advance(elapsed, dt => {
         vehicle.beforeStep(controls!.state.value, dt);
         world.step();
         vehicle.capture();
       });
       vehicle.syncVisuals(alpha);
+      updateNavigation();
       terrainEffects.update(Math.min(elapsed, 0.05), vehicle);
       const surface = vehicle.currentSurface;
       const surfaceHud = element('surface');
@@ -341,7 +468,8 @@ async function boot() {
         }
       }
       playingTime += Math.min(elapsed, 0.1);
-      if (vehicle.position.y < -12) reset();
+      const fallFloor = Math.min(-12, area.surfaceHeight(vehicle.position.x, vehicle.position.z) - 15);
+      if (vehicle.position.y < fallFloor) void reset().catch(showError);
       element('hint').style.opacity = playingTime > 12 ? '0' : '1';
       // A sustained slow frame rate reduces fill cost and shadow work on tablets.
       if (!graphicsReduced) {

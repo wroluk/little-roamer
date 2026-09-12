@@ -1,8 +1,8 @@
 # Little Roamer
 
-An open-ended 3D toy 4WD playground with two places to explore: sunny hills in
-**Sunshine Valley** and a much larger **Iceland Highlands** landscape of
-volcanoes, black-sand deserts, old lava flows, glacier ice, and rivers.
+An open-ended 3D toy 4WD playground with three places to explore: sunny hills
+in **Sunshine Valley**, the volcanic **Iceland Highlands**, and the streamed
+1.5 km-wide wilderness of **Northern Reach**.
 No score, objectives, timers, accounts, audio, or downloads of external artwork.
 
 Built with TypeScript, Vite, Three.js and Rapier. All meshes and trail-sign
@@ -11,7 +11,10 @@ textures are generated locally. Runtime requests stay on the game server.
 ## Install on iPad for offline play
 
 Little Roamer is an installable PWA. The production build precaches the game,
-both areas, Rapier physics, icons, and generated styling for offline use.
+all area generators, the Northern Reach worker, Rapier physics, icons, and
+generated styling for offline use.
+Northern chunks are regenerated deterministically from cached code; no network
+or previously generated chunk database is needed while driving.
 
 1. Publish `dist/` on an **HTTPS** static URL.
 2. Open that URL directly in **Safari on the iPad** while online.
@@ -28,11 +31,13 @@ plain `http://192.168...`/`http://10...` LAN URLs cannot register a service
 worker on iPadOS. A public or private HTTPS static host is therefore needed
 for the first install and future updates.
 
-GitHub Pages, Cloudflare Pages, Netlify, or an internal HTTPS static host can
-serve `dist/`; no backend is required. No deployment destination is configured
-by this project. After a new version is published, opening the installed app
-online downloads it in the background. An **Update game** button appears when
-the new offline version is ready, avoiding a forced reload while driving.
+The configured GitHub Pages deployment is
+**https://wroluk.github.io/little-roamer/**; `.github/workflows/pages.yml`
+publishes successful `main` builds. Other HTTPS static hosts can also serve
+`dist/`; no backend is required. After a new version is published, opening the
+installed app online downloads it in the background. An **Update game** button
+appears when the new offline version is ready, avoiding a forced reload while
+driving.
 
 Safari may remove offline website data under severe storage pressure. Reopen
 the HTTPS URL and add/cache the app again if that happens.
@@ -54,17 +59,18 @@ Keep this terminal/session and the Mac awake while playing.
 ## Choose your next adventure
 
 Use the **Explore** area picker in the top bar to switch between Sunshine
-Valley and Iceland Highlands. The valley and its three ramps are still
-available unchanged. Each area opens with a welcome card; press **Let's take
-a drive** when ready. Switching areas clears held controls and returns the
-car to that area's safe starting point. **Reset car** stays in your current area.
-Only one area's terrain and physics stay loaded, and graphics resources from
-the old area are released.
+Valley, Iceland Highlands, and Northern Reach. The valley and its three ramps
+are still available unchanged. Each area opens with a welcome card; press
+**Let's take a drive** when ready. Switching areas clears held controls and
+returns the car to that area's safe starting point. **Reset car** stays in your
+current area. Only one area's terrain and physics stay loaded, and graphics
+resources from the old area are released.
 
 Direct links:
 
 - Sunshine Valley: `http://127.0.0.1:5173/?area=valley`
 - Iceland Highlands: `http://127.0.0.1:5173/?area=highlands`
+- Northern Reach: `http://127.0.0.1:5173/?area=northern-reach`
 
 In the highlands, follow the **amber posts** for broad, shallow river crossings.
 Drive down the bank, through the water, and up the opposite side. The riverbed
@@ -81,6 +87,16 @@ retain broad shallow beds, while unmarked river stretches contain much deeper
 pools. The highlands car has extra climbing torque for long slopes, but the
 same forward/reverse speed limits and braking behavior as the valley.
 
+Northern Reach spans **1,536 x 1,536 world metres**. Its western fjord coast,
+southern pine country, central lake basin, northeastern snow range,
+southeastern volcanic uplands, and northern tundra form one continuous finite
+landscape. Pale dirt roads connect the major regions, while cross-country
+driving remains open. Terrain streams in deterministic 96 m chunks: a 5 x 5
+render neighborhood and a collision-ready 3 x 3 core follow the car. The
+outer landscape rises into a natural collidable boundary rather than ending
+at an invisible drop. Streamed loose boulders are solid obstacles, matching
+the playful collisions in the original areas.
+
 ## Terrain handling
 
 The current surface appears above the controls. Surface colors now correspond
@@ -95,6 +111,10 @@ to distinct vehicle behavior rather than being purely decorative:
 | Springy moss | Soft suspension and a gentle rebound with moss flecks |
 | Glacier ice | Keeps momentum but turns and brakes slowly over imperfect ice, with light powder |
 | Glacial river | Very slow, with depth-scaled drag, rocky-bed suspension shake, and bright spray |
+| Mountain snow | Soft, slower, and more forgiving than glacier ice |
+| Soft mud | Heavy resistance with deep suspension movement |
+| Mountain rock | Strong grip with firm, visible chassis movement |
+| Coastal sand | Loose steering and soft rolling resistance |
 
 Each grounded raycast wheel uses the surface directly beneath it, so straddling
 ice, ash, or dirt creates stable mixed traction. Vehicle-wide power, drag,
@@ -107,6 +127,15 @@ Marked fords remain shallow and passable. Beyond roughly 0.65 metres, water
 resistance rises nonlinearly and engine power fades; pools around one metre deep
 stall the car instead of allowing an unmarked crossing. Back out before the
 water becomes too deep, or use **Reset car** if the engine is fully submerged.
+
+## Navigation instruments
+
+The compact instrument at the top of the driving view shows a 16-point compass,
+numeric heading, and terrain elevation in metres. North is the top of each
+authored map (`-Z` in world coordinates). The altimeter reports the sampled
+ground or riverbed elevation used by both rendering and collision, rather than
+the car's suspension movement, so rough terrain does not make the reading
+flicker.
 
 ## Play on an iPad
 
@@ -175,7 +204,8 @@ The static site is in `dist/`. Preview at `http://127.0.0.1:4173/` (or the
 Mac's LAN address on port 4173). Relative asset paths also support hosting
 under a subdirectory. An authorized static HTTPS host can serve `dist/`;
 no backend or special headers are required. Opening `index.html` directly
-with `file://` is not supported. No public deployment is configured.
+with `file://` is not supported. Push an approved `main` revision to trigger
+the configured GitHub Pages deployment.
 
 Rapier's WebAssembly is embedded in its compatibility bundle, so its production
 JavaScript chunk is about 2.24 MB before compression (roughly 835 KB gzipped).
@@ -199,7 +229,10 @@ caps, reset, collision boundaries, exact terrain triangle heights, access to
 all three ramp placements, and camera obstruction sweeps. Input and fixed-clock
 tests cover independent pointers, deadzones, release, and capped catch-up.
 Area-lifecycle tests cover area-specific reset positions and disposal of shared
-graphics resources. Iceland coverage exercises the actual riverbeds and
+graphics resources. Northern Reach tests cover deterministic generation,
+bit-identical chunk seams, worker errors, delayed streaming, collider retention,
+bounded render/physics rings, offline worker caching, and cross-browser seam
+driving. Iceland coverage exercises the actual riverbeds and
 region switching, including returning to the original valley. Each ford is
 driven in both directions in the physics suite; browser tests cross all three
 fords and drive up the glacier and volcano flank with camera-clearance checks.
@@ -225,8 +258,10 @@ The goal is 60 FPS, with a minimum of 30 FPS on the agreed iPad.
 | `src/game/terrain.ts` | Deterministic sampled hills/trails, flat ramp pads and safe start |
 | `src/game/world.ts` | Terrain mesh/collider, matching prop hulls, ramps, scenery |
 | `src/game/highlands.ts`, `src/game/highlands-terrain.ts` | Larger Iceland landscape, volcanoes, glaciers, rivers and marked fords |
+| `src/game/northern-terrain.ts` | Pure deterministic Northern Reach geography, water, routes, surfaces, props, and exact sampled heights |
+| `src/game/northern-worker.ts`, `src/game/northern-streaming.ts` | ES-module generation worker and bounded Three.js/Rapier chunk lifecycle |
 | `src/game/areas.ts`, `src/game/dispose.ts` | Area definitions and graphics-resource cleanup when travelling |
-| `src/game/water-effects.ts` | Lightweight instanced wheel spray on river crossings |
+| `src/game/terrain-effects.ts` | Lightweight pooled wheel spray, dust, snow, and terrain particles |
 | `src/game/vehicle.ts` | Four driven raycast wheels, suspension, low-mass roof, visuals and reset |
 | `src/game/driving.ts` | Direction-change braking, speed targets, steering mapping, fixed clock |
 | `src/game/input.ts` | Independent pointer and keyboard state |
@@ -243,5 +278,5 @@ follow the car instead of covering the whole map.
 
 Development builds expose `window.__ROAMER__` for reproducible behavioral
 inspection, snapshots, and test positioning. Production builds omit this hook.
-The app intentionally has no saving, offline/PWA mode, infinite terrain,
-multiplayer, realistic drivetrain/damage, or native app packaging.
+The app intentionally has no saving, infinite terrain, multiplayer,
+realistic drivetrain/damage, or native app packaging.

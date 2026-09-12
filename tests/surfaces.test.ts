@@ -125,6 +125,12 @@ test('surface profiles express distinct traction, resistance, and steering', () 
   assert.ok(SURFACES.water.speed < SURFACES.ash.speed / 2);
   assert.ok(SURFACES.water.drag > SURFACES.ash.drag * 4);
   assert.ok(SURFACES.dirt.speed > SURFACES.water.speed);
+  assert.ok(SURFACES.snow.lateralGrip > SURFACES.ice.lateralGrip);
+  assert.ok(SURFACES.snow.speed < SURFACES.dirt.speed);
+  assert.ok(SURFACES.mud.drag > SURFACES.sand.drag);
+  assert.ok(SURFACES.mud.speed < SURFACES.sand.speed);
+  assert.ok(SURFACES.rock.roughness > SURFACES.snow.roughness);
+  assert.ok(SURFACES.rock.longitudinalGrip > SURFACES.mud.longitudinalGrip);
 });
 
 test('each grounded wheel classifies its own surface and aggregate handling blends', () => {

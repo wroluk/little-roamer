@@ -19,7 +19,18 @@
       <header class="topbar">
         <div class="wordmark"><span class="brand-icon" aria-hidden="true">↗</span><div>LITTLE ROAMER<span>THE FOUR-WHEEL PLAYGROUND</span></div></div>
         <div class="top-actions">
-          <label class="area-picker"><span>EXPLORE</span><select id="area-select" aria-label="Choose an area to explore" disabled><option value="valley">Sunshine Valley</option><option value="highlands">Iceland Highlands</option></select></label>
+          <div id="navigation" class="navigation-instrument" aria-label="Heading north, terrain elevation zero metres">
+            <div class="compass">
+              <span class="compass-arrow" aria-hidden="true">↑</span>
+              <span id="compass-direction">N</span>
+              <b id="compass-degrees">000°</b>
+            </div>
+            <div class="altimeter">
+              <span>ALT</span>
+              <b id="altitude">0 m</b>
+            </div>
+          </div>
+          <label class="area-picker"><span>EXPLORE</span><select id="area-select" aria-label="Choose an area to explore" disabled><option value="valley">Sunshine Valley</option><option value="highlands">Iceland Highlands</option><option value="northern-reach">Northern Reach</option></select></label>
           <button id="pause" class="icon-button" aria-label="Pause game" title="Pause (Escape)" disabled>Ⅱ</button>
           <button id="reset" class="reset-button" title="Return to the starting clearing (R)" disabled><span aria-hidden="true">↺</span> Reset car</button>
         </div>

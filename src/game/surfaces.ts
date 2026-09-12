@@ -1,4 +1,6 @@
-export type SurfaceId = 'grass' | 'dirt' | 'ash' | 'lava' | 'moss' | 'ice' | 'water';
+export type SurfaceId =
+  | 'grass' | 'dirt' | 'ash' | 'lava' | 'moss' | 'ice' | 'water'
+  | 'snow' | 'mud' | 'rock' | 'sand';
 
 export type Surface = {
   id: SurfaceId;
@@ -63,6 +65,30 @@ export const SURFACES: Record<SurfaceId, Surface> = {
     power: 0.42, rollingBrake: 4.6, brakeEffect: 0.74, drag: 2.35, speed: 0.31, steering: 0.58,
     suspensionStiffness: 34, suspensionCompression: 3.9, suspensionRelaxation: 4.5,
     roughness: 0.093, feedback: 0.09, particleColor: '#bcebed', particleRate: 1,
+  },
+  snow: {
+    id: 'snow', label: 'Mountain snow', trait: 'Soft & slippery', longitudinalGrip: 0.68, lateralGrip: 0.58,
+    power: 0.72, rollingBrake: 2.2, brakeEffect: 0.7, drag: 0.4, speed: 0.62, steering: 0.69,
+    suspensionStiffness: 23, suspensionCompression: 5.3, suspensionRelaxation: 6.4,
+    roughness: 0.052, feedback: 0.05, particleColor: '#e8f4ef', particleRate: 0.75,
+  },
+  mud: {
+    id: 'mud', label: 'Soft mud', trait: 'Heavy going', longitudinalGrip: 0.61, lateralGrip: 0.65,
+    power: 0.6, rollingBrake: 3.5, brakeEffect: 0.76, drag: 0.9, speed: 0.5, steering: 0.68,
+    suspensionStiffness: 19, suspensionCompression: 5.9, suspensionRelaxation: 7.1,
+    roughness: 0.073, feedback: 0.07, particleColor: '#665744', particleRate: 0.72,
+  },
+  rock: {
+    id: 'rock', label: 'Mountain rock', trait: 'Firm & bumpy', longitudinalGrip: 0.9, lateralGrip: 0.91,
+    power: 0.86, rollingBrake: 1.4, brakeEffect: 0.94, drag: 0.16, speed: 0.75, steering: 0.9,
+    suspensionStiffness: 36, suspensionCompression: 3.8, suspensionRelaxation: 4.6,
+    roughness: 0.086, feedback: 0.08, particleColor: '#7b8582', particleRate: 0.42,
+  },
+  sand: {
+    id: 'sand', label: 'Coastal sand', trait: 'Loose & soft', longitudinalGrip: 0.66, lateralGrip: 0.62,
+    power: 0.64, rollingBrake: 3.1, brakeEffect: 0.75, drag: 0.7, speed: 0.57, steering: 0.67,
+    suspensionStiffness: 21, suspensionCompression: 5.5, suspensionRelaxation: 6.6,
+    roughness: 0.058, feedback: 0.055, particleColor: '#bca77e', particleRate: 0.9,
   },
 };
 

@@ -46,6 +46,7 @@ export class Vehicle {
   private readonly wheelWaterDepth = [0, 0, 0, 0];
   private readonly surfaceCounts: Record<SurfaceId, number> = {
     dirt: 0, grass: 0, ash: 0, lava: 0, moss: 0, ice: 0, water: 0,
+    snow: 0, mud: 0, rock: 0, sand: 0,
   };
   private surface: Surface = SURFACES.dirt;
   private candidateSurface: SurfaceId = 'dirt';
@@ -62,6 +63,7 @@ export class Vehicle {
     private readonly climbingPower = 1,
     private readonly surfaceAt: (x: number, z: number) => SurfaceId = () => 'dirt',
     private readonly waterHeight: (x: number, z: number) => number | null = () => null,
+    private readonly softObstacleAt: (x: number, z: number) => number = () => 0,
   ) {
     this.body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(spawn.x, spawn.y, spawn.z)
@@ -257,6 +259,8 @@ export class Vehicle {
       speedScale += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(shallowSpeed, 0.01, deepStall) : wheel.surface.speed;
       steering += wheel.surface.steering;
       feedback += wheel.surface.feedback;
+      const softObstacle = this.softObstacleAt(wheel.position.x, wheel.position.z);
+      feedback += softObstacle * 0.25;
       wheel.intensity = wheel.grounded
         ? Math.min(1, Math.max(0, (Math.abs(speed) - 0.5) / 8) * (input.forward || input.reverse ? 1 : 0.55))
         : 0;
@@ -309,8 +313,9 @@ export class Vehicle {
       const roughness = wheelSurface.id === 'water'
         ? wheelSurface.roughness * THREE.MathUtils.lerp(0.65, 1.1, Math.min(1, this.wheelWaterDepth[i] / 0.45))
         : wheelSurface.roughness;
+      const softObstacle = this.softObstacleAt(wheel.position.x, wheel.position.z);
       this.controller.setWheelSuspensionRestLength(i,
-        REST_LENGTH + Math.sin(phase) * roughness * wheel.intensity);
+        REST_LENGTH + Math.sin(phase) * (roughness + softObstacle * 0.24) * wheel.intensity);
     }
 
     function smoothStep(value: number) {

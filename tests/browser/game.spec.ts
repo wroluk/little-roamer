@@ -10,6 +10,7 @@ type Snapshot = {
   wheelSteering: number;
   drawCalls: number;
   cameraObstructed: boolean;
+  navigation: { heading: number; direction: string; elevation: number };
 };
 type Ramp = { x: number; z: number; angle: number; length: number; height: number };
 type DebugApi = { snapshot(): Snapshot; ramps: Ramp[]; placeVehicle(x: number, z: number, heading: number): void };
@@ -62,7 +63,7 @@ test('tablet portrait and landscape controls fit and remain usable', async ({ pa
   await page.locator('#start').click();
   for (const viewport of [{ width: 768, height: 1024 }, { width: 390, height: 844 }, { width: 1024, height: 768 }]) {
     await page.setViewportSize(viewport);
-    for (const id of ['steer', 'forward', 'reverse', 'reset']) {
+    for (const id of ['steer', 'forward', 'reverse', 'reset', 'navigation']) {
       const box = await page.locator(`#${id}`).boundingBox();
       expect(box).not.toBeNull();
       expect(box!.x).toBeGreaterThanOrEqual(0);
@@ -71,10 +72,39 @@ test('tablet portrait and landscape controls fit and remain usable', async ({ pa
       expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
       expect(box!.height).toBeGreaterThanOrEqual(44);
     }
+    const navigation = (await page.locator('#navigation').boundingBox())!;
+    const areaSelect = (await page.locator('#area-select').boundingBox())!;
+    expect(Math.abs(navigation.y - areaSelect.y)).toBeLessThanOrEqual(2);
+    if (viewport.width > viewport.height) {
+      expect(Math.abs(navigation.x + navigation.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
     await page.locator('#forward').tap();
     expect((await snapshot(page)).input.forward).toBe(false);
   }
+});
+
+test('compass follows vehicle heading and altimeter reports terrain elevation', async ({ page }) => {
+  await page.locator('#start').click();
+  const initial = await snapshot(page);
+  expect(initial.navigation.direction).toBe('N');
+  expect(initial.navigation.heading).toBeCloseTo(0, 0);
+  expect(initial.navigation.elevation).toBe(0);
+  await expect(page.locator('#compass-direction')).toHaveText('N');
+  await expect(page.locator('#compass-degrees')).toHaveText('000°');
+  await expect(page.locator('#altitude')).toHaveText('0 m');
+
+  await page.evaluate(async () => {
+    const game = (window as unknown as { __ROAMER__: DebugApi }).__ROAMER__;
+    await game.placeVehicle(-30, -28, -Math.PI / 2);
+  });
+  await expect.poll(async () => (await snapshot(page)).navigation.direction).toBe('E');
+  const moved = await snapshot(page);
+  expect(moved.navigation.heading).toBeGreaterThan(75);
+  expect(moved.navigation.heading).toBeLessThan(105);
+  expect(moved.navigation.elevation).toBeGreaterThan(3);
+  await expect(page.locator('#compass-degrees')).toHaveText(/0(?:8|9)\d°/);
+  await expect(page.locator('#altitude')).not.toHaveText('0 m');
 });
 
 test('real two-finger touch steers and accelerates independently; capture and cancellation clear safely', async ({ page, browserName }) => {
