@@ -322,6 +322,26 @@ directions with actual Rapier wheels, browser streaming crossings, and the
 existing terrain seam / resource lifecycle suite. This is one pilot region;
 the rest of Northern Reach retains its previous geography.
 
+## Northern Reach · High Pass
+
+Continue to the end of **Mountain Road** in the northeast, then follow the
+**High Pass** signs. The **Twin Peaks circuit** winds between two snow-covered
+summits and granite outcrops. Stone cairns mark the bends. A northern spur
+climbs to a level lookout at 140 m, while **Blue Hollow** descends into a
+sheltered ice basin with reduced traction.
+
+Start directly at `http://127.0.0.1:5173/?area=northern-reach&start=high-pass`.
+Reset returns to the level turnout at this entrance. In Codespaces or on
+GitHub Pages, append `?area=northern-reach&start=high-pass` to the game's URL.
+
+`src/game/northern-pass.ts` defines the region within `x = 475..695`,
+`z = -660..-350`. Graded trails, frozen ground and clearings use the same
+global mesh for rendering and collision. The established Mountain Road
+connects to the circuit at `(500, -430)`; the western meltwater stream remains
+outside this region. Automated tests drive each route in both directions,
+check road grades and seams, and exercise the lookout, ice and reset in both
+Chromium and WebKit.
+
 ## Northern Reach · Fjord Coast
 
 Follow Coast Road west past River Valley to the **Fjord Coast** signs. The

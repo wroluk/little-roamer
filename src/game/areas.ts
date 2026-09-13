@@ -91,7 +91,7 @@ export const AREAS: Record<AreaId, Area> = {
     id: 'northern-reach', name: 'Northern Reach', label: '03 / BEYOND THE TREELINE',
     tagline: 'A whole horizon to wander.',
     description: 'Fjord coast. Pine country. Snow roads and volcanic ridges. A vast northern wilderness unfolds as you roam.',
-    hint: 'Look for Pine Hollow near the start. Coast Road leads through River Valley to Fjord Coast.',
+    hint: 'Coast Road leads to River Valley and Fjord Coast. Follow Mountain Road to High Pass.',
     welcomeEyebrow: 'NORTHERN REACH / COAST TO SUMMIT', welcomeTitle: 'Farther outside.',
     readyMessage: 'The road ahead is ready. More wilderness unfolds as you drive.', ambientLight: '#e8f1e8',
     spawn: NORTHERN_SPAWN, half: NORTHERN_HALF, climbingPower: 1.45,

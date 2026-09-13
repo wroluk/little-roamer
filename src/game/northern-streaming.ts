@@ -374,6 +374,8 @@ function forestPineGeometry(): THREE.BufferGeometry {
 }
 
 const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = {
+  passSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  graniteTor: () => new THREE.DodecahedronGeometry(1, 0).scale(3.2, 7, 2.6).translate(0, 6, 0),
   coastStack: () => new THREE.CylinderGeometry(1.1, 2.2, 10, 5).translate(0, 5, 0),
   coastLog: () => new THREE.CylinderGeometry(0.17, 0.23, 3.8, 7).rotateZ(Math.PI / 2).translate(0, 0.24, 0),
   coastSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
@@ -393,6 +395,7 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
 };
 
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
+  passSign: '#ffffff', graniteTor: '#9aa7ad',
   coastStack: '#747d78', coastLog: '#a18c72', coastSign: '#ffffff',
   forestPine: '#ffffff', forestSign: '#ffffff',
   willow: '#ffffff', riverRipple: '#c4eee2', valleySign: '#ffffff', fordPost: '#efbd59', tree: '#3f6b3a', roadsideRock: '#7c8079', snowRock: '#d7e6e2', reed: '#9aa85a',
@@ -402,7 +405,7 @@ const PROP_BASE_COLOR: Record<PropTypeName, string> = {
 function propMaterial(type: PropTypeName): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({ color: PROP_BASE_COLOR[type], roughness: 0.9, flatShading: true });
   if (type === 'willow' || type === 'forestPine') material.vertexColors = true;
-  if ((type !== 'valleySign' && type !== 'forestSign' && type !== 'coastSign') || typeof document === 'undefined') return material;
+  if ((type !== 'valleySign' && type !== 'forestSign' && type !== 'coastSign' && type !== 'passSign') || typeof document === 'undefined') return material;
   const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 256;
   const ctx = canvas.getContext('2d');
   if (!ctx) return material;
@@ -411,9 +414,10 @@ function propMaterial(type: PropTypeName): THREE.MeshStandardMaterial {
   ctx.textAlign = 'center'; ctx.fillStyle = '#fff0ce';
   const forest = type === 'forestSign';
   const coast = type === 'coastSign';
-  ctx.font = 'bold 48px sans-serif'; ctx.fillText(coast ? 'FJORD COAST' : forest ? 'PINE HOLLOW' : 'RIVER VALLEY', 256, 95);
-  ctx.font = '24px sans-serif'; ctx.fillText(coast ? 'CLIFFTOP TRAIL · PEBBLE COVE' : forest ? 'RAVINE · ROCK SADDLE' : 'AMBER POSTS · SHALLOW FORDS', 256, 155, 465);
-  ctx.fillText(coast ? 'BEACH LOOP · SEA STACKS' : forest ? 'LAKE LOOKOUT · COAST ROAD' : 'RIDGE LOOP · STONE CAIRNS', 256, 200, 465);
+  const pass = type === 'passSign';
+  ctx.font = 'bold 48px sans-serif'; ctx.fillText(pass ? 'HIGH PASS' : coast ? 'FJORD COAST' : forest ? 'PINE HOLLOW' : 'RIVER VALLEY', 256, 95);
+  ctx.font = '24px sans-serif'; ctx.fillText(pass ? 'TWIN PEAKS · NORTH LOOKOUT' : coast ? 'CLIFFTOP TRAIL · PEBBLE COVE' : forest ? 'RAVINE · ROCK SADDLE' : 'AMBER POSTS · SHALLOW FORDS', 256, 155, 465);
+  ctx.fillText(pass ? 'BLUE HOLLOW · ICE AHEAD' : coast ? 'BEACH LOOP · SEA STACKS' : forest ? 'LAKE LOOKOUT · COAST ROAD' : 'RIDGE LOOP · STONE CAIRNS', 256, 200, 465);
   material.map = new THREE.CanvasTexture(canvas); material.map.colorSpace = THREE.SRGBColorSpace;
   return material;
 }
@@ -805,7 +809,7 @@ export class NorthernStreamingRuntime {
           .setTranslation(record.chunk.props.x[i], record.chunk.props.y[i] + 1.4 * scale, record.chunk.props.z[i]).setFriction(0.9)));
         continue;
       }
-      if (type !== 1 && type !== 2 && type !== 7 && type !== 8 && type !== 12 && type !== 13 && type !== 14 && type !== 15) continue;
+      if (type !== 1 && type !== 2 && type !== 7 && type !== 8 && type !== 12 && type !== 13 && type !== 14 && type !== 15 && type !== 16 && type !== 17) continue;
       const geometry = this.propPools[type].mesh.geometry;
       setPropTransform(dummy, record.chunk, i);
       record.propColliders.push(this.world.createCollider(

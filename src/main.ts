@@ -6,6 +6,7 @@ import { FollowCamera } from './game/camera';
 import { FixedClock } from './game/driving';
 import { sampledHeightAt } from './game/northern-terrain';
 import { COAST_START } from './game/northern-coast';
+import { PASS_START } from './game/northern-pass';
 import { RAMPS } from './game/terrain';
 import { FORDS, VOLCANOES, GLACIER, GLACIER_ASCENT, VOLCANO_ASCENT } from './game/highlands';
 import { AREAS, isAreaId, type Area, type AreaId, type AreaRuntime } from './game/areas';
@@ -123,6 +124,12 @@ async function boot() {
       welcomeTitle: 'Explore the coast.',
       description: 'Follow the clifftop trail, descend to sheltered pebble coves and circle the sea stacks along the beach.',
       readyMessage: 'Fjord Coast. Follow the beach loop down to the shallows.' };
+  }
+  if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'high-pass') {
+    area = { ...area, spawn: { ...PASS_START, y: sampledHeightAt(PASS_START.x, PASS_START.z) + 1.25 },
+      welcomeTitle: 'Above the clouds.',
+      description: 'Wind between twin peaks, climb to the north lookout and descend into the frozen Blue Hollow. Stone cairns guide the mountain circuit.',
+      readyMessage: 'High Pass. Follow the cairns; Blue Hollow is slippery.' };
   }
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
