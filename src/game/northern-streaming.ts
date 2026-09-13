@@ -13,6 +13,7 @@
 //  - Activation (turning a received chunk into THREE/RAPIER resources) is budgeted per call to
 //    `update()` so a burst of newly streamed chunks doesn't spike a single frame.
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import {
   isChunkInBounds, NORTHERN_CHUNK_SIZE, NORTHERN_PROP_TYPES, type NorthernChunk,
@@ -325,13 +326,63 @@ class InstancedPropPool {
   dispose(): void {
     this.mesh.geometry.dispose();
     this.mesh.dispose();
-    (Array.isArray(this.mesh.material) ? this.mesh.material : [this.mesh.material]).forEach(material => material.dispose());
+    (Array.isArray(this.mesh.material) ? this.mesh.material : [this.mesh.material]).forEach(material => {
+      if (material instanceof THREE.MeshStandardMaterial) material.map?.dispose();
+      material.dispose();
+    });
   }
 }
 
 type PropTypeName = (typeof NORTHERN_PROP_TYPES)[number];
 
+function willowGeometry(): THREE.BufferGeometry {
+  const parts = [
+    new THREE.CylinderGeometry(0.12, 0.22, 2.8, 6).translate(0, 1.4, 0).toNonIndexed(),
+    new THREE.IcosahedronGeometry(1, 1).scale(1.5, 1.3, 1.3).translate(0, 3, 0),
+    new THREE.IcosahedronGeometry(1, 0).scale(0.8, 1.5, 0.9).translate(-1, 2.3, 0),
+    new THREE.IcosahedronGeometry(1, 0).scale(0.9, 1.3, 0.8).translate(1, 2.5, 0.3),
+  ];
+  parts.forEach((part, i) => {
+    const color = new THREE.Color(i === 0 ? '#796447' : i === 1 ? '#709653' : '#588548');
+    const colors = new Float32Array(part.getAttribute('position').count * 3);
+    for (let j = 0; j < colors.length; j += 3) color.toArray(colors, j);
+    part.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  });
+  const merged = mergeGeometries(parts);
+  parts.forEach(part => part.dispose());
+  if (!merged) throw new Error('Could not create river valley willows.');
+  return merged;
+}
+
+function forestPineGeometry(): THREE.BufferGeometry {
+  const parts = [
+    new THREE.CylinderGeometry(0.22, 0.35, 3.2, 6).translate(0, 1.6, 0).toNonIndexed(),
+    new THREE.ConeGeometry(2.3, 4.2, 7).translate(0, 4, 0).toNonIndexed(),
+    new THREE.ConeGeometry(1.7, 3.6, 7).translate(0, 6, 0).toNonIndexed(),
+    new THREE.ConeGeometry(1, 2.4, 7).translate(0, 7.5, 0).toNonIndexed(),
+  ];
+  parts.forEach((part, i) => {
+    const color = new THREE.Color(['#796447', '#386b4c', '#4c8055', '#71935f'][i]);
+    const colors = new Float32Array(part.getAttribute('position').count * 3);
+    for (let j = 0; j < colors.length; j += 3) color.toArray(colors, j);
+    part.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  });
+  const merged = mergeGeometries(parts);
+  parts.forEach(part => part.dispose());
+  if (!merged) throw new Error('Could not create Pine Hollow trees.');
+  return merged;
+}
+
 const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = {
+  coastStack: () => new THREE.CylinderGeometry(1.1, 2.2, 10, 5).translate(0, 5, 0),
+  coastLog: () => new THREE.CylinderGeometry(0.17, 0.23, 3.8, 7).rotateZ(Math.PI / 2).translate(0, 0.24, 0),
+  coastSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  forestPine: forestPineGeometry,
+  forestSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  willow: willowGeometry,
+  riverRipple: () => new THREE.BoxGeometry(2.2, 0.012, 0.055),
+  valleySign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  fordPost: () => new THREE.CylinderGeometry(0.14, 0.14, 2.6, 6).translate(0, 1.3, 0),
   tree: () => new THREE.ConeGeometry(0.6, 2.4, 6),
   roadsideRock: () => new THREE.DodecahedronGeometry(0.8, 0),
   snowRock: () => new THREE.DodecahedronGeometry(0.9, 0),
@@ -342,9 +393,30 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
 };
 
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
-  tree: '#3f6b3a', roadsideRock: '#7c8079', snowRock: '#d7e6e2', reed: '#9aa85a',
+  coastStack: '#747d78', coastLog: '#a18c72', coastSign: '#ffffff',
+  forestPine: '#ffffff', forestSign: '#ffffff',
+  willow: '#ffffff', riverRipple: '#c4eee2', valleySign: '#ffffff', fordPost: '#efbd59', tree: '#3f6b3a', roadsideRock: '#7c8079', snowRock: '#d7e6e2', reed: '#9aa85a',
   driftwood: '#8a715a', shrub: '#5c8a4d', volcanicSpike: '#4a3a37',
 };
+
+function propMaterial(type: PropTypeName): THREE.MeshStandardMaterial {
+  const material = new THREE.MeshStandardMaterial({ color: PROP_BASE_COLOR[type], roughness: 0.9, flatShading: true });
+  if (type === 'willow' || type === 'forestPine') material.vertexColors = true;
+  if ((type !== 'valleySign' && type !== 'forestSign' && type !== 'coastSign') || typeof document === 'undefined') return material;
+  const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return material;
+  ctx.fillStyle = '#294842'; ctx.fillRect(0, 0, 512, 256);
+  ctx.strokeStyle = '#efbd59'; ctx.lineWidth = 8; ctx.strokeRect(12, 12, 488, 232);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#fff0ce';
+  const forest = type === 'forestSign';
+  const coast = type === 'coastSign';
+  ctx.font = 'bold 48px sans-serif'; ctx.fillText(coast ? 'FJORD COAST' : forest ? 'PINE HOLLOW' : 'RIVER VALLEY', 256, 95);
+  ctx.font = '24px sans-serif'; ctx.fillText(coast ? 'CLIFFTOP TRAIL · PEBBLE COVE' : forest ? 'RAVINE · ROCK SADDLE' : 'AMBER POSTS · SHALLOW FORDS', 256, 155, 465);
+  ctx.fillText(coast ? 'BEACH LOOP · SEA STACKS' : forest ? 'LAKE LOOKOUT · COAST ROAD' : 'RIDGE LOOP · STONE CAIRNS', 256, 200, 465);
+  material.map = new THREE.CanvasTexture(canvas); material.map.colorSpace = THREE.SRGBColorSpace;
+  return material;
+}
 
 function buildWaterGeometry(chunk: NorthernChunk): THREE.BufferGeometry | undefined {
   if (!chunk.waterVertices || !chunk.waterIndices || !chunk.waterColors) return undefined;
@@ -426,11 +498,12 @@ export class NorthernStreamingRuntime {
     const capacity = options.propPoolCapacity ?? DEFAULT_PROP_POOL_CAPACITY;
     this.propPools = NORTHERN_PROP_TYPES.map(typeName => new InstancedPropPool(
       PROP_GEOMETRY_FACTORY[typeName](),
-      new THREE.MeshStandardMaterial({ color: PROP_BASE_COLOR[typeName], roughness: 0.9, flatShading: true }),
+      propMaterial(typeName),
       capacity,
     ));
     for (const pool of this.propPools) {
       pool.mesh.name = `Northern Reach · pooled ${NORTHERN_PROP_TYPES[this.propPools.indexOf(pool)]} instances`;
+      pool.mesh.castShadow = NORTHERN_PROP_TYPES[this.propPools.indexOf(pool)] === 'forestPine';
       this.scene.add(pool.mesh);
     }
     this.transport.onMessage(message => this.handleMessage(message));
@@ -720,7 +793,19 @@ export class NorthernStreamingRuntime {
     const dummy = new THREE.Object3D();
     for (let i = 0; i < record.chunk.props.count; i++) {
       const type = record.chunk.props.type[i];
-      if (type !== 1 && type !== 2) continue;
+      if (type === 11) {
+        const scale = record.chunk.props.scale[i];
+        record.propColliders.push(this.world.createCollider(RAPIER.ColliderDesc.cylinder(1.6 * scale, 0.3 * scale)
+          .setTranslation(record.chunk.props.x[i], record.chunk.props.y[i] + 1.6 * scale, record.chunk.props.z[i]).setFriction(0.9)));
+        continue;
+      }
+      if (type === 9) {
+        const scale = record.chunk.props.scale[i];
+        record.propColliders.push(this.world.createCollider(RAPIER.ColliderDesc.cylinder(1.4 * scale, 0.2 * scale)
+          .setTranslation(record.chunk.props.x[i], record.chunk.props.y[i] + 1.4 * scale, record.chunk.props.z[i]).setFriction(0.9)));
+        continue;
+      }
+      if (type !== 1 && type !== 2 && type !== 7 && type !== 8 && type !== 12 && type !== 13 && type !== 14 && type !== 15) continue;
       const geometry = this.propPools[type].mesh.geometry;
       setPropTransform(dummy, record.chunk, i);
       record.propColliders.push(this.world.createCollider(

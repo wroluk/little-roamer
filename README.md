@@ -1,8 +1,8 @@
 # Little Roamer
 
-An open-ended 3D toy 4WD playground with three places to explore: sunny hills
+An open-ended 3D toy 4WD playground with four places to explore: sunny hills
 in **Sunshine Valley**, the volcanic **Iceland Highlands**, and the streamed
-1.5 km-wide wilderness of **Northern Reach**.
+1.5 km-wide wilderness of **Northern Reach**, and **Samurai Village**.
 No score, objectives, timers, accounts, audio, or downloads of external artwork.
 
 Built with TypeScript, Vite, Three.js and Rapier. All meshes and trail-sign
@@ -280,3 +280,79 @@ Development builds expose `window.__ROAMER__` for reproducible behavioral
 inspection, snapshots, and test positioning. Production builds omit this hook.
 The app intentionally has no saving, infinite terrain, multiplayer,
 realistic drivetrain/damage, or native app packaging.
+
+## Samurai Village
+
+Choose **Samurai Village** in Explore, or open `?area=samurai-village`. This
+240 × 240 metre garden has intersecting village lanes, timber and plaster
+houses with tiled roofs, hanging red lanterns, and cherry trees. The central
+path passes through a bamboo forest to an old Japanese temple. To the east,
+a torii stands in a shallow lake with a solid, gently sloping bed; the car can
+drive through the water and under the gate. Houses, bamboo trunks, gate posts
+and visible perimeter walls have colliders. Repeated scenery is instanced.
+
+A wooden bridge with red railings crosses the southern part of the village
+lake, 20 metres from the torii. Gentle ramps connect both banks, leaving
+the gate and its water approach clear.
+
+## Northern Reach · River Valley pilot
+
+The lake outlet now includes an authored region spanning several streamed chunks:
+**Willow Ford**, **Cairn Ford**, shallow river shelves, small ridges, a hollow,
+framing groves, rock outcrops and a looping dirt trail. Amber posts mark broad
+wheel-deep crossings; stone cairns mark the ridge route. Deeper water remains
+between the crossings. From the usual spawn, follow Lake Road, then Coast Road
+west; the River Valley sign near `(-207, 322)` marks the turn north.
+
+For a short visit, open `?area=northern-reach&start=river-valley`. This starts
+south of Willow Ford and keeps Reset in the valley for that visit. Choosing
+another area clears the special starting point.
+
+`src/game/northern-valley.ts` defines the authored geography independently of
+chunk ownership. The existing deterministic generator incorporates the region
+into terrain, trails, props and water. The river has a continuous longitudinal
+profile, broad bank transitions and two flattened crossing beds. Within the
+pilot, water classification and shoreline clipping use the actual sampled
+collision surface. The 2.4 m global terrain lattice and 5×5 render / 3×3 physics
+rings are retained; no extra network assets or whole-world geometry are loaded.
+Signs and authored props are owned by one chunk and released with it.
+
+Validation includes sampled bank and trail grades, both fords driven in both
+directions with actual Rapier wheels, browser streaming crossings, and the
+existing terrain seam / resource lifecycle suite. This is one pilot region;
+the rest of Northern Reach retains its previous geography.
+
+## Northern Reach · Fjord Coast
+
+Follow Coast Road west past River Valley to the **Fjord Coast** signs. The
+clifftop trail connects to a beach loop with two graded ramps, a sheltered
+pebble cove, offshore sea stacks and driftwood. A broad shallow shelf makes
+the waterline approachable before the seabed drops into deeper water.
+Start directly on the cliff at `http://127.0.0.1:5173/?area=northern-reach&start=fjord-coast`.
+
+`src/game/northern-coast.ts` authors this region within `x = -725..-435`,
+`z = 255..550`. Trails, terrain and shoreline share the streamed collision
+lattice; road clearance keeps rocks and logs out of driving routes. The
+region blends into the existing Coast Road and leaves the river mouth intact.
+
+## Northern Reach · Pine Hollow
+
+The next authored region fills the southern forest west of Lake Road. From the
+usual Northern Reach starting point, drive north a short way and follow the
+**Pine Hollow** sign on the left. Its dirt loop runs through a dry, mossy ravine,
+climbs to a level lake lookout, and returns through tall pine groves and rock
+outcrops. A shorter route crosses the rock saddle. The northern connection joins
+Coast Road, which continues west to River Valley.
+
+The lookout is at `(-98, 375)`, the ravine follows approximately `x = -72` from
+`z = 500` to `438`, and the region grades into its surroundings between
+`x = -215..65` and `z = 330..595`. Reset keeps the usual Northern Reach spawn.
+The existing lake, river-valley fords, main-road grades and starting clearing
+are retained.
+
+`src/game/northern-forest.ts` contains the region layout and relief. Trail grades
+blend through bends to avoid sudden changes between segments. Layered pines,
+signs and outcrops stream with their owning chunks; pine trunks and rock outcrops
+are solid, while tree crowns remain decorative. Checks cover driving all three
+routes with the real vehicle, trail slopes across their width, chunk seams,
+landmark ownership, and browser driving through the ravine and up to the lookout.

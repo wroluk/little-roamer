@@ -189,6 +189,27 @@ test('camera sphere sweep shortens the boom before an obstruction and stays leve
   } finally { world.free(); }
 });
 
+test('manual camera orbit circles the vehicle and clamps vertical travel', () => {
+  const { world, vehicle } = simulation();
+  try {
+    const camera = new THREE.PerspectiveCamera(48, 1.5, 0.15, 250);
+    const follow = new FollowCamera(camera, world, vehicle);
+    follow.update(1 / 60);
+    const initial = camera.position.clone();
+    follow.orbit(Math.PI / 2, 0);
+    for (let i = 0; i < 90; i++) follow.update(1 / 60);
+    assert.ok(Math.abs(camera.position.x - initial.x) > 8);
+    assert.ok(camera.position.distanceTo(vehicle.position) < 16);
+
+    const sideHeight = camera.position.y;
+    follow.orbit(0, 10);
+    for (let i = 0; i < 90; i++) follow.update(1 / 60);
+    assert.ok(camera.position.y > sideHeight + 3);
+    assert.ok(camera.position.distanceTo(vehicle.position) < 16);
+    assert.deepEqual(camera.up.toArray(), [0, 1, 0]);
+  } finally { world.free(); }
+});
+
 test('terrain camera feedback is visible but remains within its collision-safe bound', () => {
   const { world, vehicle, tick } = simulation();
   try {

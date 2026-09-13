@@ -107,6 +107,23 @@ test('compass follows vehicle heading and altimeter reports terrain elevation', 
   await expect(page.locator('#altitude')).not.toHaveText('0 m');
 });
 
+test('dragging anywhere on the scene manually orbits the camera without steering the car', async ({ page }) => {
+  await page.locator('#start').click();
+  const canvas = page.locator('#game');
+  const bounds = (await canvas.boundingBox())!;
+  const start = await snapshot(page);
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + bounds.width * 0.72, bounds.y + bounds.height * 0.32, { steps: 8 });
+  await page.mouse.up();
+  await expect.poll(async () => Math.abs((await snapshot(page)).camera[0] - start.camera[0])).toBeGreaterThan(5);
+  const orbited = await snapshot(page);
+  expect(orbited.position).toEqual(start.position);
+  expect(orbited.input).toEqual({ steer: 0, forward: false, reverse: false });
+  expect(orbited.cameraObstructed).toBe(false);
+  await expect(canvas).not.toHaveClass(/camera-dragging/);
+});
+
 test('real two-finger touch steers and accelerates independently; capture and cancellation clear safely', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'CDP provides real multi-contact touch injection; WebKit covered separately.');
   await page.locator('#start').click();

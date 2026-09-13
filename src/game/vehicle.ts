@@ -96,49 +96,142 @@ export class Vehicle {
 
   private createModel() {
     const mat = (color: string, roughness = 0.7) => new THREE.MeshStandardMaterial({ color, roughness, flatShading: true });
-    const paint = mat('#ed754b');
-    const dark = mat('#293e3d');
-    const roof = mat('#ffebc4');
-    const glass = mat('#397b7d', 0.25);
-    const tire = mat('#293638');
-    const hub = mat('#efe2be');
-    const lights = new THREE.MeshStandardMaterial({ color: '#fff3cc', emissive: '#ffe4a6', emissiveIntensity: 0.3 });
-    const taillights = mat('#b54939');
-    const box = (w: number, h: number, d: number, x: number, y: number, z: number, material: THREE.Material) => {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
-      mesh.position.set(x, y, z);
+    const paint = mat('#6ca06c', 0.62);
+    const darkPaint = mat('#527d58', 0.68);
+    const cladding = mat('#263434');
+    const trim = mat('#d9d0b5', 0.45);
+    const glass = mat('#315e66', 0.24);
+    const tire = mat('#202b2d');
+    const hub = mat('#ded5bd', 0.38);
+    const lights = new THREE.MeshStandardMaterial({
+      color: '#fff7d6', emissive: '#ffe5a3', emissiveIntensity: 0.42, roughness: 0.3,
+    });
+    const fogLights = new THREE.MeshStandardMaterial({
+      color: '#f8e6b5', emissive: '#ffd77a', emissiveIntensity: 0.28, roughness: 0.35,
+    });
+    const taillights = new THREE.MeshStandardMaterial({
+      color: '#b93f38', emissive: '#6d1611', emissiveIntensity: 0.22, roughness: 0.55,
+    });
+    const addMesh = (geometry: THREE.BufferGeometry, material: THREE.Material) => {
+      const mesh = new THREE.Mesh(geometry, material);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       this.model.add(mesh);
       return mesh;
     };
-    box(1.53, 0.49, 2.78, 0, 0.11, 0, paint);
-    box(1.42, 0.14, 0.93, 0, 0.42, -0.85, paint);
-    box(1.3, 0.7, 1.27, 0, 0.67, 0.18, roof);
-    box(1.15, 0.46, 0.035, 0, 0.69, -0.471, glass);
-    box(1.15, 0.42, 0.035, 0, 0.69, 0.826, glass);
+    const box = (
+      w: number, h: number, d: number,
+      x: number, y: number, z: number,
+      material: THREE.Material,
+      rotationX = 0,
+    ) => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+      mesh.position.set(x, y, z);
+      mesh.rotation.x = rotationX;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      this.model.add(mesh);
+      return mesh;
+    };
+
+    const trapezoid = (
+      bottomWidth: number, topWidth: number, height: number,
+      bottomFront: number, bottomRear: number,
+      topFront: number, topRear: number,
+      bottomY: number, material: THREE.Material,
+    ) => {
+      const bw = bottomWidth / 2;
+      const tw = topWidth / 2;
+      const vertices = [
+        -bw, bottomY, bottomFront, bw, bottomY, bottomFront,
+        bw, bottomY, bottomRear, -bw, bottomY, bottomRear,
+        -tw, bottomY + height, topFront, tw, bottomY + height, topFront,
+        tw, bottomY + height, topRear, -tw, bottomY + height, topRear,
+      ];
+      const indices = [
+        0, 2, 1, 0, 3, 2,
+        4, 5, 6, 4, 6, 7,
+        0, 1, 5, 0, 5, 4,
+        1, 2, 6, 1, 6, 5,
+        2, 3, 7, 2, 7, 6,
+        3, 0, 4, 3, 4, 7,
+      ];
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
+      return addMesh(geometry, material);
+    };
+
+    const sideWindow = (
+      side: number,
+      front: number, rear: number,
+      topFront: number, topRear: number,
+      material: THREE.Material,
+    ) => {
+      const x = side * 0.711;
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+        x, 0.63, front,
+        x, 0.63, rear,
+        x, 1.17, topRear,
+        x, 1.17, topFront,
+      ], 3));
+      geometry.setIndex(side < 0 ? [0, 1, 2, 0, 2, 3] : [0, 2, 1, 0, 3, 2]);
+      geometry.computeVertexNormals();
+      return addMesh(geometry, material);
+    };
+
+    // Chunky compact-SUV silhouette, kept deliberately simple like a die-cast toy.
+    box(1.62, 0.43, 2.72, 0, 0.15, 0.02, paint);
+    box(1.7, 0.18, 2.64, 0, -0.09, 0.04, cladding);
+    trapezoid(1.58, 1.45, 0.25, -1.38, -0.42, -1.25, -0.37, 0.36, paint);
+    trapezoid(1.48, 1.27, 0.72, -0.48, 0.97, -0.17, 0.78, 0.49, darkPaint);
+    box(1.3, 0.12, 1.06, 0, 1.23, 0.31, paint);
+
+    // Windscreens and four distinct side windows give the cabin its angular Karoq-like profile.
+    box(1.22, 0.56, 0.035, 0, 0.87, -0.344, glass, 0.51);
+    box(1.2, 0.51, 0.035, 0, 0.87, 0.869, glass, -0.35);
     for (const side of [-1, 1]) {
-      box(0.027, 0.43, 0.91, side * 0.66, 0.69, 0.12, glass);
-      box(0.04, 0.47, 0.06, side * 0.68, 0.69, 0.19, roof);
-      box(0.045, 0.06, 0.22, side * 0.783, 0.24, 0.35, dark);
-      box(0.13, 0.22, 0.28, side * 0.87, 0.53, -0.41, paint);
-      box(0.31, 0.2, 0.05, side * 0.51, 0.18, -1.405, lights);
-      box(0.21, 0.17, 0.05, side * 0.52, 0.18, 1.405, taillights);
-      box(0.26, 0.17, 0.84, side * 0.78, 0.02, -1, paint);
-      box(0.26, 0.17, 0.84, side * 0.78, 0.02, 1, paint);
-      box(0.07, 0.12, 1.18, side * 0.51, 1.15, 0.15, dark);
+      sideWindow(side, -0.42, 0.17, -0.15, 0.2, glass);
+      sideWindow(side, 0.25, 0.84, 0.23, 0.75, glass);
+      box(0.045, 0.6, 0.075, side * 0.724, 0.89, 0.21, cladding);
+      box(0.05, 0.07, 0.24, side * 0.825, 0.52, 0.06, cladding);
+      box(0.11, 0.2, 0.28, side * 0.86, 0.69, -0.38, paint);
+
+      // Door handles, protective side skirts and squared-off wheel-arch caps.
+      box(0.035, 0.055, 0.22, side * 0.817, 0.47, 0.02, trim);
+      box(0.035, 0.055, 0.22, side * 0.817, 0.47, 0.67, trim);
+      box(0.12, 0.16, 2.32, side * 0.82, -0.03, 0.04, cladding);
+      box(0.18, 0.16, 0.87, side * 0.81, 0.11, -1.0, cladding);
+      box(0.18, 0.16, 0.87, side * 0.81, 0.11, 1.0, cladding);
+
+      // Thin upper lamps and lower fog lamps echo the split-light SUV front.
+      box(0.4, 0.14, 0.055, side * 0.54, 0.47, -1.39, lights);
+      box(0.18, 0.16, 0.06, side * 0.57, 0.15, -1.455, fogLights);
+      box(0.34, 0.18, 0.055, side * 0.53, 0.39, 1.395, taillights);
+
+      // Raised roof rails.
+      box(0.055, 0.055, 1.0, side * 0.53, 1.34, 0.31, trim);
+      box(0.07, 0.1, 0.08, side * 0.53, 1.29, -0.13, cladding);
+      box(0.07, 0.1, 0.08, side * 0.53, 1.29, 0.75, cladding);
     }
-    box(1.48, 0.16, 1.44, 0, 1.07, 0.17, roof);
-    box(1.7, 0.16, 0.18, 0, -0.12, -1.48, dark);
-    box(1.7, 0.16, 0.18, 0, -0.12, 1.48, dark);
-    box(0.53, 0.16, 0.06, 0, 0.13, -1.413, dark);
-    box(0.6, 0.32, 0.69, 0.15, 1.32, 0.24, mat('#a7b886'));
-    box(0.65, 0.035, 0.065, 0.15, 1.495, 0.24, roof);
-    box(1.19, 0.08, 0.09, 0, 1.19, -0.28, dark);
-    box(1.19, 0.08, 0.09, 0, 1.19, 0.65, dark);
+
+    // Broad toy grille with simple vertical bars.
+    box(0.76, 0.31, 0.065, 0, 0.28, -1.43, cladding);
+    box(0.68, 0.04, 0.075, 0, 0.43, -1.467, trim);
+    for (const x of [-0.24, -0.12, 0, 0.12, 0.24]) {
+      box(0.032, 0.23, 0.075, x, 0.28, -1.468, trim);
+    }
+    box(1.72, 0.16, 0.17, 0, -0.13, -1.43, cladding);
+    box(0.72, 0.07, 0.04, 0, -0.08, -1.525, trim);
+    box(1.72, 0.17, 0.17, 0, -0.13, 1.42, cladding);
+    box(0.76, 0.07, 0.04, 0, -0.08, 1.515, trim);
+    box(0.76, 0.08, 0.05, 0, 0.2, 1.455, cladding);
+    box(1.2, 0.08, 0.22, 0, 1.24, 0.85, cladding);
 
     const tireGeo = new THREE.CylinderGeometry(WHEEL_RADIUS, WHEEL_RADIUS, 0.36, 12);
-    const hubGeo = new THREE.CylinderGeometry(0.27, 0.27, 0.375, 8);
+    const hubGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.375, 10);
     tireGeo.rotateZ(Math.PI / 2);
     hubGeo.rotateZ(Math.PI / 2);
     const treadGeo = new THREE.BoxGeometry(0.39, 0.065, 0.17);
@@ -152,7 +245,7 @@ export class Vehicle {
       spinner.add(rubber, rim);
       for (let j = 0; j < 12; j++) {
         const angle = j * Math.PI / 6;
-        const tread = new THREE.Mesh(treadGeo, dark);
+        const tread = new THREE.Mesh(treadGeo, cladding);
         tread.position.set(0, Math.cos(angle) * 0.46, Math.sin(angle) * 0.46);
         tread.rotation.x = angle;
         spinner.add(tread);
@@ -163,17 +256,6 @@ export class Vehicle {
       this.wheels.push(wheel);
       this.tires.push(spinner);
     }
-    const spare = new THREE.Mesh(tireGeo, tire);
-    spare.rotation.y = Math.PI / 2;
-    spare.position.set(0, 0.53, 1.51);
-    spare.scale.setScalar(0.84);
-    spare.castShadow = true;
-    this.model.add(spare);
-    const spareHub = new THREE.Mesh(hubGeo, hub);
-    spareHub.rotation.copy(spare.rotation);
-    spareHub.position.copy(spare.position);
-    spareHub.scale.copy(spare.scale);
-    this.model.add(spareHub);
 
     // Batch immutable parts by material; suspension/steering groups stay separate.
     const batch = (group: THREE.Group) => {
@@ -182,6 +264,7 @@ export class Vehicle {
         if (!(child instanceof THREE.Mesh) || Array.isArray(child.material)) continue;
         child.updateMatrix();
         const transformed = child.geometry.clone().applyMatrix4(child.matrix);
+        transformed.deleteAttribute('uv');
         const geometries = batches.get(child.material) ?? [];
         geometries.push(transformed);
         batches.set(child.material, geometries);

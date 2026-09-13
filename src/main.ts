@@ -4,6 +4,8 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { Vehicle } from './game/vehicle';
 import { FollowCamera } from './game/camera';
 import { FixedClock } from './game/driving';
+import { sampledHeightAt } from './game/northern-terrain';
+import { COAST_START } from './game/northern-coast';
 import { RAMPS } from './game/terrain';
 import { FORDS, VOLCANOES, GLACIER, GLACIER_ASCENT, VOLCANO_ASCENT } from './game/highlands';
 import { AREAS, isAreaId, type Area, type AreaId, type AreaRuntime } from './game/areas';
@@ -110,6 +112,18 @@ async function boot() {
   }
   const requestedArea = new URLSearchParams(window.location.search).get('area');
   let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'valley'];
+  if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'river-valley') {
+    area = { ...area, spawn: { x: -240, z: 232, y: sampledHeightAt(-240, 232) + 1.25 },
+      welcomeTitle: 'Follow the river.',
+      description: 'Two shallow fords, sheltered banks and a winding ridge loop. Follow amber posts through the water, or stone cairns into the hills.',
+      readyMessage: 'River Valley. The amber posts mark the shallow crossings.' };
+  }
+  if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'fjord-coast') {
+    area = { ...area, spawn: { ...COAST_START, y: sampledHeightAt(COAST_START.x, COAST_START.z) + 1.25 },
+      welcomeTitle: 'Explore the coast.',
+      description: 'Follow the clifftop trail, descend to sheltered pebble coves and circle the sea stacks along the beach.',
+      readyMessage: 'Fjord Coast. Follow the beach loop down to the shallows.' };
+  }
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
     ? 'Preparing the road ahead...'
@@ -139,7 +153,7 @@ async function boot() {
     element('welcome-eyebrow').textContent = area.welcomeEyebrow;
     element('welcome-title').textContent = area.welcomeTitle;
     element('hint').textContent = area.hint;
-    element('surface-label').textContent = vehicle.currentSurface.label;
+    element('surface-label').textContent = area.id === 'samurai-village' && vehicle.currentSurface.id === 'water' ? 'Shallow lake' : vehicle.currentSurface.label;
     element('surface-trait').textContent = vehicle.currentSurface.trait;
     element('loading-status').textContent = area.readyMessage;
     element<HTMLButtonElement>('reset').title = `Return to the ${area.name} starting area (R)`;
@@ -196,6 +210,16 @@ async function boot() {
     window.clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => element('toast').classList.remove('visible'), 2500);
   };
+  let cameraPointer: number | null = null;
+  let cameraPointerX = 0;
+  let cameraPointerY = 0;
+  const clearCameraDrag = () => {
+    if (cameraPointer === null) return;
+    const pointer = cameraPointer;
+    cameraPointer = null;
+    canvas.classList.remove('camera-dragging');
+    if (canvas.hasPointerCapture(pointer)) canvas.releasePointerCapture(pointer);
+  };
   const pause = () => {
     if (mode === 'loading' && resetInProgress) {
       pauseAfterReset = true;
@@ -203,6 +227,7 @@ async function boot() {
     }
     if (mode !== 'playing') return;
     mode = 'paused';
+    clearCameraDrag();
     controls?.setEnabled(false);
     clock.reset();
     element('paused').hidden = false;
@@ -272,6 +297,33 @@ async function boot() {
     toast('Back on your wheels. Off you go.');
   };
   controls = new Controls(pause, () => { void reset().catch(showError); });
+  canvas.addEventListener('pointerdown', event => {
+    if (mode !== 'playing' || event.button !== 0 || cameraPointer !== null) return;
+    event.preventDefault();
+    cameraPointer = event.pointerId;
+    cameraPointerX = event.clientX;
+    cameraPointerY = event.clientY;
+    canvas.setPointerCapture(event.pointerId);
+    canvas.classList.add('camera-dragging');
+  });
+  canvas.addEventListener('pointermove', event => {
+    if (cameraPointer !== event.pointerId) return;
+    event.preventDefault();
+    const width = Math.max(1, canvas.clientWidth);
+    const height = Math.max(1, canvas.clientHeight);
+    follow.orbit(
+      (event.clientX - cameraPointerX) / width * Math.PI * 2,
+      (event.clientY - cameraPointerY) / height * Math.PI,
+    );
+    cameraPointerX = event.clientX;
+    cameraPointerY = event.clientY;
+  });
+  canvas.addEventListener('pointerup', event => {
+    if (cameraPointer === event.pointerId) clearCameraDrag();
+  });
+  canvas.addEventListener('pointercancel', clearCameraDrag);
+  canvas.addEventListener('lostpointercapture', clearCameraDrag);
+  canvas.addEventListener('contextmenu', event => event.preventDefault());
   element('start').addEventListener('click', resume);
   element('resume').addEventListener('click', resume);
   element('pause').addEventListener('click', pause);
@@ -283,6 +335,7 @@ async function boot() {
       return;
     }
     mode = 'loading';
+    clearCameraDrag();
     controls?.setEnabled(false);
     clock.reset();
     areaSelect.disabled = true;
@@ -327,6 +380,7 @@ async function boot() {
     follow.update(1 / 60, true);
     const url = new URL(window.location.href);
     url.searchParams.set('area', id);
+    url.searchParams.delete('start');
     window.history.replaceState(null, '', url);
     element('start').focus();
   }
@@ -455,7 +509,7 @@ async function boot() {
       }
       if (surfaceHud.dataset.surface !== surface.id) {
         surfaceHud.dataset.surface = surface.id;
-        element('surface-label').textContent = surface.label;
+        element('surface-label').textContent = area.id === 'samurai-village' && surface.id === 'water' ? 'Shallow lake' : surface.label;
         element('surface-trait').textContent = surface.id === 'water' && vehicle.waterDepth >= 0.85
           ? 'Too deep · reset'
           : surface.trait;

@@ -407,7 +407,7 @@ test('props are deterministic, stay strictly within their owning chunk, and neve
   const region: [number, number][] = [];
   for (let cx = -2; cx <= 2; cx++) for (let cz = 4; cz <= 8; cz++) region.push([cx, cz]);
 
-  const allPositions: { x: number; z: number }[] = [];
+  const allPositions: { x: number; y: number; z: number; type: number }[] = [];
   for (const [cx, cz] of region) {
     const chunk = generateNorthernChunk(cx, cz);
     const minX = cx * NORTHERN_CHUNK_SIZE;
@@ -420,15 +420,16 @@ test('props are deterministic, stay strictly within their owning chunk, and neve
       assert.ok(x >= minX && x < maxX, `prop x=${x} escaped chunk (${cx},${cz})`);
       assert.ok(z >= minZ && z < maxZ, `prop z=${z} escaped chunk (${cx},${cz})`);
       assert.ok(chunk.props.type[i] < NORTHERN_PROP_TYPES.length);
-      allPositions.push({ x, z });
+      allPositions.push({ x, z, y: chunk.props.y[i], type: chunk.props.type[i] });
     }
   }
   assert.ok(allPositions.length > 50, 'expected a reasonable number of props across the sampled region');
 
-  // No two props anywhere in the combined region coincide (which would indicate a seam duplicate).
+  // Stacked cairns and sign/post assemblies intentionally share x/z; duplicate
+  // instances of the same geometry at the same 3D position indicate a seam bug.
   const seen = new Set<string>();
-  for (const { x, z } of allPositions) {
-    const key = `${x.toFixed(3)},${z.toFixed(3)}`;
+  for (const { x, y, z, type } of allPositions) {
+    const key = `${type}:${x.toFixed(3)},${y.toFixed(3)},${z.toFixed(3)}`;
     assert.ok(!seen.has(key), `duplicate prop position at ${key}`);
     seen.add(key);
   }

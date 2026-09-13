@@ -14,6 +14,8 @@ button:disabled { cursor: wait; }
 [hidden] { display: none !important; }
 #app { position: relative; isolation: isolate; touch-action: none; overscroll-behavior: none; -webkit-user-select: none; user-select: none; }
 #game { display: block; width: 100%; height: 100%; outline: none; }
+body.playing #game { cursor: grab; }
+body.playing #game.camera-dragging { cursor: grabbing; }
 .vignette { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #f5f0da44, transparent 23%, transparent 70%, #263e3920); }
 .topbar { position: absolute; top: max(27px, env(safe-area-inset-top)); left: max(32px, env(safe-area-inset-left)); right: max(32px, env(safe-area-inset-right)); display: flex; align-items: center; justify-content: space-between; gap: 20px; z-index: 5; }
 .wordmark { display: flex; gap: 10px; align-items: center; font-weight: 900; font-size: 17px; letter-spacing: 2px; line-height: 1.35; }

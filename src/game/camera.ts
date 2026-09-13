@@ -5,7 +5,10 @@ import { surfaceHeight } from './terrain';
 
 export class FollowCamera {
   private heading = 0;
+  private orbitYaw = 0;
+  private orbitPitch = 0;
   private readonly forward = new THREE.Vector3(0, 0, -1);
+  private readonly orbitDirection = new THREE.Vector3(0, 0, -1);
   private readonly target = new THREE.Vector3();
   private readonly origin = new THREE.Vector3();
   private readonly wanted = new THREE.Vector3();
@@ -25,6 +28,14 @@ export class FollowCamera {
 
   reset() { this.initialized = false; this.feedbackTime = 0; }
 
+  orbit(yaw: number, pitch: number) {
+    this.orbitYaw = Math.atan2(
+      Math.sin(this.orbitYaw + yaw),
+      Math.cos(this.orbitYaw + yaw),
+    );
+    this.orbitPitch = THREE.MathUtils.clamp(this.orbitPitch + pitch, -0.32, 0.62);
+  }
+
   update(dt: number, showcase = false, feedback = 0) {
     this.feedbackTime += dt;
     const car = this.vehicle.model;
@@ -38,9 +49,18 @@ export class FollowCamera {
     this.target.copy(car.position).addScaledVector(this.forward, 1.4);
     this.target.y += 0.8;
     const portrait = this.camera.aspect < 1;
-    const distance = portrait ? 13.5 : 11.5;
-    this.wanted.copy(car.position).addScaledVector(this.forward, -distance);
-    this.wanted.y += portrait ? 8.5 : 7.3;
+    const horizontalDistance = portrait ? 13.5 : 11.5;
+    const height = portrait ? 8.5 : 7.3;
+    const boomLength = Math.hypot(horizontalDistance, height);
+    const pitch = Math.atan2(height, horizontalDistance) + this.orbitPitch;
+    this.orbitDirection.set(
+      -Math.sin(this.heading + this.orbitYaw),
+      0,
+      -Math.cos(this.heading + this.orbitYaw),
+    );
+    this.wanted.copy(car.position)
+      .addScaledVector(this.orbitDirection, -Math.cos(pitch) * boomLength);
+    this.wanted.y += Math.sin(pitch) * boomLength;
     if (showcase) {
       this.wanted.copy(car.position).add(new THREE.Vector3(12, 8, 13));
       this.target.copy(car.position).add(new THREE.Vector3(-5.5, 0.5, -2));

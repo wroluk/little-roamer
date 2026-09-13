@@ -1,3 +1,4 @@
+import { buildSamurai, SAMURAI_HALF, SAMURAI_START, samuraiSurfaceAt, samuraiSurfaceHeight, samuraiWaterHeight } from './samurai';
 import type * as THREE from 'three';
 import type RAPIER from '@dimforge/rapier3d-compat';
 import { buildWorld } from './world';
@@ -11,7 +12,7 @@ import {
 } from './northern-streaming';
 import type { SurfaceId } from './surfaces';
 
-export type AreaId = 'valley' | 'highlands' | 'northern-reach';
+export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village';
 export type AreaRuntime = {
   update: (x: number, z: number) => void;
   ensureReady: (x: number, z: number) => Promise<void>;
@@ -51,6 +52,18 @@ export type Area = {
 };
 
 export const AREAS: Record<AreaId, Area> = {
+  'samurai-village': {
+    id: 'samurai-village', name: 'Samurai Village', label: '04 / THE LANTERN VILLAGE',
+    tagline: 'Follow the red lanterns.',
+    description: 'Quiet lanes, timber houses and glowing red lanterns. Wander through bamboo to an old Japanese temple, or find the torii standing in a shallow lake.',
+    hint: 'The bamboo path leads to the temple. The lake is shallow enough to explore.',
+    welcomeEyebrow: 'SAMURAI VILLAGE / BAMBOO & LANTERNS', welcomeTitle: 'A timeless escape.',
+    readyMessage: 'The lanterns are lit. Take a peaceful village drive.', ambientLight: '#fff0d8',
+    spawn: SAMURAI_START, half: SAMURAI_HALF, climbingPower: 1.25,
+    sky: '#d9d4c4', fogNear: 95, fogFar: 300, groundLight: '#70825d', sunlight: '#ffe2b5',
+    surfaceHeight: samuraiSurfaceHeight, waterHeight: samuraiWaterHeight, surfaceAt: samuraiSurfaceAt,
+    build: buildSamurai,
+  },
   valley: {
     id: 'valley', name: 'Sunshine Valley', label: '01 / THE GREAT OUTDOORS',
     tagline: 'Take the scenic route.',
@@ -78,7 +91,7 @@ export const AREAS: Record<AreaId, Area> = {
     id: 'northern-reach', name: 'Northern Reach', label: '03 / BEYOND THE TREELINE',
     tagline: 'A whole horizon to wander.',
     description: 'Fjord coast. Pine country. Snow roads and volcanic ridges. A vast northern wilderness unfolds as you roam.',
-    hint: 'Follow the pale tracks—or leave them behind. Deep water is still impassable.',
+    hint: 'Look for Pine Hollow near the start. Coast Road leads through River Valley to Fjord Coast.',
     welcomeEyebrow: 'NORTHERN REACH / COAST TO SUMMIT', welcomeTitle: 'Farther outside.',
     readyMessage: 'The road ahead is ready. More wilderness unfolds as you drive.', ambientLight: '#e8f1e8',
     spawn: NORTHERN_SPAWN, half: NORTHERN_HALF, climbingPower: 1.45,
@@ -96,5 +109,5 @@ export const AREAS: Record<AreaId, Area> = {
 };
 
 export function isAreaId(value: string | null): value is AreaId {
-  return value === 'valley' || value === 'highlands' || value === 'northern-reach';
+  return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village';
 }
