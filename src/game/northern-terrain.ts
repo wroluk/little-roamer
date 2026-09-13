@@ -8,6 +8,7 @@ import { FOREST_TRAILS, FOREST_SIGNS, FOREST_CAIRNS, FOREST_OUTCROPS, FOREST_GRO
 // independently generated chunks share bit-identical edges and keeps prop
 // placement seam-free.
 import type { SurfaceId } from './surfaces';
+import { applyEmber, emberWeight, emberRadius, emberTrailSample, EMBER_START, EMBER_LOOKOUT, EMBER_FLOOR, EMBER_SIGNS, EMBER_COLUMNS } from './northern-ember';
 import { applyPass, passWeight, passTrailSample, passBowlRadius, PASS_TRAILS, PASS_SIGNS, PASS_TORS, PASS_START, PASS_LOOKOUT } from './northern-pass';
 import { applyCoast, coastShoreX, coastWeight, coastTrailSample, COAST_STACKS, COAST_SIGNS } from './northern-coast';
 
@@ -372,7 +373,7 @@ function applyPerimeterRise(x: number, z: number, height: number): number {
 
 /** Continuous, analytic Northern Reach elevation at any real (x, z). Always finite. */
 function authoredGround(x: number, z: number): number {
-  return applyPass(x, z, applyCoast(x, z, applyWater(x, z, applyForest(x, z, applyRoutes(x, z, naturalHeight(x, z))))));
+  return applyEmber(x, z, applyPass(x, z, applyCoast(x, z, applyWater(x, z, applyForest(x, z, applyRoutes(x, z, naturalHeight(x, z)))))));
 }
 
 export function northernHeightAt(x: number, z: number): number {
@@ -393,6 +394,14 @@ export function waterHeightAt(x: number, z: number): number | null {
 
 export function northernSurfaceAt(x: number, z: number): SurfaceId {
   if (waterHeightAt(x, z) !== null) return 'water';
+
+  if (emberWeight(x, z) > 0.2) {
+    if (emberRadius(x, z) < 0.68) return 'ash';
+    if (emberTrailSample(x, z).distance < 5.5) return 'dirt';
+    // Cooled basalt tongues alternate with ochre scree and low moss patches.
+    if (Math.abs(x - 650 - 9 * Math.sin(z * 0.06)) < 10 && z > 395 && z < 510) return 'rock';
+    return z > 515 && x < 615 ? 'moss' : emberRadius(x, z) < 1.12 ? 'ash' : 'rock';
+  }
 
   if (passWeight(x, z) > 0.2) {
     if (passBowlRadius(x, z) < 0.65) return 'ice';
@@ -461,6 +470,11 @@ const SURFACE_BASE_COLOR: Record<SurfaceId, [number, number, number]> = {
 
 function surfaceColor(surface: SurfaceId, x: number, z: number): [number, number, number] {
   let base = SURFACE_BASE_COLOR[surface];
+  if (emberWeight(x, z) > 0.2) {
+    if (surface === 'rock') base = [0.24, 0.23, 0.22];
+    if (surface === 'dirt') base = [0.58, 0.32, 0.17];
+    if (surface === 'ash') base = [0.38, 0.32, 0.29];
+  }
   if (passWeight(x, z) > 0.2) {
     if (surface === 'ice') base = [0.3, 0.65, 0.78];
     if (surface === 'rock') base = [0.3, 0.34, 0.37];
@@ -530,7 +544,7 @@ export const NORTHERN_SPAWN = { x: 24, y: sampledHeightAt(24, 560) + 1.25, z: 56
 
 /** Compact numeric prop kinds, indexed by NorthernProps.type. */
 export const NORTHERN_PROP_TYPES = [
-  'tree', 'roadsideRock', 'snowRock', 'reed', 'driftwood', 'shrub', 'volcanicSpike', 'fordPost', 'valleySign', 'willow', 'riverRipple', 'forestPine', 'forestSign', 'coastStack', 'coastLog', 'coastSign', 'passSign', 'graniteTor',
+  'tree', 'roadsideRock', 'snowRock', 'reed', 'driftwood', 'shrub', 'volcanicSpike', 'fordPost', 'valleySign', 'willow', 'riverRipple', 'forestPine', 'forestSign', 'coastStack', 'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn',
 ] as const;
 
 function propDensityAt(surface: SurfaceId, z: number): number {
@@ -599,6 +613,8 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
       const pz = clamp(centerZ + jitterZ, chunkMinZ, chunkMinZ + NORTHERN_CHUNK_SIZE - 1e-4);
 
       if (waterHeightAt(px, pz) !== null) continue;
+      if (emberTrailSample(px, pz).distance < 10) continue;
+      if ([EMBER_START, EMBER_LOOKOUT, EMBER_FLOOR].some(p => Math.hypot(px - p.x, pz - p.z) < 13)) continue;
       if (passTrailSample(px, pz).distance < 10 || (passWeight(px, pz) > 0 && passBowlRadius(px, pz) < 1.2)) continue;
       if (Math.hypot(px - PASS_START.x, pz - PASS_START.z) < 13 || Math.hypot(px - PASS_LOOKOUT.x, pz - PASS_LOOKOUT.z) < 13) continue;
       if (coastTrailSample(px, pz).distance < 8) continue;
@@ -610,6 +626,7 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
       if (ROUTES.some(route => polylineSample(route.line, px, pz).distance < route.width / 2 + 2)) continue;
 
       let kind = propTypeFor(surface, rand);
+      if (emberWeight(px, pz) > 0.2 && kind === 6) kind = 1;
       if (passWeight(px, pz) > 0.2 && kind === 6) kind = 2;
       if (coastWeight(px, pz) > 0.2 && (kind === 6 || kind === 4)) kind = 1;
       type.push(kind === 0 && valleyWeight(px, pz) > 0.5 ? 9 : kind);
@@ -676,6 +693,15 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
   for (const cairn of FOREST_CAIRNS) {
     authoredProp(cairn.x, cairn.z, 1, 1);
     authoredProp(cairn.x, cairn.z, 1, 0.6, 0.9);
+  }
+  for (const sign of EMBER_SIGNS) {
+    authoredProp(sign.x, sign.z, 18, 1);
+    authoredProp(sign.x, sign.z, 7, 1);
+  }
+  for (const group of EMBER_COLUMNS) for (let i = 0; i < 5; i++) {
+    const px = group.x + (i - 2) * 3.1, pz = group.z + 3 * Math.sin(i * 1.7);
+    if (emberTrailSample(px, pz).distance < 10) continue;
+    authoredProp(px, pz, 19, 0.6 + 0.13 * ((i * 3) % 5), 0, i * 0.4);
   }
   for (const sign of PASS_SIGNS) {
     authoredProp(sign.x, sign.z, 16, 1);

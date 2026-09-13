@@ -322,6 +322,26 @@ directions with actual Rapier wheels, browser streaming crossings, and the
 existing terrain seam / resource lifecycle suite. This is one pilot region;
 the rest of Northern Reach retains its previous geography.
 
+## Northern Reach · Ember Basin
+
+Follow **Upland Road** to its eastern end and the **Ember Basin** signs. An
+ochre trail circles an extinct caldera, with a winding descent into its soft
+ash floor. Basalt columns stand on the inner slopes and eastern flank. A
+northern spur reaches **Ashen overlook**, with a level turnout facing back
+toward the crater. Moss patches soften the southern scree.
+
+Start directly at `http://127.0.0.1:5173/?area=northern-reach&start=ember-basin`,
+or append `?area=northern-reach&start=ember-basin` to the published game's URL.
+Reset returns to the caldera entrance. The longer ash descent is graded for
+the reduced traction, so the car can climb back out along the same trail.
+
+`src/game/northern-ember.ts` defines the region within `x = 480..710`,
+`z = 285..580`, blending east of Upland Road's endpoint `(505, 445)`.
+The crater, routes and lookouts share the streamed terrain/collision lattice;
+basalt columns use matching solid colliders and stay clear of the trails.
+Tests drive all routes in both directions and check grades, surface handling,
+chunk seams, browser driving and reset.
+
 ## Northern Reach · High Pass
 
 Continue to the end of **Mountain Road** in the northeast, then follow the

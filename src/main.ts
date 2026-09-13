@@ -7,6 +7,7 @@ import { FixedClock } from './game/driving';
 import { sampledHeightAt } from './game/northern-terrain';
 import { COAST_START } from './game/northern-coast';
 import { PASS_START } from './game/northern-pass';
+import { EMBER_START } from './game/northern-ember';
 import { RAMPS } from './game/terrain';
 import { FORDS, VOLCANOES, GLACIER, GLACIER_ASCENT, VOLCANO_ASCENT } from './game/highlands';
 import { AREAS, isAreaId, type Area, type AreaId, type AreaRuntime } from './game/areas';
@@ -130,6 +131,12 @@ async function boot() {
       welcomeTitle: 'Above the clouds.',
       description: 'Wind between twin peaks, climb to the north lookout and descend into the frozen Blue Hollow. Stone cairns guide the mountain circuit.',
       readyMessage: 'High Pass. Follow the cairns; Blue Hollow is slippery.' };
+  }
+  if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'ember-basin') {
+    area = { ...area, spawn: { ...EMBER_START, y: sampledHeightAt(EMBER_START.x, EMBER_START.z) + 1.25 },
+      welcomeTitle: 'Around the old crater.',
+      description: 'Circle the caldera rim, descend into soft ash and weave past basalt columns on the way to the northern overlook.',
+      readyMessage: 'Ember Basin. Follow the ochre trail; loose ash slows the crater descent.' };
   }
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'

@@ -374,6 +374,8 @@ function forestPineGeometry(): THREE.BufferGeometry {
 }
 
 const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = {
+  emberSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  basaltColumn: () => new THREE.CylinderGeometry(1.2, 1.4, 10, 6).translate(0, 4.8, 0),
   passSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   graniteTor: () => new THREE.DodecahedronGeometry(1, 0).scale(3.2, 7, 2.6).translate(0, 6, 0),
   coastStack: () => new THREE.CylinderGeometry(1.1, 2.2, 10, 5).translate(0, 5, 0),
@@ -395,6 +397,7 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
 };
 
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
+  emberSign: '#ffffff', basaltColumn: '#6f6964',
   passSign: '#ffffff', graniteTor: '#9aa7ad',
   coastStack: '#747d78', coastLog: '#a18c72', coastSign: '#ffffff',
   forestPine: '#ffffff', forestSign: '#ffffff',
@@ -402,22 +405,28 @@ const PROP_BASE_COLOR: Record<PropTypeName, string> = {
   driftwood: '#8a715a', shrub: '#5c8a4d', volcanicSpike: '#4a3a37',
 };
 
+const SIGN_TEXT: Partial<Record<PropTypeName, [string, string, string]>> = {
+  valleySign: ['RIVER VALLEY', 'AMBER POSTS · SHALLOW FORDS', 'RIDGE LOOP · STONE CAIRNS'],
+  forestSign: ['PINE HOLLOW', 'RAVINE · ROCK SADDLE', 'LAKE LOOKOUT · COAST ROAD'],
+  coastSign: ['FJORD COAST', 'CLIFFTOP TRAIL · PEBBLE COVE', 'BEACH LOOP · SEA STACKS'],
+  passSign: ['HIGH PASS', 'TWIN PEAKS · NORTH LOOKOUT', 'BLUE HOLLOW · ICE AHEAD'],
+  emberSign: ['EMBER BASIN', 'CALDERA CIRCUIT · ASH DESCENT', 'BASALT COLUMNS · OVERLOOK'],
+};
+
 function propMaterial(type: PropTypeName): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({ color: PROP_BASE_COLOR[type], roughness: 0.9, flatShading: true });
   if (type === 'willow' || type === 'forestPine') material.vertexColors = true;
-  if ((type !== 'valleySign' && type !== 'forestSign' && type !== 'coastSign' && type !== 'passSign') || typeof document === 'undefined') return material;
+  const sign = SIGN_TEXT[type];
+  if (!sign || typeof document === 'undefined') return material;
   const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 256;
   const ctx = canvas.getContext('2d');
   if (!ctx) return material;
   ctx.fillStyle = '#294842'; ctx.fillRect(0, 0, 512, 256);
   ctx.strokeStyle = '#efbd59'; ctx.lineWidth = 8; ctx.strokeRect(12, 12, 488, 232);
   ctx.textAlign = 'center'; ctx.fillStyle = '#fff0ce';
-  const forest = type === 'forestSign';
-  const coast = type === 'coastSign';
-  const pass = type === 'passSign';
-  ctx.font = 'bold 48px sans-serif'; ctx.fillText(pass ? 'HIGH PASS' : coast ? 'FJORD COAST' : forest ? 'PINE HOLLOW' : 'RIVER VALLEY', 256, 95);
-  ctx.font = '24px sans-serif'; ctx.fillText(pass ? 'TWIN PEAKS · NORTH LOOKOUT' : coast ? 'CLIFFTOP TRAIL · PEBBLE COVE' : forest ? 'RAVINE · ROCK SADDLE' : 'AMBER POSTS · SHALLOW FORDS', 256, 155, 465);
-  ctx.fillText(pass ? 'BLUE HOLLOW · ICE AHEAD' : coast ? 'BEACH LOOP · SEA STACKS' : forest ? 'LAKE LOOKOUT · COAST ROAD' : 'RIDGE LOOP · STONE CAIRNS', 256, 200, 465);
+  ctx.font = 'bold 48px sans-serif'; ctx.fillText(sign[0], 256, 95);
+  ctx.font = '24px sans-serif'; ctx.fillText(sign[1], 256, 155, 465);
+  ctx.fillText(sign[2], 256, 200, 465);
   material.map = new THREE.CanvasTexture(canvas); material.map.colorSpace = THREE.SRGBColorSpace;
   return material;
 }
@@ -809,7 +818,7 @@ export class NorthernStreamingRuntime {
           .setTranslation(record.chunk.props.x[i], record.chunk.props.y[i] + 1.4 * scale, record.chunk.props.z[i]).setFriction(0.9)));
         continue;
       }
-      if (type !== 1 && type !== 2 && type !== 7 && type !== 8 && type !== 12 && type !== 13 && type !== 14 && type !== 15 && type !== 16 && type !== 17) continue;
+      if (type !== 1 && type !== 2 && type !== 7 && type !== 8 && type !== 12 && type !== 13 && type !== 14 && type !== 15 && type !== 16 && type !== 17 && type !== 18 && type !== 19) continue;
       const geometry = this.propPools[type].mesh.geometry;
       setPropTransform(dummy, record.chunk, i);
       record.propColliders.push(this.world.createCollider(
