@@ -4,8 +4,10 @@ export function coastShoreX(z: number): number {
   const oldShore = -690 + 22 * Math.sin(z * 0.006) + 9 * Math.sin(z * 0.021 + 1.4)
     + 235 * Math.exp(-(((z - 190) / 85) ** 2));
   const reach = smooth((z - 255) / 35) * (1 - smooth((z - 515) / 35));
+  const shoals = smooth((z + 230) / 45) * (1 - smooth((z - 35) / 45));
   return oldShore + reach * (12 * Math.exp(-(((z - 340) / 30) ** 2))
-    + 16 * Math.exp(-(((z - 455) / 36) ** 2)));
+    + 16 * Math.exp(-(((z - 455) / 36) ** 2)))
+    + shoals * 65 * Math.exp(-(((z + 80) / 120) ** 2));
 }
 const point = (z: number, inland: number, y: number) => ({ x: coastShoreX(z) + inland, z, y });
 export const COAST_TRAILS = [

@@ -9,6 +9,7 @@ import { COAST_START } from './game/northern-coast';
 import { PASS_START } from './game/northern-pass';
 import { EMBER_START } from './game/northern-ember';
 import { MARSH_START, marshWeight } from './game/northern-marsh';
+import { ADVENTURE_REGIONS, shoalsWaterRegion } from './game/northern-adventures';
 import { RAMPS } from './game/terrain';
 import { FORDS, VOLCANOES, GLACIER, GLACIER_ASCENT, VOLCANO_ASCENT } from './game/highlands';
 import { AREAS, isAreaId, type Area, type AreaId, type AreaRuntime } from './game/areas';
@@ -146,6 +147,12 @@ async function boot() {
       hint: 'Amber posts mark Reed Ford. The dry hummock loop leads to Heron lookout.',
       readyMessage: 'Willow Marsh. Amber posts mark the shallow crossing.' };
   }
+  const adventure = ADVENTURE_REGIONS.find(r => r.id === new URLSearchParams(window.location.search).get('start'));
+  if (area.id === 'northern-reach' && adventure) {
+    area = { ...area, spawn: { ...adventure.start, y: sampledHeightAt(adventure.start.x, adventure.start.z) + 1.25 },
+      welcomeTitle: adventure.name, description: adventure.description,
+      hint: adventure.description, readyMessage: `${adventure.name}. Choose your own line.` };
+  }
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
     ? 'Preparing the road ahead...'
@@ -164,6 +171,7 @@ async function boot() {
     const surface = vehicle.currentSurface;
     if (surface.id === 'water') {
       if (area.id === 'samurai-village') return 'Shallow lake';
+      if (area.id === 'northern-reach' && shoalsWaterRegion(vehicle.position.x, vehicle.position.z)) return 'Coastal shallows';
       if (area.id === 'northern-reach' && marshWeight(vehicle.position.x, vehicle.position.z) > 0.2) return 'Marsh water';
     }
     return surface.label;

@@ -23,6 +23,12 @@ import {
   type NorthernWorkerMessage,
 } from './northern-worker';
 
+const SOLID_PROPS = new Set<string>([
+  'roadsideRock', 'snowRock', 'fordPost', 'valleySign', 'forestSign', 'coastStack',
+  'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn',
+  'marshSign', 'timberSign', 'shoalSign', 'basinSign', 'trailLog', 'shoalBoulder',
+]);
+
 // ---------------------------------------------------------------------------
 // Transport protocol: how chunk requests reach a generator and results come back.
 // ---------------------------------------------------------------------------
@@ -374,6 +380,11 @@ function forestPineGeometry(): THREE.BufferGeometry {
 }
 
 const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = {
+  timberSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  shoalSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  basinSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  trailLog: () => new THREE.CylinderGeometry(0.12, 0.14, 6, 8).rotateZ(Math.PI / 2).translate(0, 0.12, 0),
+  shoalBoulder: () => new THREE.SphereGeometry(1, 12, 6).scale(3.6, 0.8, 4.2).translate(0, -0.4, 0),
   marshSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   emberSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   basaltColumn: () => new THREE.CylinderGeometry(1.2, 1.4, 10, 6).translate(0, 4.8, 0),
@@ -398,6 +409,7 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
 };
 
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
+  timberSign: '#ffffff', shoalSign: '#ffffff', basinSign: '#ffffff', trailLog: '#a08460', shoalBoulder: '#939a90',
   marshSign: '#ffffff',
   emberSign: '#ffffff', basaltColumn: '#6f6964',
   passSign: '#ffffff', graniteTor: '#9aa7ad',
@@ -408,6 +420,9 @@ const PROP_BASE_COLOR: Record<PropTypeName, string> = {
 };
 
 const SIGN_TEXT: Partial<Record<PropTypeName, [string, string, string]>> = {
+  timberSign: ['TIMBER RUN', 'FALLEN TRUNKS · FOREST GULLY', 'HILLSIDE BYPASS · COAST ROAD'],
+  shoalSign: ['BOULDER SHOALS', 'SHALLOW ROCK RUN · SEA STACKS', 'DRY BEACH · WILLOW MARSH'],
+  basinSign: ['STONEGATE BASIN', 'HIDDEN PASS · STONE GARDEN', 'INNER RIM · NORTH CROWN'],
   marshSign: ['WILLOW MARSH', 'HUMMOCK LOOP · HERON LOOKOUT', 'AMBER POSTS · REED FORD'],
   valleySign: ['RIVER VALLEY', 'AMBER POSTS · SHALLOW FORDS', 'RIDGE LOOP · STONE CAIRNS'],
   forestSign: ['PINE HOLLOW', 'RAVINE · ROCK SADDLE', 'LAKE LOOKOUT · COAST ROAD'],
@@ -821,7 +836,7 @@ export class NorthernStreamingRuntime {
           .setTranslation(record.chunk.props.x[i], record.chunk.props.y[i] + 1.4 * scale, record.chunk.props.z[i]).setFriction(0.9)));
         continue;
       }
-      if (type !== 1 && type !== 2 && type !== 7 && type !== 8 && type !== 12 && type !== 13 && type !== 14 && type !== 15 && type !== 16 && type !== 17 && type !== 18 && type !== 19 && type !== 20) continue;
+      if (!SOLID_PROPS.has(NORTHERN_PROP_TYPES[type])) continue;
       const geometry = this.propPools[type].mesh.geometry;
       setPropTransform(dummy, record.chunk, i);
       record.propColliders.push(this.world.createCollider(

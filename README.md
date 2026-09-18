@@ -360,6 +360,32 @@ basalt columns use matching solid colliders and stay clear of the trails.
 Tests drive all routes in both directions and check grades, surface handling,
 chunk seams, browser driving and reset.
 
+## Northern Reach · Timber Run, Boulder Shoals and Stonegate Basin
+
+[Current Northern Reach map (PNG)](artifacts/northern-reach/mapa-northern-reach.png)
+shows all nine enhanced regions; this batch is highlighted in amber. The
+[SVG source](artifacts/northern-reach/mapa-northern-reach.svg) is also committed.
+Regenerate both from the game's terrain with
+`node --import tsx scripts/render-northern-map.ts` (requires Playwright Chromium).
+
+Three connected driving playgrounds extend the authored terrain:
+
+- **Timber Run** (`?area=northern-reach&start=timber-run`): south of Coast Road,
+  a pine-lined gully has two fallen trunks to drive over and a hillside bypass.
+- **Boulder Shoals** (`?area=northern-reach&start=boulder-shoals`): west of Willow
+  Marsh, a shallow inlet offers low climbable rocks among tall sea stacks,
+  with a dry beach route alongside it.
+- **Stonegate Basin** (`?area=northern-reach&start=stonegate-basin`): a pass north
+  of Willow Marsh opens into an enclosed highland bowl, a stone garden and
+  a rising rim trail with a lookout back through the entrance.
+
+Append these query strings to the local or published game URL. Reset returns
+to each region's dry starting clearing. `src/game/northern-adventures.ts`
+contains their layouts, blended terrain and authored obstacles. They use the
+existing chunk streaming and shared render/collision lattice. Tests drive every
+trail in both directions and verify that the wheels actually climb the logs
+and shallow-water rocks, as well as checking water, grades and browser resets.
+
 ## Northern Reach · High Pass
 
 Continue to the end of **Mountain Road** in the northeast, then follow the
