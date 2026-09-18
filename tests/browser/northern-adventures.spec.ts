@@ -16,6 +16,8 @@ for (const region of ADVENTURE_REGIONS) test(`${region.name}: drive the feature 
   const state = () => page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
   expect((await state()).position.x).toBeCloseTo(region.start.x, 0);
   const approach = region.id === 'timber-run' ? { x: -335, z: 466, heading: 0, finish: 420 }
+    : region.id === 'windstone-ridge' ? { x: -50, z: -445, heading: 0, finish: -485 }
+    : region.id === 'ochre-terraces' ? { x: 400, z: 147, heading: 0, finish: 123 }
     : region.id === 'boulder-shoals' ? { x: shoalPoint(-90, 3, 0).x, z: -79, heading: 0, finish: -101 }
     : { x: -270, z: -425, heading: Math.atan2(-10, 28), finish: -452 };
   await page.evaluate(p => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(p.x, p.z, p.heading), approach);

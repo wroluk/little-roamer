@@ -15,6 +15,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import RAPIER from '@dimforge/rapier3d-compat';
+import { layeredRockGeometry, rockRampGeometry, weatheredArchGeometry, rockColliderMesh } from './northern-rocks';
 import {
   isChunkInBounds, NORTHERN_CHUNK_SIZE, NORTHERN_PROP_TYPES, type NorthernChunk,
 } from './northern-terrain';
@@ -27,6 +28,7 @@ const SOLID_PROPS = new Set<string>([
   'roadsideRock', 'snowRock', 'fordPost', 'valleySign', 'forestSign', 'coastStack',
   'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn',
   'marshSign', 'timberSign', 'shoalSign', 'basinSign', 'trailLog', 'shoalBoulder',
+  'windSign', 'terraceSign', 'weatheredArch', 'layeredRock', 'rockRamp',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -380,6 +382,11 @@ function forestPineGeometry(): THREE.BufferGeometry {
 }
 
 const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = {
+  windSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  terraceSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  weatheredArch: weatheredArchGeometry,
+  layeredRock: layeredRockGeometry,
+  rockRamp: rockRampGeometry,
   timberSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   shoalSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   basinSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
@@ -409,6 +416,7 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
 };
 
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
+  windSign: '#ffffff', terraceSign: '#ffffff', weatheredArch: '#b3a58d', layeredRock: '#b38b63', rockRamp: '#bba07b',
   timberSign: '#ffffff', shoalSign: '#ffffff', basinSign: '#ffffff', trailLog: '#a08460', shoalBoulder: '#939a90',
   marshSign: '#ffffff',
   emberSign: '#ffffff', basaltColumn: '#6f6964',
@@ -420,6 +428,8 @@ const PROP_BASE_COLOR: Record<PropTypeName, string> = {
 };
 
 const SIGN_TEXT: Partial<Record<PropTypeName, [string, string, string]>> = {
+  windSign: ['WINDSTONE RIDGE', 'STONE ARCH · ROLLING CREST', 'NORTH LOOKOUT · STONEGATE'],
+  terraceSign: ['OCHRE TERRACES', 'ROCK RAMP · STONE SHELVES', 'WINDING DESCENT · MOUNTAIN ROAD'],
   timberSign: ['TIMBER RUN', 'FALLEN TRUNKS · FOREST GULLY', 'HILLSIDE BYPASS · COAST ROAD'],
   shoalSign: ['BOULDER SHOALS', 'SHALLOW ROCK RUN · SEA STACKS', 'DRY BEACH · WILLOW MARSH'],
   basinSign: ['STONEGATE BASIN', 'HIDDEN PASS · STONE GARDEN', 'INNER RIM · NORTH CROWN'],
@@ -839,6 +849,12 @@ export class NorthernStreamingRuntime {
       if (!SOLID_PROPS.has(NORTHERN_PROP_TYPES[type])) continue;
       const geometry = this.propPools[type].mesh.geometry;
       setPropTransform(dummy, record.chunk, i);
+      if (['weatheredArch', 'layeredRock', 'rockRamp'].includes(NORTHERN_PROP_TYPES[type])) {
+        const mesh = rockColliderMesh(geometry, dummy.matrix);
+        record.propColliders.push(this.world.createCollider(
+          RAPIER.ColliderDesc.trimesh(mesh.vertices, mesh.indices).setFriction(0.9)));
+        continue;
+      }
       record.propColliders.push(this.world.createCollider(
         matchingConvexHull(geometry, dummy.matrix)
           .setFriction(0.9)

@@ -60,7 +60,19 @@ try {
     {name:'Ember Basin',start:EMBER_START,bounds:[475,725,285,580],detail:'Hidden caldera · basalt · rim views'},
     {name:'Willow Marsh',start:MARSH_START,bounds:[-400,-145,-220,125],detail:'Reed ford · willow islands · lookout'},
   ];
-  const regions = [...existing, ...ADVENTURE_REGIONS.map(r=>({...r,detail:r.id==='timber-run'?'Fallen trunks · gully · hillside bypass':r.id==='boulder-shoals'?'Climbable rocks · sea stacks · beach':'Enclosed bowl · stone garden · rim'}))];
+  const details: Record<string, string> = {
+    'timber-run': 'Fallen trunks · gully · hillside bypass',
+    'stonegate-basin': 'Enclosed bowl · stone garden · rim',
+    'boulder-shoals': 'Climbable rocks · sea stacks · beach',
+    'windstone-ridge': 'Natural arch · rolling crest · lookout',
+    'ochre-terraces': 'Stone shelves · rock ramp · winding descent',
+  };
+  const newIds = new Set(['windstone-ridge', 'ochre-terraces']);
+  const ordered = ['timber-run', 'stonegate-basin', 'boulder-shoals', 'windstone-ridge', 'ochre-terraces'];
+  const regions = [...existing, ...ordered.map(id => {
+    const r = ADVENTURE_REGIONS.find(r => r.id === id)!;
+    return { ...r, detail: details[id] };
+  })];
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1400" viewBox="0 0 1800 1400"><style>text{font-family:Arial,Helvetica,sans-serif}</style><rect width="1800" height="1400" fill="#f5f1e6"/>`;
   svg += text(60,75,'NORTHERN REACH',44,'#29483e',700)+text(60,116,'Current terrain · 1,536 × 1,536 m · north is up · September 2026',22);
   svg += text(60,165,'TERRAIN, WATER & DRIVING ROUTES',16,'#506759',700);
@@ -71,14 +83,15 @@ try {
   }
   for(const route of ROUTES) svg+=paths(route.line,'#534b37',5)+paths(route.line,'#f5e5b9',2.8);
   for(const points of [VALLEY_TRAIL,...[FOREST_TRAILS,COAST_TRAILS,PASS_TRAILS,EMBER_TRAILS,MARSH_TRAILS].flatMap(a=>a.map(t=>t.points))]) svg+=paths(points,'#f6f5da',2);
-  for(const r of ADVENTURE_REGIONS) for(const trail of r.trails) svg+=paths(trail.points,'#63351c',4)+paths(trail.points,'#ffc267',2.4);
+  for(const r of ADVENTURE_REGIONS) for(const trail of r.trails) svg+=newIds.has(r.id)
+    ? paths(trail.points,'#63351c',4)+paths(trail.points,'#ffc267',2.4) : paths(trail.points,'#f6f5da',2);
   regions.forEach((r,i)=>{
-    const fresh=i>=6, color=fresh?'#b65724':'#275d55', [l,rr,t,b]=r.bounds;
+    const fresh=i>=9, color=fresh?'#b65724':'#275d55', [l,rr,t,b]=r.bounds;
     svg+=`<rect x="${x(l)}" y="${y(t)}" width="${(rr-l)*mapSize/worldSize}" height="${(b-t)*mapSize/worldSize}" rx="9" fill="none" stroke="${fresh?'#ffb85f':'#d1e4ce'}" stroke-width="${fresh?3:1.5}" stroke-dasharray="8 5"/>`;
     svg+=`<circle cx="${x(r.start.x)}" cy="${y(r.start.z)}" r="17" fill="${color}" stroke="#fff8e8" stroke-width="2"/>`;
-    svg+=text(x(r.start.x)-6,y(r.start.z)+7,String(i+1),20,'#ffffff',700);
-    const cy=218+i*105;
-    svg+=`<circle cx="1212" cy="${cy-7}" r="17" fill="${color}"/>`+text(1206,cy,String(i+1),20,'#ffffff',700);
+    svg+=text(x(r.start.x)-(i>=9?11:6),y(r.start.z)+7,String(i+1),20,'#ffffff',700);
+    const cy=218+i*85;
+    svg+=`<circle cx="1212" cy="${cy-7}" r="17" fill="${color}"/>`+text(i>=9?1201:1206,cy,String(i+1),20,'#ffffff',700);
     svg+=text(1245,cy,r.name,24,color,700)+text(1245,cy+29,r.detail,18);
     if(fresh)svg+=text(1245,cy+53,'NEW IN THIS UPDATE',12,color,700);
   });

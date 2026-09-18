@@ -173,7 +173,8 @@ test('collider height exactly matches the analytic lattice used by the terrain m
 test('streamed loose boulders have matching collision inside the physics ring', async () => {
   const { world, runtime } = harness();
   try {
-    const chunk = generateNorthernChunk(3, 0);
+    // Use the lake-side chunk; (3, 0) is now cleared for the Ochre approach.
+    const chunk = generateNorthernChunk(2, 2);
     const boulder = Array.from(chunk.props.type).findIndex(type => type === 1 || type === 2);
     assert.ok(boulder >= 0, 'test chunk should contain a deterministic loose boulder');
     const x = chunk.props.x[boulder];

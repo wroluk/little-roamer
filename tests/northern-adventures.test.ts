@@ -44,7 +44,7 @@ test('adventure starts are level and coastal render triangles match water physic
   }
 });
 test('the real vehicle climbs the deliberately placed logs and submerged boulders', async () => {
-  for (const obstacle of ADVENTURE_PROPS.filter(p=>p.kind==='trailLog'||p.kind==='shoalBoulder')) {
+  for (const obstacle of ADVENTURE_PROPS.filter(p=>p.kind==='trailLog'||p.kind==='shoalBoulder'||p.kind==='rockRamp')) {
     const scene=new THREE.Scene(), world=new RAPIER.World({x:0,y:-18,z:0});
     const runtime=new NorthernStreamingRuntime(scene,world,new InProcessChunkTransport());
     try {
@@ -99,4 +99,3 @@ test('the actual streamed vehicle completes each adventure route with bounded st
   } finally { runtime.dispose(); world.free(); disposeScene(scene); }
   }
 });
-

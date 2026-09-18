@@ -568,6 +568,7 @@ export const NORTHERN_SPAWN = { x: 24, y: sampledHeightAt(24, 560) + 1.25, z: 56
 /** Compact numeric prop kinds, indexed by NorthernProps.type. */
 export const NORTHERN_PROP_TYPES = [
   'tree', 'roadsideRock', 'snowRock', 'reed', 'driftwood', 'shrub', 'volcanicSpike', 'fordPost', 'valleySign', 'willow', 'riverRipple', 'forestPine', 'forestSign', 'coastStack', 'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn', 'marshSign', 'timberSign', 'shoalSign', 'basinSign', 'trailLog', 'shoalBoulder',
+  'windSign', 'terraceSign', 'weatheredArch', 'layeredRock', 'rockRamp',
 ] as const;
 
 function propDensityAt(surface: SurfaceId, z: number): number {

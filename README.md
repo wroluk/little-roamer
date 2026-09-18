@@ -360,10 +360,27 @@ basalt columns use matching solid colliders and stay clear of the trails.
 Tests drive all routes in both directions and check grades, surface handling,
 chunk seams, browser driving and reset.
 
+## Northern Reach · Windstone Ridge and Ochre Terraces
+
+**Windstone Ridge** (`?area=northern-reach&start=windstone-ridge`) connects to
+Stonegate Basin's eastern rim. Climb the saddle, drive beneath a weathered
+stone arch, then follow the rolling crest to the northern lookout. Layered
+outcrops frame the ridge and the return trail drops into its sheltered flank.
+
+**Ochre Terraces** (`?area=northern-reach&start=ochre-terraces`) branches east
+from Mountain Road. A winding circuit climbs stone shelves and descends around
+the mesa. The inner traverse offers a broad, irregular rock ramp to crawl over.
+
+Major formations use custom geometry: eroded strata with offset ledges, a low
+radial rock ramp and a beveled arch with an open passage. Static triangle
+colliders match their visible faces, including the arch opening and rock
+recesses. Tests drive the trails both ways, check wheel contact on obstacles,
+and verify that the arch's passage and overhead stone behave correctly.
+
 ## Northern Reach · Timber Run, Boulder Shoals and Stonegate Basin
 
 [Current Northern Reach map (PNG)](artifacts/northern-reach/mapa-northern-reach.png)
-shows all nine enhanced regions; this batch is highlighted in amber. The
+shows all eleven enhanced regions; Windstone Ridge and Ochre Terraces are highlighted in amber. The
 [SVG source](artifacts/northern-reach/mapa-northern-reach.svg) is also committed.
 Regenerate both from the game's terrain with
 `node --import tsx scripts/render-northern-map.ts` (requires Playwright Chromium).
