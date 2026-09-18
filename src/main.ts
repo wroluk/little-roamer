@@ -8,6 +8,7 @@ import { sampledHeightAt } from './game/northern-terrain';
 import { COAST_START } from './game/northern-coast';
 import { PASS_START } from './game/northern-pass';
 import { EMBER_START } from './game/northern-ember';
+import { MARSH_START, marshWeight } from './game/northern-marsh';
 import { RAMPS } from './game/terrain';
 import { FORDS, VOLCANOES, GLACIER, GLACIER_ASCENT, VOLCANO_ASCENT } from './game/highlands';
 import { AREAS, isAreaId, type Area, type AreaId, type AreaRuntime } from './game/areas';
@@ -138,6 +139,13 @@ async function boot() {
       description: 'Circle the caldera rim, descend into soft ash and weave past basalt columns on the way to the northern overlook.',
       readyMessage: 'Ember Basin. Follow the ochre trail; loose ash slows the crater descent.' };
   }
+  if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'willow-marsh') {
+    area = { ...area, spawn: { ...MARSH_START, y: sampledHeightAt(MARSH_START.x, MARSH_START.z) + 1.25 },
+      welcomeTitle: 'Among the willows.',
+      description: 'Wind over mossy hummocks, follow amber posts across Reed Ford, or climb to Heron lookout above the pools.',
+      hint: 'Amber posts mark Reed Ford. The dry hummock loop leads to Heron lookout.',
+      readyMessage: 'Willow Marsh. Amber posts mark the shallow crossing.' };
+  }
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
     ? 'Preparing the road ahead...'
@@ -152,6 +160,14 @@ async function boot() {
   }
   let { scene, world, vehicle, follow, terrainEffects, runtime } = initial;
   const areaSelect = element<HTMLSelectElement>('area-select');
+  function surfaceLabel(): string {
+    const surface = vehicle.currentSurface;
+    if (surface.id === 'water') {
+      if (area.id === 'samurai-village') return 'Shallow lake';
+      if (area.id === 'northern-reach' && marshWeight(vehicle.position.x, vehicle.position.z) > 0.2) return 'Marsh water';
+    }
+    return surface.label;
+  }
   function presentArea() {
     scene.add(ambient, sun, sun.target);
     ambient.color.set(area.ambientLight);
@@ -167,7 +183,7 @@ async function boot() {
     element('welcome-eyebrow').textContent = area.welcomeEyebrow;
     element('welcome-title').textContent = area.welcomeTitle;
     element('hint').textContent = area.hint;
-    element('surface-label').textContent = area.id === 'samurai-village' && vehicle.currentSurface.id === 'water' ? 'Shallow lake' : vehicle.currentSurface.label;
+    element('surface-label').textContent = surfaceLabel();
     element('surface-trait').textContent = vehicle.currentSurface.trait;
     element('loading-status').textContent = area.readyMessage;
     element<HTMLButtonElement>('reset').title = `Return to the ${area.name} starting area (R)`;
@@ -523,7 +539,7 @@ async function boot() {
       }
       if (surfaceHud.dataset.surface !== surface.id) {
         surfaceHud.dataset.surface = surface.id;
-        element('surface-label').textContent = area.id === 'samurai-village' && surface.id === 'water' ? 'Shallow lake' : surface.label;
+        element('surface-label').textContent = surfaceLabel();
         element('surface-trait').textContent = surface.id === 'water' && vehicle.waterDepth >= 0.85
           ? 'Too deep · reset'
           : surface.trait;

@@ -8,6 +8,7 @@ import { FOREST_TRAILS, FOREST_SIGNS, FOREST_CAIRNS, FOREST_OUTCROPS, FOREST_GRO
 // independently generated chunks share bit-identical edges and keeps prop
 // placement seam-free.
 import type { SurfaceId } from './surfaces';
+import { applyMarsh, marshWeight, marshTrailSample, marshPoolRadius, MARSH_POOLS, MARSH_START, MARSH_LOOKOUT, MARSH_SIGNS, MARSH_WILLOWS } from './northern-marsh';
 import { applyEmber, emberWeight, emberRadius, emberTrailSample, EMBER_START, EMBER_LOOKOUT, EMBER_FLOOR, EMBER_SIGNS, EMBER_COLUMNS } from './northern-ember';
 import { applyPass, passWeight, passTrailSample, passBowlRadius, PASS_TRAILS, PASS_SIGNS, PASS_TORS, PASS_START, PASS_LOOKOUT } from './northern-pass';
 import { applyCoast, coastShoreX, coastWeight, coastTrailSample, COAST_STACKS, COAST_SIGNS } from './northern-coast';
@@ -287,6 +288,10 @@ type WaterFeature = { amount: number; level: number; bed: number; containsWater?
 
 function waterFeatures(x: number, z: number): WaterFeature[] {
   const features: WaterFeature[] = [];
+  if (marshWeight(x, z) > 0) for (const pool of MARSH_POOLS) {
+    const r = marshPoolRadius(x, z, pool);
+    if (r < 1.35) features.push({ amount: 1 - smooth((r - 0.9) / 0.45), level: pool.level, bed: pool.level - 1.3 });
+  }
 
   const ldx = (x - LAKE.x) / LAKE.rx;
   const ldz = (z - LAKE.z) / LAKE.rz;
@@ -373,7 +378,7 @@ function applyPerimeterRise(x: number, z: number, height: number): number {
 
 /** Continuous, analytic Northern Reach elevation at any real (x, z). Always finite. */
 function authoredGround(x: number, z: number): number {
-  return applyEmber(x, z, applyPass(x, z, applyCoast(x, z, applyWater(x, z, applyForest(x, z, applyRoutes(x, z, naturalHeight(x, z)))))));
+  return applyMarsh(x, z, applyEmber(x, z, applyPass(x, z, applyCoast(x, z, applyWater(x, z, applyForest(x, z, applyRoutes(x, z, naturalHeight(x, z))))))));
 }
 
 export function northernHeightAt(x: number, z: number): number {
@@ -388,12 +393,18 @@ export function northernHeightAt(x: number, z: number): number {
 export function waterHeightAt(x: number, z: number): number | null {
   const best = strongestWaterFeature(waterFeatures(x, z));
   if (!best || best.amount < 0.5 || best.containsWater === false) return null;
-  const ground = (valleyRiverWeight(x) > 0 && z > 100 && z < 280) || coastWeight(x, z) > 0 ? sampledHeightAt(x, z) : northernHeightAt(x, z);
+  const ground = (valleyRiverWeight(x) > 0 && z > 100 && z < 280) || coastWeight(x, z) > 0 || marshWeight(x, z) > 0 ? sampledHeightAt(x, z) : northernHeightAt(x, z);
   return ground < best.level ? best.level : null;
 }
 
 export function northernSurfaceAt(x: number, z: number): SurfaceId {
   if (waterHeightAt(x, z) !== null) return 'water';
+
+  if (marshWeight(x, z) > 0.2) {
+    if (marshTrailSample(x, z).distance < 5) return 'dirt';
+    if (MARSH_POOLS.some(p => marshPoolRadius(x, z, p) < 1.15)) return 'mud';
+    return 'moss';
+  }
 
   if (emberWeight(x, z) > 0.2) {
     if (emberRadius(x, z) < 0.68) return 'ash';
@@ -470,6 +481,11 @@ const SURFACE_BASE_COLOR: Record<SurfaceId, [number, number, number]> = {
 
 function surfaceColor(surface: SurfaceId, x: number, z: number): [number, number, number] {
   let base = SURFACE_BASE_COLOR[surface];
+  if (marshWeight(x, z) > 0.2) {
+    if (surface === 'moss') base = [0.32, 0.49, 0.3];
+    if (surface === 'dirt') base = [0.56, 0.48, 0.32];
+    if (surface === 'mud') base = [0.32, 0.3, 0.21];
+  }
   if (emberWeight(x, z) > 0.2) {
     if (surface === 'rock') base = [0.24, 0.23, 0.22];
     if (surface === 'dirt') base = [0.58, 0.32, 0.17];
@@ -544,7 +560,7 @@ export const NORTHERN_SPAWN = { x: 24, y: sampledHeightAt(24, 560) + 1.25, z: 56
 
 /** Compact numeric prop kinds, indexed by NorthernProps.type. */
 export const NORTHERN_PROP_TYPES = [
-  'tree', 'roadsideRock', 'snowRock', 'reed', 'driftwood', 'shrub', 'volcanicSpike', 'fordPost', 'valleySign', 'willow', 'riverRipple', 'forestPine', 'forestSign', 'coastStack', 'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn',
+  'tree', 'roadsideRock', 'snowRock', 'reed', 'driftwood', 'shrub', 'volcanicSpike', 'fordPost', 'valleySign', 'willow', 'riverRipple', 'forestPine', 'forestSign', 'coastStack', 'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn', 'marshSign',
 ] as const;
 
 function propDensityAt(surface: SurfaceId, z: number): number {
@@ -613,6 +629,8 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
       const pz = clamp(centerZ + jitterZ, chunkMinZ, chunkMinZ + NORTHERN_CHUNK_SIZE - 1e-4);
 
       if (waterHeightAt(px, pz) !== null) continue;
+      if (marshTrailSample(px, pz).distance < 9) continue;
+      if (Math.hypot(px - MARSH_START.x, pz - MARSH_START.z) < 13 || Math.hypot(px - MARSH_LOOKOUT.x, pz - MARSH_LOOKOUT.z) < 13) continue;
       if (emberTrailSample(px, pz).distance < 10) continue;
       if ([EMBER_START, EMBER_LOOKOUT, EMBER_FLOOR].some(p => Math.hypot(px - p.x, pz - p.z) < 13)) continue;
       if (passTrailSample(px, pz).distance < 10 || (passWeight(px, pz) > 0 && passBowlRadius(px, pz) < 1.2)) continue;
@@ -694,6 +712,25 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
     authoredProp(cairn.x, cairn.z, 1, 1);
     authoredProp(cairn.x, cairn.z, 1, 0.6, 0.9);
   }
+  for (const sign of MARSH_SIGNS) {
+    authoredProp(sign.x, sign.z, 20, 1);
+    authoredProp(sign.x, sign.z, 7, 1);
+  }
+  for (const tree of MARSH_WILLOWS) {
+    for (const [dx, dz, size] of [[0, 0, 1.3], [-5, 4, 0.85], [6, -3, 1]]) {
+      const px = tree.x + dx, pz = tree.z + dz;
+      if (px < chunkMinX || px >= chunkMinX + NORTHERN_CHUNK_SIZE || pz < chunkMinZ || pz >= chunkMinZ + NORTHERN_CHUNK_SIZE) continue;
+      if (marshTrailSample(px, pz).distance >= 9 && waterHeightAt(px, pz) === null) authoredProp(px, pz, 9, size);
+    }
+  }
+  for (const pool of MARSH_POOLS) for (let i = 0; i < 30; i++) {
+    const angle = i * Math.PI * 2 / 30;
+    const px = pool.x + Math.cos(angle) * pool.rx * 0.84, pz = pool.z + Math.sin(angle) * pool.rz * 0.84;
+    if (marshTrailSample(px, pz).distance < 9) continue;
+    authoredProp(px, pz, 3, 0.8 + 0.4 * Math.sin(i * 1.3) ** 2);
+    authoredProp(px + 0.45, pz + 0.4, 3, 0.8);
+  }
+  for (const pz of [-70, -45, -20]) for (const dx of [-7, 7]) authoredProp(-267 + dx, pz, 7, 1);
   for (const sign of EMBER_SIGNS) {
     authoredProp(sign.x, sign.z, 18, 1);
     authoredProp(sign.x, sign.z, 7, 1);
@@ -778,7 +815,7 @@ type WaterVertex = {
 
 function waterVertexAt(x: number, z: number): WaterVertex {
   const best = strongestWaterFeature(waterFeatures(x, z));
-  const ground = (valleyRiverWeight(x) > 0 && z > 100 && z < 280) || coastWeight(x, z) > 0 ? sampledHeightAt(x, z) : northernHeightAt(x, z);
+  const ground = (valleyRiverWeight(x) > 0 && z > 100 && z < 280) || coastWeight(x, z) > 0 || marshWeight(x, z) > 0 ? sampledHeightAt(x, z) : northernHeightAt(x, z);
   if (!best) return { x, y: ground, z, depth: 0, wet: false };
   const depth = best.level - ground;
   return {

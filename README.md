@@ -322,6 +322,24 @@ directions with actual Rapier wheels, browser streaming crossings, and the
 existing terrain seam / resource lifecycle suite. This is one pilot region;
 the rest of Northern Reach retains its previous geography.
 
+## Northern Reach · Willow Marsh
+
+Take River Valley's ridge loop north to `(-270, 115)` and follow the
+**Willow Marsh** sign. The dry hummock loop winds between willow groves and
+two reed-fringed pools. **Reed Ford** cuts across the eastern pool between
+amber posts, with a broad shallow bed and gradual approaches on both sides.
+The western branch climbs to **Heron lookout**, overlooking the smaller pool.
+
+Start directly at `http://127.0.0.1:5173/?area=northern-reach&start=willow-marsh`,
+or append `?area=northern-reach&start=willow-marsh` to the published game's URL.
+Reset returns to the dry entrance clearing. Stay between the ford posts:
+the open pools are deeper than the marked crossing.
+
+`src/game/northern-marsh.ts` authors the region within `x = -430..-145`,
+`z = -235..135`. Water clipping and wheel depth use the same sampled terrain
+as the collision mesh. Tests cover dry routes, shallow ford width, both
+driving directions, water triangles, chunk seams and the existing valley.
+
 ## Northern Reach · Ember Basin
 
 Follow **Upland Road** to its eastern end and the **Ember Basin** signs. An

@@ -374,6 +374,7 @@ function forestPineGeometry(): THREE.BufferGeometry {
 }
 
 const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = {
+  marshSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   emberSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   basaltColumn: () => new THREE.CylinderGeometry(1.2, 1.4, 10, 6).translate(0, 4.8, 0),
   passSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
@@ -397,6 +398,7 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
 };
 
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
+  marshSign: '#ffffff',
   emberSign: '#ffffff', basaltColumn: '#6f6964',
   passSign: '#ffffff', graniteTor: '#9aa7ad',
   coastStack: '#747d78', coastLog: '#a18c72', coastSign: '#ffffff',
@@ -406,6 +408,7 @@ const PROP_BASE_COLOR: Record<PropTypeName, string> = {
 };
 
 const SIGN_TEXT: Partial<Record<PropTypeName, [string, string, string]>> = {
+  marshSign: ['WILLOW MARSH', 'HUMMOCK LOOP · HERON LOOKOUT', 'AMBER POSTS · REED FORD'],
   valleySign: ['RIVER VALLEY', 'AMBER POSTS · SHALLOW FORDS', 'RIDGE LOOP · STONE CAIRNS'],
   forestSign: ['PINE HOLLOW', 'RAVINE · ROCK SADDLE', 'LAKE LOOKOUT · COAST ROAD'],
   coastSign: ['FJORD COAST', 'CLIFFTOP TRAIL · PEBBLE COVE', 'BEACH LOOP · SEA STACKS'],
@@ -818,7 +821,7 @@ export class NorthernStreamingRuntime {
           .setTranslation(record.chunk.props.x[i], record.chunk.props.y[i] + 1.4 * scale, record.chunk.props.z[i]).setFriction(0.9)));
         continue;
       }
-      if (type !== 1 && type !== 2 && type !== 7 && type !== 8 && type !== 12 && type !== 13 && type !== 14 && type !== 15 && type !== 16 && type !== 17 && type !== 18 && type !== 19) continue;
+      if (type !== 1 && type !== 2 && type !== 7 && type !== 8 && type !== 12 && type !== 13 && type !== 14 && type !== 15 && type !== 16 && type !== 17 && type !== 18 && type !== 19 && type !== 20) continue;
       const geometry = this.propPools[type].mesh.geometry;
       setPropTransform(dummy, record.chunk, i);
       record.propColliders.push(this.world.createCollider(
