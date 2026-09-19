@@ -220,7 +220,8 @@ test('streamed shrubs expose a bounded soft bump without adding hard colliders',
     const z = chunk.props.z[shrub];
     await runtime.ensureReady(x, z);
     assert.equal(runtime.shrubBumpAt(x, z), 1);
-    assert.equal(runtime.shrubBumpAt(x + chunk.props.scale[shrub] * 1.6, z), 0);
+    assert.ok(runtime.shrubBumpAt(x + chunk.props.scale[shrub] * 1.6, z) > 0);
+    assert.equal(runtime.shrubBumpAt(x + chunk.props.scale[shrub] * 1.9, z), 0);
   } finally { runtime.dispose(); }
 });
 

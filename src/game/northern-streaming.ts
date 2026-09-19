@@ -32,6 +32,8 @@ const SOLID_PROPS = new Set<string>([
   'lakeSign', 'riverSign', 'westSign',
 ]);
 
+const SHRUB_BUMP_RADIUS_SCALE = 1.8;
+
 // ---------------------------------------------------------------------------
 // Transport protocol: how chunk requests reach a generator and results come back.
 // ---------------------------------------------------------------------------
@@ -382,6 +384,33 @@ function forestPineGeometry(): THREE.BufferGeometry {
   return merged;
 }
 
+function grassBladeGeometry(width: number, height: number, bend: number): THREE.BufferGeometry {
+  const shoulder = height * 0.68;
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    -width / 2, 0, 0, width / 2, 0, 0, width * 0.24, shoulder, 0,
+    -width / 2, 0, 0, width * 0.24, shoulder, 0, -width * 0.18, shoulder, 0,
+    -width * 0.18, shoulder, 0, width * 0.24, shoulder, 0, bend, height, 0,
+  ], 3));
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function grassTuftGeometry(): THREE.BufferGeometry {
+  const blades = [
+    [0.14, 0.42, 0.04, 0, 0, 0],
+    [0.12, 0.34, -0.03, 1.15, -0.10, 0.03],
+    [0.10, 0.30, 0.02, 2.30, 0.09, 0.07],
+    [0.11, 0.36, -0.02, 3.60, 0.03, -0.08],
+    [0.09, 0.27, 0.02, 5.00, -0.08, -0.06],
+  ].map(([width, height, bend, angle, x, z]) =>
+    grassBladeGeometry(width, height, bend).rotateY(angle).translate(x, 0, z));
+  const merged = mergeGeometries(blades);
+  blades.forEach(blade => blade.dispose());
+  if (!merged) throw new Error('Could not create grass tufts.');
+  return merged;
+}
+
 const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = {
   westSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   lakeSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
@@ -410,12 +439,12 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
   riverRipple: () => new THREE.BoxGeometry(2.2, 0.012, 0.055),
   valleySign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   fordPost: () => new THREE.CylinderGeometry(0.14, 0.14, 2.6, 6).translate(0, 1.3, 0),
-  tree: () => new THREE.ConeGeometry(0.45, 0.32, 6).translate(0, 0.06, 0),
+  tree: grassTuftGeometry,
   roadsideRock: () => new THREE.DodecahedronGeometry(0.8, 0),
   snowRock: () => new THREE.DodecahedronGeometry(0.9, 0),
   reed: () => new THREE.CylinderGeometry(0.04, 0.08, 1.6, 5),
   driftwood: () => new THREE.CylinderGeometry(0.08, 0.11, 1.8, 6).rotateZ(Math.PI / 2).translate(0, 0.04, 0),
-  shrub: () => new THREE.IcosahedronGeometry(0.85, 1).scale(1.15, 0.8, 1).translate(0, 0.15, 0),
+  shrub: () => new THREE.IcosahedronGeometry(0.5, 0),
   volcanicSpike: () => new THREE.ConeGeometry(0.4, 2.8, 5),
 };
 
@@ -452,6 +481,7 @@ const SIGN_TEXT: Partial<Record<PropTypeName, [string, string, string]>> = {
 
 function propMaterial(type: PropTypeName): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({ color: PROP_BASE_COLOR[type], roughness: 0.9, flatShading: true });
+  if (type === 'tree') material.side = THREE.DoubleSide;
   if (type === 'willow' || type === 'forestPine') material.vertexColors = true;
   const sign = SIGN_TEXT[type];
   if (!sign || typeof document === 'undefined') return material;
@@ -654,7 +684,7 @@ export class NorthernStreamingRuntime {
     let amount = 0;
     for (let i = 0; i < record.chunk.props.count; i++) {
       if (record.chunk.props.type[i] !== 5) continue;
-      const radius = record.chunk.props.scale[i] * 1.5;
+      const radius = record.chunk.props.scale[i] * SHRUB_BUMP_RADIUS_SCALE;
       const distance = Math.hypot(
         x - record.chunk.props.x[i],
         z - record.chunk.props.z[i],
