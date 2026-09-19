@@ -17,7 +17,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { layeredRockGeometry, rockRampGeometry, weatheredArchGeometry, rockColliderMesh, graniteTorGeometry, coastStackGeometry, shoalBoulderGeometry } from './northern-rocks';
 import {
-  isChunkInBounds, NORTHERN_CHUNK_SIZE, NORTHERN_APRON_HALF, NORTHERN_PROP_TYPES, type NorthernChunk,
+  isChunkInBounds, NORTHERN_CHUNK_SIZE, NORTHERN_APRON_HALF, NORTHERN_PROP_TYPES, sampledHeightAt,
+  type NorthernChunk,
 } from './northern-terrain';
 import {
   handleNorthernChunkRequest, type NorthernChunkErrorMessage, type NorthernChunkRequest,
@@ -511,6 +512,22 @@ function buildWaterGeometry(chunk: NorthernChunk): THREE.BufferGeometry | undefi
 function setPropTransform(target: THREE.Object3D, chunk: NorthernChunk, index: number): void {
   const type = chunk.props.type[index];
   const scale = chunk.props.scale[index];
+  if (NORTHERN_PROP_TYPES[type] === 'trailLog') {
+    const x = chunk.props.x[index];
+    const z = chunk.props.z[index];
+    const angle = chunk.props.rotationY[index];
+    const halfLength = 3 * scale;
+    const dx = Math.cos(angle) * halfLength;
+    const dz = -Math.sin(angle) * halfLength;
+    const startY = sampledHeightAt(x - dx, z - dz);
+    const endY = sampledHeightAt(x + dx, z + dz);
+    const direction = new THREE.Vector3(dx * 2, endY - startY, dz * 2).normalize();
+    target.position.set(x, (startY + endY) / 2 + 0.04 * scale, z);
+    target.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), direction);
+    target.scale.set(scale, scale, scale);
+    target.updateMatrix();
+    return;
+  }
   const rockLift = type === 1 || type === 2 ? scale * 0.2 : 0;
   target.position.set(chunk.props.x[index], chunk.props.y[index] + rockLift, chunk.props.z[index]);
   target.rotation.set(0, chunk.props.rotationY[index], 0);
