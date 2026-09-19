@@ -1,6 +1,7 @@
 import { coastShoreX } from './northern-coast';
 import { MARSH_LOOKOUT } from './northern-marsh';
 import type { SurfaceId } from './surfaces';
+import { WEST_REGIONS, WEST_PROPS, westCoastWeight } from './northern-west';
 import { WATERSIDE_REGIONS, WATERSIDE_PROPS, lakeShoreDistance, inletDistance } from './northern-watershed';
 
 type Point = { x: number; z: number; y: number };
@@ -59,6 +60,7 @@ export const ADVENTURE_REGIONS: Region[] = [
 const latestRegions = new Set(['windstone-ridge', 'ochre-terraces']);
 ADVENTURE_REGIONS.sort((a, b) => Number(latestRegions.has(a.id)) - Number(latestRegions.has(b.id)));
 ADVENTURE_REGIONS.push(...WATERSIDE_REGIONS);
+ADVENTURE_REGIONS.push(...WEST_REGIONS);
 
 function inside(r: Region, x: number, z: number) {
   const [left, right, top, bottom] = r.bounds;
@@ -93,6 +95,7 @@ export function adventureSurface(x: number, z: number): SurfaceId | null {
   for (const r of ADVENTURE_REGIONS) {
     if (!inside(r, x, z) || weight(r, x, z) < 0.2) continue;
     const trail = trailSample(r, x, z);
+    if (WEST_REGIONS.some(w => w.id === r.id) && westCoastWeight(z)>0.1) return trail.distance<5?'dirt':x-coastShoreX(z)<38?'sand':'grass';
     if (r.id === 'great-lake' && Math.abs(lakeShoreDistance(x, z)) < 40) return trail.distance < 5 ? 'dirt' : 'moss';
     if (r.id === 'alder-river' && inletDistance(x, z) < 55) return trail.distance < 5 ? 'dirt' : 'moss';
     if (r.id === 'windstone-ridge') return trail.distance < 5 ? 'dirt' : 'rock';
@@ -138,7 +141,9 @@ export function applyAdventures(x: number, z: number, ground: number): number {
     }
     ground += (shaped - ground) * w;
     const trail = trailSample(r, x, z);
-    if (trail.distance < 22) ground += (trail.elevation - ground) * (1 - smooth((trail.distance - 7) / 15));
+    const connection = r.id === 'river-mouth' ? smooth((-x-345)/25)
+      : r.id === 'driftwood-strand' ? smooth((z-488)/7) : 1;
+    if (trail.distance < 22) ground += (trail.elevation - ground) * (1 - smooth((trail.distance - 7) / 15)) * connection;
     for (const p of r.id === 'stonegate-basin' ? [r.start, BASIN_LOOKOUT, MARSH_LOOKOUT] : [r.start]) {
       const clearing = 1 - smooth((Math.hypot(x - p.x, z - p.z) - 6) / 5);
       ground += (p.y - ground) * clearing;
@@ -147,7 +152,7 @@ export function applyAdventures(x: number, z: number, ground: number): number {
   return ground;
 }
 
-type Prop = { kind: 'forestPine' | 'trailLog' | 'shoalBoulder' | 'coastStack' | 'graniteTor' | 'timberSign' | 'shoalSign' | 'basinSign' | 'windSign' | 'terraceSign' | 'weatheredArch' | 'layeredRock' | 'rockRamp' | 'willow' | 'reed' | 'driftwood' | 'fordPost' | 'lakeSign' | 'riverSign'; x: number; z: number; size: number; angle?: number };
+type Prop = (typeof WEST_PROPS)[number] | { kind: 'forestPine' | 'trailLog' | 'shoalBoulder' | 'coastStack' | 'graniteTor' | 'timberSign' | 'shoalSign' | 'basinSign' | 'windSign' | 'terraceSign' | 'weatheredArch' | 'layeredRock' | 'rockRamp' | 'willow' | 'reed' | 'driftwood' | 'fordPost' | 'lakeSign' | 'riverSign' | 'coastSign' | 'coastLog'; x: number; z: number; size: number; angle?: number };
 export const ADVENTURE_PROPS: Prop[] = [
   { kind: 'windSign', x: -103, z: -358, size: 1 },
   { kind: 'terraceSign', x: 318, z: 92, size: 1 },
@@ -172,3 +177,4 @@ for (const center of [{ x: -365, z: 423 }, { x: -303, z: 459 }, { x: -291, z: 35
   }
 }
 ADVENTURE_PROPS.push(...WATERSIDE_PROPS.filter(p => p.kind !== 'willow' || adventureTrailDistance(p.x, p.z) > 7));
+ADVENTURE_PROPS.push(...WEST_PROPS.filter(p => p.kind !== 'layeredRock' || adventureTrailDistance(p.x,p.z)>15));

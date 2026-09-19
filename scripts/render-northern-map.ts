@@ -68,9 +68,12 @@ try {
     'ochre-terraces': 'Stone shelves · rock ramp · winding descent',
     'great-lake': 'Scalloped coves · willow island · shallow shelves',
     'alder-river': 'Winding channel · gravel fords · bank trail',
+    'river-mouth': 'Sandy spits · reed banks · open outflow',
+    'outer-headlands': 'Rocky coves · ridge trail · low beach',
+    'driftwood-strand': 'Dunes · stranded timber · sea views',
   };
-  const newIds = new Set(['great-lake', 'alder-river']);
-  const ordered = ['timber-run', 'stonegate-basin', 'boulder-shoals', 'windstone-ridge', 'ochre-terraces', 'great-lake', 'alder-river'];
+  const newIds = new Set(['river-mouth', 'outer-headlands', 'driftwood-strand']);
+  const ordered = ['timber-run', 'stonegate-basin', 'boulder-shoals', 'windstone-ridge', 'ochre-terraces', 'great-lake', 'alder-river', 'river-mouth', 'outer-headlands', 'driftwood-strand'];
   const regions = [...existing, ...ordered.map(id => {
     const r = ADVENTURE_REGIONS.find(r => r.id === id)!;
     return { ...r, detail: details[id] };
@@ -88,17 +91,18 @@ try {
   for(const r of ADVENTURE_REGIONS) for(const trail of r.trails) svg+=newIds.has(r.id)
     ? paths(trail.points,'#63351c',4)+paths(trail.points,'#ffc267',2.4) : paths(trail.points,'#f6f5da',2);
   regions.forEach((r,i)=>{
-    const fresh=i===0||i>=11, color=fresh?'#b65724':'#275d55', [l,rr,t,b]=r.bounds;
+    const fresh=i>=13, color=fresh?'#b65724':'#275d55', [l,rr,t,b]=r.bounds;
     svg+=`<rect x="${x(l)}" y="${y(t)}" width="${(rr-l)*mapSize/worldSize}" height="${(b-t)*mapSize/worldSize}" rx="9" fill="none" stroke="${fresh?'#ffb85f':'#d1e4ce'}" stroke-width="${fresh?3:1.5}" stroke-dasharray="8 5"/>`;
     svg+=`<circle cx="${x(r.start.x)}" cy="${y(r.start.z)}" r="17" fill="${color}" stroke="#fff8e8" stroke-width="2"/>`;
     svg+=text(x(r.start.x)-(i>=9?11:6),y(r.start.z)+7,String(i+1),20,'#ffffff',700);
-    const cy=218+i*73;
+    const cy=211+i*61;
     svg+=`<circle cx="1212" cy="${cy-7}" r="17" fill="${color}"/>`+text(i>=9?1201:1206,cy,String(i+1),20,'#ffffff',700);
-    svg+=text(1245,cy,r.name,24,color,700)+text(1245,cy+29,r.detail,18);
-    if(fresh)svg+=text(1245,cy+50,i===0?'OUTLET LOWERED & BANK LINKS REGRADED':'REWORKED IN THIS UPDATE',12,color,700);
+    svg+=text(1245,cy,r.name,22,color,700)+text(1245,cy+25,r.detail,17);
+    if(fresh)svg+=text(1245,cy+43,'REFINED IN THIS UPDATE',11,color,700);
   });
   svg+=`<circle cx="${x(NORTHERN_SPAWN.x)}" cy="${y(NORTHERN_SPAWN.z)}" r="6" fill="#fff" stroke="#263c32" stroke-width="2"/>`;
   svg+=text(x(NORTHERN_SPAWN.x)+12,y(NORTHERN_SPAWN.z)+5,'START',14,'#223e30',700);
+  svg+='<text transform="translate(85 750) rotate(-90)" font-size="16" fill="#ffffff" font-weight="700">OPEN SEA · WESTERN WALL REMOVED</text>';
   svg+=text(1178,1200,'Dashed outlines: approximate authored regions',18)+text(1178,1230,'Pale trails: existing  ·  amber trails: new',18)+text(1178,1260,'Fine grid: 96 m streaming chunks',18);
   svg+=`<path d="M 60 1313 h ${300*mapSize/worldSize} m 0 -7 v 14 M 60 1306 v 14" stroke="#29483e" stroke-width="3"/>`+text(60,1345,'0',16)+text(230,1345,'300 m',16);
   svg+=text(395,1320,'Relief and water sampled from the game; individual props are omitted.',18)+text(395,1350,'Region numbers identify areas, not a required driving order.',18);

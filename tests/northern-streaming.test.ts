@@ -237,7 +237,7 @@ test('stale in-flight results are safely ignored when their chunk is abandoned b
     const poolMeshCount = NORTHERN_PROP_TYPES.length; // one pooled InstancedMesh per prop type, always present
     // Every active chunk contributes exactly one terrain mesh, and at most one extra water mesh.
     assert.ok(scene.children.length >= poolMeshCount + runtime.stats.activeRender);
-    assert.ok(scene.children.length <= poolMeshCount + runtime.stats.activeRender * 2);
+    assert.ok(scene.children.length <= poolMeshCount + runtime.stats.activeRender * 2 + 1);
     assert.equal(transport.requestedChunks.length, 50, 'the abandoned chunks were still requested exactly once each');
   } finally { runtime.dispose(); }
 });
@@ -388,7 +388,7 @@ test('repeated back-and-forth movement keeps resource usage bounded, never growi
       assert.ok(colliderCount(world) <= 80);
     }
     const poolMeshCount = NORTHERN_PROP_TYPES.length;
-    assert.ok(scene.children.length <= poolMeshCount + 25 + 25);
+    assert.ok(scene.children.length <= poolMeshCount + 25 + 25 + 1);
   } finally { runtime.dispose(); }
 });
 

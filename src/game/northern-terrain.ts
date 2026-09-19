@@ -8,6 +8,7 @@ import { FOREST_TRAILS, FOREST_SIGNS, FOREST_CAIRNS, FOREST_OUTCROPS, FOREST_GRO
 // independently generated chunks share bit-identical edges and keeps prop
 // placement seam-free.
 import type { SurfaceId } from './surfaces';
+import { applyWestCoast } from './northern-west';
 import { LAKE_LEVEL, watershedFeatures } from './northern-watershed';
 import { applyAdventures, adventureSurface, adventureTrailDistance, ADVENTURE_PROPS } from './northern-adventures';
 import { applyMarsh, marshWeight, marshTrailSample, marshPoolRadius, MARSH_POOLS, MARSH_START, MARSH_LOOKOUT, MARSH_SIGNS, MARSH_WILLOWS } from './northern-marsh';
@@ -348,9 +349,8 @@ function applyValleyBankLinks(x: number, z: number, height: number): number {
 /**
  * How far the nominal world's boundary walls reach inward before the ground starts climbing,
  * and how tall that climb ultimately gets. The rise is a broad, deterministic perimeter
- * cliff/rise around all four nominal edges (±NORTHERN_HALF) — including straight through the
- * open sea to the west, where nothing else in the terrain model would otherwise ever stop a
- * boat or vehicle from driving off the edge of the world. It is applied last, after water
+ * cliff/rise around the land edges (±NORTHERN_HALF). The western sea remains open
+ * between the northern and southern corner transitions. It is applied last, after water
  * carving, so it physically closes even carved-out water features (the sea, river mouths) once
  * they reach the boundary, while leaving everything well inside the margin — the authored
  * coast, rivers, and routes — completely untouched.
@@ -361,8 +361,10 @@ const NORTHERN_EDGE_RISE_HEIGHT = 240; // metres added at/beyond the edge — ta
 /** 0 far from every nominal edge, ramping smoothly up to 1 at (and beyond) ±NORTHERN_HALF on
  *  whichever axis is closer to its edge — so corners rise exactly as readily as edge midpoints. */
 function edgeRiseAmount(x: number, z: number): number {
-  const distanceToNearestEdge = NORTHERN_HALF - Math.max(Math.abs(x), Math.abs(z));
-  return 1 - smooth(distanceToNearestEdge / NORTHERN_EDGE_RISE_MARGIN);
+  const landEdges = 1 - smooth((NORTHERN_HALF - Math.max(x, Math.abs(z))) / NORTHERN_EDGE_RISE_MARGIN);
+  const westernRise = (1 - smooth((NORTHERN_HALF + x) / NORTHERN_EDGE_RISE_MARGIN))
+    * smooth((Math.abs(z) - 655) / 60);
+  return Math.max(landEdges, westernRise);
 }
 
 function applyPerimeterRise(x: number, z: number, height: number): number {
@@ -373,7 +375,7 @@ function applyPerimeterRise(x: number, z: number, height: number): number {
 function authoredGround(x: number, z: number): number {
   const roads = applyRoutes(x, z, naturalHeight(x, z));
   const forest = applyForest(x, z, roads);
-  const coast = applyCoast(x, z, applyValleyBankLinks(x, z, applyWater(x, z, forest)));
+  const coast = applyCoast(x, z, applyValleyBankLinks(x, z, applyWestCoast(x,z,applyWater(x, z, forest))));
   const uplands = applyEmber(x, z, applyPass(x, z, coast));
   return applyAdventures(x, z, applyMarsh(x, z, uplands));
 }
@@ -561,6 +563,7 @@ export const NORTHERN_SPAWN = { x: 24, y: sampledHeightAt(24, 560) + 1.25, z: 56
 export const NORTHERN_PROP_TYPES = [
   'tree', 'roadsideRock', 'snowRock', 'reed', 'driftwood', 'shrub', 'volcanicSpike', 'fordPost', 'valleySign', 'willow', 'riverRipple', 'forestPine', 'forestSign', 'coastStack', 'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn', 'marshSign', 'timberSign', 'shoalSign', 'basinSign', 'trailLog', 'shoalBoulder',
   'windSign', 'terraceSign', 'weatheredArch', 'layeredRock', 'rockRamp', 'lakeSign', 'riverSign',
+  'westSign',
 ] as const;
 
 function propDensityAt(surface: SurfaceId, z: number): number {

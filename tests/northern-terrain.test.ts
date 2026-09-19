@@ -359,13 +359,13 @@ test('authored major routes stay dry and within reasonable driving slopes', () =
   }
 });
 
-test('a broad perimeter rise closes off all four nominal edges — including the open sea to the west — while the apron stays a finite, seam-safe plateau', () => {
+test('land edges retain their perimeter while the western sea stays open through the apron', () => {
   const interiorBaseline = northernHeightAt(0, 0); // ordinary interior ground, untouched by any edge
   const substantial = interiorBaseline + 150; // taller than every authored peak in the world
 
   // Midpoints and corners of all four nominal edges must rise to a substantial, exploration-stopping height.
   const edgeSamples: [number, number][] = [
-    [0, NORTHERN_HALF], [0, -NORTHERN_HALF], [NORTHERN_HALF, 0], [-NORTHERN_HALF, 0],
+    [0, NORTHERN_HALF], [0, -NORTHERN_HALF], [NORTHERN_HALF, 0],
     [NORTHERN_HALF, NORTHERN_HALF], [-NORTHERN_HALF, -NORTHERN_HALF],
     [NORTHERN_HALF, -NORTHERN_HALF], [-NORTHERN_HALF, NORTHERN_HALF],
   ];
@@ -378,8 +378,9 @@ test('a broad perimeter rise closes off all four nominal edges — including the
   // The western edge runs straight through open sea; nothing else in the terrain model would
   // otherwise stop a vehicle driving out past the map there. The rise must physically close it.
   for (const z of [190, -300, 0, 500]) {
-    assert.equal(waterHeightAt(-NORTHERN_HALF, z), null, `the sea must be closed off at the west edge (z=${z})`);
-    assert.ok(northernHeightAt(-NORTHERN_HALF, z) > 0, `the west edge must be dry land at z=${z}, not open water`);
+    assert.equal(waterHeightAt(-NORTHERN_HALF, z), 0, `open western sea at z=${z}`);
+    assert.ok(northernHeightAt(-NORTHERN_HALF, z) < -1, `submerged western edge at z=${z}`);
+    assert.equal(waterHeightAt(-NORTHERN_APRON_HALF, z), 0);
   }
 
   // The rise only begins in the last ~60-80m before the edge — well inside that margin, the
@@ -390,7 +391,7 @@ test('a broad perimeter rise closes off all four nominal edges — including the
   // The apron (beyond the nominal edge, used only to supply seam data) stays a finite, bounded
   // plateau — it never diverges, and never drops back below the rise once past the edge.
   for (const t of [NORTHERN_HALF + 10, NORTHERN_HALF + 50, NORTHERN_APRON_HALF]) {
-    for (const [x, z] of [[t, 0], [-t, 0], [0, t], [0, -t]] as [number, number][]) {
+    for (const [x, z] of [[t, 0], [0, t], [0, -t]] as [number, number][]) {
       const height = northernHeightAt(x, z);
       assert.ok(Number.isFinite(height), `apron height at (${x},${z}) must remain finite`);
       assert.ok(height > substantial, `apron at (${x},${z}) should stay at/above the edge plateau, got ${height.toFixed(1)}`);

@@ -360,6 +360,27 @@ basalt columns use matching solid colliders and stay clear of the trails.
 Tests drive all routes in both directions and check grades, surface handling,
 chunk seams, browser driving and reset.
 
+## Northern Reach · Western Shores
+
+Three areas complete the western coastal routes:
+
+- **River Mouth** (`?area=northern-reach&start=river-mouth`): low estuary banks
+  lead to two sandy spits, with reeds, timber and an open outflow between them.
+- **Outer Headlands** (`?area=northern-reach&start=outer-headlands`): continue
+  north from Boulder Shoals along a rolling ridge or a lower cove beach trail.
+- **Driftwood Strand** (`?area=northern-reach&start=driftwood-strand`): descend
+  south from Fjord Coast through dunes and return along the inland ridge.
+
+The western terrain wall is removed for `|z| <= 655 m`, blending back into the
+land boundaries at the far corners. Sea continues through the streamed apron
+and into a two-triangle ocean mesh that fades in the existing fog. Deep water
+stalls the car; a physics-only stop beyond the nominal map prevents escape
+from the available chunks. Both resources are removed when leaving the area.
+
+`src/game/northern-west.ts` authors the coast, trails and landmarks. Tests cover
+existing connections, river-mouth continuity, coastal water, open-sea geometry,
+boundary collision, disposal and browser driving.
+
 ## Northern Reach · Great Lake and Alder River
 
 The central lake now sits at 8 m in a lowland basin, with scalloped coves,
@@ -398,7 +419,7 @@ and verify that the arch's passage and overhead stone behave correctly.
 ## Northern Reach · Timber Run, Boulder Shoals and Stonegate Basin
 
 [Current Northern Reach map (PNG)](artifacts/northern-reach/mapa-northern-reach.png)
-shows all thirteen enhanced regions; the lake, river and revised outlet are highlighted in amber. The
+shows all sixteen enhanced regions; the three western shore areas are highlighted in amber. The
 [SVG source](artifacts/northern-reach/mapa-northern-reach.svg) is also committed.
 Regenerate both from the game's terrain with
 `node --import tsx scripts/render-northern-map.ts` (requires Playwright Chromium).

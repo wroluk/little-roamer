@@ -17,7 +17,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { layeredRockGeometry, rockRampGeometry, weatheredArchGeometry, rockColliderMesh } from './northern-rocks';
 import {
-  isChunkInBounds, NORTHERN_CHUNK_SIZE, NORTHERN_PROP_TYPES, type NorthernChunk,
+  isChunkInBounds, NORTHERN_CHUNK_SIZE, NORTHERN_APRON_HALF, NORTHERN_PROP_TYPES, type NorthernChunk,
 } from './northern-terrain';
 import {
   handleNorthernChunkRequest, type NorthernChunkErrorMessage, type NorthernChunkRequest,
@@ -29,7 +29,7 @@ const SOLID_PROPS = new Set<string>([
   'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn',
   'marshSign', 'timberSign', 'shoalSign', 'basinSign', 'trailLog', 'shoalBoulder',
   'windSign', 'terraceSign', 'weatheredArch', 'layeredRock', 'rockRamp',
-  'lakeSign', 'riverSign',
+  'lakeSign', 'riverSign', 'westSign',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -383,6 +383,7 @@ function forestPineGeometry(): THREE.BufferGeometry {
 }
 
 const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = {
+  westSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   lakeSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   riverSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   windSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
@@ -419,6 +420,7 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
 };
 
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
+  westSign: '#ffffff',
   lakeSign: '#ffffff', riverSign: '#ffffff',
   windSign: '#ffffff', terraceSign: '#ffffff', weatheredArch: '#b3a58d', layeredRock: '#b38b63', rockRamp: '#bba07b',
   timberSign: '#ffffff', shoalSign: '#ffffff', basinSign: '#ffffff', trailLog: '#a08460', shoalBoulder: '#939a90',
@@ -432,6 +434,7 @@ const PROP_BASE_COLOR: Record<PropTypeName, string> = {
 };
 
 const SIGN_TEXT: Partial<Record<PropTypeName, [string, string, string]>> = {
+  westSign: ['WESTERN SHORES', 'RIVER MOUTH · OUTER HEADLANDS', 'DRIFTWOOD STRAND · OPEN SEA'],
   lakeSign: ['GREAT LAKE', 'WILLOW COVES · SHALLOW SHELVES', 'EAST SHORE · ALDER RIVER'],
   riverSign: ['ALDER RIVER', 'GRAVEL FORDS · WINDING BANKS', 'GREAT LAKE · MELTWATER VALLEY'],
   windSign: ['WINDSTONE RIDGE', 'STONE ARCH · ROLLING CREST', 'NORTH LOOKOUT · STONEGATE'],
@@ -511,6 +514,8 @@ export class NorthernStreamingRuntime {
   private readonly waterMaterial = new THREE.MeshStandardMaterial({
     vertexColors: true, roughness: 0.35, metalness: 0.05, transparent: true, opacity: 0.88,
   });
+  private readonly ocean: THREE.Mesh;
+  private readonly offshoreBoundary: RAPIER.Collider;
 
   private readonly chunks = new Map<string, ChunkRecord>();
   private readonly pendingRequests = new Map<number, string>();
@@ -542,6 +547,19 @@ export class NorthernStreamingRuntime {
       throw new Error('Northern Reach streaming: activationBudgetPerUpdate must be at least 1.');
     }
     this.onChunkError = options.onChunkError;
+    // Only two extra triangles continue the sea beyond the streamed apron.
+    // They share the deep-water colour/material and naturally vanish in scene fog.
+    const oceanGeometry = new THREE.PlaneGeometry(1600, 1728).rotateX(-Math.PI / 2);
+    oceanGeometry.setAttribute('color', new THREE.Float32BufferAttribute([
+      0.15,0.55,0.64, 0.15,0.55,0.64, 0.15,0.55,0.64, 0.15,0.55,0.64,
+    ],3));
+    this.ocean = new THREE.Mesh(oceanGeometry, this.waterMaterial);
+    this.ocean.name = 'Northern Reach · open western sea';
+    this.ocean.position.set(-NORTHERN_APRON_HALF-800,0.015,0);
+    this.scene.add(this.ocean);
+    // A physics-only stop beyond the deep-water zone prevents leaving valid chunks.
+    this.offshoreBoundary = this.world.createCollider(RAPIER.ColliderDesc.cuboid(1,200,NORTHERN_APRON_HALF)
+      .setTranslation(-NORTHERN_APRON_HALF+24,0,0));
     const capacity = options.propPoolCapacity ?? DEFAULT_PROP_POOL_CAPACITY;
     this.propPools = NORTHERN_PROP_TYPES.map(typeName => new InstancedPropPool(
       PROP_GEOMETRY_FACTORY[typeName](),
@@ -669,9 +687,9 @@ export class NorthernStreamingRuntime {
       activeRender,
       activePhysics,
       queued: this.pendingRequests.size + this.readyQueue.length,
-      triangles,
+      triangles: triangles + (this.disposed ? 0 : 2),
       colliderCount: Array.from(this.chunks.values())
-        .reduce((count, record) => count + Number(record.hasCollider) + record.propColliders.length, 0),
+        .reduce((count, record) => count + Number(record.hasCollider) + record.propColliders.length, this.disposed ? 0 : 1),
       lastActivationMs: this.lastActivationMs,
     };
   }
@@ -691,6 +709,9 @@ export class NorthernStreamingRuntime {
     this.chunks.clear();
     this.pendingRequests.clear();
     this.readyQueue.length = 0;
+    this.scene.remove(this.ocean);
+    this.ocean.geometry.dispose();
+    this.world.removeCollider(this.offshoreBoundary, true);
     for (const pool of this.propPools) {
       this.scene.remove(pool.mesh);
       pool.dispose();
