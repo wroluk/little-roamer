@@ -3,6 +3,10 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import type { Vehicle } from './vehicle';
 import { surfaceHeight } from './terrain';
 
+export function horizontalDragDirection(terrainDistance: number | null, vehicleDistance: number) {
+  return terrainDistance !== null && terrainDistance < vehicleDistance ? -1 : 1;
+}
+
 export class FollowCamera {
   private heading = 0;
   private orbitYaw = 0;

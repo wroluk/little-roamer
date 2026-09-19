@@ -73,15 +73,29 @@ test('tablet portrait and landscape controls fit and remain usable', async ({ pa
       expect(box!.height).toBeGreaterThanOrEqual(44);
     }
     const navigation = (await page.locator('#navigation').boundingBox())!;
-    const areaSelect = (await page.locator('#area-select').boundingBox())!;
-    expect(Math.abs(navigation.y - areaSelect.y)).toBeLessThanOrEqual(2);
-    if (viewport.width > viewport.height) {
-      expect(Math.abs(navigation.x + navigation.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
-    }
+    const reverse = (await page.locator('#reverse').boundingBox())!;
+    const forward = (await page.locator('#forward').boundingBox())!;
+    await expect(page.locator('#area-select')).toBeHidden();
+    await expect(page.locator('#area-select')).toBeDisabled();
+    expect(Math.abs(forward.height - reverse.height)).toBeLessThanOrEqual(1);
+    expect(navigation.x).toBeLessThan(viewport.width / 3);
+    if (viewport.width <= viewport.height) await expect(page.locator('.wordmark')).toBeHidden();
+    else await expect(page.locator('.wordmark')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
     await page.locator('#forward').tap();
     expect((await snapshot(page)).input.forward).toBe(false);
   }
+});
+
+test('location selection lives on the home screen and can be reached from pause', async ({ page }) => {
+  await expect(page.locator('#area-select')).toBeVisible();
+  await page.locator('#start').click();
+  await expect(page.locator('#area-select')).toBeHidden();
+  await page.locator('#pause').click();
+  await page.locator('#home').click();
+  await expect(page.locator('#welcome')).toBeVisible();
+  await expect(page.locator('#area-select')).toBeVisible();
+  await expect(page.locator('#area-select')).toBeEnabled();
 });
 
 test('compass follows vehicle heading and altimeter reports terrain elevation', async ({ page }) => {
@@ -107,20 +121,41 @@ test('compass follows vehicle heading and altimeter reports terrain elevation', 
   await expect(page.locator('#altitude')).not.toHaveText('0 m');
 });
 
-test('dragging anywhere on the scene manually orbits the camera without steering the car', async ({ page }) => {
+test('camera drag reverses on foreground terrain but keeps its original direction behind the car', async ({ page }) => {
   await page.locator('#start').click();
   const canvas = page.locator('#game');
   const bounds = (await canvas.boundingBox())!;
   const start = await snapshot(page);
-  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  const carY = await page.evaluate(() => {
+    const game = (window as unknown as { __ROAMER__: DebugApi & {
+      vehicle: { model: { position: { clone(): { project(camera: unknown): { y: number } } } } };
+      camera: unknown;
+    } }).__ROAMER__;
+    return game.vehicle.model.position.clone().project(game.camera).y;
+  });
+  const screenCarY = bounds.y + (1 - carY) * bounds.height / 2;
+  const foregroundY = Math.min(bounds.y + bounds.height * 0.72, screenCarY + bounds.height * 0.16);
+  const backgroundY = Math.max(bounds.y + bounds.height * 0.24, screenCarY - bounds.height * 0.16);
+
+  await page.mouse.move(bounds.x + bounds.width / 2, foregroundY);
   await page.mouse.down();
-  await page.mouse.move(bounds.x + bounds.width * 0.72, bounds.y + bounds.height * 0.32, { steps: 8 });
+  await page.mouse.move(bounds.x + bounds.width * 0.68, foregroundY, { steps: 8 });
   await page.mouse.up();
   await expect.poll(async () => Math.abs((await snapshot(page)).camera[0] - start.camera[0])).toBeGreaterThan(5);
-  const orbited = await snapshot(page);
-  expect(orbited.position).toEqual(start.position);
-  expect(orbited.input).toEqual({ steer: 0, forward: false, reverse: false });
-  expect(orbited.cameraObstructed).toBe(false);
+  const foregroundDrag = await snapshot(page);
+  expect(foregroundDrag.camera[0]).toBeLessThan(start.camera[0]);
+
+  await page.mouse.move(bounds.x + bounds.width / 2, backgroundY);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + bounds.width * 0.68, backgroundY, { steps: 8 });
+  await page.mouse.up();
+  await expect.poll(async () => (await snapshot(page)).camera[0]).toBeGreaterThan(foregroundDrag.camera[0] + 5);
+  const backgroundDrag = await snapshot(page);
+  expect(backgroundDrag.position.x).toBeCloseTo(start.position.x, 4);
+  expect(backgroundDrag.position.y).toBeCloseTo(start.position.y, 4);
+  expect(backgroundDrag.position.z).toBeCloseTo(start.position.z, 4);
+  expect(backgroundDrag.input).toEqual({ steer: 0, forward: false, reverse: false });
+  expect(backgroundDrag.cameraObstructed).toBe(false);
   await expect(canvas).not.toHaveClass(/camera-dragging/);
 });
 

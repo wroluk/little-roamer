@@ -154,7 +154,11 @@ test('shrubs let the car pass while producing soft suspension feedback', async (
 test('travelling through all three destinations releases and rebuilds streamed resources', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#start')).toBeEnabled();
-  for (const area of ['northern-reach', 'highlands', 'valley', 'northern-reach']) {
+  for (const [index, area] of ['northern-reach', 'highlands', 'valley', 'northern-reach'].entries()) {
+    if (index > 0) {
+      await page.locator('#pause').click();
+      await page.locator('#home').click();
+    }
     await page.locator('#area-select').selectOption(area);
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
     await page.locator('#start').click();
@@ -171,7 +175,7 @@ test('streamed reset locks travel and honors a pause requested while terrain loa
   await expect(page.locator('#area-select')).toBeDisabled();
   await page.keyboard.press('Escape');
   await expect(page.locator('#paused')).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator('#area-select')).toBeEnabled();
+  await expect(page.locator('#area-select')).toBeDisabled();
   await expect(page.locator('#area-select')).toHaveValue('northern-reach');
   const reset = await state(page);
   expect(reset.mode).toBe('paused');

@@ -2,7 +2,7 @@ import './styles.css';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { Vehicle } from './game/vehicle';
-import { FollowCamera } from './game/camera';
+import { FollowCamera, horizontalDragDirection } from './game/camera';
 import { FixedClock } from './game/driving';
 import { sampledHeightAt } from './game/northern-terrain';
 import { COAST_START } from './game/northern-coast';
@@ -189,8 +189,6 @@ async function boot() {
     camera.updateProjectionMatrix();
     document.body.dataset.area = area.id;
     areaSelect.value = area.id;
-    element('area-label').textContent = area.label;
-    element('area-tagline').textContent = area.tagline;
     element('welcome-description').textContent = area.description;
     element('welcome-eyebrow').textContent = area.welcomeEyebrow;
     element('welcome-title').textContent = area.welcomeTitle;
@@ -255,6 +253,8 @@ async function boot() {
   let cameraPointer: number | null = null;
   let cameraPointerX = 0;
   let cameraPointerY = 0;
+  let cameraHorizontalDirection = 1;
+  const cameraRayDirection = new THREE.Vector3();
   const clearCameraDrag = () => {
     if (cameraPointer === null) return;
     const pointer = cameraPointer;
@@ -285,11 +285,23 @@ async function boot() {
     element('paused').hidden = true;
     element<HTMLButtonElement>('pause').disabled = false;
     element<HTMLButtonElement>('reset').disabled = false;
+    areaSelect.disabled = true;
     controls?.setEnabled(true);
     clock.reset();
     lastTime = performance.now();
     follow.reset();
     (document.activeElement as HTMLElement | null)?.blur();
+  };
+  const home = () => {
+    if (mode !== 'paused') return;
+    mode = 'ready';
+    document.body.classList.remove('playing');
+    element('paused').hidden = true;
+    element('welcome').hidden = false;
+    areaSelect.disabled = false;
+    follow.reset();
+    follow.update(1 / 60, true);
+    element('area-select').focus();
   };
   const reset = async () => {
     if (mode !== 'playing') return;
@@ -327,7 +339,7 @@ async function boot() {
       mode = 'playing';
       resetInProgress = false;
       element('travelling').hidden = true;
-      areaSelect.disabled = false;
+      areaSelect.disabled = true;
       element<HTMLButtonElement>('pause').disabled = false;
       element<HTMLButtonElement>('reset').disabled = false;
       controls?.setEnabled(true);
@@ -342,6 +354,22 @@ async function boot() {
   canvas.addEventListener('pointerdown', event => {
     if (mode !== 'playing' || event.button !== 0 || cameraPointer !== null) return;
     event.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    cameraRayDirection.set(
+      (event.clientX - rect.left) / Math.max(1, rect.width) * 2 - 1,
+      -(event.clientY - rect.top) / Math.max(1, rect.height) * 2 + 1,
+      0.5,
+    ).unproject(camera).sub(camera.position).normalize();
+    const terrainHit = world.castRay(
+      new RAPIER.Ray(camera.position, cameraRayDirection),
+      camera.far,
+      true,
+      RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC,
+    );
+    cameraHorizontalDirection = horizontalDragDirection(
+      terrainHit?.timeOfImpact ?? null,
+      camera.position.distanceTo(vehicle.model.position),
+    );
     cameraPointer = event.pointerId;
     cameraPointerX = event.clientX;
     cameraPointerY = event.clientY;
@@ -354,7 +382,7 @@ async function boot() {
     const width = Math.max(1, canvas.clientWidth);
     const height = Math.max(1, canvas.clientHeight);
     follow.orbit(
-      (event.clientX - cameraPointerX) / width * Math.PI * 2,
+      cameraHorizontalDirection * (event.clientX - cameraPointerX) / width * Math.PI * 2,
       (event.clientY - cameraPointerY) / height * Math.PI,
     );
     cameraPointerX = event.clientX;
@@ -368,6 +396,7 @@ async function boot() {
   canvas.addEventListener('contextmenu', event => event.preventDefault());
   element('start').addEventListener('click', resume);
   element('resume').addEventListener('click', resume);
+  element('home').addEventListener('click', home);
   element('pause').addEventListener('click', pause);
   element('reset').addEventListener('click', () => { void reset().catch(showError); });
   areaSelect.addEventListener('focus', () => controls?.clear());

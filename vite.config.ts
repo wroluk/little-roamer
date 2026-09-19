@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon-32.png', 'apple-touch-icon.png', 'roamer-mark.svg'],
       manifest: {
         name: 'Little Roamer · Toy 4WD',
         short_name: 'Little Roamer',
