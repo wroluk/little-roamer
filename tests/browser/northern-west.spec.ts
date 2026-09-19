@@ -1,0 +1,28 @@
+import {test,expect} from '@playwright/test';
+import {WEST_REGIONS,westPoint} from '../../src/game/northern-west';
+type Game={snapshot():{position:{x:number;y:number;z:number};waterDepth:number;contacts:number;streaming:{activeRender:number;activePhysics:number}};placeVehicle(x:number,z:number,heading:number):Promise<void>};
+for(const region of WEST_REGIONS) test(`${region.name}: coastal drive and open sea view`,async({page},info)=>{
+  test.setTimeout(120_000);
+  const errors:string[]=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(`/?area=northern-reach&start=${region.id}`);
+  await expect(page.locator('#start')).toBeEnabled({timeout:30_000});
+  await page.locator('#start').click();
+  const state=()=>page.evaluate(()=>(window as unknown as {__ROAMER__:Game}).__ROAMER__.snapshot());
+  const a=region.id==='river-mouth'?{x:-510,z:110}:region.id==='outer-headlands'?westPoint(-350,70,18):region.start;
+  const b=region.id==='river-mouth'?{x:-550,z:130}:region.id==='outer-headlands'?westPoint(-405,80,25):westPoint(615,25,1.1);
+  const dx=b.x-a.x,dz=b.z-a.z,length=Math.hypot(dx,dz);
+  await page.evaluate(p=>(window as unknown as {__ROAMER__:Game}).__ROAMER__.placeVehicle(p.x,p.z,p.heading),{...a,heading:Math.atan2(-dx,-dz)});
+  await page.keyboard.down('KeyW');
+  await expect.poll(async()=>{const p=(await state()).position;return((p.x-a.x)*dx+(p.z-a.z)*dz)/length;},{timeout:45_000}).toBeGreaterThan(length-5);
+  await page.keyboard.up('KeyW');
+  expect((await state()).waterDepth).toBe(0);
+  await page.evaluate(p=>(window as unknown as {__ROAMER__:Game}).__ROAMER__.placeVehicle(p.x,p.z,Math.PI/2),b);
+  await expect.poll(async()=>(await state()).contacts).toBeGreaterThanOrEqual(2);
+  await page.screenshot({path:info.outputPath('western-sea.png')});
+  expect((await state()).streaming.activeRender).toBeLessThanOrEqual(25);
+  expect((await state()).streaming.activePhysics).toBeLessThanOrEqual(9);
+  await page.locator('#reset').click();
+  await expect.poll(async()=>(await state()).position.x).toBeCloseTo(region.start.x,0);
+  expect(errors).toEqual([]);
+});
