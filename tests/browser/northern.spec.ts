@@ -38,7 +38,8 @@ const state = (page: Page): Promise<State> => page.evaluate(
 async function enter(page: Page) {
   await page.goto('/?area=northern-reach');
   await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
-  await expect(page.locator('#area-label')).toHaveText('03 / BEYOND THE TREELINE');
+  await expect(page.locator('#area-select')).toHaveValue('northern-reach');
+  await expect(page.locator('#welcome-eyebrow')).toHaveText('NORTHERN REACH / COAST TO SUMMIT');
   await page.locator('#start').click();
 }
 
@@ -107,8 +108,9 @@ test('local deep lake water remains impassable after streaming teleport', async 
 
 test('streamed loose boulders physically stop a head-on vehicle impact', async ({ page }) => {
   await enter(page);
-  const chunk = generateNorthernChunk(3, 0);
-  const boulder = Array.from(chunk.props.type).findIndex(value => value === 1);
+  // Use the lake-side chunk; (3, 0) is cleared for the Ochre Terraces approach.
+  const chunk = generateNorthernChunk(2, 2);
+  const boulder = Array.from(chunk.props.type).findIndex(value => value === 1 || value === 2);
   expect(boulder).toBeGreaterThanOrEqual(0);
   const x = chunk.props.x[boulder];
   const z = chunk.props.z[boulder];

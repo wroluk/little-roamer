@@ -31,6 +31,13 @@ type Game = { snapshot(): State; fords: Ford[]; ascents: Ascent[]; placeVehicle(
 const state = (page: Page): Promise<State> =>
   page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
 
+async function returnHome(page: Page) {
+  await page.locator('#pause').click();
+  await expect(page.locator('#paused')).toBeVisible();
+  await page.locator('#home').click();
+  await expect(page.locator('#welcome')).toBeVisible();
+}
+
 async function enter(page: Page) {
   await page.goto('/?area=highlands');
   await expect(page.locator('#start')).toBeEnabled({ timeout: 20_000 });
@@ -48,6 +55,7 @@ test('choose Iceland, drive, reset within Iceland, return to valley and release 
   const valley = await state(page);
   for (let i = 0; i < 2; i++) {
     await page.keyboard.down('KeyW');
+    await returnHome(page);
     await page.locator('#area-select').selectOption('highlands');
     await page.keyboard.up('KeyW');
     await expect(page.locator('#start')).toBeVisible();
@@ -65,6 +73,7 @@ test('choose Iceland, drive, reset within Iceland, return to valley and release 
     await page.locator('#reset').click();
     await expect.poll(async () => (await state(page)).position.z).toBeCloseTo(start.spawn.z, 0);
     expect((await state(page)).position.x).toBeCloseTo(start.spawn.x, 0);
+    await returnHome(page);
     await page.locator('#area-select').selectOption('valley');
     await expect(page.locator('#start')).toBeEnabled();
     await page.locator('#start').click();
@@ -110,11 +119,11 @@ test('drive every Iceland ford across actual water and emerge on the other bank'
   }
 });
 
-test('Iceland touch controls and area picker fit portrait and landscape', async ({ page }) => {
+test('Iceland touch controls and Home Screen area picker fit portrait and landscape', async ({ page }) => {
   await enter(page);
   for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1024, height: 768 }]) {
     await page.setViewportSize(viewport);
-    for (const id of ['steer', 'forward', 'reverse', 'reset', 'area-select']) {
+    for (const id of ['steer', 'forward', 'reverse', 'reset']) {
       const box = (await page.locator(`#${id}`).boundingBox())!;
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.y).toBeGreaterThanOrEqual(0);
@@ -125,10 +134,16 @@ test('Iceland touch controls and area picker fit portrait and landscape', async 
     await page.locator('#forward').tap();
     expect((await state(page)).input.forward).toBe(false);
   }
-  await page.locator('#pause').click();
-  await expect(page.locator('#paused')).toBeVisible();
-  await page.locator('#resume').click();
-  expect((await state(page)).area).toBe('highlands');
+  await returnHome(page);
+  for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1024, height: 768 }]) {
+    await page.setViewportSize(viewport);
+    const box = (await page.locator('#area-select').boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test('drive up the glacier and a volcano flank in the complete highlands world', async ({ page }) => {

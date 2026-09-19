@@ -3,7 +3,7 @@ import { before, test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import {
-  generateNorthernChunk, isChunkInBounds, NORTHERN_CHUNK_SIZE, NORTHERN_PROP_TYPES, sampledHeightAt,
+  generateNorthernChunk, isChunkInBounds, NORTHERN_CHUNK_SIZE, sampledHeightAt,
 } from '../src/game/northern-terrain';
 import {
   BrowserChunkTransport, DEFAULT_ACTIVATION_BUDGET_PER_UPDATE, InProcessChunkTransport,
@@ -235,7 +235,7 @@ test('stale in-flight results are safely ignored when their chunk is abandoned b
     runtime.update(6 * NORTHERN_CHUNK_SIZE, 6 * NORTHERN_CHUNK_SIZE);
     await runtime.waitForIdle();
     assert.equal(runtime.stats.activeRender, 25, 'only the new ring should have live resources');
-    const poolMeshCount = NORTHERN_PROP_TYPES.length; // one pooled InstancedMesh per prop type, always present
+    const poolMeshCount = scene.children.filter(child => child instanceof THREE.InstancedMesh).length;
     // Every active chunk contributes exactly one terrain mesh, and at most one extra water mesh.
     assert.ok(scene.children.length >= poolMeshCount + runtime.stats.activeRender);
     assert.ok(scene.children.length <= poolMeshCount + runtime.stats.activeRender * 2 + 1);
@@ -388,7 +388,7 @@ test('repeated back-and-forth movement keeps resource usage bounded, never growi
       assert.ok(runtime.stats.activePhysics <= 9);
       assert.ok(colliderCount(world) <= 80);
     }
-    const poolMeshCount = NORTHERN_PROP_TYPES.length;
+    const poolMeshCount = scene.children.filter(child => child instanceof THREE.InstancedMesh).length;
     assert.ok(scene.children.length <= poolMeshCount + 25 + 25 + 1);
   } finally { runtime.dispose(); }
 });

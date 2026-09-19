@@ -252,7 +252,7 @@ type ChunkRecord = {
   collider: RAPIER.Collider | undefined;
   propColliders: RAPIER.Collider[];
   hasCollider: boolean;
-  propHandles: { type: number; handle: number }[];
+  propHandles: { type: number; variant: number; handle: number }[];
   errorMessage: string | undefined;
 };
 
@@ -449,6 +449,12 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
   volcanicSpike: () => new THREE.ConeGeometry(0.4, 2.8, 5),
 };
 
+const PROP_GEOMETRY_VARIANTS: Partial<Record<PropTypeName, (() => THREE.BufferGeometry)[]>> = {
+  layeredRock: [0, 1, 2].map(variant => () => layeredRockGeometry(variant)),
+  graniteTor: [0, 1, 2].map(variant => () => graniteTorGeometry(variant)),
+  coastStack: [0, 1, 2].map(variant => () => coastStackGeometry(variant)),
+};
+
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
   westSign: '#ffffff',
   lakeSign: '#ffffff', riverSign: '#ffffff',
@@ -511,8 +517,9 @@ function buildWaterGeometry(chunk: NorthernChunk): THREE.BufferGeometry | undefi
 
 function setPropTransform(target: THREE.Object3D, chunk: NorthernChunk, index: number): void {
   const type = chunk.props.type[index];
+  const propName = NORTHERN_PROP_TYPES[type];
   const scale = chunk.props.scale[index];
-  if (NORTHERN_PROP_TYPES[type] === 'trailLog') {
+  if (propName === 'trailLog') {
     const x = chunk.props.x[index];
     const z = chunk.props.z[index];
     const angle = chunk.props.rotationY[index];
@@ -532,11 +539,18 @@ function setPropTransform(target: THREE.Object3D, chunk: NorthernChunk, index: n
   target.position.set(chunk.props.x[index], chunk.props.y[index] + rockLift, chunk.props.z[index]);
   target.rotation.set(0, chunk.props.rotationY[index], 0);
   target.scale.set(scale, scale, scale);
-  if (NORTHERN_PROP_TYPES[type] === 'shoalBoulder') {
+  if (propName === 'shoalBoulder') {
     const variation = Math.sin(chunk.props.x[index] * 1.7 + chunk.props.z[index] * 0.63);
     target.scale.set(scale * (1 + variation * 0.2), scale * (1 + variation * 0.25), scale * (1 - variation * 0.18));
   }
   target.updateMatrix();
+}
+
+function propVariantIndex(chunk: NorthernChunk, index: number, variantCount: number): number {
+  if (variantCount <= 1) return 0;
+  const value = Math.sin(chunk.props.x[index] * 12.9898 + chunk.props.z[index] * 78.233
+    + chunk.props.type[index] * 37.719) * 43758.5453;
+  return Math.floor((value - Math.floor(value)) * variantCount);
 }
 
 function matchingConvexHull(geometry: THREE.BufferGeometry, matrix: THREE.Matrix4): RAPIER.ColliderDesc {
@@ -560,7 +574,7 @@ export class NorthernStreamingRuntime {
   private readonly renderRadius: number;
   private readonly colliderRadius: number;
   private readonly activationBudgetPerUpdate: number;
-  private readonly propPools: InstancedPropPool[];
+  private readonly propPools: InstancedPropPool[][];
   private readonly terrainMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, flatShading: true });
   private readonly waterMaterial = new THREE.MeshStandardMaterial({
     vertexColors: true, roughness: 0.35, metalness: 0.05, transparent: true, opacity: 0.88,
@@ -612,16 +626,14 @@ export class NorthernStreamingRuntime {
     this.offshoreBoundary = this.world.createCollider(RAPIER.ColliderDesc.cuboid(1,200,NORTHERN_APRON_HALF)
       .setTranslation(-NORTHERN_APRON_HALF+24,0,0));
     const capacity = options.propPoolCapacity ?? DEFAULT_PROP_POOL_CAPACITY;
-    this.propPools = NORTHERN_PROP_TYPES.map(typeName => new InstancedPropPool(
-      PROP_GEOMETRY_FACTORY[typeName](),
-      propMaterial(typeName),
-      capacity,
-    ));
-    for (const pool of this.propPools) {
-      pool.mesh.name = `Northern Reach · pooled ${NORTHERN_PROP_TYPES[this.propPools.indexOf(pool)]} instances`;
-      pool.mesh.castShadow = NORTHERN_PROP_TYPES[this.propPools.indexOf(pool)] === 'forestPine';
+    this.propPools = NORTHERN_PROP_TYPES.map(typeName =>
+      (PROP_GEOMETRY_VARIANTS[typeName] ?? [PROP_GEOMETRY_FACTORY[typeName]]).map(factory =>
+        new InstancedPropPool(factory(), propMaterial(typeName), capacity)));
+    this.propPools.forEach((variants, type) => variants.forEach((pool, variant) => {
+      pool.mesh.name = `Northern Reach · pooled ${NORTHERN_PROP_TYPES[type]} instances · variant ${variant + 1}`;
+      pool.mesh.castShadow = NORTHERN_PROP_TYPES[type] === 'forestPine';
       this.scene.add(pool.mesh);
-    }
+    }));
     this.transport.onMessage(message => this.handleMessage(message));
   }
 
@@ -763,7 +775,7 @@ export class NorthernStreamingRuntime {
     this.scene.remove(this.ocean);
     this.ocean.geometry.dispose();
     this.world.removeCollider(this.offshoreBoundary, true);
-    for (const pool of this.propPools) {
+    for (const variants of this.propPools) for (const pool of variants) {
       this.scene.remove(pool.mesh);
       pool.dispose();
     }
@@ -888,15 +900,16 @@ export class NorthernStreamingRuntime {
 
     const dummy = new THREE.Object3D();
     const color = new THREE.Color();
-    const propHandles: { type: number; handle: number }[] = [];
+    const propHandles: { type: number; variant: number; handle: number }[] = [];
     for (let i = 0; i < chunk.props.count; i++) {
       const type = chunk.props.type[i];
-      const pool = this.propPools[type];
+      const variant = propVariantIndex(chunk, i, this.propPools[type].length);
+      const pool = this.propPools[type][variant];
       if (!pool) continue;
       setPropTransform(dummy, chunk, i);
       color.set(PROP_BASE_COLOR[NORTHERN_PROP_TYPES[type]]);
       const handle = pool.allocate(dummy.matrix, color);
-      if (handle !== undefined) propHandles.push({ type, handle });
+      if (handle !== undefined) propHandles.push({ type, variant, handle });
     }
     record.propHandles = propHandles;
 
@@ -925,7 +938,8 @@ export class NorthernStreamingRuntime {
         continue;
       }
       if (!SOLID_PROPS.has(NORTHERN_PROP_TYPES[type])) continue;
-      const geometry = this.propPools[type].mesh.geometry;
+      const variant = propVariantIndex(record.chunk, i, this.propPools[type].length);
+      const geometry = this.propPools[type][variant].mesh.geometry;
       setPropTransform(dummy, record.chunk, i);
       if (['weatheredArch', 'layeredRock', 'rockRamp', 'graniteTor', 'coastStack', 'shoalBoulder'].includes(NORTHERN_PROP_TYPES[type])) {
         const mesh = rockColliderMesh(geometry, dummy.matrix);
@@ -967,7 +981,7 @@ export class NorthernStreamingRuntime {
       record.waterMesh.geometry.dispose();
       record.waterMesh = undefined;
     }
-    for (const { type, handle } of record.propHandles) this.propPools[type]?.free(handle);
+    for (const { type, variant, handle } of record.propHandles) this.propPools[type]?.[variant]?.free(handle);
     record.propHandles = [];
     // A still-pending in-flight request is deliberately left alone: the worker call is cheap
     // and pure, and `handleMessage` will discard its result because this record is now gone.

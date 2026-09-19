@@ -25,6 +25,10 @@ test('village lanes, bamboo route, shallow torii lake and area switching', async
   await page.locator('#reset').click();
   expect((await snapshot()).position.z).toBeCloseTo(62, 0);
   await page.screenshot({ path: 'test-results/samurai-village.png' });
+  await page.locator('#pause').click();
+  await expect(page.locator('#paused')).toBeVisible();
+  await page.locator('#home').click();
+  await expect(page.locator('#welcome')).toBeVisible();
   await page.locator('#area-select').selectOption('valley');
   await expect(page.locator('#start')).toBeEnabled();
   await page.locator('#start').click();

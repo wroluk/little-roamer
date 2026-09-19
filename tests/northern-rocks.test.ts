@@ -2,7 +2,21 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { weatheredArchGeometry, rockColliderMesh } from '../src/game/northern-rocks';
+import {
+  coastStackGeometry, graniteTorGeometry, layeredRockGeometry, weatheredArchGeometry, rockColliderMesh,
+} from '../src/game/northern-rocks';
+
+test('large rock families provide three genuinely distinct mesh variants', () => {
+  for (const factory of [coastStackGeometry, graniteTorGeometry, layeredRockGeometry]) {
+    const geometries = [0, 1, 2].map(factory);
+    const signatures = geometries.map(geometry => {
+      const position = geometry.getAttribute('position');
+      return JSON.stringify(Array.from(position.array));
+    });
+    assert.equal(new Set(signatures).size, 3);
+    geometries.forEach(geometry => geometry.dispose());
+  }
+});
 
 test('weathered arch physics preserves the passage, pillars and overhead stone', async () => {
   await RAPIER.init();

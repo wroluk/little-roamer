@@ -34,6 +34,10 @@ test('reloads and enters both areas with no network', async ({ page, context, br
   await page.locator('#start').click();
   await page.keyboard.press('KeyW');
 
+  await page.locator('#pause').click();
+  await expect(page.locator('#paused')).toBeVisible();
+  await page.locator('#home').click();
+  await expect(page.locator('#welcome')).toBeVisible();
   await page.locator('#area-select').selectOption('valley');
   await expect(page.locator('#start')).toBeEnabled();
   await page.locator('#start').click();

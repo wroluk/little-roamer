@@ -25,8 +25,8 @@ test('River Valley entry, streamed fords in both directions, and reset', async (
     if (direction === 1) await page.screenshot({ path: testInfo.outputPath(`${ford.name}.png`) });
     await expect.poll(async () => direction * ((await state()).position.z - ford.z), { timeout: 35_000 }).toBeLessThan(-ford.halfLength);
     await page.keyboard.up('KeyW');
+    await expect.poll(async () => (await state()).contacts, { timeout: 3_000 }).toBeGreaterThanOrEqual(2);
     const after = await state();
-    expect(after.contacts).toBeGreaterThanOrEqual(2);
     expect(after.streaming.activeRender).toBeLessThanOrEqual(25);
     expect(after.streaming.activePhysics).toBeLessThanOrEqual(9);
   }
