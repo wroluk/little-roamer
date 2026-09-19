@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { layeredRockGeometry, rockRampGeometry, weatheredArchGeometry, rockColliderMesh } from './northern-rocks';
+import { layeredRockGeometry, rockRampGeometry, weatheredArchGeometry, rockColliderMesh, graniteTorGeometry, coastStackGeometry, shoalBoulderGeometry } from './northern-rocks';
 import {
   isChunkInBounds, NORTHERN_CHUNK_SIZE, NORTHERN_APRON_HALF, NORTHERN_PROP_TYPES, type NorthernChunk,
 } from './northern-terrain';
@@ -395,13 +395,13 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
   shoalSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   basinSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   trailLog: () => new THREE.CylinderGeometry(0.12, 0.14, 6, 8).rotateZ(Math.PI / 2).translate(0, 0.12, 0),
-  shoalBoulder: () => new THREE.SphereGeometry(1, 12, 6).scale(3.6, 0.8, 4.2).translate(0, -0.4, 0),
+  shoalBoulder: shoalBoulderGeometry,
   marshSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   emberSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   basaltColumn: () => new THREE.CylinderGeometry(1.2, 1.4, 10, 6).translate(0, 4.8, 0),
   passSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
-  graniteTor: () => new THREE.DodecahedronGeometry(1, 0).scale(3.2, 7, 2.6).translate(0, 6, 0),
-  coastStack: () => new THREE.CylinderGeometry(1.1, 2.2, 10, 5).translate(0, 5, 0),
+  graniteTor: graniteTorGeometry,
+  coastStack: coastStackGeometry,
   coastLog: () => new THREE.CylinderGeometry(0.17, 0.23, 3.8, 7).rotateZ(Math.PI / 2).translate(0, 0.24, 0),
   coastSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   forestPine: forestPineGeometry,
@@ -410,12 +410,12 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
   riverRipple: () => new THREE.BoxGeometry(2.2, 0.012, 0.055),
   valleySign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   fordPost: () => new THREE.CylinderGeometry(0.14, 0.14, 2.6, 6).translate(0, 1.3, 0),
-  tree: () => new THREE.ConeGeometry(0.6, 2.4, 6),
+  tree: () => new THREE.ConeGeometry(0.45, 0.32, 6).translate(0, 0.06, 0),
   roadsideRock: () => new THREE.DodecahedronGeometry(0.8, 0),
   snowRock: () => new THREE.DodecahedronGeometry(0.9, 0),
   reed: () => new THREE.CylinderGeometry(0.04, 0.08, 1.6, 5),
-  driftwood: () => new THREE.CylinderGeometry(0.12, 0.16, 1.8, 6),
-  shrub: () => new THREE.IcosahedronGeometry(0.5, 0),
+  driftwood: () => new THREE.CylinderGeometry(0.08, 0.11, 1.8, 6).rotateZ(Math.PI / 2).translate(0, 0.04, 0),
+  shrub: () => new THREE.IcosahedronGeometry(0.85, 1).scale(1.15, 0.8, 1).translate(0, 0.15, 0),
   volcanicSpike: () => new THREE.ConeGeometry(0.4, 2.8, 5),
 };
 
@@ -485,6 +485,10 @@ function setPropTransform(target: THREE.Object3D, chunk: NorthernChunk, index: n
   target.position.set(chunk.props.x[index], chunk.props.y[index] + rockLift, chunk.props.z[index]);
   target.rotation.set(0, chunk.props.rotationY[index], 0);
   target.scale.set(scale, scale, scale);
+  if (NORTHERN_PROP_TYPES[type] === 'shoalBoulder') {
+    const variation = Math.sin(chunk.props.x[index] * 1.7 + chunk.props.z[index] * 0.63);
+    target.scale.set(scale * (1 + variation * 0.2), scale * (1 + variation * 0.25), scale * (1 - variation * 0.18));
+  }
   target.updateMatrix();
 }
 
@@ -876,7 +880,7 @@ export class NorthernStreamingRuntime {
       if (!SOLID_PROPS.has(NORTHERN_PROP_TYPES[type])) continue;
       const geometry = this.propPools[type].mesh.geometry;
       setPropTransform(dummy, record.chunk, i);
-      if (['weatheredArch', 'layeredRock', 'rockRamp'].includes(NORTHERN_PROP_TYPES[type])) {
+      if (['weatheredArch', 'layeredRock', 'rockRamp', 'graniteTor', 'coastStack', 'shoalBoulder'].includes(NORTHERN_PROP_TYPES[type])) {
         const mesh = rockColliderMesh(geometry, dummy.matrix);
         record.propColliders.push(this.world.createCollider(
           RAPIER.ColliderDesc.trimesh(mesh.vertices, mesh.indices).setFriction(0.9)));

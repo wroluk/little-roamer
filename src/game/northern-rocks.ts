@@ -47,6 +47,33 @@ export function rockRampGeometry(): THREE.BufferGeometry {
   ], 0.8);
 }
 
+/** Uneven shelves and a broken crown replace the stretched regular-solid silhouette. */
+export function graniteTorGeometry(): THREE.BufferGeometry {
+  return strata([
+    { y: -1, radius: 3.2, offset: 0 }, { y: 1.2, radius: 3.1, offset: -0.2 },
+    { y: 3.8, radius: 2.5, offset: -0.5 }, { y: 4.3, radius: 2.8, offset: -0.3 },
+    { y: 7.1, radius: 2.3, offset: 0.2 }, { y: 7.6, radius: 1.9, offset: 0.4 },
+    { y: 10.4, radius: 1.8, offset: 0.1 }, { y: 12.3, radius: 0.9, offset: -0.5 },
+  ], 0.82);
+}
+
+export function coastStackGeometry(): THREE.BufferGeometry {
+  return strata([
+    { y: -0.3, radius: 2.2, offset: 0 }, { y: 1.2, radius: 1.9, offset: -0.15 },
+    { y: 3.4, radius: 1.35, offset: 0.15 }, { y: 4.1, radius: 1.65, offset: 0.25 },
+    { y: 6.6, radius: 1.4, offset: 0 }, { y: 8.5, radius: 1.1, offset: -0.25 },
+    { y: 10, radius: 0.65, offset: -0.1 },
+  ], 0.88);
+}
+
+export function shoalBoulderGeometry(): THREE.BufferGeometry {
+  return strata([
+    { y: -0.7, radius: 4, offset: 0 }, { y: -0.15, radius: 3.6, offset: -0.2 },
+    { y: 0.2, radius: 2.6, offset: 0.3 }, { y: 0.5, radius: 1.5, offset: 0.5 },
+    { y: 0.65, radius: 0.65, offset: 0.1 },
+  ], 1.16);
+}
+
 export function weatheredArchGeometry(): THREE.BufferGeometry {
   // The outline follows the inner opening back to the foot, leaving a real passage.
   const outline = [[-12,-1],[-12,5],[-10,10],[-5,13],[3,12],[10,9],[12,-1],
