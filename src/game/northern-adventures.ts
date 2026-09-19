@@ -153,6 +153,14 @@ export function applyAdventures(x: number, z: number, ground: number): number {
 }
 
 type Prop = (typeof WEST_PROPS)[number] | { kind: 'forestPine' | 'trailLog' | 'shoalBoulder' | 'coastStack' | 'graniteTor' | 'timberSign' | 'shoalSign' | 'basinSign' | 'windSign' | 'terraceSign' | 'weatheredArch' | 'layeredRock' | 'rockRamp' | 'willow' | 'reed' | 'driftwood' | 'fordPost' | 'lakeSign' | 'riverSign' | 'coastSign' | 'coastLog'; x: number; z: number; size: number; angle?: number };
+export const TIMBER_TRAIL_LOGS = [
+  { kind: 'trailLog' as const, x: -334, z: 451, size: 1, angle: 0.48 },
+  { kind: 'trailLog' as const, x: -337, z: 431, size: 1.25, angle: -0.65 },
+];
+export const SHOAL_TRAIL_BOULDERS = [
+  { kind: 'shoalBoulder' as const, ...shoalPoint(-90, 3, 0), size: 0.8, angle: 0 },
+  { kind: 'shoalBoulder' as const, ...shoalPoint(-124, 3, 0), size: 1.05, angle: 2.17 },
+];
 export const ADVENTURE_PROPS: Prop[] = [
   { kind: 'windSign', x: -103, z: -358, size: 1 },
   { kind: 'terraceSign', x: 318, z: 92, size: 1 },
@@ -164,19 +172,20 @@ export const ADVENTURE_PROPS: Prop[] = [
   { kind: 'timberSign', x: -367, z: 310, size: 1 }, { kind: 'timberSign', x: -347, z: 482, size: 1 },
   { kind: 'basinSign', x: -344, z: -216, size: 1 }, { kind: 'basinSign', x: -289, z: -296, size: 1 },
   { kind: 'shoalSign', x: -362, z: -70, size: 1 }, { kind: 'shoalSign', x: SHOAL_START.x + 10, z: -52, size: 1 },
+  ...TIMBER_TRAIL_LOGS,
   ...[
-    [-334, 451, 1, 0.48], [-337, 431, 1.25, -0.65],
     [-348, 457, 1.1, 1.1], [-322, 446, 0.8, -0.3],
     [-355, 420, 1.4, 0.8], [-316, 414, 1, 1.7],
     [-341, 402, 0.9, -1.2], [-307, 465, 1.3, 0.25],
     [-366, 476, 1.15, -0.8], [-289, 389, 0.85, 1.4],
     [-304, 490, 1.25, 0.6], [-359, 395, 1, -0.45],
   ].map(([x, z, size, angle]) => ({ kind: 'trailLog' as const, x, z, size, angle })),
+  ...SHOAL_TRAIL_BOULDERS,
   ...[
-    [-90, 3, 0.8], [-124, 3, 1.05], [-61, -7, 1.3], [-77, 11, 0.65],
+    [-61, -7, 1.3], [-77, 11, 0.65],
     [-101, -10, 1.6], [-115, 12, 0.9], [-138, -6, 1.25], [-152, 9, 0.75],
     [-166, -12, 1.5], [-48, 8, 0.7], [-182, 4, 1.1], [-132, -19, 1.8],
-  ].map(([z, offset, size], i) => ({ kind: 'shoalBoulder' as const, ...shoalPoint(z, offset, 0), size, angle: i * 2.17 })),
+  ].map(([z, offset, size], i) => ({ kind: 'shoalBoulder' as const, ...shoalPoint(z, offset, 0), size, angle: (i + 2) * 2.17 })),
   ...[-70, -108, -146].map((z, i) => ({ kind: 'coastStack' as const, ...shoalPoint(z, -13, 0), size: 1.3 + i * 0.25 })),
   ...[{ x: -323, z: -285 }, { x: -302, z: -270 }, { x: -240, z: -364 }, { x: -283, z: -383 }, { x: -244, z: -399 }]
     .map((p, i) => ({ kind: 'graniteTor' as const, ...p, size: 1 + (i % 3) * 0.3 })),

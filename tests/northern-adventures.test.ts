@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { before, test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { ADVENTURE_REGIONS, ADVENTURE_PROPS } from '../src/game/northern-adventures';
+import { ADVENTURE_REGIONS, ADVENTURE_PROPS, SHOAL_TRAIL_BOULDERS, TIMBER_TRAIL_LOGS } from '../src/game/northern-adventures';
 import { generateNorthernChunk, sampledHeightAt, waterHeightAt, northernSurfaceAt, NORTHERN_SPAWN } from '../src/game/northern-terrain';
 import { InProcessChunkTransport, NorthernStreamingRuntime } from '../src/game/northern-streaming';
 import { Vehicle } from '../src/game/vehicle';
@@ -43,8 +43,13 @@ test('adventure starts are level and coastal render triangles match water physic
     }
   }
 });
-test('the real vehicle climbs the deliberately placed logs and submerged boulders', async () => {
-  for (const obstacle of ADVENTURE_PROPS.filter(p=>p.kind==='trailLog'||p.kind==='shoalBoulder'||p.kind==='rockRamp')) {
+test('the real vehicle climbs trail obstacles and submerged boulders', async () => {
+  const obstacles = [
+    ...TIMBER_TRAIL_LOGS,
+    ...SHOAL_TRAIL_BOULDERS,
+    ...ADVENTURE_PROPS.filter(p => p.kind === 'rockRamp'),
+  ];
+  for (const obstacle of obstacles) {
     const scene=new THREE.Scene(), world=new RAPIER.World({x:0,y:-18,z:0});
     const runtime=new NorthernStreamingRuntime(scene,world,new InProcessChunkTransport());
     try {
@@ -63,7 +68,8 @@ test('the real vehicle climbs the deliberately placed logs and submerged boulder
         }
       }
       assert.ok(car.position.z<obstacle.z-9, `stuck on ${obstacle.kind} at ${obstacle.z}`);
-      assert.ok(near && lift>0.1, `wheel contacts must rise onto ${obstacle.kind}; lift=${lift}`);
+      assert.ok(near && lift>0.1,
+        `wheel contacts must rise onto ${obstacle.kind} at ${obstacle.x},${obstacle.z}; lift=${lift}`);
     } finally { runtime.dispose(); world.free(); disposeScene(scene); }
   }
 });
