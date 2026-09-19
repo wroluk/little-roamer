@@ -8,7 +8,8 @@ import { FOREST_TRAILS, FOREST_SIGNS, FOREST_CAIRNS, FOREST_OUTCROPS, FOREST_GRO
 // independently generated chunks share bit-identical edges and keeps prop
 // placement seam-free.
 import type { SurfaceId } from './surfaces';
-import { applyAdventures, adventureSurface, adventureTrailDistance, shoalsWaterRegion, ADVENTURE_PROPS } from './northern-adventures';
+import { LAKE_LEVEL, watershedFeatures } from './northern-watershed';
+import { applyAdventures, adventureSurface, adventureTrailDistance, ADVENTURE_PROPS } from './northern-adventures';
 import { applyMarsh, marshWeight, marshTrailSample, marshPoolRadius, MARSH_POOLS, MARSH_START, MARSH_LOOKOUT, MARSH_SIGNS, MARSH_WILLOWS } from './northern-marsh';
 import { applyEmber, emberWeight, emberRadius, emberTrailSample, EMBER_START, EMBER_LOOKOUT, EMBER_FLOOR, EMBER_SIGNS, EMBER_COLUMNS } from './northern-ember';
 import { applyPass, passWeight, passTrailSample, passBowlRadius, PASS_TRAILS, PASS_SIGNS, PASS_TORS, PASS_START, PASS_LOOKOUT } from './northern-pass';
@@ -159,14 +160,6 @@ function profileElevation(profile: RouteProfile, t: number): number {
 const MOUNTAIN = { x: 520, z: -500, rx: 280, rz: 300, peak: 150 };
 /** South-east volcanic uplands. */
 const UPLAND = { x: 520, z: 470, radius: 270, peak: 95 };
-/** Central lake, sitting well above sea level. */
-const LAKE = { x: 0, z: 180, rx: 95, rz: 135, level: 30, bedDrop: 12 };
-
-/** Glacial meltwater stream: mountains down to the lake's north-east inlet. */
-const RIVER_IN_LINE: Polyline = [
-  { x: 430, z: -560 }, { x: 320, z: -400 }, { x: 230, z: -250 }, { x: 140, z: -90 }, { x: 62, z: 40 },
-];
-const RIVER_IN_SOURCE_LEVEL = 96;
 
 /** Lake outlet: south-west down to the fjord mouth. */
 const RIVER_OUT_LINE: Polyline = [
@@ -294,21 +287,7 @@ function waterFeatures(x: number, z: number): WaterFeature[] {
     if (r < 1.35) features.push({ amount: 1 - smooth((r - 0.9) / 0.45), level: pool.level, bed: pool.level - 1.3 });
   }
 
-  const ldx = (x - LAKE.x) / LAKE.rx;
-  const ldz = (z - LAKE.z) / LAKE.rz;
-  const lakeR = Math.hypot(ldx, ldz);
-  const lakeAmount = 1 - smooth((lakeR - 0.92) / 0.22);
-  if (lakeAmount > 0) {
-    features.push({ amount: lakeAmount, level: LAKE.level, bed: LAKE.level - LAKE.bedDrop * (1 - smooth(lakeR / 0.9)) });
-  }
-
-  const riverIn = polylineSample(RIVER_IN_LINE, x, z);
-  const riverInHalfWidth = lerp(4, 9, riverIn.t);
-  const riverInAmount = 1 - smooth((riverIn.distance - riverInHalfWidth) / 14);
-  if (riverInAmount > 0) {
-    const level = lerp(RIVER_IN_SOURCE_LEVEL, LAKE.level, riverIn.t);
-    features.push({ amount: riverInAmount, level, bed: level - 3 });
-  }
+  features.push(...watershedFeatures(x, z));
 
   const rawOutlet = polylineSample(RIVER_OUT_LINE, x, z);
   const pilot = valleyRiverWeight(x);
@@ -319,14 +298,13 @@ function waterFeatures(x: number, z: number): WaterFeature[] {
   };
   const riverOutHalfWidth = lerp(10, 18, riverOut.t);
   const riverOutAmount = 1 - smooth((riverOut.distance - riverOutHalfWidth) / 18);
-  if (riverOutAmount > 0 || (valleyRiverWeight(x) > 0 && riverOut.distance < 96)) {
-    const level = lerp(LAKE.level, 0, riverOut.t);
-    const authored = valleyRiverWeight(x);
+  if (riverOutAmount > 0 || riverOut.distance < 96) {
+    const level = LAKE_LEVEL * (1 - smooth((-x - 165) / 290));
     const wideBanks = 1 - smooth((riverOut.distance - 26) / 70);
     features.push({
-      amount: lerp(riverOutAmount, wideBanks, authored), level,
-      containsWater: riverOut.distance < riverOutHalfWidth + lerp(18, 12, authored),
-      bed: level + lerp(-4, valleyRiverBed(riverOut.distance, riverOutHalfWidth, x), authored),
+      amount: wideBanks, level,
+      containsWater: riverOut.distance < riverOutHalfWidth + 12,
+      bed: level + valleyRiverBed(riverOut.distance, riverOutHalfWidth, x),
     });
   }
 
@@ -342,7 +320,8 @@ function waterFeatures(x: number, z: number): WaterFeature[] {
 function strongestWaterFeature(features: WaterFeature[]): WaterFeature | null {
   if (!features.length) return null;
   let best = features[0];
-  for (const feature of features) if (feature.amount > best.amount) best = feature;
+  for (const feature of features) if (feature.amount > best.amount
+    || (feature.amount === best.amount && feature.bed < best.bed)) best = feature;
   return best;
 }
 
@@ -350,7 +329,20 @@ function applyWater(x: number, z: number, height: number): number {
   const best = strongestWaterFeature(waterFeatures(x, z));
   if (!best) return height;
   const amount = clamp(best.amount, 0, 1);
-  return height * (1 - amount) + best.bed * amount;
+  const carved = height * (1 - amount) + best.bed * amount;
+  const roadDistance = Math.min(...ROUTES.map(route => polylineSample(route.line, x, z).distance));
+  const dryRoad = Math.max(height, lerp(height, best.level + 0.9, smooth((amount - 0.15) / 0.3)));
+  return lerp(carved, dryRoad, 1 - smooth((roadDistance - 6) / 12));
+}
+
+// Regrade the dry ridge links to the lowered outlet, retaining the shallow ford beds.
+const VALLEY_BANK_PROFILE = VALLEY_TRAIL.map(p => p.x === -270 && p.z === 115 ? 15.9
+  : applyWater(p.x, p.z, naturalHeight(p.x, p.z)));
+function applyValleyBankLinks(x: number, z: number, height: number): number {
+  const trail = valleyTrailSample(x, z);
+  if (trail.distance >= 10 || trail.segment === 3 || trail.segment === 8) return height;
+  const grade = lerp(VALLEY_BANK_PROFILE[trail.segment], VALLEY_BANK_PROFILE[trail.segment + 1], trail.fraction);
+  return lerp(height, grade, 1 - smooth((trail.distance - 4) / 6));
 }
 
 /**
@@ -381,7 +373,7 @@ function applyPerimeterRise(x: number, z: number, height: number): number {
 function authoredGround(x: number, z: number): number {
   const roads = applyRoutes(x, z, naturalHeight(x, z));
   const forest = applyForest(x, z, roads);
-  const coast = applyCoast(x, z, applyWater(x, z, forest));
+  const coast = applyCoast(x, z, applyValleyBankLinks(x, z, applyWater(x, z, forest)));
   const uplands = applyEmber(x, z, applyPass(x, z, coast));
   return applyAdventures(x, z, applyMarsh(x, z, uplands));
 }
@@ -398,7 +390,7 @@ export function northernHeightAt(x: number, z: number): number {
 export function waterHeightAt(x: number, z: number): number | null {
   const best = strongestWaterFeature(waterFeatures(x, z));
   if (!best || best.amount < 0.5 || best.containsWater === false) return null;
-  const ground = (valleyRiverWeight(x) > 0 && z > 100 && z < 280) || coastWeight(x, z) > 0 || marshWeight(x, z) > 0 || shoalsWaterRegion(x, z) ? sampledHeightAt(x, z) : northernHeightAt(x, z);
+  const ground = sampledHeightAt(x, z);
   return ground < best.level ? best.level : null;
 }
 
@@ -568,7 +560,7 @@ export const NORTHERN_SPAWN = { x: 24, y: sampledHeightAt(24, 560) + 1.25, z: 56
 /** Compact numeric prop kinds, indexed by NorthernProps.type. */
 export const NORTHERN_PROP_TYPES = [
   'tree', 'roadsideRock', 'snowRock', 'reed', 'driftwood', 'shrub', 'volcanicSpike', 'fordPost', 'valleySign', 'willow', 'riverRipple', 'forestPine', 'forestSign', 'coastStack', 'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn', 'marshSign', 'timberSign', 'shoalSign', 'basinSign', 'trailLog', 'shoalBoulder',
-  'windSign', 'terraceSign', 'weatheredArch', 'layeredRock', 'rockRamp',
+  'windSign', 'terraceSign', 'weatheredArch', 'layeredRock', 'rockRamp', 'lakeSign', 'riverSign',
 ] as const;
 
 function propDensityAt(surface: SurfaceId, z: number): number {
@@ -723,6 +715,7 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
     authoredProp(cairn.x, cairn.z, 1, 0.6, 0.9);
   }
   for (const prop of ADVENTURE_PROPS) {
+    if (prop.kind === 'willow' && waterHeightAt(prop.x, prop.z) !== null) continue;
     authoredProp(prop.x, prop.z, NORTHERN_PROP_TYPES.indexOf(prop.kind), prop.size, 0, prop.angle ?? 0);
     if (prop.kind.endsWith('Sign')) authoredProp(prop.x, prop.z, 7, 1);
   }
@@ -829,7 +822,7 @@ type WaterVertex = {
 
 function waterVertexAt(x: number, z: number): WaterVertex {
   const best = strongestWaterFeature(waterFeatures(x, z));
-  const ground = (valleyRiverWeight(x) > 0 && z > 100 && z < 280) || coastWeight(x, z) > 0 || marshWeight(x, z) > 0 || shoalsWaterRegion(x, z) ? sampledHeightAt(x, z) : northernHeightAt(x, z);
+  const ground = sampledHeightAt(x, z);
   if (!best) return { x, y: ground, z, depth: 0, wet: false };
   const depth = best.level - ground;
   return {

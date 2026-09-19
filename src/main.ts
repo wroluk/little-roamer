@@ -10,6 +10,7 @@ import { PASS_START } from './game/northern-pass';
 import { EMBER_START } from './game/northern-ember';
 import { MARSH_START, marshWeight } from './game/northern-marsh';
 import { ADVENTURE_REGIONS, shoalsWaterRegion } from './game/northern-adventures';
+import { lakeShoreDistance, inletDistance, inletWidth } from './game/northern-watershed';
 import { RAMPS } from './game/terrain';
 import { FORDS, VOLCANOES, GLACIER, GLACIER_ASCENT, VOLCANO_ASCENT } from './game/highlands';
 import { AREAS, isAreaId, type Area, type AreaId, type AreaRuntime } from './game/areas';
@@ -173,6 +174,9 @@ async function boot() {
       if (area.id === 'samurai-village') return 'Shallow lake';
       if (area.id === 'northern-reach' && shoalsWaterRegion(vehicle.position.x, vehicle.position.z)) return 'Coastal shallows';
       if (area.id === 'northern-reach' && marshWeight(vehicle.position.x, vehicle.position.z) > 0.2) return 'Marsh water';
+      if (area.id === 'northern-reach' && lakeShoreDistance(vehicle.position.x, vehicle.position.z) < 0) return 'Great Lake';
+      if (area.id === 'northern-reach' && vehicle.position.z < 100
+        && inletDistance(vehicle.position.x, vehicle.position.z) < inletWidth(vehicle.position.z) + 12) return 'Alder River';
     }
     return surface.label;
   }

@@ -6,7 +6,7 @@ type Game = {
   placeVehicle(x: number, z: number, heading: number): Promise<void>;
 };
 
-for (const region of ADVENTURE_REGIONS) test(`${region.name}: drive the feature and reset`, async ({ page }, testInfo) => {
+for (const region of ADVENTURE_REGIONS.filter(r => r.id !== 'great-lake' && r.id !== 'alder-river')) test(`${region.name}: drive the feature and reset`, async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));

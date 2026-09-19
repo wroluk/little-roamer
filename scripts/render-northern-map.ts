@@ -66,9 +66,11 @@ try {
     'boulder-shoals': 'Climbable rocks · sea stacks · beach',
     'windstone-ridge': 'Natural arch · rolling crest · lookout',
     'ochre-terraces': 'Stone shelves · rock ramp · winding descent',
+    'great-lake': 'Scalloped coves · willow island · shallow shelves',
+    'alder-river': 'Winding channel · gravel fords · bank trail',
   };
-  const newIds = new Set(['windstone-ridge', 'ochre-terraces']);
-  const ordered = ['timber-run', 'stonegate-basin', 'boulder-shoals', 'windstone-ridge', 'ochre-terraces'];
+  const newIds = new Set(['great-lake', 'alder-river']);
+  const ordered = ['timber-run', 'stonegate-basin', 'boulder-shoals', 'windstone-ridge', 'ochre-terraces', 'great-lake', 'alder-river'];
   const regions = [...existing, ...ordered.map(id => {
     const r = ADVENTURE_REGIONS.find(r => r.id === id)!;
     return { ...r, detail: details[id] };
@@ -86,14 +88,14 @@ try {
   for(const r of ADVENTURE_REGIONS) for(const trail of r.trails) svg+=newIds.has(r.id)
     ? paths(trail.points,'#63351c',4)+paths(trail.points,'#ffc267',2.4) : paths(trail.points,'#f6f5da',2);
   regions.forEach((r,i)=>{
-    const fresh=i>=9, color=fresh?'#b65724':'#275d55', [l,rr,t,b]=r.bounds;
+    const fresh=i===0||i>=11, color=fresh?'#b65724':'#275d55', [l,rr,t,b]=r.bounds;
     svg+=`<rect x="${x(l)}" y="${y(t)}" width="${(rr-l)*mapSize/worldSize}" height="${(b-t)*mapSize/worldSize}" rx="9" fill="none" stroke="${fresh?'#ffb85f':'#d1e4ce'}" stroke-width="${fresh?3:1.5}" stroke-dasharray="8 5"/>`;
     svg+=`<circle cx="${x(r.start.x)}" cy="${y(r.start.z)}" r="17" fill="${color}" stroke="#fff8e8" stroke-width="2"/>`;
     svg+=text(x(r.start.x)-(i>=9?11:6),y(r.start.z)+7,String(i+1),20,'#ffffff',700);
-    const cy=218+i*85;
+    const cy=218+i*73;
     svg+=`<circle cx="1212" cy="${cy-7}" r="17" fill="${color}"/>`+text(i>=9?1201:1206,cy,String(i+1),20,'#ffffff',700);
     svg+=text(1245,cy,r.name,24,color,700)+text(1245,cy+29,r.detail,18);
-    if(fresh)svg+=text(1245,cy+53,'NEW IN THIS UPDATE',12,color,700);
+    if(fresh)svg+=text(1245,cy+50,i===0?'OUTLET LOWERED & BANK LINKS REGRADED':'REWORKED IN THIS UPDATE',12,color,700);
   });
   svg+=`<circle cx="${x(NORTHERN_SPAWN.x)}" cy="${y(NORTHERN_SPAWN.z)}" r="6" fill="#fff" stroke="#263c32" stroke-width="2"/>`;
   svg+=text(x(NORTHERN_SPAWN.x)+12,y(NORTHERN_SPAWN.z)+5,'START',14,'#223e30',700);

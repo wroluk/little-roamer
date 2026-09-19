@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { LAKE_LEVEL, inletCenterX } from '../src/game/northern-watershed';
 import {
   NORTHERN_HALF, NORTHERN_APRON_HALF, NORTHERN_CHUNK_SIZE, NORTHERN_CHUNK_CELLS, NORTHERN_CELL_SIZE,
   NORTHERN_MIN_CHUNK, NORTHERN_MAX_CHUNK, NORTHERN_MIN_NOMINAL_CHUNK, NORTHERN_MAX_NOMINAL_CHUNK,
@@ -230,9 +231,9 @@ test('spawn sits near x=24, z=560 — off the chunk-boundary edge, on safe, dry,
 
 test('the lake, its rivers, and the sea each have distinct, sensible local water elevations', () => {
   const lake = waterHeightAt(0, 180);
-  const riverInSource = waterHeightAt(410, -540);
-  const riverInMid = waterHeightAt(230, -250);
-  const riverInAtLake = waterHeightAt(65, 45);
+  const riverInSource = waterHeightAt(inletCenterX(-540), -540);
+  const riverInMid = waterHeightAt(inletCenterX(-360), -360);
+  const riverInAtLake = waterHeightAt(inletCenterX(45), 45);
   const riverOutAtLake = waterHeightAt(-110, 193);
   const riverOutAtSea = waterHeightAt(-440, 190);
   const sea = waterHeightAt(-690, 190);
@@ -245,14 +246,15 @@ test('the lake, its rivers, and the sea each have distinct, sensible local water
   assert.ok(riverInSource! > riverInMid!);
   assert.ok(riverInMid! > riverInAtLake!);
   assert.ok(Math.abs(riverInAtLake! - lake!) < 1);
-  // The lake sits well above sea level, and its outlet descends smoothly to the coast.
-  assert.ok(lake! > 20);
+  // The lowland lake sits within the surrounding terrain and drains toward the sea.
+  assert.equal(lake, LAKE_LEVEL);
+  assert.ok(lake! > 0 && lake! < 12);
   assert.ok(Math.abs(riverOutAtLake! - lake!) < 5);
   assert.ok(riverOutAtLake! > riverOutAtSea!);
   assert.ok(riverOutAtSea! > sea!);
   assert.equal(sea, 0);
   // Every reported water surface is actually above the carved ground beneath it.
-  for (const [x, z] of [[0, 180], [410, -540], [230, -250], [-110, 193], [-440, 190], [-690, 190]]) {
+  for (const [x, z] of [[0, 180], [inletCenterX(-540), -540], [inletCenterX(-360), -360], [-110, 193], [-440, 190], [-690, 190]]) {
     const level = waterHeightAt(x, z)!;
     assert.ok(level > northernHeightAt(x, z));
   }
@@ -271,7 +273,7 @@ test('clipped water mesh follows the analytic lake bank without an invisible wet
     }
   }
   let analyticEdge = 0;
-  for (let x = 80; x <= 110; x += 0.001) {
+  for (let x = 80; x <= 180; x += 0.001) {
     if (waterHeightAt(x, shorelineZ) !== null) analyticEdge = x;
   }
   const renderedEdge = Math.max(...renderedXs);

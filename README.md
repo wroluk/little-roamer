@@ -360,6 +360,24 @@ basalt columns use matching solid colliders and stay clear of the trails.
 Tests drive all routes in both directions and check grades, surface handling,
 chunk seams, browser driving and reset.
 
+## Northern Reach · Great Lake and Alder River
+
+The central lake now sits at 8 m in a lowland basin, with scalloped coves,
+a willow island, shallow shelves and an eastern/southern shore trail.
+Start at `?area=northern-reach&start=great-lake`.
+
+The mountain inlet follows a meandering valley, with a steeper upper reach
+and a nearly level lower river. Two marked gravel fords join a rolling bank
+trail. Start at `?area=northern-reach&start=alder-river`. Reeds, willows and
+driftwood follow the new shorelines. The outlet descends from the lowered lake
+to the sea; River Valley's existing fords and dry ridge links are regraded.
+
+`src/game/northern-watershed.ts` defines the shoreline, island, inlet, water
+profiles, trails and vegetation. Water rendering and physics use the same
+sampled terrain everywhere. Banks rise above water before their terrain blend
+ends, preventing disconnected water edges. Tests check flow continuity,
+shallow shelves, ford depths, water-to-bank contact, driving and browser resets.
+
 ## Northern Reach · Windstone Ridge and Ochre Terraces
 
 **Windstone Ridge** (`?area=northern-reach&start=windstone-ridge`) connects to
@@ -380,7 +398,7 @@ and verify that the arch's passage and overhead stone behave correctly.
 ## Northern Reach · Timber Run, Boulder Shoals and Stonegate Basin
 
 [Current Northern Reach map (PNG)](artifacts/northern-reach/mapa-northern-reach.png)
-shows all eleven enhanced regions; Windstone Ridge and Ochre Terraces are highlighted in amber. The
+shows all thirteen enhanced regions; the lake, river and revised outlet are highlighted in amber. The
 [SVG source](artifacts/northern-reach/mapa-northern-reach.svg) is also committed.
 Regenerate both from the game's terrain with
 `node --import tsx scripts/render-northern-map.ts` (requires Playwright Chromium).

@@ -29,6 +29,7 @@ const SOLID_PROPS = new Set<string>([
   'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn',
   'marshSign', 'timberSign', 'shoalSign', 'basinSign', 'trailLog', 'shoalBoulder',
   'windSign', 'terraceSign', 'weatheredArch', 'layeredRock', 'rockRamp',
+  'lakeSign', 'riverSign',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -382,6 +383,8 @@ function forestPineGeometry(): THREE.BufferGeometry {
 }
 
 const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = {
+  lakeSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
+  riverSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   windSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   terraceSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   weatheredArch: weatheredArchGeometry,
@@ -416,6 +419,7 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
 };
 
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
+  lakeSign: '#ffffff', riverSign: '#ffffff',
   windSign: '#ffffff', terraceSign: '#ffffff', weatheredArch: '#b3a58d', layeredRock: '#b38b63', rockRamp: '#bba07b',
   timberSign: '#ffffff', shoalSign: '#ffffff', basinSign: '#ffffff', trailLog: '#a08460', shoalBoulder: '#939a90',
   marshSign: '#ffffff',
@@ -428,6 +432,8 @@ const PROP_BASE_COLOR: Record<PropTypeName, string> = {
 };
 
 const SIGN_TEXT: Partial<Record<PropTypeName, [string, string, string]>> = {
+  lakeSign: ['GREAT LAKE', 'WILLOW COVES · SHALLOW SHELVES', 'EAST SHORE · ALDER RIVER'],
+  riverSign: ['ALDER RIVER', 'GRAVEL FORDS · WINDING BANKS', 'GREAT LAKE · MELTWATER VALLEY'],
   windSign: ['WINDSTONE RIDGE', 'STONE ARCH · ROLLING CREST', 'NORTH LOOKOUT · STONEGATE'],
   terraceSign: ['OCHRE TERRACES', 'ROCK RAMP · STONE SHELVES', 'WINDING DESCENT · MOUNTAIN ROAD'],
   timberSign: ['TIMBER RUN', 'FALLEN TRUNKS · FOREST GULLY', 'HILLSIDE BYPASS · COAST ROAD'],

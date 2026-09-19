@@ -22,7 +22,7 @@ test('adventure routes have safe depth and stay below a 29-degree grade', () => 
         const z = a.z + (b.z - a.z) * j / steps - (b.x - a.x) / length * side;
         const h = sampledHeightAt(x, z);
         const water = waterHeightAt(x, z);
-        if (route.name === 'Shallow rock run') assert.ok(water === null || water - h < 0.4, `${route.name} too deep at ${x},${z}: ${water! - h}`);
+        if (route.name === 'Shallow rock run' || route.name === 'Alder Ford' || route.name === 'Gravel Ford') assert.ok(water === null || water - h < 0.4, `${route.name} too deep at ${x},${z}: ${water! - h}`);
         else assert.equal(water, null, `${route.name} unexpected water at ${x},${z}`);
         if (previous !== undefined) assert.ok(Math.abs(h - previous) / (length / steps) < Math.tan(29 * Math.PI / 180),
           `${route.name} slope ${Math.abs(h - previous) / (length / steps)} at ${x},${z}`);
