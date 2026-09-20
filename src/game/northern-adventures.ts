@@ -164,7 +164,8 @@ export const SHOAL_TRAIL_BOULDERS = [
 export const ADVENTURE_PROPS: Prop[] = [
   { kind: 'windSign', x: -103, z: -358, size: 1 },
   { kind: 'terraceSign', x: 318, z: 92, size: 1 },
-  { kind: 'weatheredArch', x: -50, z: -465, size: 1 },
+  { kind: 'weatheredArch', x: -50, z: -465, size: 1, variant: 0 },
+  { kind: 'weatheredArch', x: -5, z: -555, size: 0.85, angle: 2.1, variant: 1 },
   { kind: 'rockRamp', x: 400, z: 135, size: 1 },
   ...[{ x: -86, z: -488 }, { x: -27, z: -545 }, { x: 81, z: -514 }, { x: 39, z: -609 },
     { x: 434, z: 82 }, { x: 550, z: 115 }, { x: 502, z: 180 }, { x: 380, z: 188 }]

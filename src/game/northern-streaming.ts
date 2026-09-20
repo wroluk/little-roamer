@@ -450,6 +450,7 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
 };
 
 const PROP_GEOMETRY_VARIANTS: Partial<Record<PropTypeName, (() => THREE.BufferGeometry)[]>> = {
+  weatheredArch: [0, 1].map(variant => () => weatheredArchGeometry(variant)),
   layeredRock: Array.from({ length: 3 + LAYERED_LANDMARKS.length }, (_, variant) => () => layeredRockGeometry(variant)),
   graniteTor: Array.from({ length: 3 + GRANITE_LANDMARKS.length }, (_, variant) => () => graniteTorGeometry(variant)),
   coastStack: Array.from({ length: 3 + SEA_LANDMARKS.length }, (_, variant) => () => coastStackGeometry(variant)),
@@ -458,7 +459,7 @@ const PROP_GEOMETRY_VARIANTS: Partial<Record<PropTypeName, (() => THREE.BufferGe
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
   westSign: '#ffffff',
   lakeSign: '#ffffff', riverSign: '#ffffff',
-  windSign: '#ffffff', terraceSign: '#ffffff', weatheredArch: '#b3a58d', layeredRock: '#b38b63', rockRamp: '#bba07b',
+  windSign: '#ffffff', terraceSign: '#ffffff', weatheredArch: '#7c8079', layeredRock: '#b38b63', rockRamp: '#bba07b',
   timberSign: '#ffffff', shoalSign: '#ffffff', basinSign: '#ffffff', trailLog: '#a08460', shoalBoulder: '#939a90',
   marshSign: '#ffffff',
   emberSign: '#ffffff', basaltColumn: '#6f6964',
@@ -489,6 +490,7 @@ const SIGN_TEXT: Partial<Record<PropTypeName, [string, string, string]>> = {
 function propMaterial(type: PropTypeName): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({ color: PROP_BASE_COLOR[type], roughness: 0.9, flatShading: true });
   if (type === 'tree') material.side = THREE.DoubleSide;
+  if (type === 'layeredRock') material.color.set('#ffffff');
   if (type === 'willow' || type === 'forestPine') material.vertexColors = true;
   const sign = SIGN_TEXT[type];
   if (!sign || typeof document === 'undefined') return material;
@@ -914,6 +916,11 @@ export class NorthernStreamingRuntime {
       if (!pool) continue;
       setPropTransform(dummy, chunk, i);
       color.set(PROP_BASE_COLOR[NORTHERN_PROP_TYPES[type]]);
+      if (NORTHERN_PROP_TYPES[type] === 'layeredRock') {
+        // Match Windstone's local boulders; retain the ochre palette elsewhere.
+        if (chunk.props.x[i] > -210 && chunk.props.x[i] < 150 && chunk.props.z[i] < -275 && chunk.props.z[i] > -645) color.set('#7c8079');
+        color.multiply(color);
+      }
       const handle = pool.allocate(dummy.matrix, color);
       if (handle !== undefined) propHandles.push({ type, variant, handle });
     }

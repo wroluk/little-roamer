@@ -150,13 +150,50 @@ export function shoalBoulderGeometry(): THREE.BufferGeometry {
   ], 1.16);
 }
 
-export function weatheredArchGeometry(): THREE.BufferGeometry {
-  // The outline follows the inner opening back to the foot, leaving a real passage.
-  const outline = [[-12,-1],[-12,5],[-10,10],[-5,13],[3,12],[10,9],[12,-1],
-    [6,-1],[6,5],[3,7],[-3,7],[-6,4],[-6,-1]];
-  const shape = new THREE.Shape(outline.map(([x,y]) => new THREE.Vector2(x,y)));
-  return new THREE.ExtrudeGeometry(shape, { depth: 6, bevelEnabled: true,
-    bevelThickness: 0.5, bevelSize: 0.6, bevelSegments: 1, steps: 1 }).translate(0, 0, -3);
+export function weatheredArchGeometry(variant = 0): THREE.BufferGeometry {
+  // Trace the outer crown clockwise, then return through the open underside.
+  // The second landmark has a narrow window and a tall, broken left shoulder.
+  const outline = variant === 1
+    ? [[-11,-2],[-12,4],[-10,12],[-7,16],[-3,13],[3,12],[8,8],[10,-2],
+      [4,-2],[4,4],[2,7],[-2,8],[-5,5],[-5,-2]]
+    : [[-14,-2],[-14,3],[-12,8],[-10,12],[-6,15],[-2,14],[2,15],[7,12],[10,11],[13,5],[14,-2],
+      [6,-2],[6,3],[4,6],[2,7],[-2,7.4],[-5,5],[-6,-2]];
+  const contour = outline.map(([x, y]) => new THREE.Vector2(x, y));
+  const cap = THREE.ShapeUtils.triangulateShape(contour, []);
+  const positions: number[] = [], indices: number[] = [];
+  const depths = [-4.4, -1.3, 2, 4.2];
+  for (const [layer, depth] of depths.entries()) {
+    for (const [i, [x, y]] of outline.entries()) {
+      const spread = [0.92, 1.03, 1, 0.88][layer];
+      positions.push(x * spread + .25 * Math.sin(layer * 2 + i * .6),
+        y + (y > 0 ? .22 * Math.sin(i * 1.9 + layer) : 0),
+        depth + .5 * Math.sin(i * 1.3 + layer * .8));
+    }
+  }
+  const n = outline.length;
+  // Clockwise outline: front cap points -Z; sides point away from the solid.
+  for (let layer = 0; layer < depths.length - 1; layer++) for (let i = 0; i < n; i++) {
+    const a = layer * n + i, b = layer * n + (i + 1) % n, c = a + n, d = b + n;
+    indices.push(a, c, b, b, c, d);
+  }
+  for (const [a, b, c] of cap) {
+    indices.push(c, b, a);
+    const offset = (depths.length - 1) * n;
+    indices.push(a + offset, b + offset, c + offset);
+  }
+  const indexed = new THREE.BufferGeometry();
+  indexed.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  indexed.setIndex(indices);
+  const arch = indexed.toNonIndexed();
+  indexed.dispose();
+  arch.computeVertexNormals();
+  const feet = fracturedFormation(variant === 1
+    ? [[-10, 1, 6, 7, 5, -.3], [9, -1, 5, 6, 3, .4]]
+    : [[-12, 1, 7, 8, 6, -.25], [12, -1, 7, 7, 4.2, .3], [-14, -3, 4, 4, 2.5, .7]], 2);
+  const result = mergeGeometries([arch, feet]);
+  arch.dispose(); feet.dispose();
+  if (!result) throw new Error('Could not create natural arch.');
+  return result;
 }
 
 /** Static concave formations must retain their recesses and openings in physics. */

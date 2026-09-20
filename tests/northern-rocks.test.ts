@@ -39,9 +39,9 @@ test('Stonegate landmarks retain unique authored meshes through chunk generation
   }
 });
 
-test('weathered arch physics preserves the passage, pillars and overhead stone', async () => {
+for (const variant of [0, 1]) test(`weathered arch ${variant} physics preserves the passage, pillars and overhead stone`, async () => {
   await RAPIER.init();
-  const geometry = weatheredArchGeometry();
+  const geometry = weatheredArchGeometry(variant);
   const mesh = rockColliderMesh(geometry, new THREE.Matrix4());
   const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
   try {
@@ -52,6 +52,6 @@ test('weathered arch physics preserves the passage, pillars and overhead stone',
     }
     assert.ok(world.castRay(new RAPIER.Ray({ x: 9, y: 2, z: 20 }, { x: 0, y: 0, z: -1 }), 40, true));
     const roof = world.castRay(new RAPIER.Ray({ x: 0, y: 2, z: 0 }, { x: 0, y: 1, z: 0 }), 20, true);
-    assert.ok(roof && roof.timeOfImpact > 4 && roof.timeOfImpact < 6);
+    assert.ok(roof && roof.timeOfImpact > 4 && roof.timeOfImpact < 7);
   } finally { geometry.dispose(); world.free(); }
 });
