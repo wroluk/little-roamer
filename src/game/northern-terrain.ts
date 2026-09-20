@@ -601,6 +601,8 @@ export type NorthernProps = {
   z: Float32Array;
   rotationY: Float32Array;
   scale: Float32Array;
+  /** 255 selects a background variant; other values name an authored mesh. */
+  variant: Uint8Array;
 };
 
 function generateNorthernProps(cx: number, cz: number): NorthernProps {
@@ -612,6 +614,7 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
   const z: number[] = [];
   const rotationY: number[] = [];
   const scale: number[] = [];
+  const variant: number[] = [];
 
   for (let lj = 0; lj < PROPS_PER_CHUNK_AXIS; lj++) {
     for (let li = 0; li < PROPS_PER_CHUNK_AXIS; li++) {
@@ -658,13 +661,15 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
       y.push(sampledHeightAt(px, pz));
       rotationY.push(rand() * Math.PI * 2);
       scale.push(0.7 + rand() * 0.8);
+      variant.push(255);
     }
   }
 
-  const authoredProp = (px: number, pz: number, kind: number, size: number, lift = 0, angle = 0) => {
+  const authoredProp = (px: number, pz: number, kind: number, size: number, lift = 0, angle = 0, meshVariant = 255) => {
     if (px < chunkMinX || px >= chunkMinX + NORTHERN_CHUNK_SIZE || pz < chunkMinZ || pz >= chunkMinZ + NORTHERN_CHUNK_SIZE) return;
     type.push(kind); x.push(px); z.push(pz); y.push(sampledHeightAt(px, pz) + lift);
     rotationY.push(angle); scale.push(size);
+    variant.push(meshVariant);
   };
   for (const marker of VALLEY_MARKERS) authoredProp(marker.x, marker.z, 7, 1);
   for (const [px, pz] of [[-207, 322], [-231, 233], [-354, 255]]) {
@@ -719,7 +724,7 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
   }
   for (const prop of ADVENTURE_PROPS) {
     if (prop.kind === 'willow' && waterHeightAt(prop.x, prop.z) !== null) continue;
-    authoredProp(prop.x, prop.z, NORTHERN_PROP_TYPES.indexOf(prop.kind), prop.size, 0, prop.angle ?? 0);
+    authoredProp(prop.x, prop.z, NORTHERN_PROP_TYPES.indexOf(prop.kind), prop.size, 0, prop.angle ?? 0, prop.variant ?? 255);
     if (prop.kind.endsWith('Sign')) authoredProp(prop.x, prop.z, 7, 1);
   }
   for (const sign of MARSH_SIGNS) {
@@ -762,7 +767,7 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
     authoredProp(px, pz, 2, 1.2);
     authoredProp(px, pz, 1, 0.65, 1.1);
   }
-  for (const stack of COAST_STACKS) authoredProp(stack.x, stack.z, 13, stack.scale);
+  for (const [i, stack] of COAST_STACKS.entries()) authoredProp(stack.x, stack.z, 13, stack.scale, 0, 0, 3 + i);
   for (const sign of COAST_SIGNS) {
     authoredProp(sign.x, sign.z, 15, 1);
     authoredProp(sign.x, sign.z, 7, 1);
@@ -790,6 +795,7 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
     z: Float32Array.from(z),
     rotationY: Float32Array.from(rotationY),
     scale: Float32Array.from(scale),
+    variant: Uint8Array.from(variant),
   };
 }
 

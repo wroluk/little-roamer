@@ -66,6 +66,7 @@ export function collectChunkTransferables(chunk: NorthernChunk): ArrayBuffer[] {
     chunk.props.z.buffer as ArrayBuffer,
     chunk.props.rotationY.buffer as ArrayBuffer,
     chunk.props.scale.buffer as ArrayBuffer,
+    chunk.props.variant.buffer as ArrayBuffer,
   ]);
   if (chunk.waterVertices) buffers.add(chunk.waterVertices.buffer as ArrayBuffer);
   if (chunk.waterIndices) buffers.add(chunk.waterIndices.buffer as ArrayBuffer);

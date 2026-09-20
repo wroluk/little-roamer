@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { layeredRockGeometry, rockRampGeometry, weatheredArchGeometry, rockColliderMesh, graniteTorGeometry, coastStackGeometry, shoalBoulderGeometry } from './northern-rocks';
+import { GRANITE_LANDMARKS, SEA_LANDMARKS, LAYERED_LANDMARKS, layeredRockGeometry, rockRampGeometry, weatheredArchGeometry, rockColliderMesh, graniteTorGeometry, coastStackGeometry, shoalBoulderGeometry } from './northern-rocks';
 import {
   isChunkInBounds, NORTHERN_CHUNK_SIZE, NORTHERN_APRON_HALF, NORTHERN_PROP_TYPES, sampledHeightAt,
   type NorthernChunk,
@@ -450,9 +450,9 @@ const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = 
 };
 
 const PROP_GEOMETRY_VARIANTS: Partial<Record<PropTypeName, (() => THREE.BufferGeometry)[]>> = {
-  layeredRock: [0, 1, 2].map(variant => () => layeredRockGeometry(variant)),
-  graniteTor: [0, 1, 2].map(variant => () => graniteTorGeometry(variant)),
-  coastStack: [0, 1, 2].map(variant => () => coastStackGeometry(variant)),
+  layeredRock: Array.from({ length: 3 + LAYERED_LANDMARKS.length }, (_, variant) => () => layeredRockGeometry(variant)),
+  graniteTor: Array.from({ length: 3 + GRANITE_LANDMARKS.length }, (_, variant) => () => graniteTorGeometry(variant)),
+  coastStack: Array.from({ length: 3 + SEA_LANDMARKS.length }, (_, variant) => () => coastStackGeometry(variant)),
 };
 
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
@@ -547,6 +547,12 @@ function setPropTransform(target: THREE.Object3D, chunk: NorthernChunk, index: n
 }
 
 function propVariantIndex(chunk: NorthernChunk, index: number, variantCount: number): number {
+  const authored = chunk.props.variant[index];
+  if (authored !== 255) {
+    if (authored >= variantCount) throw new Error('Unknown authored rock mesh.');
+    return authored;
+  }
+  variantCount = Math.min(3, variantCount);
   if (variantCount <= 1) return 0;
   const value = Math.sin(chunk.props.x[index] * 12.9898 + chunk.props.z[index] * 78.233
     + chunk.props.type[index] * 37.719) * 43758.5453;
@@ -627,8 +633,8 @@ export class NorthernStreamingRuntime {
       .setTranslation(-NORTHERN_APRON_HALF+24,0,0));
     const capacity = options.propPoolCapacity ?? DEFAULT_PROP_POOL_CAPACITY;
     this.propPools = NORTHERN_PROP_TYPES.map(typeName =>
-      (PROP_GEOMETRY_VARIANTS[typeName] ?? [PROP_GEOMETRY_FACTORY[typeName]]).map(factory =>
-        new InstancedPropPool(factory(), propMaterial(typeName), capacity)));
+      (PROP_GEOMETRY_VARIANTS[typeName] ?? [PROP_GEOMETRY_FACTORY[typeName]]).map((factory, variant) =>
+        new InstancedPropPool(factory(), propMaterial(typeName), variant >= 3 ? Math.min(capacity, 16) : capacity)));
     this.propPools.forEach((variants, type) => variants.forEach((pool, variant) => {
       pool.mesh.name = `Northern Reach · pooled ${NORTHERN_PROP_TYPES[type]} instances · variant ${variant + 1}`;
       pool.mesh.castShadow = NORTHERN_PROP_TYPES[type] === 'forestPine';

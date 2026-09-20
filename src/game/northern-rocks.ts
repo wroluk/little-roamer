@@ -1,4 +1,91 @@
 import * as THREE from 'three';
+import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+type Slab = [x: number, z: number, width: number, depth: number, height: number, turn: number];
+
+/** Fractured bedrock: broad planar faces and oblique tops, never circular shelves. */
+function fracturedFormation(slabs: Slab[], buried: number): THREE.BufferGeometry {
+  const parts = slabs.map(([x, z, width, depth, height, turn], i) => {
+    // A clipped rectangular footprint gives each slab long faces and narrow fracture edges.
+    const outline = [[-0.5, -0.32], [-0.31, -0.5], [0.38, -0.5], [0.5, -0.16],
+      [0.43, 0.43], [0.1, 0.5], [-0.5, 0.29]];
+    const points: THREE.Vector3[] = [];
+    for (const [corner, [u, v]] of outline.entries()) {
+      points.push(new THREE.Vector3(u * width, -buried, v * depth));
+      // Staggered fracture corners interrupt long, perfectly extruded side faces.
+      const shoulder = 0.9 + 0.08 * Math.sin(corner * 2.1 + i);
+      points.push(new THREE.Vector3(u * width * shoulder,
+        height * (0.28 + 0.09 * Math.cos(corner + i)), v * depth * shoulder));
+      // One sloping fracture plane, with a chipped corner; broad crown instead of a tip.
+      const chip = corner === (i + 2) % outline.length ? 0.12 : 0;
+      const top = height * (0.82 + u * 0.22 - v * 0.16 - chip);
+      points.push(new THREE.Vector3((u * 0.78 + 0.06 * Math.sin(i + 1)) * width,
+        top, (v * 0.82 - 0.05) * depth));
+    }
+    return new ConvexGeometry(points).rotateY(turn).translate(x, 0, z);
+  });
+  const result = mergeGeometries(parts);
+  parts.forEach(part => part.dispose());
+  if (!result) throw new Error('Could not create fractured rock formation.');
+  return result;
+}
+
+// Each layout changes the massing: a split ridge, a leaning wall, or a stepped buttress.
+const FRACTURE_LAYOUTS: Slab[][] = [
+  [[-0.19, 0, 0.58, 0.85, 1, -0.16], [0.22, 0.08, 0.44, 0.7, 0.72, 0.19],
+    [-0.3, 0.22, 0.38, 0.62, 0.34, -0.35]],
+  [[0.02, -0.1, 0.87, 0.48, 0.88, 0.28], [-0.24, 0.17, 0.49, 0.57, 0.56, -0.22],
+    [0.3, 0.12, 0.28, 0.52, 0.3, 0.5]],
+  [[0.2, -0.08, 0.48, 0.72, 1.06, -0.3], [-0.18, 0.03, 0.6, 0.8, 0.65, 0.14],
+    [-0.3, 0.19, 0.35, 0.6, 0.28, 0.4]],
+];
+
+function rockFormation(variant: number, width: number, depth: number, height: number, buried: number) {
+  const layout = FRACTURE_LAYOUTS[Math.abs(Math.trunc(variant)) % FRACTURE_LAYOUTS.length];
+  return fracturedFormation(layout.map(([x, z, w, d, h, turn]) =>
+    [x * width, z * depth, w * width, d * depth, h * height, turn]), buried);
+}
+
+// Landmark layouts use world-space dimensions and individually composed masses.
+// Their indices are explicitly assigned in the authored location data.
+export const GRANITE_LANDMARKS: Slab[][] = [
+  // Entrance wall: long, low, broken at one end.
+  [[0, 0, 6.8, 2.7, 6, .15], [-2.4, .4, 2.1, 3, 3.2, -.25]],
+  // Entrance sentinels: unequal separated blades with daylight between them.
+  [[-2, 0, 2.2, 3.3, 11.5, -.25], [1.9, .3, 1.9, 2.6, 7.4, .4]],
+  // Solitary broad, oblique block.
+  [[0, 0, 5.2, 4.4, 5.5, -.55]],
+  // Sawtooth ridge: four uneven peaks across a narrow spine.
+  [[-2.5, 0, 1.7, 2.4, 4.5, .2], [-1, -.2, 1.9, 2.5, 8, -.3],
+    [.7, .1, 1.8, 2.7, 10.5, .15], [2.2, .2, 1.7, 2, 6.2, -.4]],
+  // Fallen fragments: a low, scattered rubble mound.
+  [[0, 0, 3.4, 3.2, 4.3, .65], [-2, -.5, 2.9, 2.1, 2.6, -.7],
+    [1.9, 1, 2.6, 2, 2.1, .2], [-1.2, 1.9, 2.2, 1.8, 1.4, .9]],
+];
+
+export const SEA_LANDMARKS: Slab[][] = [
+  // Narrow fin, broadside to the approach.
+  [[0, 0, 4.2, 1.6, 11, -.2]],
+  // Split tooth with a low detached remnant.
+  [[-1.2, 0, 1.7, 2.5, 9.8, .1], [1.1, .2, 1.5, 1.8, 5.5, -.3],
+    [1.8, 1.3, 1, 1.4, 1.8, .6]],
+  // Squat offshore fortress with a broken shoulder.
+  [[-.3, -.1, 3.8, 3.6, 5.8, .45], [1.6, .8, 1.8, 2.3, 3.4, -.2]],
+  // Three teeth stepping up along a fractured spine.
+  [[-1.5, 0, 1.5, 2.4, 4.1, -.2], [0, 0, 1.6, 2.5, 7.2, .25], [1.4, 0, 1.3, 2, 10, -.15]],
+];
+
+export const LAYERED_LANDMARKS: Slab[][] = [
+  [[0, 0, 17, 6, 8, .2], [-7, 1, 4, 7, 3, -.3]],
+  [[-5, 0, 5, 7, 13, -.3], [3, 1, 6, 6, 8, .25]],
+  [[0, 0, 12, 11, 7, -.6]],
+  [[-6, 0, 5, 6, 6, -.3], [-2, 0, 5, 7, 11, .2], [3, 0, 5, 6, 15, -.2], [6, 1, 4, 5, 8, .4]],
+  [[0, 0, 9, 8, 8, .6], [-6, 1, 7, 5, 4, -.7], [5, 3, 6, 5, 3, .4], [-1, 5, 5, 4, 2, -.2]],
+  [[-4, 0, 7, 10, 12, -.4], [4, -2, 7, 4, 5, .3]],
+  [[0, -3, 16, 4, 9, 0], [-6, 2, 4, 7, 5, -.1], [6, 2, 4, 7, 7, .2]],
+  [[-5, 0, 5, 7, 5, .25], [0, 0, 6, 8, 8, -.15], [5, 0, 5, 7, 11, .3]],
+];
 
 /** Closed, irregular rock strata. Broad lower rings form accessible sloping toes. */
 function strata(rings: { y: number; radius: number; offset: number }[], stretch: number, phase = 0): THREE.BufferGeometry {
@@ -33,23 +120,8 @@ function strata(rings: { y: number; radius: number; offset: number }[], stretch:
 }
 
 export function layeredRockGeometry(variant = 0): THREE.BufferGeometry {
-  const profiles = [[
-    { y: -1.5, radius: 11, offset: 0 }, { y: 2, radius: 9, offset: -0.5 },
-    { y: 3, radius: 7, offset: -0.3 }, { y: 7, radius: 7.5, offset: 0.7 },
-    { y: 8, radius: 5, offset: 1 }, { y: 12, radius: 4.5, offset: 0.4 },
-    { y: 14, radius: 2.5, offset: -0.4 },
-  ], [
-    { y: -1.5, radius: 10.5, offset: 0 }, { y: 1.2, radius: 10, offset: 0.4 },
-    { y: 3.8, radius: 6.8, offset: 1.2 }, { y: 5.2, radius: 8.2, offset: 0.5 },
-    { y: 9, radius: 5.7, offset: -0.8 }, { y: 11.2, radius: 3.6, offset: -1.4 },
-  ], [
-    { y: -1.5, radius: 9.5, offset: 0 }, { y: 2.5, radius: 7.2, offset: -1 },
-    { y: 4.1, radius: 8.4, offset: -0.4 }, { y: 7.5, radius: 5.1, offset: 1 },
-    { y: 9, radius: 6, offset: 1.5 }, { y: 12.8, radius: 3.2, offset: 0.2 },
-    { y: 15.2, radius: 1.6, offset: -0.7 },
-  ]];
-  const index = Math.abs(variant) % profiles.length;
-  return strata(profiles[index], [0.75, 0.9, 0.66][index], index * 1.9);
+  if (variant >= 3) return fracturedFormation(LAYERED_LANDMARKS[variant - 3], 1.5);
+  return rockFormation(variant, 19, 14, 14, 1.5);
 }
 
 export function rockRampGeometry(): THREE.BufferGeometry {
@@ -59,47 +131,15 @@ export function rockRampGeometry(): THREE.BufferGeometry {
   ], 0.8);
 }
 
-/** Uneven shelves and a broken crown replace the stretched regular-solid silhouette. */
+/** Connected granite slabs with offset fracture planes and low buttresses. */
 export function graniteTorGeometry(variant = 0): THREE.BufferGeometry {
-  const profiles = [[
-    { y: -1, radius: 3.2, offset: 0 }, { y: 1.2, radius: 3.1, offset: -0.2 },
-    { y: 3.8, radius: 2.5, offset: -0.5 }, { y: 4.3, radius: 2.8, offset: -0.3 },
-    { y: 7.1, radius: 2.3, offset: 0.2 }, { y: 7.6, radius: 1.9, offset: 0.4 },
-    { y: 10.4, radius: 1.8, offset: 0.1 }, { y: 12.3, radius: 0.9, offset: -0.5 },
-  ], [
-    { y: -1, radius: 3.6, offset: 0 }, { y: 1, radius: 3.3, offset: 0.5 },
-    { y: 2.6, radius: 2.2, offset: 0.8 }, { y: 4.8, radius: 2.9, offset: 0.2 },
-    { y: 6.6, radius: 2.1, offset: -0.5 }, { y: 8.4, radius: 2.4, offset: -0.8 },
-    { y: 10.7, radius: 1.1, offset: -0.2 },
-  ], [
-    { y: -1, radius: 3, offset: 0 }, { y: 1.8, radius: 2.5, offset: -0.5 },
-    { y: 3.1, radius: 3, offset: -0.8 }, { y: 5.7, radius: 1.8, offset: -0.2 },
-    { y: 6.8, radius: 2.4, offset: 0.6 }, { y: 9.4, radius: 1.4, offset: 1 },
-    { y: 11.6, radius: 0.7, offset: 0.5 },
-  ]];
-  const index = Math.abs(variant) % profiles.length;
-  return strata(profiles[index], [0.82, 0.68, 0.96][index], index * 2.2);
+  if (variant >= 3) return fracturedFormation(GRANITE_LANDMARKS[variant - 3], 1);
+  return rockFormation(variant + 1, 6.4, 5.2, 12.3, 1);
 }
 
 export function coastStackGeometry(variant = 0): THREE.BufferGeometry {
-  const profiles = [[
-    { y: -0.3, radius: 2.2, offset: 0 }, { y: 1.2, radius: 1.9, offset: -0.15 },
-    { y: 3.4, radius: 1.35, offset: 0.15 }, { y: 4.1, radius: 1.65, offset: 0.25 },
-    { y: 6.6, radius: 1.4, offset: 0 }, { y: 8.5, radius: 1.1, offset: -0.25 },
-    { y: 10, radius: 0.65, offset: -0.1 },
-  ], [
-    { y: -0.3, radius: 2.7, offset: 0 }, { y: 1.1, radius: 2.2, offset: 0.25 },
-    { y: 2.5, radius: 1.35, offset: 0.5 }, { y: 4.3, radius: 1.9, offset: 0.15 },
-    { y: 5.6, radius: 1.15, offset: -0.35 }, { y: 7.4, radius: 1.3, offset: -0.55 },
-    { y: 8.8, radius: 0.55, offset: -0.2 },
-  ], [
-    { y: -0.3, radius: 1.9, offset: 0 }, { y: 1.8, radius: 1.6, offset: -0.35 },
-    { y: 3.8, radius: 1.8, offset: -0.15 }, { y: 5.1, radius: 1.05, offset: 0.4 },
-    { y: 7.6, radius: 1.25, offset: 0.65 }, { y: 9.5, radius: 0.75, offset: 0.25 },
-    { y: 11.2, radius: 0.35, offset: -0.15 },
-  ]];
-  const index = Math.abs(variant) % profiles.length;
-  return strata(profiles[index], [0.88, 1.05, 0.72][index], index * 1.7);
+  if (variant >= 3) return fracturedFormation(SEA_LANDMARKS[variant - 3], .4);
+  return rockFormation(variant + 2, 4.6, 3.8, 10.8, 0.4);
 }
 
 export function shoalBoulderGeometry(): THREE.BufferGeometry {

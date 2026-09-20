@@ -46,7 +46,7 @@ export function applyWestCoast(x:number,z:number,ground:number):number {
   }
   return ground+(shaped-ground)*weight;
 }
-export const WEST_PROPS: {kind:'westSign'|'coastLog'|'layeredRock'|'reed'|'forestPine';x:number;z:number;size:number;angle?:number}[]=[
+export const WEST_PROPS: {kind:'westSign'|'coastLog'|'layeredRock'|'reed'|'forestPine';x:number;z:number;size:number;variant?: number; angle?:number}[]=[
   {kind:'westSign',x:ESTUARY_START.x+10,z:110,size:1},
   {kind:'westSign',...westPoint(-300,47,0),size:1},
   {kind:'westSign',...westPoint(575,54,0),size:1},
