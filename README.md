@@ -58,13 +58,14 @@ Keep this terminal/session and the Mac awake while playing.
 
 ## Choose your next adventure
 
-Use the **Explore** area picker in the top bar to switch between Sunshine
-Valley, Iceland Highlands, and Northern Reach. The valley and its three ramps
-are still available unchanged. Each area opens with a welcome card; press
-**Let's take a drive** when ready. Switching areas clears held controls and
-returns the car to that area's safe starting point. **Reset car** stays in your
-current area. Only one area's terrain and physics stay loaded, and graphics
-resources from the old area are released.
+Use the Home Screen to choose Sunshine Valley, Iceland Highlands, Northern
+Reach, or Samurai Village, and to switch between the green Modern Roamer and
+the orange Classic expedition wagon. The car choice is remembered locally and
+does not change the shared four-wheel physics or terrain handling. Pause and
+choose **Choose another location** to return to these options. Switching areas
+clears held controls and returns the car to that area's safe starting point.
+**Reset car** stays in your current area. Only one area's terrain and physics
+stay loaded, and graphics resources from the old area are released.
 
 Direct links:
 

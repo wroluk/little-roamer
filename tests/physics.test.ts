@@ -54,6 +54,26 @@ test('four driven wheels settle, accelerate, steer right, coast, and reset', () 
   } finally { world.free(); }
 });
 
+test('vehicle models can be swapped without replacing the physical car', () => {
+  const { world, vehicle, tick } = simulation();
+  try {
+    const body = vehicle.body;
+    const position = { ...body.translation() };
+    assert.equal(vehicle.currentModel, 'modern');
+    assert.equal(vehicle.wheels.length, 4);
+    vehicle.setModel('classic');
+    assert.equal(vehicle.currentModel, 'classic');
+    assert.equal(vehicle.body, body);
+    assert.deepEqual({ ...body.translation() }, position);
+    assert.equal(vehicle.wheels.length, 4);
+    tick(2);
+    vehicle.setModel('modern');
+    assert.equal(vehicle.currentModel, 'modern');
+    assert.equal(vehicle.body, body);
+    assert.equal(vehicle.wheels.length, 4);
+  } finally { world.free(); }
+});
+
 test('opposite pedal stops forward travel before reversing, both pedals hold', () => {
   const { world, vehicle, tick } = simulation();
   try {

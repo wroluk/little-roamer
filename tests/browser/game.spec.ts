@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 
 type Snapshot = {
   mode: string;
+  car: 'modern' | 'classic';
   position: { x: number; y: number; z: number };
   speed: number;
   contacts: number;
@@ -89,13 +90,29 @@ test('tablet portrait and landscape controls fit and remain usable', async ({ pa
 
 test('location selection lives on the home screen and can be reached from pause', async ({ page }) => {
   await expect(page.locator('#area-select')).toBeVisible();
+  await expect(page.locator('#car-picker')).toBeVisible();
   await page.locator('#start').click();
   await expect(page.locator('#area-select')).toBeHidden();
+  await expect(page.locator('#car-picker')).toBeHidden();
   await page.locator('#pause').click();
   await page.locator('#home').click();
   await expect(page.locator('#welcome')).toBeVisible();
   await expect(page.locator('#area-select')).toBeVisible();
   await expect(page.locator('#area-select')).toBeEnabled();
+  await expect(page.locator('#car-picker')).toBeEnabled();
+});
+
+test('home screen changes the car model and remembers the choice', async ({ page }) => {
+  expect((await snapshot(page)).car).toBe('modern');
+  const position = (await snapshot(page)).position;
+  await page.locator('input[name="car"][value="classic"]').check();
+  await expect.poll(async () => (await snapshot(page)).car).toBe('classic');
+  expect((await snapshot(page)).position).toEqual(position);
+  await expect(page).toHaveURL(/car=classic/);
+  await page.reload();
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('input[name="car"][value="classic"]')).toBeChecked();
+  expect((await snapshot(page)).car).toBe('classic');
 });
 
 test('compass follows vehicle heading and altimeter reports terrain elevation', async ({ page }) => {

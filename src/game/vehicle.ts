@@ -14,6 +14,12 @@ const CONNECTIONS = [
 const FORWARD = new THREE.Vector3(0, 0, -1);
 const SURFACE_BLEND_SECONDS = 0.26;
 
+export const VEHICLE_MODELS = ['modern', 'classic'] as const;
+export type VehicleModelId = typeof VEHICLE_MODELS[number];
+export const DEFAULT_VEHICLE_MODEL: VehicleModelId = 'modern';
+export const isVehicleModelId = (value: unknown): value is VehicleModelId =>
+  typeof value === 'string' && VEHICLE_MODELS.includes(value as VehicleModelId);
+
 export type WheelTerrainState = {
   readonly position: THREE.Vector3;
   surface: Surface;
@@ -64,6 +70,7 @@ export class Vehicle {
     private readonly surfaceAt: (x: number, z: number) => SurfaceId = () => 'dirt',
     private readonly waterHeight: (x: number, z: number) => number | null = () => null,
     private readonly softObstacleAt: (x: number, z: number) => number = () => 0,
+    private vehicleModel: VehicleModelId = DEFAULT_VEHICLE_MODEL,
   ) {
     this.body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(spawn.x, spawn.y, spawn.z)
@@ -95,6 +102,10 @@ export class Vehicle {
   }
 
   private createModel() {
+    if (this.vehicleModel === 'classic') {
+      this.createClassicModel();
+      return;
+    }
     const mat = (color: string, roughness = 0.7) => new THREE.MeshStandardMaterial({ color, roughness, flatShading: true });
     const paint = mat('#6ca06c', 0.62);
     const darkPaint = mat('#527d58', 0.68);
@@ -284,6 +295,146 @@ export class Vehicle {
     batch(this.model);
   }
 
+  private createClassicModel() {
+    const mat = (color: string, roughness = 0.7) => new THREE.MeshStandardMaterial({ color, roughness, flatShading: true });
+    const paint = mat('#ed754b');
+    const dark = mat('#293e3d');
+    const roof = mat('#ffebc4');
+    const glass = mat('#397b7d', 0.25);
+    const tire = mat('#293638');
+    const hub = mat('#efe2be');
+    const lights = new THREE.MeshStandardMaterial({
+      color: '#fff3cc', emissive: '#ffe4a6', emissiveIntensity: 0.3, roughness: 0.7,
+    });
+    const taillights = mat('#b54939');
+    const box = (
+      w: number, h: number, d: number,
+      x: number, y: number, z: number,
+      material: THREE.Material,
+    ) => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      this.model.add(mesh);
+      return mesh;
+    };
+
+    // The original Little Roamer: a bright expedition wagon with a loaded roof and rear spare.
+    box(1.53, 0.49, 2.78, 0, 0.11, 0, paint);
+    box(1.42, 0.14, 0.93, 0, 0.42, -0.85, paint);
+    box(1.3, 0.7, 1.27, 0, 0.67, 0.18, roof);
+    box(1.15, 0.46, 0.035, 0, 0.69, -0.471, glass);
+    box(1.15, 0.42, 0.035, 0, 0.69, 0.826, glass);
+    for (const side of [-1, 1]) {
+      box(0.027, 0.43, 0.91, side * 0.66, 0.69, 0.12, glass);
+      box(0.04, 0.47, 0.06, side * 0.68, 0.69, 0.19, roof);
+      box(0.045, 0.06, 0.22, side * 0.783, 0.24, 0.35, dark);
+      box(0.13, 0.22, 0.28, side * 0.87, 0.53, -0.41, paint);
+      box(0.31, 0.2, 0.05, side * 0.51, 0.18, -1.405, lights);
+      box(0.21, 0.17, 0.05, side * 0.52, 0.18, 1.405, taillights);
+      box(0.26, 0.17, 0.84, side * 0.78, 0.02, -1, paint);
+      box(0.26, 0.17, 0.84, side * 0.78, 0.02, 1, paint);
+      box(0.07, 0.12, 1.18, side * 0.51, 1.15, 0.15, dark);
+    }
+    box(1.48, 0.16, 1.44, 0, 1.07, 0.17, roof);
+    box(1.7, 0.16, 0.18, 0, -0.12, -1.48, dark);
+    box(1.7, 0.16, 0.18, 0, -0.12, 1.48, dark);
+    box(0.53, 0.16, 0.06, 0, 0.13, -1.413, dark);
+    box(0.6, 0.32, 0.69, 0.15, 1.32, 0.24, mat('#a7b886'));
+    box(0.65, 0.035, 0.065, 0.15, 1.495, 0.24, roof);
+    box(1.19, 0.08, 0.09, 0, 1.19, -0.28, dark);
+    box(1.19, 0.08, 0.09, 0, 1.19, 0.65, dark);
+
+    const tireGeo = new THREE.CylinderGeometry(WHEEL_RADIUS, WHEEL_RADIUS, 0.36, 12);
+    const hubGeo = new THREE.CylinderGeometry(0.27, 0.27, 0.375, 8);
+    tireGeo.rotateZ(Math.PI / 2);
+    hubGeo.rotateZ(Math.PI / 2);
+    const treadGeo = new THREE.BoxGeometry(0.39, 0.065, 0.17);
+    for (const connection of CONNECTIONS) {
+      const wheel = new THREE.Group();
+      const spinner = new THREE.Group();
+      const rubber = new THREE.Mesh(tireGeo, tire);
+      const rim = new THREE.Mesh(hubGeo, hub);
+      rubber.castShadow = true;
+      rim.castShadow = true;
+      spinner.add(rubber, rim);
+      for (let j = 0; j < 12; j++) {
+        const angle = j * Math.PI / 6;
+        const tread = new THREE.Mesh(treadGeo, dark);
+        tread.position.set(0, Math.cos(angle) * 0.46, Math.sin(angle) * 0.46);
+        tread.rotation.x = angle;
+        spinner.add(tread);
+      }
+      wheel.add(spinner);
+      wheel.position.set(connection.x, -REST_LENGTH, connection.z);
+      this.model.add(wheel);
+      this.wheels.push(wheel);
+      this.tires.push(spinner);
+    }
+    const spare = new THREE.Mesh(tireGeo, tire);
+    spare.rotation.y = Math.PI / 2;
+    spare.position.set(0, 0.53, 1.51);
+    spare.scale.setScalar(0.84);
+    spare.castShadow = true;
+    this.model.add(spare);
+    const spareHub = new THREE.Mesh(hubGeo, hub);
+    spareHub.rotation.copy(spare.rotation);
+    spareHub.position.copy(spare.position);
+    spareHub.scale.copy(spare.scale);
+    this.model.add(spareHub);
+
+    const batch = (group: THREE.Group) => {
+      const batches = new Map<THREE.Material, THREE.BufferGeometry[]>();
+      for (const child of [...group.children]) {
+        if (!(child instanceof THREE.Mesh) || Array.isArray(child.material)) continue;
+        child.updateMatrix();
+        const transformed = child.geometry.clone().applyMatrix4(child.matrix);
+        transformed.deleteAttribute('uv');
+        const geometries = batches.get(child.material) ?? [];
+        geometries.push(transformed);
+        batches.set(child.material, geometries);
+        group.remove(child);
+      }
+      for (const [material, geometries] of batches) {
+        const geometry = mergeGeometries(geometries);
+        if (!geometry) throw new Error('The classic toy car geometry could not be assembled.');
+        for (const part of geometries) part.dispose();
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        group.add(mesh);
+      }
+    };
+    for (const spinner of this.tires) batch(spinner);
+    batch(this.model);
+  }
+
+  private clearModel() {
+    const geometries = new Set<THREE.BufferGeometry>();
+    const materials = new Set<THREE.Material>();
+    this.model.traverse(object => {
+      if (!(object instanceof THREE.Mesh)) return;
+      geometries.add(object.geometry);
+      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+        materials.add(material);
+      }
+    });
+    this.model.clear();
+    this.wheels.length = 0;
+    this.tires.length = 0;
+    for (const geometry of geometries) geometry.dispose();
+    for (const material of materials) material.dispose();
+  }
+
+  setModel(model: VehicleModelId) {
+    if (model === this.vehicleModel) return;
+    this.clearModel();
+    this.vehicleModel = model;
+    this.createModel();
+    this.syncVisuals(1);
+  }
+
   get speed() {
     this.forward.copy(FORWARD).applyQuaternion(this.body.rotation());
     return this.velocity.copy(this.body.linvel()).dot(this.forward);
@@ -294,6 +445,7 @@ export class Vehicle {
   get terrainHandling() { return this.blended; }
   get wheelSurfaces() { return this.terrainWheels.map(wheel => wheel.surface.id); }
   get waterDepth() { return this.maximumWaterDepth; }
+  get currentModel() { return this.vehicleModel; }
 
   beforeStep(input: DriveInput, dt: number) {
     this.previousPosition.copy(this.position);

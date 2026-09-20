@@ -1,7 +1,9 @@
 import './styles.css';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { Vehicle } from './game/vehicle';
+import {
+  DEFAULT_VEHICLE_MODEL, isVehicleModelId, Vehicle, type VehicleModelId,
+} from './game/vehicle';
 import { FollowCamera, horizontalDragDirection } from './game/camera';
 import { FixedClock } from './game/driving';
 import { sampledHeightAt } from './game/northern-terrain';
@@ -38,6 +40,7 @@ function showError(error: unknown) {
   element<HTMLButtonElement>('pause').disabled = true;
   element<HTMLButtonElement>('reset').disabled = true;
   element<HTMLSelectElement>('area-select').disabled = true;
+  element<HTMLFieldSetElement>('car-picker').disabled = true;
   console.error('Little Roamer:', error);
 }
 
@@ -77,6 +80,12 @@ async function boot() {
   element('loading-status').textContent = 'Waking up four little wheels';
   await RAPIER.init();
   if (hasFailed()) return;
+  const modelFromUrl = new URLSearchParams(window.location.search).get('car');
+  let storedModel: string | null = null;
+  try { storedModel = window.localStorage.getItem('little-roamer-car'); } catch { /* Storage is optional. */ }
+  let selectedModel: VehicleModelId = isVehicleModelId(modelFromUrl)
+    ? modelFromUrl
+    : isVehicleModelId(storedModel) ? storedModel : DEFAULT_VEHICLE_MODEL;
   async function createArea(area: Area) {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(area.sky);
@@ -97,6 +106,7 @@ async function boot() {
         area.surfaceAt,
         area.waterHeight,
         (x, z) => runtime?.shrubBumpAt(x, z) ?? 0,
+        selectedModel,
       );
       const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight);
       // Populate scene queries and settle all four wheels before handing over control.
@@ -168,6 +178,16 @@ async function boot() {
   }
   let { scene, world, vehicle, follow, terrainEffects, runtime } = initial;
   const areaSelect = element<HTMLSelectElement>('area-select');
+  const carPicker = element<HTMLFieldSetElement>('car-picker');
+  const carInputs = [...carPicker.querySelectorAll<HTMLInputElement>('input[name="car"]')];
+  const setHomeControlsEnabled = (enabled: boolean) => {
+    areaSelect.disabled = !enabled;
+    carPicker.disabled = !enabled;
+  };
+  const syncCarPicker = () => {
+    for (const input of carInputs) input.checked = input.value === selectedModel;
+  };
+  syncCarPicker();
   function surfaceLabel(): string {
     const surface = vehicle.currentSurface;
     if (surface.id === 'water') {
@@ -285,7 +305,7 @@ async function boot() {
     element('paused').hidden = true;
     element<HTMLButtonElement>('pause').disabled = false;
     element<HTMLButtonElement>('reset').disabled = false;
-    areaSelect.disabled = true;
+    setHomeControlsEnabled(false);
     controls?.setEnabled(true);
     clock.reset();
     lastTime = performance.now();
@@ -298,7 +318,7 @@ async function boot() {
     document.body.classList.remove('playing');
     element('paused').hidden = true;
     element('welcome').hidden = false;
-    areaSelect.disabled = false;
+    setHomeControlsEnabled(true);
     follow.reset();
     follow.update(1 / 60, true);
     element('area-select').focus();
@@ -311,7 +331,7 @@ async function boot() {
       resetInProgress = true;
       pauseAfterReset = false;
       controls?.setEnabled(false);
-      areaSelect.disabled = true;
+      setHomeControlsEnabled(false);
       element<HTMLButtonElement>('pause').disabled = true;
       element<HTMLButtonElement>('reset').disabled = true;
       vehicle.model.visible = false;
@@ -339,7 +359,7 @@ async function boot() {
       mode = 'playing';
       resetInProgress = false;
       element('travelling').hidden = true;
-      areaSelect.disabled = true;
+      setHomeControlsEnabled(false);
       element<HTMLButtonElement>('pause').disabled = false;
       element<HTMLButtonElement>('reset').disabled = false;
       controls?.setEnabled(true);
@@ -400,6 +420,20 @@ async function boot() {
   element('pause').addEventListener('click', pause);
   element('reset').addEventListener('click', () => { void reset().catch(showError); });
   areaSelect.addEventListener('focus', () => controls?.clear());
+  carPicker.addEventListener('focusin', () => controls?.clear());
+  carPicker.addEventListener('change', event => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !isVehicleModelId(input.value)) return;
+    selectedModel = input.value;
+    vehicle.setModel(selectedModel);
+    follow.reset();
+    follow.update(1 / 60, true);
+    syncCarPicker();
+    try { window.localStorage.setItem('little-roamer-car', selectedModel); } catch { /* Storage is optional. */ }
+    const url = new URL(window.location.href);
+    url.searchParams.set('car', selectedModel);
+    window.history.replaceState(null, '', url);
+  });
   async function travel(id: AreaId) {
     if (mode === 'loading' || mode === 'error' || id === area.id) {
       areaSelect.value = area.id;
@@ -409,7 +443,7 @@ async function boot() {
     clearCameraDrag();
     controls?.setEnabled(false);
     clock.reset();
-    areaSelect.disabled = true;
+    setHomeControlsEnabled(false);
     element<HTMLButtonElement>('pause').disabled = true;
     element<HTMLButtonElement>('reset').disabled = true;
     element<HTMLButtonElement>('start').disabled = true;
@@ -447,7 +481,7 @@ async function boot() {
     element('travelling').hidden = true;
     element('welcome').hidden = false;
     element<HTMLButtonElement>('start').disabled = false;
-    areaSelect.disabled = false;
+    setHomeControlsEnabled(true);
     follow.update(1 / 60, true);
     const url = new URL(window.location.href);
     url.searchParams.set('area', id);
@@ -486,7 +520,7 @@ async function boot() {
   mode = 'ready';
   element<HTMLButtonElement>('start').disabled = false;
   element('start-label').textContent = 'Let’s take a drive';
-  areaSelect.disabled = false;
+  setHomeControlsEnabled(true);
 
   // Development-only instrumentation for real-browser behavioral tests.
   if (import.meta.env.DEV) {
@@ -495,6 +529,7 @@ async function boot() {
       __ROAMER__: {
         snapshot: () => ({
           area: area.id, bounds: area.half, spawn: area.spawn,
+          car: vehicle.currentModel,
           surface: vehicle.currentSurface.id,
           wheelSurfaces: vehicle.wheelSurfaces,
           terrainFeedback: vehicle.terrainFeedback,

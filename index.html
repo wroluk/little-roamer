@@ -61,6 +61,13 @@
           <h1>Small wheels.<br /><span id="welcome-title">Big outside.</span></h1>
           <p id="welcome-description">Over the hills, along the dusty trails, or somewhere entirely your own. There's no wrong turn.</p>
           <label class="home-area-picker"><span>CHOOSE A LOCATION</span><select id="area-select" aria-label="Choose an area to explore" disabled><option value="valley">Sunshine Valley</option><option value="highlands">Iceland Highlands</option><option value="northern-reach">Northern Reach</option><option value="samurai-village">Samurai Village</option></select></label>
+          <fieldset id="car-picker" class="home-car-picker" disabled>
+            <legend>CHOOSE A CAR</legend>
+            <div class="car-options">
+              <label><input type="radio" name="car" value="modern" checked /><span class="car-choice"><i class="car-color modern" aria-hidden="true"></i><span><b>Modern</b><small>Forest SUV</small></span></span></label>
+              <label><input type="radio" name="car" value="classic" /><span class="car-choice"><i class="car-color classic" aria-hidden="true"></i><span><b>Classic</b><small>Expedition wagon</small></span></span></label>
+            </div>
+          </fieldset>
           <button id="start" class="primary-button" disabled><span id="start-label">Building your little world…</span><img class="button-arrow" src="./roamer-mark.svg" alt="" /></button>
           <div class="welcome-instructions"><span><b>TOUCH</b> Steer left. Pedals right.</span><span><b>KEYBOARD</b> WASD or arrow keys</span><span><b>CAMERA</b> Drag anywhere to look around</span></div>
           <div id="loading-status" role="status" aria-live="polite">Packing a little sunshine</div>
