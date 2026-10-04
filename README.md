@@ -216,14 +216,42 @@ appear in development; the public `RAPIER.init()` API is used.
 
 ## Checks
 
+Choose tests by the change while working. A recent local run took about four
+minutes for all unit tests, 22 minutes for the full Chromium and WebKit browser
+suite, and 20 seconds for PWA tests. Times vary by machine.
+
+| When | Checks |
+| --- | --- |
+| Each edit or small fix | `npm run typecheck` and the relevant unit test file. |
+| Gameplay, terrain, controls, or browser UI change | The affected Playwright spec in Chromium and WebKit; keep real driving checks for driving changes. |
+| Startup, storage, caching, or offline change | Affected browser specs plus `npm run test:pwa`. |
+| Before merging a substantial feature or releasing | The full unit, browser, build, and PWA checks below. |
+
+For example, test a navigation change without running every terrain simulation:
+
+```sh
+node --import tsx --test tests/navigation.test.ts
+./node_modules/.bin/playwright test tests/browser/game.spec.ts -g 'compass follows'
+```
+
+Playwright runs both configured browser projects unless `--project` is given.
+Use one project for quick iteration only when browser differences are irrelevant;
+check both before finishing a browser-facing change. The full checks are:
+
 ```sh
 npm run typecheck
 npm test
-npx playwright install chromium webkit
+npm run build
+./node_modules/.bin/playwright install chromium webkit
 npm run test:browser
+npm run test:pwa
 ```
 
 The browser suite starts its own local server when one is not already running.
+Run browser and PWA suites sequentially: both write to Playwright's default
+`test-results` directory, and parallel runs can delete each other's traces.
+When a long browser run fails, repeat the affected spec alone and compare it
+with `main` before changing game behavior or loosening an assertion.
 Physics tests use actual Rapier bodies, terrain and raycast wheels, not mocks.
 They cover acceleration, four-wheel drive, steering, braking/reverse, speed
 caps, reset, collision boundaries, exact terrain triangle heights, access to
@@ -244,10 +272,15 @@ world's ramps and camera clearance. Chromium's CDP injects genuine two-contact
 touch input to exercise capture, independent release, and cancellation.
 That single multitouch test is deliberately skipped in WebKit because
 Playwright's WebKit API does not expose equivalent multi-contact injection.
+The PWA offline-reload test is also skipped in WebKit because this Playwright
+setup cannot navigate after `context.setOffline(true)`; the manifest and cache
+readiness test still runs there. A skip is a gap in automated coverage, not a
+passing result for the missing behavior.
 
 On-device acceptance: load over Wi-Fi in Safari; hold steering + forward,
 then steering + reverse; release outside each control; rotate; switch apps and
-resume; climb all three ramps; hit a rock and the perimeter; reset after a
+resume; launch and reload after going offline; climb all three ramps; hit a
+rock and the perimeter; reset after a
 rollover; and check sustained frame rate during several minutes of driving.
 The goal is 60 FPS, with a minimum of 30 FPS on the agreed iPad.
 
