@@ -517,11 +517,6 @@ async function boot() {
   resize();
 
   follow.update(1 / 60, true);
-  mode = 'ready';
-  element<HTMLButtonElement>('start').disabled = false;
-  element('start-label').textContent = 'Let’s take a drive';
-  setHomeControlsEnabled(true);
-
   // Development-only instrumentation for real-browser behavioral tests.
   if (import.meta.env.DEV) {
     const cameraProbe = new RAPIER.Ball(0.25);
@@ -655,6 +650,10 @@ async function boot() {
     renderer.render(scene, camera);
   }
   requestAnimationFrame(frame);
+  mode = 'ready';
+  element<HTMLButtonElement>('start').disabled = false;
+  element('start-label').textContent = 'Let’s take a drive';
+  setHomeControlsEnabled(true);
 }
 
 void boot().catch(showError);

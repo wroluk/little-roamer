@@ -16,9 +16,9 @@ for(const region of WEST_REGIONS) test(`${region.name}: coastal drive and open s
   await page.keyboard.down('KeyW');
   await expect.poll(async()=>{const p=(await state()).position;return((p.x-a.x)*dx+(p.z-a.z)*dz)/length;},{timeout:45_000}).toBeGreaterThan(length-5);
   await page.keyboard.up('KeyW');
-  expect((await state()).waterDepth).toBe(0);
   await page.evaluate(p=>(window as unknown as {__ROAMER__:Game}).__ROAMER__.placeVehicle(p.x,p.z,Math.PI/2),b);
   await expect.poll(async()=>(await state()).contacts).toBeGreaterThanOrEqual(2);
+  expect((await state()).waterDepth).toBe(0);
   await page.screenshot({path:info.outputPath('western-sea.png')});
   expect((await state()).streaming.activeRender).toBeLessThanOrEqual(25);
   expect((await state()).streaming.activePhysics).toBeLessThanOrEqual(9);
