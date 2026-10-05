@@ -245,9 +245,9 @@ test('ice visibly lengthens braking and widens the turning path', () => {
   const ice = maneuver('ice');
   assert.ok(snow.heading < dirt.heading * 0.9,
     `heading dirt=${dirt.heading}, snow=${snow.heading}`);
-  assert.ok(ice.brakeDistance > dirt.brakeDistance * 1.25,
+  assert.ok(ice.brakeDistance > dirt.brakeDistance * 2,
     `braking dirt=${dirt.brakeDistance}, ice=${ice.brakeDistance}`);
-  assert.ok(ice.brakeTicks > dirt.brakeTicks,
+  assert.ok(ice.brakeTicks > dirt.brakeTicks * 2,
     `braking ticks dirt=${dirt.brakeTicks}, ice=${ice.brakeTicks}`);
   assert.ok(ice.heading < dirt.heading * 0.75,
     `heading dirt=${dirt.heading}, ice=${ice.heading}; offsets dirt=${dirt.turnOffset}, ice=${ice.turnOffset}`);
@@ -271,7 +271,7 @@ test('snow and ice take longer to stop from the same speed', () => {
   const snow = stoppingDistance('snow');
   const ice = stoppingDistance('ice');
   assert.ok(snow > dirt * 1.1, `dirt=${dirt}, snow=${snow}`);
-  assert.ok(ice > snow * 1.1, `snow=${snow}, ice=${ice}`);
+  assert.ok(ice > snow * 2.5, `snow=${snow}, ice=${ice}`);
 });
 
 test('snow and ice climb a steep grade more slowly than bare ground', () => {
@@ -378,7 +378,7 @@ test('a sudden steering reversal sends the ice car sideways without flipping it'
   };
   const dirt = turn('dirt');
   const ice = turn('ice');
-  assert.ok(ice.peakSlip > 10 && ice.peakSlip > dirt.peakSlip * 1.7,
+  assert.ok(ice.peakSlip > 18 && ice.peakSlip > dirt.peakSlip * 2.5,
     `ice slip=${ice.peakSlip}°, dirt slip=${dirt.peakSlip}°`);
   assert.ok(ice.recoveredSlip < 3, `ice kept sliding after steering straight: ${ice.recoveredSlip}°`);
   assert.ok(ice.upright > 0.8 && ice.contacts >= 2,

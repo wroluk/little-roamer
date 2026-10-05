@@ -58,7 +58,7 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   },
   ice: {
     id: 'ice', label: 'Glacier ice', trait: 'Slippery', longitudinalGrip: 0.52, lateralGrip: 0.23, uphillSlip: 0,
-    power: 0.82, rollingBrake: 0.04, brakeEffect: 0.32, drag: 0.005, speed: 1, steering: 0.52,
+    power: 0.82, rollingBrake: 0.04, brakeEffect: 0.15, drag: 0.005, speed: 1, steering: 0.52,
     suspensionStiffness: 31, suspensionCompression: 4.2, suspensionRelaxation: 5,
     roughness: 0.026, feedback: 0.028, particleColor: '#c5edf2', particleRate: 0.38,
   },

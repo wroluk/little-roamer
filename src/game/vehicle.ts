@@ -601,7 +601,7 @@ export class Vehicle {
       // On level or downhill ice, the rear follows a sudden turn more slowly.
       // Restore balanced grip on a steep ascent so angled glacier routes remain viable.
       const iceAxleGrip = wheelSurface.id === 'ice'
-        ? THREE.MathUtils.lerp(1, i < 2 ? 1.65 : 0.45, iceTurnStrength) : 1;
+        ? THREE.MathUtils.lerp(1, i < 2 ? 1.75 : 0.32, iceTurnStrength) : 1;
       this.controller.setWheelSideFrictionStiffness(i, 0.85 * wheelSurface.lateralGrip * iceAxleGrip);
       this.controller.setWheelSuspensionStiffness(i, wheelSurface.suspensionStiffness);
       this.controller.setWheelSuspensionCompression(i, wheelSurface.suspensionCompression);

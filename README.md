@@ -131,9 +131,10 @@ force; loose sand, ash, and mud lose additional uphill traction as the
 grade rises. On those slopes the wheels visibly spin and throw more terrain
 particles when the car struggles, while a gentler or diagonal line can keep it
 moving. On descents, sand and mud shed momentum quickly, while ice keeps the
-car gliding; a sudden steering reversal on ice lets the rear slide wide before
-the car settles. Short wheel tracks mark sand and mud for a few seconds without
-changing the terrain collision. Steep ice faces also reward a diagonal approach.
+car gliding and needs much more room to brake. A sudden steering reversal on
+ice lets the rear slide wide before the car settles. Faint wheel tracks mark
+sand and mud for a few seconds without changing the terrain collision. Steep
+ice faces also reward a diagonal approach.
 Authored trail climbs remain passable. The four wheels have separate Rapier
 raycasts and drive forces;
 their visible meshes also free-spin under throttle when airborne or overturned.

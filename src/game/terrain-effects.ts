@@ -34,7 +34,7 @@ export class TerrainEffects {
   }));
   private readonly trackMesh = new THREE.InstancedMesh(
     new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
-    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.52, depthWrite: false,
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.24, depthWrite: false,
       polygonOffset: true, polygonOffsetFactor: -1, side: THREE.DoubleSide }),
     TRACK_COUNT,
   );
@@ -45,10 +45,10 @@ export class TerrainEffects {
   private readonly trackRight = new THREE.Vector3();
   private readonly trackUp = new THREE.Vector3();
   private readonly trackColor = new THREE.Color();
-  private readonly sandTrack = new THREE.Color('#756247');
-  private readonly sandGround = new THREE.Color('#bca77e');
-  private readonly mudTrack = new THREE.Color('#332b22');
-  private readonly mudGround = new THREE.Color('#665744');
+  private readonly sandTrack = new THREE.Color('#a99b80');
+  private readonly sandGround = new THREE.Color('#c7bc9f');
+  private readonly mudTrack = new THREE.Color('#5a5041');
+  private readonly mudGround = new THREE.Color('#756a57');
   private readonly dummy = new THREE.Object3D();
   private readonly color = new THREE.Color();
   private readonly colors = {
@@ -211,7 +211,7 @@ export class TerrainEffects {
     this.trackUp.crossVectors(this.trackDirection, this.trackRight).normalize();
     const length = Math.hypot(end.x - start.x, end.z - start.z);
     track.matrix.makeBasis(this.trackRight, this.trackUp, this.trackDirection)
-      .scale(new THREE.Vector3(0.23, 1, length + 0.16))
+      .scale(new THREE.Vector3(0.18, 1, length + 0.02))
       .setPosition((start.x + end.x) / 2, (start.y + end.y) / 2 + 0.045, (start.z + end.z) / 2);
     track.surface = surface;
     track.remaining = TRACK_LIFETIME;
