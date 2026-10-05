@@ -314,6 +314,77 @@ test('loose uphill wheels visibly spin and kick up terrain while the car stalls'
   assert.ok(Math.abs(slopeRun('sand', 0).extraWheelSpin) < 2);
 });
 
+test('coasting downhill keeps ice moving while sand and mud absorb momentum', () => {
+  const coast = (surface: SurfaceId) => {
+    const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+    const angle = 12 * Math.PI / 180;
+    world.createCollider(RAPIER.ColliderDesc.cuboid(100, 0.1, 100)
+      .setRotation({ x: Math.sin(angle / 2), y: 0, z: 0, w: Math.cos(angle / 2) }));
+    const scene = new THREE.Scene();
+    const vehicle = new Vehicle(scene, world, { x: 0, y: 1.2, z: 0 }, 1.45, () => surface);
+    vehicle.body.setRotation(new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(0, 1, 0), Math.PI), true);
+    vehicle.capture();
+    try {
+      for (let i = 0; i < 90; i++) {
+        vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
+        world.step(); vehicle.capture();
+      }
+      vehicle.body.setLinvel({ x: 0, y: 0, z: 8 }, true);
+      vehicle.capture();
+      const start = vehicle.position.z;
+      for (let i = 0; i < 180; i++) {
+        vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
+        world.step(); vehicle.capture();
+      }
+      return vehicle.position.z - start;
+    } finally { world.free(); disposeScene(scene); }
+  };
+  const ice = coast('ice');
+  const dirt = coast('dirt');
+  const sand = coast('sand');
+  const mud = coast('mud');
+  assert.ok(ice > dirt + 2, `ice=${ice}, dirt=${dirt}`);
+  assert.ok(ice > sand * 4, `ice=${ice}, sand=${sand}`);
+  assert.ok(mud < sand, `mud=${mud}, sand=${sand}`);
+});
+
+test('a sudden steering reversal sends the ice car sideways without flipping it', () => {
+  const turn = (surface: SurfaceId) => {
+    const { world, scene, vehicle, tick } = surfaceVehicle(() => surface);
+    try {
+      vehicle.body.setLinvel({ x: 0, y: 0, z: -10 }, true);
+      vehicle.capture();
+      let peakSlip = 0;
+      for (let i = 0; i < 120; i++) {
+        tick(1, { steer: i < 45 ? 1 : -1, forward: true, reverse: false });
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(vehicle.rotation);
+        const velocity = vehicle.body.linvel();
+        const sideways = Math.abs(velocity.x * forward.z - velocity.z * forward.x);
+        const along = Math.abs(velocity.x * forward.x + velocity.z * forward.z);
+        peakSlip = Math.max(peakSlip, Math.atan2(sideways, along) * 180 / Math.PI);
+      }
+      for (let i = 0; i < 120; i++) {
+        tick(1, { steer: 0, forward: true, reverse: false });
+      }
+      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(vehicle.rotation);
+      const velocity = vehicle.body.linvel();
+      const sideways = Math.abs(velocity.x * forward.z - velocity.z * forward.x);
+      const along = Math.abs(velocity.x * forward.x + velocity.z * forward.z);
+      const recoveredSlip = Math.atan2(sideways, along) * 180 / Math.PI;
+      const upright = new THREE.Vector3(0, 1, 0).applyQuaternion(vehicle.rotation).y;
+      return { peakSlip, recoveredSlip, upright, contacts: vehicle.contactCount() };
+    } finally { world.free(); disposeScene(scene); }
+  };
+  const dirt = turn('dirt');
+  const ice = turn('ice');
+  assert.ok(ice.peakSlip > 10 && ice.peakSlip > dirt.peakSlip * 1.7,
+    `ice slip=${ice.peakSlip}°, dirt slip=${dirt.peakSlip}°`);
+  assert.ok(ice.recoveredSlip < 3, `ice kept sliding after steering straight: ${ice.recoveredSlip}°`);
+  assert.ok(ice.upright > 0.8 && ice.contacts >= 2,
+    `ice upright=${ice.upright}, contacts=${ice.contacts}`);
+});
+
 test('deeper water produces stronger blended drag than shallow water', () => {
   const shallow = surfaceVehicle(() => 'water', () => 0.08);
   const deep = surfaceVehicle(() => 'water', () => 0.45);

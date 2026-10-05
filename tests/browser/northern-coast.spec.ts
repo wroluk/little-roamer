@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 import { COAST_START, coastShoreX } from '../../src/game/northern-coast';
 
 type Game = {
-  snapshot(): { position: { x: number; y: number; z: number }; contacts: number; streaming: { activeRender: number; activePhysics: number } };
+  snapshot(): { position: { x: number; y: number; z: number }; contacts: number; terrainTracks: number;
+    terrainTrackCapacity: number; streaming: { activeRender: number; activePhysics: number } };
   placeVehicle(x: number, z: number, heading: number): Promise<void>;
 };
 
@@ -28,10 +29,13 @@ test('Fjord Coast beach drives smoothly and resets to the clifftop', async ({ pa
   expect(beach.position.y).toBeGreaterThan(0);
   expect(beach.position.y).toBeLessThan(3);
   expect(beach.contacts).toBeGreaterThanOrEqual(2);
+  expect(beach.terrainTracks).toBeGreaterThan(0);
+  expect(beach.terrainTracks).toBeLessThanOrEqual(beach.terrainTrackCapacity);
   await page.screenshot({ path: testInfo.outputPath('fjord-beach.png') });
   expect(beach.streaming.activeRender).toBeLessThanOrEqual(25);
   expect(beach.streaming.activePhysics).toBeLessThanOrEqual(9);
   await page.locator('#reset').click();
   await expect.poll(async () => (await state()).position.z).toBeCloseTo(COAST_START.z, 0);
+  expect((await state()).terrainTracks).toBe(0);
   expect(errors).toEqual([]);
 });

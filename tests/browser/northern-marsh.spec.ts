@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test';
 import { MARSH_START, MARSH_LOOKOUT } from '../../src/game/northern-marsh';
 
 type Game = {
-  snapshot(): { position: { x: number; y: number; z: number }; surface: string; terrainParticles: number; waterDepth: number; contacts: number; cameraObstructed: boolean; streaming: { activeRender: number; activePhysics: number } };
+  snapshot(): { position: { x: number; y: number; z: number }; surface: string; terrainParticles: number;
+    terrainTracks: number; waterDepth: number; contacts: number; cameraObstructed: boolean;
+    streaming: { activeRender: number; activePhysics: number } };
   placeVehicle(x: number, z: number, heading: number): Promise<void>;
 };
 
@@ -18,6 +20,7 @@ test('the first hummock loop makes soft mud visible and felt near the start', as
   await expect(page.locator('#surface-label')).toHaveText('Soft mud');
   await page.keyboard.down('KeyW');
   await expect.poll(async () => (await game()).terrainParticles, { timeout: 10_000 }).toBeGreaterThan(0);
+  await expect.poll(async () => (await game()).terrainTracks, { timeout: 10_000 }).toBeGreaterThan(0);
   await page.screenshot({ path: testInfo.outputPath('mud-near-start.png') });
   await page.keyboard.up('KeyW');
 });

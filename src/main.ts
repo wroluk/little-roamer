@@ -531,6 +531,8 @@ async function boot() {
           waterDepth: vehicle.waterDepth,
           terrainParticles: terrainEffects.count,
           terrainParticleCapacity: terrainEffects.capacity,
+          terrainTracks: terrainEffects.trackCount,
+          terrainTrackCapacity: terrainEffects.trackCapacity,
           terrainEffectUsesInstanceColors: terrainEffects.usesInstanceColors,
           reducedMotion: reducedMotion.matches,
           cameraFeedbackApplied: reducedMotion.matches ? 0 : vehicle.terrainFeedback,

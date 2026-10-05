@@ -568,6 +568,10 @@ export class Vehicle {
     const steepness = THREE.MathUtils.clamp((uphillGrade - 0.56) / 0.34, 0, 1);
     const iceSteepness = THREE.MathUtils.clamp((uphillGrade - 0.44) / 0.24, 0, 1);
     const iceShare = iceContacts / Math.max(1, uphillContacts);
+    const iceSlideStrength = 1 - THREE.MathUtils.clamp((uphillGrade - 0.15) / 0.25, 0, 1);
+    const iceTurnStrength = iceSlideStrength
+      * THREE.MathUtils.clamp((Math.abs(input.steer) - 0.2) / 0.4, 0, 1)
+      * THREE.MathUtils.clamp((Math.abs(speed) - 3) / 3, 0, 1);
     const looseSteepness = THREE.MathUtils.clamp((uphillGrade - 0.3) / 0.3, 0, 1);
     const looseShare = uphillSlip / Math.max(1, uphillContacts);
     const climbForce = (1 - steepness * 0.78) * (1 - iceSteepness * iceShare * 0.65)
@@ -583,7 +587,7 @@ export class Vehicle {
     }
     this.terrainIntensity += (intensity / 4 - this.terrainIntensity) * blend;
     const steerLimit = THREE.MathUtils.lerp(0.51, 0.25, Math.min(1, Math.abs(speed) / 15))
-      * this.blended.steering;
+      * this.blended.steering * (1 + iceShare * iceTurnStrength * 0.21);
     this.steering = THREE.MathUtils.damp(this.steering, -input.steer * steerLimit, 9, dt);
     for (let i = 0; i < 4; i++) {
       this.oldSuspension[i] = this.suspension[i];
@@ -594,7 +598,11 @@ export class Vehicle {
       this.controller.setWheelEngineForce(i, -forces.engine * this.climbingPower * this.blended.power * climbForce);
       this.controller.setWheelBrake(i, forces.brake * wheelSurface.brakeEffect + wheelSurface.rollingBrake);
       this.controller.setWheelFrictionSlip(i, 2.4 * wheelSurface.longitudinalGrip);
-      this.controller.setWheelSideFrictionStiffness(i, 0.85 * wheelSurface.lateralGrip);
+      // On level or downhill ice, the rear follows a sudden turn more slowly.
+      // Restore balanced grip on a steep ascent so angled glacier routes remain viable.
+      const iceAxleGrip = wheelSurface.id === 'ice'
+        ? THREE.MathUtils.lerp(1, i < 2 ? 1.65 : 0.45, iceTurnStrength) : 1;
+      this.controller.setWheelSideFrictionStiffness(i, 0.85 * wheelSurface.lateralGrip * iceAxleGrip);
       this.controller.setWheelSuspensionStiffness(i, wheelSurface.suspensionStiffness);
       this.controller.setWheelSuspensionCompression(i, wheelSurface.suspensionCompression);
       this.controller.setWheelSuspensionRelaxation(i, wheelSurface.suspensionRelaxation);
