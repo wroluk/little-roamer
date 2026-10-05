@@ -132,9 +132,8 @@ grade rises. On those slopes the wheels visibly spin and throw more terrain
 particles when the car struggles, while a gentler or diagonal line can keep it
 moving. On descents, sand and mud shed momentum quickly, while ice keeps the
 car gliding and needs much more room to brake. A sudden steering reversal on
-ice lets the rear slide wide before the car settles. Faint wheel tracks mark
-sand and mud for a few seconds without changing the terrain collision. Steep
-ice faces also reward a diagonal approach.
+ice lets the rear slide wide before the car settles. Steep ice faces also
+reward a diagonal approach.
 Authored trail climbs remain passable. The four wheels have separate Rapier
 raycasts and drive forces;
 their visible meshes also free-spin under throttle when airborne or overturned.
@@ -313,7 +312,7 @@ The goal is 60 FPS, with a minimum of 30 FPS on the agreed iPad.
 | `src/game/northern-terrain.ts` | Pure deterministic Northern Reach geography, water, routes, surfaces, props, and exact sampled heights |
 | `src/game/northern-worker.ts`, `src/game/northern-streaming.ts` | ES-module generation worker and bounded Three.js/Rapier chunk lifecycle |
 | `src/game/areas.ts`, `src/game/dispose.ts` | Area definitions and graphics-resource cleanup when travelling |
-| `src/game/terrain-effects.ts` | Lightweight pooled wheel spray, dust, snow, and fading sand/mud tracks |
+| `src/game/terrain-effects.ts` | Lightweight pooled wheel spray, dust, snow, and terrain particles |
 | `src/game/vehicle.ts` | Four driven raycast wheels, suspension, low-mass roof, visuals and reset |
 | `src/game/driving.ts` | Direction-change braking, speed targets, steering mapping, fixed clock |
 | `src/game/input.ts` | Independent pointer and keyboard state |
