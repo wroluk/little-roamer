@@ -27,7 +27,10 @@ export const MARSH_TRAILS = [
     { x: -319, z: -163, y: 23 }, { x: -345, z: -184, y: 26 }, MARSH_LOOKOUT,
   ] },
 ];
-export const MARSH_SIGNS = [{ x: -257, z: 105 }, { x: -222, z: 30 }, { x: -255, z: -86 }, { x: -344, z: -194 }];
+export const MARSH_SIGNS = [
+  { x: -257, z: 105 }, { x: -222, z: 30 }, { x: -255, z: -86 },
+  { x: -318, z: -103 }, { x: -344, z: -194 },
+];
 export const MARSH_WILLOWS = [
   { x: -237, z: -40 }, { x: -291, z: -18 }, { x: -291, z: -70 },
   { x: -367, z: -107 }, { x: -396, z: -145 }, { x: -321, z: 22 },
@@ -39,6 +42,10 @@ export function marshWeight(x: number, z: number): number {
 }
 export function marshPoolRadius(x: number, z: number, pool: typeof MARSH_POOLS[number]): number {
   return Math.hypot((x - pool.x) / pool.rx, (z - pool.z) / pool.rz);
+}
+export function marshMudPatch(x: number, z: number): boolean {
+  return Math.hypot((x + 198) / 28, (z + 29) / 38) < 1
+    || Math.hypot((x + 317) / 22, (z + 91) / 17) < 1;
 }
 export function marshTrailSample(x: number, z: number) {
   let distance = Infinity, sum = 0, weights = 0;

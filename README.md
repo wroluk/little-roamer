@@ -118,9 +118,19 @@ to distinct vehicle behavior rather than being purely decorative:
 | Coastal sand | Loose steering and soft rolling resistance |
 
 Each grounded raycast wheel uses the surface directly beneath it, so straddling
-ice, ash, or dirt creates stable mixed traction. Vehicle-wide power, drag,
-speed, and suspension blend over a fraction of a second instead of snapping at
-terrain boundaries. The surface chip briefly shows a trait such as **Slippery**
+ice, ash, or dirt creates stable mixed traction. Vehicle-wide power and drag
+blend over a fraction of a second instead of snapping at terrain boundaries.
+Dry surfaces share the same safety speed cap; acceleration, rolling resistance,
+braking, lateral grip and suspension make them feel different. Deeper water
+still limits progress. Sideways sliding adds more surface-colored particles.
+On flat terrain, subtle visual ride texture moves all four wheels and gently
+rocks the body as each axle crosses the same patch of ground. This leaves the
+physical suspension to respond to actual terrain geometry. Rock and grass have
+more visible ride texture than soft sand. Very steep uphill grades reduce drive
+force while authored trail climbs remain passable. The four wheels have separate
+Rapier raycasts and drive forces;
+their visible meshes also free-spin under throttle when airborne or overturned.
+The surface chip briefly shows a trait such as **Slippery**
 or **Rocky & rough**, while restrained camera feedback makes roughness readable
 without inheriting the car's roll or bypassing collision avoidance.
 
@@ -452,7 +462,7 @@ and verify that the arch's passage and overhead stone behave correctly.
 
 ## Northern Reach · Timber Run, Boulder Shoals and Stonegate Basin
 
-[Current Northern Reach map (PNG)](artifacts/northern-reach/mapa-northern-reach.png)
+[Northern Reach regional overview (September 2026, PNG)](artifacts/northern-reach/mapa-northern-reach.png)
 shows all sixteen enhanced regions; the three western shore areas are highlighted in amber. The
 [SVG source](artifacts/northern-reach/mapa-northern-reach.svg) is also committed.
 Regenerate both from the game's terrain with
@@ -467,7 +477,16 @@ Three connected driving playgrounds extend the authored terrain:
   with a dry beach route alongside it.
 - **Stonegate Basin** (`?area=northern-reach&start=stonegate-basin`): a pass north
   of Willow Marsh opens into an enclosed highland bowl, a stone garden and
-  a rising rim trail with a lookout back through the entrance.
+  a rising rim trail with a lookout back through the entrance. The north crown
+  now forks into a rock shelf and an easier bend, both reaching the lookout.
+
+For a longer unscored drive, start at Willow Marsh
+(`?area=northern-reach&start=willow-marsh`). A visible muddy patch appears near
+the start of the dry hummock loop. Choose that loop or the marked Reed Ford,
+then follow Heron lookout through the hidden pass to
+Stonegate Basin. A short muddy patch and the stone-shelf climb make the surface
+changes part of the route. Signs and the terrain show the choices; either line
+can be bypassed or explored in reverse.
 
 Append these query strings to the local or published game URL. Reset returns
 to each region's dry starting clearing. `src/game/northern-adventures.ts`

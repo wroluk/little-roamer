@@ -14,6 +14,10 @@ export const shoalPoint = (z: number, inland: number, y: number): Point => ({ x:
 export const TIMBER_START = { x: -335, z: 480, y: 12 };
 export const BASIN_START = { x: -300, z: -305, y: 32 };
 export const BASIN_LOOKOUT = { x: -260, z: -465, y: 62 };
+export const STONE_SHELF_TRAIL = [
+  { x: -270, z: -425, y: 52 }, { x: -291, z: -435, y: 55 },
+  { x: -293, z: -449, y: 59 }, { x: -274, z: -465, y: 62 }, BASIN_LOOKOUT,
+];
 export const SHOAL_START = shoalPoint(-60, 30, 1.2);
 export const WIND_START = { x: -90, z: -365, y: 28 };
 export const TERRACE_START = { x: 330, z: 80, y: 20 };
@@ -40,12 +44,13 @@ export const ADVENTURE_REGIONS: Region[] = [
       { name: 'Timber gully and hillside bypass', points: [TIMBER_START, { x: -335, z: 440, y: 12 }, { x: -335, z: 400, y: 16 }, { x: -320, z: 375, y: 18 }, { x: -280, z: 390, y: 22 }, { x: -265, z: 435, y: 24 }, { x: -280, z: 480, y: 20 }, { x: -315, z: 505, y: 14 }, TIMBER_START] },
     ] },
   { id: 'stonegate-basin', name: 'Stonegate Basin', bounds: [-410, -115, -520, -165], start: BASIN_START,
-    description: 'Follow the narrow approach into an enclosed highland bowl. Explore its stone garden and climb the rim for a view back through the entrance.',
+    description: 'Follow the hidden pass into a highland bowl. The north crown offers a rocky shelf or an easier bend on the way to the lookout.',
     trails: [
       { name: 'Hidden pass from Willow Marsh', points: [MARSH_LOOKOUT, { x: -355, z: -225, y: 24 }, { x: -330, z: -265, y: 28 }, BASIN_START] },
       { name: 'Inner rim', points: [BASIN_START, { x: -330, z: -345, y: 38 }, { x: -315, z: -390, y: 42 }, { x: -270, z: -425, y: 52 }, { x: -215, z: -415, y: 48 }, { x: -185, z: -365, y: 44 }, { x: -205, z: -320, y: 36 }, { x: -250, z: -300, y: 32 }, BASIN_START] },
       { name: 'Stone garden', points: [BASIN_START, { x: -275, z: -340, y: 29 }, { x: -260, z: -365, y: 28 }] },
       { name: 'North crown', points: [{ x: -270, z: -425, y: 52 }, { x: -260, z: -453, y: 62 }, BASIN_LOOKOUT] },
+      { name: 'Stone shelf climb', points: STONE_SHELF_TRAIL },
     ] },
   { id: 'boulder-shoals', name: 'Boulder Shoals', bounds: [-720, -325, -230, 80], start: SHOAL_START,
     description: 'Leave Willow Marsh for the coast. Weave between sea stacks, crawl over low rocks in shallow water, or use the dry beach route.',
@@ -101,7 +106,10 @@ export function adventureSurface(x: number, z: number): SurfaceId | null {
     if (r.id === 'windstone-ridge') return trail.distance < 5 ? 'dirt' : 'rock';
     if (r.id === 'ochre-terraces') return trail.distance < 5 ? 'dirt' : 'sand';
     if (r.id === 'timber-run') return trail.distance < 5 ? 'dirt' : 'moss';
-    if (r.id === 'stonegate-basin' && z < -225) return trail.distance < 5 ? 'dirt' : 'rock';
+    if (r.id === 'stonegate-basin' && z < -225) {
+      if (x < -283 && z < -425 && z > -464) return 'rock';
+      return trail.distance < 5 ? 'dirt' : 'rock';
+    }
     if (r.id === 'boulder-shoals') {
       if (x < -575) return 'sand';
       if (trail.distance < 5) return 'dirt';
@@ -144,6 +152,11 @@ export function applyAdventures(x: number, z: number, ground: number): number {
     const connection = r.id === 'river-mouth' ? smooth((-x-345)/25)
       : r.id === 'driftwood-strand' ? smooth((z-488)/7) : 1;
     if (trail.distance < 22) ground += (trail.elevation - ground) * (1 - smooth((trail.distance - 7) / 15)) * connection;
+    if (r.id === 'stonegate-basin') {
+      // Shallow stone shelves use the terrain lattice shared by rendering and wheel raycasts.
+      ground += hill(x, z, -292, -440, 3.5, 3.5, 0.2)
+        + hill(x, z, -293, -450, 3.2, 3.8, 0.25);
+    }
     for (const p of r.id === 'stonegate-basin' ? [r.start, BASIN_LOOKOUT, MARSH_LOOKOUT] : [r.start]) {
       const clearing = 1 - smooth((Math.hypot(x - p.x, z - p.z) - 6) / 5);
       ground += (p.y - ground) * clearing;
@@ -173,6 +186,8 @@ export const ADVENTURE_PROPS: Prop[] = [
     .map((p, i) => ({ kind: 'layeredRock' as const, ...p, size: 0.8 + (i % 3) * 0.2, angle: i * 1.7, variant: 3 + i })),
   { kind: 'timberSign', x: -367, z: 310, size: 1 }, { kind: 'timberSign', x: -347, z: 482, size: 1 },
   { kind: 'basinSign', x: -344, z: -216, size: 1 }, { kind: 'basinSign', x: -289, z: -296, size: 1 },
+  { kind: 'basinSign', x: -248, z: -408, size: 0.8 },
+  { kind: 'graniteTor', x: -310, z: -448, size: 0.55, angle: 0.7 },
   { kind: 'shoalSign', x: -362, z: -70, size: 1 }, { kind: 'shoalSign', x: SHOAL_START.x + 10, z: -52, size: 1 },
   ...TIMBER_TRAIL_LOGS,
   ...[

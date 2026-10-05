@@ -40,3 +40,23 @@ for (const region of ADVENTURE_REGIONS.filter(r => ['timber-run','stonegate-basi
   expect((await state()).waterDepth).toBe(0);
   expect(errors).toEqual([]);
 });
+
+test('Stonegate rock shelf can be driven while the easier north crown remains open', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.goto('/?area=northern-reach&start=stonegate-basin');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
+  await page.locator('#start').click();
+  const game = () => page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
+  await page.evaluate(async () => {
+    await (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(-293, -434, 0);
+  });
+  for (let i = 0; i < 32 && (await game()).position.z > -454; i++) {
+    await page.keyboard.down('KeyW');
+    await page.waitForTimeout(330);
+    await page.keyboard.up('KeyW');
+    await page.waitForTimeout(180);
+  }
+  expect((await game()).position.z).toBeLessThan(-454);
+  await expect.poll(async () => (await game()).contacts).toBeGreaterThanOrEqual(2);
+  expect((await game()).position.y).toBeGreaterThan(58);
+});

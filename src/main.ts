@@ -154,8 +154,8 @@ async function boot() {
   if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'willow-marsh') {
     area = { ...area, spawn: { ...MARSH_START, y: sampledHeightAt(MARSH_START.x, MARSH_START.z) + 1.25 },
       welcomeTitle: 'Among the willows.',
-      description: 'Wind over mossy hummocks, follow amber posts across Reed Ford, or climb to Heron lookout above the pools.',
-      hint: 'Amber posts mark Reed Ford. The dry hummock loop leads to Heron lookout.',
+      description: 'A soft muddy patch begins the dry hummock loop. Or take the marked Reed Ford to Heron lookout, then follow the hidden pass into Stonegate Basin.',
+      hint: 'Try the brown mud on the hummock loop, or follow amber posts into Reed Ford.',
       readyMessage: 'Willow Marsh. Amber posts mark the shallow crossing.' };
   }
   const adventure = ADVENTURE_REGIONS.find(r => r.id === new URLSearchParams(window.location.search).get('start'));

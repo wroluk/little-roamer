@@ -31,6 +31,7 @@ export class Vehicle {
   readonly body: RAPIER.RigidBody;
   readonly controller: RAPIER.DynamicRayCastVehicleController;
   readonly model = new THREE.Group();
+  readonly bodyVisual = new THREE.Group();
   readonly wheels: THREE.Group[] = [];
   readonly tires: THREE.Group[] = [];
   readonly previousPosition = new THREE.Vector3();
@@ -46,6 +47,13 @@ export class Vehicle {
   private readonly suspension = [REST_LENGTH, REST_LENGTH, REST_LENGTH, REST_LENGTH];
   private readonly oldWheelAngles = [0, 0, 0, 0];
   private readonly wheelAngles = [0, 0, 0, 0];
+  private readonly oldRideBumps = [0, 0, 0, 0];
+  private readonly rideBumps = [0, 0, 0, 0];
+  private readonly visualRideBumps = [0, 0, 0, 0];
+  private readonly controllerWheelAngles = [0, 0, 0, 0];
+  private readonly freeWheelSpeeds = [0, 0, 0, 0];
+  private lastStepDt = 0;
+  private freeWheelDirection = 0;
   private readonly velocity = new THREE.Vector3();
   private readonly up = new THREE.Vector3();
   private readonly wheelOffset = new THREE.Vector3();
@@ -60,7 +68,6 @@ export class Vehicle {
   private blended = { power: 1, drag: 0, speed: 1, steering: 1, feedback: 0 };
   private terrainIntensity = 0;
   private maximumWaterDepth = 0;
-  private terrainTime = 0;
 
   constructor(
     scene: THREE.Scene,
@@ -93,6 +100,7 @@ export class Vehicle {
       this.controller.setWheelFrictionSlip(i, 2.4);
       this.controller.setWheelSideFrictionStiffness(i, 0.85);
     }
+    this.model.add(this.bodyVisual);
     this.createModel();
     scene.add(this.model);
     this.capture();
@@ -127,7 +135,7 @@ export class Vehicle {
       const mesh = new THREE.Mesh(geometry, material);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
-      this.model.add(mesh);
+      this.bodyVisual.add(mesh);
       return mesh;
     };
     const box = (
@@ -141,7 +149,7 @@ export class Vehicle {
       mesh.rotation.x = rotationX;
       mesh.castShadow = true;
       mesh.receiveShadow = true;
-      this.model.add(mesh);
+      this.bodyVisual.add(mesh);
       return mesh;
     };
 
@@ -292,7 +300,7 @@ export class Vehicle {
       }
     };
     for (const spinner of this.tires) batch(spinner);
-    batch(this.model);
+    batch(this.bodyVisual);
   }
 
   private createClassicModel() {
@@ -316,7 +324,7 @@ export class Vehicle {
       mesh.position.set(x, y, z);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
-      this.model.add(mesh);
+      this.bodyVisual.add(mesh);
       return mesh;
     };
 
@@ -377,12 +385,12 @@ export class Vehicle {
     spare.position.set(0, 0.53, 1.51);
     spare.scale.setScalar(0.84);
     spare.castShadow = true;
-    this.model.add(spare);
+    this.bodyVisual.add(spare);
     const spareHub = new THREE.Mesh(hubGeo, hub);
     spareHub.rotation.copy(spare.rotation);
     spareHub.position.copy(spare.position);
     spareHub.scale.copy(spare.scale);
-    this.model.add(spareHub);
+    this.bodyVisual.add(spareHub);
 
     const batch = (group: THREE.Group) => {
       const batches = new Map<THREE.Material, THREE.BufferGeometry[]>();
@@ -407,7 +415,7 @@ export class Vehicle {
       }
     };
     for (const spinner of this.tires) batch(spinner);
-    batch(this.model);
+    batch(this.bodyVisual);
   }
 
   private clearModel() {
@@ -421,6 +429,8 @@ export class Vehicle {
       }
     });
     this.model.clear();
+    this.bodyVisual.clear();
+    this.model.add(this.bodyVisual);
     this.wheels.length = 0;
     this.tires.length = 0;
     for (const geometry of geometries) geometry.dispose();
@@ -450,12 +460,16 @@ export class Vehicle {
   beforeStep(input: DriveInput, dt: number) {
     this.previousPosition.copy(this.position);
     this.previousRotation.copy(this.rotation);
+    this.lastStepDt = dt;
+    this.freeWheelDirection = input.forward === input.reverse ? 0 : input.forward ? -1 : 1;
     const speed = this.speed;
-    this.terrainTime += dt;
     const centerSurface = SURFACES[this.surfaceAt(this.position.x, this.position.z)];
     for (const id in this.surfaceCounts) this.surfaceCounts[id as SurfaceId] = 0;
     const bodyRotation = this.body.rotation();
     const bodyPosition = this.body.translation();
+    const bodyVelocity = this.body.linvel();
+    this.forward.copy(FORWARD).applyQuaternion(bodyRotation);
+    const sidewaysSpeed = Math.abs(bodyVelocity.x * this.forward.z - bodyVelocity.z * this.forward.x);
     let power = 0;
     let dragTotal = 0;
     let speedScale = 0;
@@ -490,14 +504,18 @@ export class Vehicle {
       power += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(shallowPower, 0, deepStall) : wheel.surface.power;
       const shallowDrag = wheel.surface.drag * THREE.MathUtils.lerp(0.45, 1, fordDepth);
       dragTotal += wheel.surface.id === 'water' ? shallowDrag + deepStall * 18 : wheel.surface.drag;
-      const shallowSpeed = THREE.MathUtils.lerp(0.68, wheel.surface.speed, fordDepth);
+      const shallowSpeed = THREE.MathUtils.lerp(0.96, wheel.surface.speed, fordDepth);
       speedScale += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(shallowSpeed, 0.01, deepStall) : wheel.surface.speed;
       steering += wheel.surface.steering;
       feedback += wheel.surface.feedback;
       const softObstacle = this.softObstacleAt(wheel.position.x, wheel.position.z);
       feedback += softObstacle * 0.25;
+      const rolling = Math.max(0, (Math.abs(speed) - 0.5) / 8);
+      const sliding = Math.min(0.65, sidewaysSpeed / 5) * Math.max(0, 1 - wheel.surface.lateralGrip);
+      const softGround = wheel.surface.id === 'mud' || wheel.surface.id === 'sand' || wheel.surface.id === 'ash';
       wheel.intensity = wheel.grounded
-        ? Math.min(1, Math.max(0, (Math.abs(speed) - 0.5) / 8) * (input.forward || input.reverse ? 1 : 0.55))
+        ? Math.min(1, rolling * (input.forward || input.reverse ? 1 : 0.55)
+          + sliding + (softGround && (input.forward || input.reverse) ? 0.18 : 0))
         : 0;
       intensity += wheel.intensity;
     }
@@ -527,15 +545,36 @@ export class Vehicle {
     this.blended.feedback += (feedback / 4 - this.blended.feedback) * blend;
     this.terrainIntensity += (intensity / 4 - this.terrainIntensity) * blend;
     const forces = driveForces(input, speed);
+    // The authored trails top out near 29 degrees. Preserve their climb, but stop
+    // the raycast motor from pulling the chassis up much steeper natural slopes.
+    const horizontalForward = Math.hypot(this.forward.x, this.forward.z);
+    const driveDirection = forces.engine < 0 ? -1 : 1;
+    let uphillGrade = 0;
+    let uphillContacts = 0;
+    if (horizontalForward > 0.1) {
+      for (let i = 0; i < 4; i++) {
+        if (!this.terrainWheels[i].grounded) continue;
+        const normal = this.controller.wheelContactNormal(i);
+        if (!normal || normal.y < 0.35) continue;
+        uphillGrade += Math.max(0,
+          -driveDirection * (normal.x * this.forward.x + normal.z * this.forward.z)
+          / (normal.y * horizontalForward));
+        uphillContacts++;
+      }
+    }
+    uphillGrade /= Math.max(1, uphillContacts);
+    const steepness = THREE.MathUtils.clamp((uphillGrade - 0.56) / 0.34, 0, 1);
+    const climbForce = 1 - steepness * 0.78;
     const steerLimit = THREE.MathUtils.lerp(0.51, 0.25, Math.min(1, Math.abs(speed) / 15))
       * this.blended.steering;
     this.steering = THREE.MathUtils.damp(this.steering, -input.steer * steerLimit, 9, dt);
     for (let i = 0; i < 4; i++) {
       this.oldSuspension[i] = this.suspension[i];
       this.oldWheelAngles[i] = this.wheelAngles[i];
+      this.oldRideBumps[i] = this.rideBumps[i];
       this.controller.setWheelSteering(i, i < 2 ? this.steering : 0);
       const wheelSurface = this.terrainWheels[i].surface;
-      this.controller.setWheelEngineForce(i, -forces.engine * this.climbingPower * this.blended.power);
+      this.controller.setWheelEngineForce(i, -forces.engine * this.climbingPower * this.blended.power * climbForce);
       this.controller.setWheelBrake(i, forces.brake * wheelSurface.brakeEffect + wheelSurface.rollingBrake);
       this.controller.setWheelFrictionSlip(i, 2.4 * wheelSurface.longitudinalGrip);
       this.controller.setWheelSideFrictionStiffness(i, 0.85 * wheelSurface.lateralGrip);
@@ -543,14 +582,19 @@ export class Vehicle {
       this.controller.setWheelSuspensionCompression(i, wheelSurface.suspensionCompression);
       this.controller.setWheelSuspensionRelaxation(i, wheelSurface.suspensionRelaxation);
       const wheel = this.terrainWheels[i];
-      const phase = this.terrainTime * Math.PI * 2 * (5 + i * 0.9)
-        + wheel.position.x * 0.37 + wheel.position.z * 0.29;
+      // Flat surface materials can suggest small irregularities without changing
+      // the physical spring length. All four visual wheels sample the same field.
+      const groundRipple = Math.sin(wheel.position.x * 2.3 + wheel.position.z * 2.8)
+        * Math.sin(wheel.position.x * 3.7 - wheel.position.z * 1.9);
       const roughness = wheelSurface.id === 'water'
         ? wheelSurface.roughness * THREE.MathUtils.lerp(0.65, 1.1, Math.min(1, this.wheelWaterDepth[i] / 0.45))
         : wheelSurface.roughness;
       const softObstacle = this.softObstacleAt(wheel.position.x, wheel.position.z);
+      this.rideBumps[i] = THREE.MathUtils.damp(
+        this.rideBumps[i], groundRipple * roughness * wheel.intensity, 22, dt,
+      );
       this.controller.setWheelSuspensionRestLength(i,
-        REST_LENGTH + Math.sin(phase) * (roughness + softObstacle * 0.24) * wheel.intensity);
+        REST_LENGTH + softObstacle * 0.12 * wheel.intensity);
     }
 
     function smoothStep(value: number) {
@@ -586,7 +630,21 @@ export class Vehicle {
     this.rotation.copy(this.body.rotation());
     for (let i = 0; i < 4; i++) {
       this.suspension[i] = this.controller.wheelSuspensionLength(i) ?? REST_LENGTH;
-      this.wheelAngles[i] = this.controller.wheelRotation(i) ?? 0;
+      const controllerAngle = this.controller.wheelRotation(i) ?? this.controllerWheelAngles[i];
+      const groundDelta = controllerAngle - this.controllerWheelAngles[i];
+      this.controllerWheelAngles[i] = controllerAngle;
+      if (this.lastStepDt === 0) {
+        this.wheelAngles[i] = controllerAngle;
+      } else if (this.controller.wheelIsInContact(i)) {
+        this.freeWheelSpeeds[i] = THREE.MathUtils.clamp(groundDelta / this.lastStepDt, -35, 35);
+        this.wheelAngles[i] += groundDelta;
+      } else {
+        const target = this.freeWheelDirection < 0 ? -14 : this.freeWheelDirection > 0 ? 10 : 0;
+        this.freeWheelSpeeds[i] = THREE.MathUtils.damp(
+          this.freeWheelSpeeds[i], target, target === 0 ? 3 : 8, this.lastStepDt,
+        );
+        this.wheelAngles[i] += this.freeWheelSpeeds[i] * this.lastStepDt;
+      }
     }
   }
 
@@ -599,8 +657,20 @@ export class Vehicle {
   syncVisuals(alpha: number) {
     this.model.position.lerpVectors(this.previousPosition, this.position, alpha);
     this.model.quaternion.slerpQuaternions(this.previousRotation, this.rotation, alpha);
+    const bumps = this.visualRideBumps;
     for (let i = 0; i < 4; i++) {
-      this.wheels[i].position.y = -THREE.MathUtils.lerp(this.oldSuspension[i], this.suspension[i], alpha);
+      bumps[i] = THREE.MathUtils.lerp(this.oldRideBumps[i], this.rideBumps[i], alpha);
+    }
+    const front = (bumps[0] + bumps[1]) * 0.5;
+    const rear = (bumps[2] + bumps[3]) * 0.5;
+    const left = (bumps[0] + bumps[2]) * 0.5;
+    const right = (bumps[1] + bumps[3]) * 0.5;
+    this.bodyVisual.position.y = (front + rear) * 0.32;
+    this.bodyVisual.rotation.x = (front - rear) * 0.3;
+    this.bodyVisual.rotation.z = (right - left) * 0.33;
+    for (let i = 0; i < 4; i++) {
+      this.wheels[i].position.y = -THREE.MathUtils.lerp(this.oldSuspension[i], this.suspension[i], alpha)
+        + bumps[i];
       this.wheels[i].rotation.y = i < 2 ? this.steering : 0;
       this.tires[i].rotation.x = THREE.MathUtils.lerp(this.oldWheelAngles[i], this.wheelAngles[i], alpha);
     }
@@ -614,6 +684,11 @@ export class Vehicle {
     this.body.resetForces(true);
     this.body.resetTorques(true);
     this.steering = 0;
+    this.lastStepDt = 0;
+    this.freeWheelDirection = 0;
+    this.freeWheelSpeeds.fill(0);
+    this.oldRideBumps.fill(0);
+    this.rideBumps.fill(0);
     this.surface = SURFACES[this.surfaceAt(this.spawn.x, this.spawn.z)];
     this.candidateSurface = this.surface.id;
     this.candidateTime = 0;
@@ -621,7 +696,6 @@ export class Vehicle {
       power: this.surface.power, drag: this.surface.drag, speed: this.surface.speed,
       steering: this.surface.steering, feedback: this.surface.feedback,
     };
-    this.terrainTime = 0;
     this.terrainIntensity = 0;
     for (let i = 0; i < 4; i++) {
       this.controller.setWheelEngineForce(i, 0);
@@ -629,6 +703,8 @@ export class Vehicle {
       this.controller.setWheelSteering(i, 0);
     }
     this.capture();
+    this.wheelAngles.fill(0);
+    this.oldWheelAngles.fill(0);
     this.previousPosition.copy(this.position);
     this.previousRotation.copy(this.rotation);
     this.syncVisuals(1);

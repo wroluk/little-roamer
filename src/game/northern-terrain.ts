@@ -11,7 +11,7 @@ import type { SurfaceId } from './surfaces';
 import { applyWestCoast } from './northern-west';
 import { LAKE_LEVEL, watershedFeatures } from './northern-watershed';
 import { applyAdventures, adventureSurface, adventureTrailDistance, ADVENTURE_PROPS } from './northern-adventures';
-import { applyMarsh, marshWeight, marshTrailSample, marshPoolRadius, MARSH_POOLS, MARSH_START, MARSH_LOOKOUT, MARSH_SIGNS, MARSH_WILLOWS } from './northern-marsh';
+import { applyMarsh, marshWeight, marshTrailSample, marshPoolRadius, marshMudPatch, MARSH_POOLS, MARSH_START, MARSH_LOOKOUT, MARSH_SIGNS, MARSH_WILLOWS } from './northern-marsh';
 import { applyEmber, emberWeight, emberRadius, emberTrailSample, EMBER_START, EMBER_LOOKOUT, EMBER_FLOOR, EMBER_SIGNS, EMBER_COLUMNS } from './northern-ember';
 import { applyPass, passWeight, passTrailSample, passBowlRadius, PASS_TRAILS, PASS_SIGNS, PASS_TORS, PASS_START, PASS_LOOKOUT } from './northern-pass';
 import { applyCoast, coastShoreX, coastWeight, coastTrailSample, COAST_STACKS, COAST_SIGNS } from './northern-coast';
@@ -402,6 +402,7 @@ export function northernSurfaceAt(x: number, z: number): SurfaceId {
   if (adventure) return adventure;
 
   if (marshWeight(x, z) > 0.2) {
+    if (marshMudPatch(x, z)) return 'mud';
     if (marshTrailSample(x, z).distance < 5) return 'dirt';
     if (MARSH_POOLS.some(p => marshPoolRadius(x, z, p) < 1.15)) return 'mud';
     return 'moss';
@@ -485,7 +486,7 @@ function surfaceColor(surface: SurfaceId, x: number, z: number): [number, number
   if (marshWeight(x, z) > 0.2) {
     if (surface === 'moss') base = [0.32, 0.49, 0.3];
     if (surface === 'dirt') base = [0.56, 0.48, 0.32];
-    if (surface === 'mud') base = [0.32, 0.3, 0.21];
+    if (surface === 'mud') base = [0.2, 0.19, 0.13];
   }
   if (emberWeight(x, z) > 0.2) {
     if (surface === 'rock') base = [0.24, 0.23, 0.22];

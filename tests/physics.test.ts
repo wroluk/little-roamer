@@ -54,6 +54,58 @@ test('four driven wheels settle, accelerate, steer right, coast, and reset', () 
   } finally { world.free(); }
 });
 
+test('all four visible wheels free-spin under throttle when the car is upside down', () => {
+  const { world, vehicle, tick } = simulation();
+  try {
+    vehicle.body.setTranslation({ x: START.x, y: 3, z: START.z }, true);
+    vehicle.body.setRotation({ x: 0, y: 0, z: 1, w: 0 }, true);
+    vehicle.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    vehicle.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    tick(1);
+    assert.equal(vehicle.contactCount(), 0);
+    const before = vehicle.tires.map(tire => tire.rotation.x);
+    tick(30, forward);
+    assert.equal(vehicle.contactCount(), 0);
+    for (let i = 0; i < 4; i++) {
+      assert.ok(vehicle.tires[i].rotation.x < before[i] - 2,
+        `wheel ${i} did not spin freely: ${before[i]} -> ${vehicle.tires[i].rotation.x}`);
+    }
+    const afterForward = vehicle.tires.map(tire => tire.rotation.x);
+    tick(45, { ...idle, reverse: true });
+    for (let i = 0; i < 4; i++) {
+      assert.ok(vehicle.tires[i].rotation.x > afterForward[i] + 2,
+        `wheel ${i} did not reverse freely: ${afterForward[i]} -> ${vehicle.tires[i].rotation.x}`);
+    }
+  } finally { world.free(); }
+});
+
+test('the vehicle climbs a trail grade but stalls on a much steeper open slope', () => {
+  const uphillProgress = (degrees: number, reverse = false) => {
+    const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+    const radians = degrees * Math.PI / 180;
+    world.createCollider(RAPIER.ColliderDesc.cuboid(100, 0.1, 100)
+      .setRotation({ x: Math.sin(radians / 2) * (reverse ? -1 : 1),
+        y: 0, z: 0, w: Math.cos(radians / 2) })
+      .setFriction(0.9));
+    const vehicle = new Vehicle(new THREE.Scene(), world, { x: 0, y: 1.2, z: 0 }, 1.45);
+    try {
+      for (let step = 0; step < 240; step++) {
+        vehicle.beforeStep(reverse ? { ...idle, reverse: true } : forward, 1 / 60);
+        world.step();
+        vehicle.capture();
+      }
+      return vehicle.position.z * (reverse ? 1 : -1);
+    } finally { world.free(); }
+  };
+  const trail = uphillProgress(26);
+  const cliff = uphillProgress(43);
+  const reverseCliff = uphillProgress(43, true);
+  assert.ok(trail > 5, `26-degree progress=${trail}`);
+  assert.ok(cliff < trail - 4, `26-degree progress=${trail}, 43-degree progress=${cliff}`);
+  assert.ok(reverseCliff < trail - 4,
+    `26-degree progress=${trail}, reverse 43-degree progress=${reverseCliff}`);
+});
+
 test('vehicle models can be swapped without replacing the physical car', () => {
   const { world, vehicle, tick } = simulation();
   try {

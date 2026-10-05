@@ -22,7 +22,8 @@ test('large rock families provide three genuinely distinct mesh variants', () =>
 });
 
 test('Stonegate landmarks retain unique authored meshes through chunk generation and transfer', () => {
-  const landmarks = ADVENTURE_PROPS.filter(prop => prop.kind === 'graniteTor');
+  const landmarks = ADVENTURE_PROPS.filter(prop => prop.kind === 'graniteTor' &&
+    prop.variant !== undefined && prop.variant >= 3);
   assert.equal(landmarks.length, 5);
   assert.equal(new Set(landmarks.map(prop => prop.variant)).size, 5);
   for (const prop of landmarks) {

@@ -7,6 +7,7 @@ import {
   FORDS, GLACIER, highlandsSurfaceAt, highlandsSurfaceHeight, VOLCANOES,
 } from '../src/game/highlands';
 import { SURFACES, type SurfaceId } from '../src/game/surfaces';
+import { northernSurfaceAt } from '../src/game/northern-terrain';
 import { Vehicle } from '../src/game/vehicle';
 import { disposeScene } from '../src/game/dispose';
 
@@ -97,6 +98,9 @@ test('surface maps match visible terrain regions', () => {
   assert.ok(lavaPoint, 'visible lava flow should classify as rough lava');
   assert.ok(mossPoint, 'visible moss patch should classify as springy moss');
   assert.ok(highlandsSurfaceHeight(GLACIER.x, GLACIER.z) > 30);
+  assert.equal(northernSurfaceAt(-317, -91), 'mud');
+  assert.equal(northernSurfaceAt(-208, -18), 'mud');
+  assert.equal(northernSurfaceAt(-293, -445), 'rock');
 });
 
 test('loose ash and water reduce speed while rough lava slows coasting', () => {
@@ -109,6 +113,53 @@ test('loose ash and water reduce speed while rough lava slows coasting', () => {
   assert.ok(dirt.coastSpeed > lava.coastSpeed + 3, `${dirt.coastSpeed} vs ${lava.coastSpeed}`);
 });
 
+test('rock carries momentum while mud asks for a steadier approach', () => {
+  const rock = flatDrive('rock');
+  const mud = flatDrive('mud');
+  assert.ok(rock.poweredSpeed > mud.poweredSpeed + 2,
+    `powered rock=${rock.poweredSpeed}, mud=${mud.poweredSpeed}`);
+  assert.ok(rock.coastSpeed > mud.coastSpeed + 1,
+    `coasting rock=${rock.coastSpeed}, mud=${mud.coastSpeed}`);
+});
+
+test('flat-surface ride texture moves both axles and rocks the body, with rock rougher than sand', () => {
+  const travel = (surface: SurfaceId, reverse = false) => {
+    const { world, scene, vehicle, tick } = surfaceVehicle(() => surface);
+    const low = [Infinity, Infinity, Infinity, Infinity];
+    const high = [-Infinity, -Infinity, -Infinity, -Infinity];
+    let bodyMotion = 0;
+    try {
+      for (let step = 0; step < 170; step++) {
+        tick(1, { steer: 0, forward: !reverse, reverse });
+        vehicle.syncVisuals(1);
+        if (step < 20) continue;
+        bodyMotion = Math.max(bodyMotion, Math.abs(vehicle.bodyVisual.position.y),
+          Math.abs(vehicle.bodyVisual.rotation.x) * 2, Math.abs(vehicle.bodyVisual.rotation.z) * 2);
+        for (let wheel = 0; wheel < 4; wheel++) {
+          const height = vehicle.wheels[wheel].position.y;
+          low[wheel] = Math.min(low[wheel], height);
+          high[wheel] = Math.max(high[wheel], height);
+        }
+      }
+      return { wheels: low.map((value, wheel) => high[wheel] - value), bodyMotion };
+    } finally { world.free(); disposeScene(scene); }
+  };
+  const rock = travel('rock');
+  const grass = travel('grass');
+  const reverseGrass = travel('grass', true);
+  const sand = travel('sand');
+  assert.ok(Math.min(...rock.wheels) > Math.max(...sand.wheels) * 1.3,
+    `rock travel=${rock.wheels}, sand travel=${sand.wheels}`);
+  assert.ok(Math.min(...grass.wheels) > Math.max(...sand.wheels) * 1.1,
+    `grass travel=${grass.wheels}, sand travel=${sand.wheels}`);
+  assert.ok(Math.min(...grass.wheels) > 0.03, `grass wheels=${grass.wheels}`);
+  assert.ok(grass.bodyMotion > 0.008, `grass body motion=${grass.bodyMotion}`);
+  assert.ok(Math.min(...reverseGrass.wheels) > 0.025,
+    `reverse grass wheels=${reverseGrass.wheels}`);
+  assert.ok(reverseGrass.bodyMotion > 0.008,
+    `reverse grass body motion=${reverseGrass.bodyMotion}`);
+});
+
 test('surface profiles express distinct traction, resistance, and steering', () => {
   assert.ok(SURFACES.ice.lateralGrip < SURFACES.ash.lateralGrip);
   assert.ok(SURFACES.ice.brakeEffect < SURFACES.ash.brakeEffect);
@@ -119,16 +170,18 @@ test('surface profiles express distinct traction, resistance, and steering', () 
   assert.ok(SURFACES.lava.roughness > SURFACES.moss.roughness);
   assert.ok(SURFACES.water.roughness > SURFACES.moss.roughness);
   assert.ok(SURFACES.moss.roughness > SURFACES.ash.roughness);
-  assert.ok(SURFACES.ash.roughness > SURFACES.grass.roughness);
+  assert.ok(SURFACES.grass.roughness > SURFACES.ash.roughness);
   assert.ok(SURFACES.grass.roughness > SURFACES.dirt.roughness);
+  assert.ok(SURFACES.rock.roughness > SURFACES.grass.roughness);
+  assert.ok(SURFACES.grass.roughness > SURFACES.sand.roughness);
   assert.ok(SURFACES.dirt.roughness > 0.01);
-  assert.ok(SURFACES.water.speed < SURFACES.ash.speed / 2);
+  assert.equal(SURFACES.water.speed, SURFACES.dirt.speed);
   assert.ok(SURFACES.water.drag > SURFACES.ash.drag * 4);
-  assert.ok(SURFACES.dirt.speed > SURFACES.water.speed);
+  assert.ok(SURFACES.water.power < SURFACES.ash.power);
   assert.ok(SURFACES.snow.lateralGrip > SURFACES.ice.lateralGrip);
-  assert.ok(SURFACES.snow.speed < SURFACES.dirt.speed);
+  assert.equal(SURFACES.snow.speed, SURFACES.dirt.speed);
   assert.ok(SURFACES.mud.drag > SURFACES.sand.drag);
-  assert.ok(SURFACES.mud.speed < SURFACES.sand.speed);
+  assert.ok(SURFACES.mud.power < SURFACES.sand.power);
   assert.ok(SURFACES.rock.roughness > SURFACES.snow.roughness);
   assert.ok(SURFACES.rock.longitudinalGrip > SURFACES.mud.longitudinalGrip);
 });
