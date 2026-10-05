@@ -57,6 +57,39 @@ function surfaceVehicle(
   return { world, scene, vehicle, tick };
 }
 
+function slopeRun(surface: SurfaceId, degrees: number, heading = 0) {
+  const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  const angle = degrees * Math.PI / 180;
+  world.createCollider(RAPIER.ColliderDesc.cuboid(100, 0.1, 100)
+    .setRotation({ x: Math.sin(angle / 2), y: 0, z: 0, w: Math.cos(angle / 2) })
+    .setFriction(0.9));
+  const scene = new THREE.Scene();
+  const vehicle = new Vehicle(scene, world, { x: 0, y: 1.2, z: 0 }, 1.6, () => surface);
+  vehicle.body.setRotation(new THREE.Quaternion().setFromAxisAngle(
+    new THREE.Vector3(0, 1, 0), heading), true);
+  vehicle.capture();
+  try {
+    let peakSlip = 0;
+    let peakIntensity = 0;
+    for (let step = 0; step < 240; step++) {
+      vehicle.beforeStep({ steer: 0, forward: true, reverse: false }, 1 / 60);
+      world.step();
+      vehicle.capture();
+      peakSlip = Math.max(peakSlip, vehicle.terrainWheels[0].slip);
+      peakIntensity = Math.max(peakIntensity, vehicle.terrainWheels[0].intensity);
+    }
+    vehicle.syncVisuals(1);
+    return {
+      progress: -vehicle.position.z,
+      extraWheelSpin: vehicle.tires[0].rotation.x - (vehicle.controller.wheelRotation(0) ?? 0),
+      peakSlip, peakIntensity,
+    };
+  } finally { world.free(); disposeScene(scene); }
+}
+
+const slopeProgress = (surface: SurfaceId, degrees: number, heading = 0) =>
+  slopeRun(surface, degrees, heading).progress;
+
 function maneuver(surface: SurfaceId) {
   const braking = surfaceVehicle(() => surface);
   braking.tick(120, { steer: 0, forward: true, reverse: false });
@@ -242,33 +275,43 @@ test('snow and ice take longer to stop from the same speed', () => {
 });
 
 test('snow and ice climb a steep grade more slowly than bare ground', () => {
-  const progress = (surface: SurfaceId, degrees: number) => {
-    const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
-    const angle = degrees * Math.PI / 180;
-    world.createCollider(RAPIER.ColliderDesc.cuboid(100, 0.1, 100)
-      .setRotation({ x: Math.sin(angle / 2), y: 0, z: 0, w: Math.cos(angle / 2) })
-      .setFriction(0.9));
-    const scene = new THREE.Scene();
-    const vehicle = new Vehicle(scene, world, { x: 0, y: 1.2, z: 0 }, 1.6, () => surface);
-    try {
-      for (let step = 0; step < 240; step++) {
-        vehicle.beforeStep({ steer: 0, forward: true, reverse: false }, 1 / 60);
-        world.step();
-        vehicle.capture();
-      }
-      return -vehicle.position.z;
-    } finally { world.free(); disposeScene(scene); }
-  };
-  const dirtSteep = progress('dirt', 25);
-  const snowSteep = progress('snow', 25);
-  const iceSteep = progress('ice', 25);
-  const snowGentle = progress('snow', 10);
-  const iceGentle = progress('ice', 10);
+  const dirtSteep = slopeProgress('dirt', 25);
+  const snowSteep = slopeProgress('snow', 25);
+  const iceSteep = slopeProgress('ice', 25);
+  const snowGentle = slopeProgress('snow', 10);
+  const iceGentle = slopeProgress('ice', 10);
   assert.ok(dirtSteep > 5, `dirt 25°=${dirtSteep}`);
   assert.ok(dirtSteep > snowSteep + 5 && dirtSteep > iceSteep + 5,
     `dirt 25°=${dirtSteep}, snow 25°=${snowSteep}, ice 25°=${iceSteep}`);
   assert.ok(snowGentle > 5 && iceGentle > 5,
     `snow 10°=${snowGentle}, ice 10°=${iceGentle}`);
+});
+
+test('loose surfaces stop a straight steep climb but reward a gentler or angled line', () => {
+  for (const surface of ['sand', 'mud', 'ash'] as const) {
+    const straight = slopeProgress(surface, 25);
+    const angled = slopeProgress(surface, 25, 0.65);
+    const gentle = slopeProgress(surface, 20);
+    assert.ok(straight < 2, `${surface} straight 25° climb=${straight}`);
+    assert.ok(angled > straight + 4, `${surface} angled 25°=${angled}, straight=${straight}`);
+    assert.ok(gentle > 2, `${surface} gentle 20° climb=${gentle}`);
+  }
+  assert.ok(slopeProgress('dirt', 25) > 20);
+  assert.ok(slopeProgress('rock', 25) > 20);
+});
+
+test('loose uphill wheels visibly spin and kick up terrain while the car stalls', () => {
+  for (const surface of ['sand', 'mud', 'ash'] as const) {
+    const run = slopeRun(surface, 25);
+    assert.ok(run.progress < 2, `${surface} climbed ${run.progress} m`);
+    assert.ok(run.peakSlip > 0.2, `${surface} peak slip=${run.peakSlip}`);
+    assert.ok(run.extraWheelSpin < -8,
+      `${surface} visible wheel spin beyond ground rolling=${run.extraWheelSpin}`);
+    assert.ok(run.peakIntensity > 0.3,
+      `${surface} particle intensity=${run.peakIntensity}`);
+  }
+  assert.ok(Math.abs(slopeRun('dirt', 25).extraWheelSpin) < 2);
+  assert.ok(Math.abs(slopeRun('sand', 0).extraWheelSpin) < 2);
 });
 
 test('deeper water produces stronger blended drag than shallow water', () => {

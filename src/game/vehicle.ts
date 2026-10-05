@@ -25,6 +25,7 @@ export type WheelTerrainState = {
   surface: Surface;
   grounded: boolean;
   intensity: number;
+  slip: number;
 };
 
 export class Vehicle {
@@ -40,7 +41,7 @@ export class Vehicle {
   readonly rotation = new THREE.Quaternion();
   readonly forward = new THREE.Vector3();
   readonly terrainWheels: WheelTerrainState[] = CONNECTIONS.map(() => ({
-    position: new THREE.Vector3(), surface: SURFACES.dirt, grounded: false, intensity: 0,
+    position: new THREE.Vector3(), surface: SURFACES.dirt, grounded: false, intensity: 0, slip: 0,
   }));
   private steering = 0;
   private readonly oldSuspension = [REST_LENGTH, REST_LENGTH, REST_LENGTH, REST_LENGTH];
@@ -475,7 +476,6 @@ export class Vehicle {
     let speedScale = 0;
     let steering = 0;
     let feedback = 0;
-    let intensity = 0;
     this.maximumWaterDepth = 0;
     for (let i = 0; i < 4; i++) {
       const wheel = this.terrainWheels[i];
@@ -517,7 +517,6 @@ export class Vehicle {
         ? Math.min(1, rolling * (input.forward || input.reverse ? 1 : 0.55)
           + sliding + (softGround && (input.forward || input.reverse) ? 0.18 : 0))
         : 0;
-      intensity += wheel.intensity;
     }
     let dominant = centerSurface.id;
     for (const wheel of this.terrainWheels) {
@@ -543,7 +542,6 @@ export class Vehicle {
     this.blended.speed += (speedScale / 4 - this.blended.speed) * blend;
     this.blended.steering += (steering / 4 - this.blended.steering) * blend;
     this.blended.feedback += (feedback / 4 - this.blended.feedback) * blend;
-    this.terrainIntensity += (intensity / 4 - this.terrainIntensity) * blend;
     const forces = driveForces(input, speed);
     // The authored trails top out near 29 degrees. Preserve their climb, but stop
     // the raycast motor from pulling the chassis up much steeper natural slopes.
@@ -552,6 +550,7 @@ export class Vehicle {
     let uphillGrade = 0;
     let uphillContacts = 0;
     let iceContacts = 0;
+    let uphillSlip = 0;
     if (horizontalForward > 0.1) {
       for (let i = 0; i < 4; i++) {
         if (!this.terrainWheels[i].grounded) continue;
@@ -562,13 +561,27 @@ export class Vehicle {
           / (normal.y * horizontalForward));
         uphillContacts++;
         iceContacts += Number(this.terrainWheels[i].surface.id === 'ice');
+        uphillSlip += this.terrainWheels[i].surface.uphillSlip;
       }
     }
     uphillGrade /= Math.max(1, uphillContacts);
     const steepness = THREE.MathUtils.clamp((uphillGrade - 0.56) / 0.34, 0, 1);
     const iceSteepness = THREE.MathUtils.clamp((uphillGrade - 0.44) / 0.24, 0, 1);
     const iceShare = iceContacts / Math.max(1, uphillContacts);
-    const climbForce = (1 - steepness * 0.78) * (1 - iceSteepness * iceShare * 0.65);
+    const looseSteepness = THREE.MathUtils.clamp((uphillGrade - 0.3) / 0.3, 0, 1);
+    const looseShare = uphillSlip / Math.max(1, uphillContacts);
+    const climbForce = (1 - steepness * 0.78) * (1 - iceSteepness * iceShare * 0.65)
+      * (1 - looseSteepness * looseShare);
+    let intensity = 0;
+    for (const wheel of this.terrainWheels) {
+      const climbSlip = wheel.surface.id === 'ice'
+        ? iceSteepness * 0.65 : looseSteepness * wheel.surface.uphillSlip;
+      wheel.slip = wheel.grounded && forces.engine !== 0
+        ? climbSlip * THREE.MathUtils.clamp(1 - Math.abs(speed) / 5, 0, 1) : 0;
+      wheel.intensity = Math.min(1, Math.max(wheel.intensity, wheel.slip * 1.5));
+      intensity += wheel.intensity;
+    }
+    this.terrainIntensity += (intensity / 4 - this.terrainIntensity) * blend;
     const steerLimit = THREE.MathUtils.lerp(0.51, 0.25, Math.min(1, Math.abs(speed) / 15))
       * this.blended.steering;
     this.steering = THREE.MathUtils.damp(this.steering, -input.steer * steerLimit, 9, dt);
@@ -637,8 +650,12 @@ export class Vehicle {
       if (this.lastStepDt === 0) {
         this.wheelAngles[i] = controllerAngle;
       } else if (this.controller.wheelIsInContact(i)) {
-        this.freeWheelSpeeds[i] = THREE.MathUtils.clamp(groundDelta / this.lastStepDt, -35, 35);
-        this.wheelAngles[i] += groundDelta;
+        // Rapier's raycast wheel rotation follows ground travel. Add visible spin
+        // when motor torque exceeds the grip available on a loose uphill slope.
+        const visibleDelta = groundDelta + this.freeWheelDirection
+          * 18 * this.terrainWheels[i].slip * this.lastStepDt;
+        this.freeWheelSpeeds[i] = THREE.MathUtils.clamp(visibleDelta / this.lastStepDt, -35, 35);
+        this.wheelAngles[i] += visibleDelta;
       } else {
         const target = this.freeWheelDirection < 0 ? -14 : this.freeWheelDirection > 0 ? 10 : 0;
         this.freeWheelSpeeds[i] = THREE.MathUtils.damp(
@@ -698,6 +715,7 @@ export class Vehicle {
       steering: this.surface.steering, feedback: this.surface.feedback,
     };
     this.terrainIntensity = 0;
+    for (const wheel of this.terrainWheels) { wheel.intensity = 0; wheel.slip = 0; }
     for (let i = 0; i < 4; i++) {
       this.controller.setWheelEngineForce(i, 0);
       this.controller.setWheelBrake(i, 0);

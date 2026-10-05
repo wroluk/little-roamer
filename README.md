@@ -127,8 +127,10 @@ On flat terrain, subtle visual ride texture moves all four wheels and gently
 rocks the body as each axle crosses the same patch of ground. This leaves the
 physical suspension to respond to actual terrain geometry. Rock and grass have
 more visible ride texture than soft sand. Very steep uphill grades reduce drive
-force; reduced grip and power make snowy and icy climbs harder. Steep ice faces
-reward a diagonal approach. Authored trail
+force; loose sand, ash, and mud lose additional uphill traction as the
+grade rises. On those slopes the wheels visibly spin and throw more terrain
+particles when the car struggles, while a gentler or diagonal line can keep it
+moving. Steep ice faces also reward a diagonal approach. Authored trail
 climbs remain passable. The four wheels have separate
 Rapier raycasts and drive forces;
 their visible meshes also free-spin under throttle when airborne or overturned.
