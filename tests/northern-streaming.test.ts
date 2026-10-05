@@ -9,6 +9,7 @@ import {
   BrowserChunkTransport, DEFAULT_ACTIVATION_BUDGET_PER_UPDATE, InProcessChunkTransport,
   NorthernStreamingRuntime, type BrowserWorkerLike, type NorthernStreamingOptions,
 } from '../src/game/northern-streaming';
+import { Vehicle } from '../src/game/vehicle';
 
 before(async () => { await RAPIER.init(); });
 
@@ -231,6 +232,33 @@ test('streamed shrubs have small physical bumps beneath the visible foliage', as
     assert.ok(Math.abs(beside.height - sampledHeightAt(x + chunk.props.scale[shrub] * 0.55, z)) < 0.1,
       'the bump should stay inside the visible shrub');
   } finally { runtime.dispose(); }
+});
+
+test('a vehicle wheel ray contacts the shrub bump and compresses its suspension', async () => {
+  const { scene, world, runtime } = harness();
+  try {
+    const chunk = generateNorthernChunk(0, 6);
+    const shrub = Array.from(chunk.props.type).findIndex(type => type === 5);
+    assert.ok(shrub >= 0);
+    const x = chunk.props.x[shrub];
+    const y = chunk.props.y[shrub];
+    const z = chunk.props.z[shrub];
+    await runtime.ensureReady(x, z);
+    world.step();
+    // The front-left wheel is 0.91 m left and 1.02 m ahead of the chassis.
+    // No soft-obstacle callback is supplied: this must be a real raycast contact.
+    const vehicle = new Vehicle(scene, world, { x: x + 0.91, y: y + 0.85, z: z + 1.02 });
+    vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
+    world.step();
+    vehicle.capture();
+    assert.ok(vehicle.controller.wheelIsInContact(0));
+    const contact = vehicle.controller.wheelContactPoint(0);
+    assert.ok(contact);
+    assert.ok(contact.y > y + 0.12, `front-left wheel missed the shrub: contact y=${contact.y}, terrain y=${y}`);
+    const length = vehicle.controller.wheelSuspensionLength(0);
+    assert.ok(length !== null && length < 0.85 - 0.48 - 0.12,
+      `front-left suspension did not compress on the shrub: length=${length}`);
+  } finally { runtime.dispose(); world.free(); }
 });
 
 test('stale in-flight results are safely ignored when their chunk is abandoned before the response arrives', async () => {
