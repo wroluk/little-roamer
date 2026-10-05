@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
+import {coastShoreX} from '../src/game/northern-coast';
 import {sampledHeightAt,waterHeightAt,generateNorthernChunk} from '../src/game/northern-terrain';
 import {NorthernStreamingRuntime,InProcessChunkTransport} from '../src/game/northern-streaming';
 
@@ -46,4 +47,36 @@ test('ocean uses one fogged mesh and the offshore stop is removed on disposal',a
     assert.equal(scene.children.length,0);
     assert.equal(world.colliders.len(),0);
   } finally {runtime.dispose();world.free();}
+});
+
+
+test('sea reaches the physical bank along the entire western coast', () => {
+  const meshes = new Map<string, THREE.Mesh>();
+  const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+  const ray = new THREE.Raycaster();
+  try {
+    for (let z = -768; z <= 768; z += 8) {
+      for (let d = -10; d <= 44; d += 1) {
+        const x = coastShoreX(z) + d;
+        if (sampledHeightAt(x, z) >= -0.02) continue;
+        assert.notEqual(waterHeightAt(x, z), null, `uncovered seabed at ${x},${z}`);
+        const cx = Math.floor(x / 96), cz = Math.floor(z / 96), key = `${cx},${cz}`;
+        let mesh = meshes.get(key);
+        if (!mesh) {
+          const chunk = generateNorthernChunk(cx, cz);
+          assert.ok(chunk.waterVertices && chunk.waterIndices);
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(chunk.waterVertices, 3));
+          geometry.setIndex(new THREE.BufferAttribute(chunk.waterIndices, 1));
+          mesh = new THREE.Mesh(geometry, material);
+          meshes.set(key, mesh);
+        }
+        ray.set(new THREE.Vector3(x, 50, z), new THREE.Vector3(0, -1, 0));
+        assert.ok(ray.intersectObject(mesh).length > 0, `water mesh gap at ${x},${z}`);
+      }
+    }
+  } finally {
+    for (const mesh of meshes.values()) mesh.geometry.dispose();
+    material.dispose();
+  }
 });

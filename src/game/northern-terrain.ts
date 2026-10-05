@@ -279,7 +279,7 @@ function applyRoutes(x: number, z: number, height: number): number {
   return result;
 }
 
-type WaterFeature = { amount: number; level: number; bed: number; containsWater?: boolean };
+type WaterFeature = { amount: number; level: number; bed: number; containsWater?: boolean; minimumWaterAmount?: number };
 
 function waterFeatures(x: number, z: number): WaterFeature[] {
   const features: WaterFeature[] = [];
@@ -312,7 +312,9 @@ function waterFeatures(x: number, z: number): WaterFeature[] {
   const shore = shoreX(z);
   const seaAmount = 1 - smooth((x - shore) / 45);
   if (seaAmount > 0) {
-    features.push({ amount: seaAmount, level: 0, bed: -22 - 14 * smooth((shore - x) / 320) });
+    // The carving blend is not a shoreline mask: its outer half can still
+    // lie below sea level. Let the sampled terrain close the sea at the bank.
+    features.push({ amount: seaAmount, minimumWaterAmount: 0, level: 0, bed: -22 - 14 * smooth((shore - x) / 320) });
   }
 
   return features;
@@ -391,7 +393,7 @@ export function northernHeightAt(x: number, z: number): number {
 /** Local open-water surface elevation at (x, z), or null on dry land. */
 export function waterHeightAt(x: number, z: number): number | null {
   const best = strongestWaterFeature(waterFeatures(x, z));
-  if (!best || best.amount < 0.5 || best.containsWater === false) return null;
+  if (!best || best.amount < (best.minimumWaterAmount ?? 0.5) || best.containsWater === false) return null;
   const ground = sampledHeightAt(x, z);
   return ground < best.level ? best.level : null;
 }
@@ -840,7 +842,7 @@ function waterVertexAt(x: number, z: number): WaterVertex {
     y: best.level + 0.015,
     z,
     depth: Math.max(0, depth),
-    wet: best.amount >= 0.5 && best.containsWater !== false && depth > 0,
+    wet: best.amount >= (best.minimumWaterAmount ?? 0.5) && best.containsWater !== false && depth > 0,
   };
 }
 
