@@ -175,7 +175,7 @@ test('surface profiles express distinct traction, resistance, and steering', () 
   assert.ok(SURFACES.rock.roughness > SURFACES.grass.roughness);
   assert.ok(SURFACES.grass.roughness > SURFACES.sand.roughness);
   assert.ok(SURFACES.dirt.roughness > 0.01);
-  assert.equal(SURFACES.water.speed, SURFACES.dirt.speed);
+  assert.ok(SURFACES.water.speed < SURFACES.ash.speed / 2);
   assert.ok(SURFACES.water.drag > SURFACES.ash.drag * 4);
   assert.ok(SURFACES.water.power < SURFACES.ash.power);
   assert.ok(SURFACES.snow.lateralGrip > SURFACES.ice.lateralGrip);
@@ -208,13 +208,67 @@ test('each grounded wheel classifies its own surface and aggregate handling blen
 
 test('ice visibly lengthens braking and widens the turning path', () => {
   const dirt = maneuver('dirt');
+  const snow = maneuver('snow');
   const ice = maneuver('ice');
+  assert.ok(snow.heading < dirt.heading * 0.9,
+    `heading dirt=${dirt.heading}, snow=${snow.heading}`);
   assert.ok(ice.brakeDistance > dirt.brakeDistance * 1.25,
     `braking dirt=${dirt.brakeDistance}, ice=${ice.brakeDistance}`);
   assert.ok(ice.brakeTicks > dirt.brakeTicks,
     `braking ticks dirt=${dirt.brakeTicks}, ice=${ice.brakeTicks}`);
   assert.ok(ice.heading < dirt.heading * 0.75,
     `heading dirt=${dirt.heading}, ice=${ice.heading}; offsets dirt=${dirt.turnOffset}, ice=${ice.turnOffset}`);
+});
+
+test('snow and ice take longer to stop from the same speed', () => {
+  const stoppingDistance = (surface: SurfaceId) => {
+    const { world, scene, vehicle, tick } = surfaceVehicle(() => surface);
+    try {
+      vehicle.body.setLinvel({ x: 0, y: 0, z: -8 }, true);
+      vehicle.capture();
+      const start = vehicle.position.clone();
+      let steps = 0;
+      while (Math.abs(vehicle.speed) > 0.5 && steps++ < 180) {
+        tick(1, { steer: 0, forward: false, reverse: true });
+      }
+      return vehicle.position.distanceTo(start);
+    } finally { world.free(); disposeScene(scene); }
+  };
+  const dirt = stoppingDistance('dirt');
+  const snow = stoppingDistance('snow');
+  const ice = stoppingDistance('ice');
+  assert.ok(snow > dirt * 1.1, `dirt=${dirt}, snow=${snow}`);
+  assert.ok(ice > snow * 1.1, `snow=${snow}, ice=${ice}`);
+});
+
+test('snow and ice climb a steep grade more slowly than bare ground', () => {
+  const progress = (surface: SurfaceId, degrees: number) => {
+    const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+    const angle = degrees * Math.PI / 180;
+    world.createCollider(RAPIER.ColliderDesc.cuboid(100, 0.1, 100)
+      .setRotation({ x: Math.sin(angle / 2), y: 0, z: 0, w: Math.cos(angle / 2) })
+      .setFriction(0.9));
+    const scene = new THREE.Scene();
+    const vehicle = new Vehicle(scene, world, { x: 0, y: 1.2, z: 0 }, 1.6, () => surface);
+    try {
+      for (let step = 0; step < 240; step++) {
+        vehicle.beforeStep({ steer: 0, forward: true, reverse: false }, 1 / 60);
+        world.step();
+        vehicle.capture();
+      }
+      return -vehicle.position.z;
+    } finally { world.free(); disposeScene(scene); }
+  };
+  const dirtSteep = progress('dirt', 25);
+  const snowSteep = progress('snow', 25);
+  const iceSteep = progress('ice', 25);
+  const snowGentle = progress('snow', 10);
+  const iceGentle = progress('ice', 10);
+  assert.ok(dirtSteep > 5, `dirt 25°=${dirtSteep}`);
+  assert.ok(dirtSteep > snowSteep + 5 && dirtSteep > iceSteep + 5,
+    `dirt 25°=${dirtSteep}, snow 25°=${snowSteep}, ice 25°=${iceSteep}`);
+  assert.ok(snowGentle > 5 && iceGentle > 5,
+    `snow 10°=${snowGentle}, ice 10°=${iceGentle}`);
 });
 
 test('deeper water produces stronger blended drag than shallow water', () => {

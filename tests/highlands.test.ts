@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import {
   FORDS, GLACIER_ASCENT, VOLCANO_ASCENT, HIGHLANDS_HALF, HIGHLANDS_START,
-  highlandsSamples, highlandsSurfaceHeight, highlandsWaterHeight, riverCenter,
+  highlandsSamples, highlandsSurfaceAt, highlandsSurfaceHeight, highlandsWaterHeight, riverCenter,
 } from '../src/game/highlands';
 import { Vehicle } from '../src/game/vehicle';
 import { FollowCamera } from '../src/game/camera';
@@ -16,11 +16,12 @@ before(async () => { await RAPIER.init(); });
 const terrain = highlandsSamples();
 const idle = { steer: 0, forward: false, reverse: false };
 
-function simulation(spawn = HIGHLANDS_START, heading = 0) {
+function simulation(spawn = HIGHLANDS_START, heading = 0, settleTicks = 90) {
   const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
   world.createCollider(RAPIER.ColliderDesc.trimesh(terrain.vertices, terrain.indices).setFriction(0.9));
   const scene = new THREE.Scene();
-  const vehicle = new Vehicle(scene, world, spawn, AREAS.highlands.climbingPower);
+  const vehicle = new Vehicle(scene, world, spawn, AREAS.highlands.climbingPower,
+    highlandsSurfaceAt, highlandsWaterHeight);
   vehicle.body.setRotation(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), heading), true);
   vehicle.capture();
   const tick = (count: number, forward = false) => {
@@ -31,7 +32,7 @@ function simulation(spawn = HIGHLANDS_START, heading = 0) {
     }
     vehicle.syncVisuals(1);
   };
-  tick(90);
+  tick(settleTicks);
   return { world, scene, vehicle, tick };
 }
 
@@ -112,8 +113,8 @@ test('four-wheel vehicle crosses every ford in both directions with a level, uno
   }
 });
 
-test('glacier and volcano slopes are actually climbable, not just scenery', () => {
-  for (const route of [GLACIER_ASCENT, VOLCANO_ASCENT]) {
+test('volcano climb remains open and the glacier rewards an oblique line', () => {
+  for (const route of [VOLCANO_ASCENT]) {
     const { world, scene, vehicle, tick } = simulation({
       x: route.x, y: highlandsSurfaceHeight(route.x, route.z) + 1.25, z: route.z,
     }, route.heading);
@@ -129,4 +130,28 @@ test('glacier and volcano slopes are actually climbable, not just scenery', () =
       assert.ok(new THREE.Vector3(0, 1, 0).applyQuaternion(vehicle.rotation).y > 0.8);
     } finally { world.free(); disposeScene(scene); }
   }
+  const straight = simulation({ x: GLACIER_ASCENT.x,
+    y: highlandsSurfaceHeight(GLACIER_ASCENT.x, GLACIER_ASCENT.z) + 1.25,
+    z: GLACIER_ASCENT.z });
+  try {
+    for (let i = 0; i < 900; i++) straight.tick(1, true);
+    assert.ok(GLACIER_ASCENT.z - straight.vehicle.position.z < GLACIER_ASCENT.length * 0.7,
+      `straight glacier progress=${GLACIER_ASCENT.z - straight.vehicle.position.z}`);
+  } finally { straight.world.free(); disposeScene(straight.scene); }
+
+  const flank = { x: -50, z: -80, heading: -0.6 };
+  const angled = simulation({ x: flank.x, y: highlandsSurfaceHeight(flank.x, flank.z) + 1.25,
+    z: flank.z }, flank.heading, 0);
+  try {
+    let climbed = false;
+    for (let i = 0; i < 900; i++) {
+      angled.tick(1, true);
+      if (angled.vehicle.position.y > 34 && angled.vehicle.contactCount() >= 2) {
+        climbed = true;
+        break;
+      }
+    }
+    assert.ok(climbed, `oblique glacier climb peaked at ${angled.vehicle.position.y}`);
+    assert.ok(new THREE.Vector3(0, 1, 0).applyQuaternion(angled.vehicle.rotation).y > 0.8);
+  } finally { angled.world.free(); disposeScene(angled.scene); }
 });

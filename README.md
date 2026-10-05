@@ -110,9 +110,9 @@ to distinct vehicle behavior rather than being purely decorative:
 | Loose black sand | Wheels dig in and slide laterally over rippled ground, throwing dense dark dust |
 | Rough lava | Slow, firm suspension chatter with small dark pebbles |
 | Springy moss | Soft suspension and a gentle rebound with moss flecks |
-| Glacier ice | Keeps momentum but turns and brakes slowly over imperfect ice, with light powder |
+| Glacier ice | Slides longer, turns and brakes reluctantly; an oblique line helps on steep climbs |
 | Glacial river | Very slow, with depth-scaled drag, rocky-bed suspension shake, and bright spray |
-| Mountain snow | Soft, slower, and more forgiving than glacier ice |
+| Mountain snow | Softer than ice, but drifts and needs a gentler uphill line |
 | Soft mud | Heavy resistance with deep suspension movement |
 | Mountain rock | Strong grip with firm, visible chassis movement |
 | Coastal sand | Loose steering and soft rolling resistance |
@@ -127,7 +127,9 @@ On flat terrain, subtle visual ride texture moves all four wheels and gently
 rocks the body as each axle crosses the same patch of ground. This leaves the
 physical suspension to respond to actual terrain geometry. Rock and grass have
 more visible ride texture than soft sand. Very steep uphill grades reduce drive
-force while authored trail climbs remain passable. The four wheels have separate
+force; reduced grip and power make snowy and icy climbs harder. Steep ice faces
+reward a diagonal approach. Authored trail
+climbs remain passable. The four wheels have separate
 Rapier raycasts and drive forces;
 their visible meshes also free-spin under throttle when airborne or overturned.
 The surface chip briefly shows a trait such as **Slippery**

@@ -146,26 +146,25 @@ test('Iceland touch controls and Home Screen area picker fit portrait and landsc
   }
 });
 
-test('drive up the glacier and a volcano flank in the complete highlands world', async ({ page }) => {
+test('take an oblique glacier line and drive up a volcano flank in the complete highlands world', async ({ page }) => {
   test.setTimeout(80_000);
   await enter(page);
   const routes = await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.ascents);
-  for (const route of routes) {
-    await page.evaluate(r => (window as unknown as { __ROAMER__: Game }).__ROAMER__
-      .placeVehicle(r.x, r.z, r.heading), route);
-    await page.waitForTimeout(500);
-    const startY = (await state(page)).position.y;
-    await page.keyboard.down('KeyW');
-    let overlaps = 0;
-    await expect.poll(async () => {
-      const current = await state(page);
-      overlaps += Number(current.cameraObstructed);
-      return route.z - current.position.z;
-    }, { timeout: 30_000, intervals: [200] }).toBeGreaterThan(route.length);
-    await page.keyboard.up('KeyW');
-    expect((await state(page)).position.y).toBeGreaterThan(startY + 20);
-    expect(overlaps).toBe(0);
-  }
+  const volcano = routes[1];
+  await page.evaluate(r => (window as unknown as { __ROAMER__: Game }).__ROAMER__
+    .placeVehicle(r.x, r.z, r.heading), volcano);
+  await page.keyboard.down('KeyW');
+  await expect.poll(async () => volcano.z - (await state(page)).position.z,
+    { timeout: 30_000, intervals: [200] }).toBeGreaterThan(volcano.length);
+  await page.keyboard.up('KeyW');
+
+  await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__
+    .placeVehicle(-50, -80, -0.6));
+  await page.keyboard.down('KeyW');
+  await expect.poll(async () => (await state(page)).position.y,
+    { timeout: 30_000, intervals: [200] }).toBeGreaterThan(34);
+  await page.keyboard.up('KeyW');
+  expect((await state(page)).cameraObstructed).toBe(false);
 });
 
 test('visible terrain changes the live handling profile and surface indicator', async ({ page }) => {

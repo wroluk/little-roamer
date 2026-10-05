@@ -504,7 +504,7 @@ export class Vehicle {
       power += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(shallowPower, 0, deepStall) : wheel.surface.power;
       const shallowDrag = wheel.surface.drag * THREE.MathUtils.lerp(0.45, 1, fordDepth);
       dragTotal += wheel.surface.id === 'water' ? shallowDrag + deepStall * 18 : wheel.surface.drag;
-      const shallowSpeed = THREE.MathUtils.lerp(0.96, wheel.surface.speed, fordDepth);
+      const shallowSpeed = THREE.MathUtils.lerp(0.68, wheel.surface.speed, fordDepth);
       speedScale += wheel.surface.id === 'water' ? THREE.MathUtils.lerp(shallowSpeed, 0.01, deepStall) : wheel.surface.speed;
       steering += wheel.surface.steering;
       feedback += wheel.surface.feedback;
@@ -551,6 +551,7 @@ export class Vehicle {
     const driveDirection = forces.engine < 0 ? -1 : 1;
     let uphillGrade = 0;
     let uphillContacts = 0;
+    let iceContacts = 0;
     if (horizontalForward > 0.1) {
       for (let i = 0; i < 4; i++) {
         if (!this.terrainWheels[i].grounded) continue;
@@ -560,11 +561,14 @@ export class Vehicle {
           -driveDirection * (normal.x * this.forward.x + normal.z * this.forward.z)
           / (normal.y * horizontalForward));
         uphillContacts++;
+        iceContacts += Number(this.terrainWheels[i].surface.id === 'ice');
       }
     }
     uphillGrade /= Math.max(1, uphillContacts);
     const steepness = THREE.MathUtils.clamp((uphillGrade - 0.56) / 0.34, 0, 1);
-    const climbForce = 1 - steepness * 0.78;
+    const iceSteepness = THREE.MathUtils.clamp((uphillGrade - 0.44) / 0.24, 0, 1);
+    const iceShare = iceContacts / Math.max(1, uphillContacts);
+    const climbForce = (1 - steepness * 0.78) * (1 - iceSteepness * iceShare * 0.65);
     const steerLimit = THREE.MathUtils.lerp(0.51, 0.25, Math.min(1, Math.abs(speed) / 15))
       * this.blended.steering;
     this.steering = THREE.MathUtils.damp(this.steering, -input.steer * steerLimit, 9, dt);
