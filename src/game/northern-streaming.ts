@@ -34,6 +34,8 @@ const SOLID_PROPS = new Set<string>([
 ]);
 
 const SHRUB_BUMP_RADIUS_SCALE = 1.8;
+const SHRUB_COLLIDER_RADIUS_SCALE = 0.28;
+const SHRUB_COLLIDER_HEIGHT_SCALE = 0.24;
 
 // ---------------------------------------------------------------------------
 // Transport protocol: how chunk requests reach a generator and results come back.
@@ -573,6 +575,31 @@ function matchingConvexHull(geometry: THREE.BufferGeometry, matrix: THREE.Matrix
   return desc;
 }
 
+function shrubColliderMesh(chunk: NorthernChunk): { vertices: Float32Array; indices: Uint32Array } | null {
+  const vertices: number[] = [];
+  const indices: number[] = [];
+  const sides = 6;
+  for (let i = 0; i < chunk.props.count; i++) {
+    if (chunk.props.type[i] !== 5) continue;
+    const x = chunk.props.x[i];
+    const y = chunk.props.y[i];
+    const z = chunk.props.z[i];
+    const scale = chunk.props.scale[i];
+    const radius = SHRUB_COLLIDER_RADIUS_SCALE * scale;
+    const base = vertices.length / 3;
+    for (let side = 0; side < sides; side++) {
+      const angle = side * Math.PI * 2 / sides;
+      vertices.push(x + Math.cos(angle) * radius, y - 0.04 * scale,
+        z + Math.sin(angle) * radius);
+    }
+    vertices.push(x, y + SHRUB_COLLIDER_HEIGHT_SCALE * scale, z);
+    for (let side = 0; side < sides; side++) {
+      indices.push(base + side, base + sides, base + (side + 1) % sides);
+    }
+  }
+  return indices.length ? { vertices: new Float32Array(vertices), indices: new Uint32Array(indices) } : null;
+}
+
 /**
  * Live, worker-backed streaming manager for the Northern Reach world: a deterministic 5x5
  * render ring and 3x3 collider ring around a moving point, non-blocking per-frame updates,
@@ -935,6 +962,11 @@ export class NorthernStreamingRuntime {
     if (!record.chunk || record.hasCollider) return;
     const desc = RAPIER.ColliderDesc.trimesh(record.chunk.vertices, record.chunk.indices).setFriction(0.9);
     record.collider = this.world.createCollider(desc);
+    // One low, narrow mesh per chunk gives every shrub a real wheel contact while
+    // keeping the dense grassland from allocating hundreds of separate colliders.
+    const shrubs = shrubColliderMesh(record.chunk);
+    if (shrubs) record.propColliders.push(this.world.createCollider(
+      RAPIER.ColliderDesc.trimesh(shrubs.vertices, shrubs.indices).setFriction(0.9)));
     const dummy = new THREE.Object3D();
     for (let i = 0; i < record.chunk.props.count; i++) {
       const type = record.chunk.props.type[i];

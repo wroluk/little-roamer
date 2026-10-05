@@ -210,8 +210,8 @@ test('streamed loose boulders have matching collision inside the physics ring', 
   } finally { runtime.dispose(); }
 });
 
-test('streamed shrubs expose a bounded soft bump without adding hard colliders', async () => {
-  const { runtime } = harness();
+test('streamed shrubs have small physical bumps beneath the visible foliage', async () => {
+  const { world, runtime } = harness();
   try {
     const chunk = generateNorthernChunk(0, 6);
     const shrub = Array.from(chunk.props.type).findIndex(type => type === 5);
@@ -222,6 +222,14 @@ test('streamed shrubs expose a bounded soft bump without adding hard colliders',
     assert.equal(runtime.shrubBumpAt(x, z), 1);
     assert.ok(runtime.shrubBumpAt(x + chunk.props.scale[shrub] * 1.6, z) > 0);
     assert.equal(runtime.shrubBumpAt(x + chunk.props.scale[shrub] * 1.9, z), 0);
+    const top = raycastHeight(world, x, z);
+    assert.ok(top);
+    assert.ok(Math.abs(top.height - (chunk.props.y[shrub] + chunk.props.scale[shrub] * 0.24)) < 0.01,
+      'a wheel ray should hit the small bump at the shrub centre');
+    const beside = raycastHeight(world, x + chunk.props.scale[shrub] * 0.55, z);
+    assert.ok(beside);
+    assert.ok(Math.abs(beside.height - sampledHeightAt(x + chunk.props.scale[shrub] * 0.55, z)) < 0.1,
+      'the bump should stay inside the visible shrub');
   } finally { runtime.dispose(); }
 });
 

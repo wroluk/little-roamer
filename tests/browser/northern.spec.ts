@@ -139,7 +139,9 @@ test('shrubs let the car pass while producing soft suspension feedback', async (
   const x = chunk.props.x[shrub];
   const z = chunk.props.z[shrub];
   await page.evaluate(
-    ({ x, z }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z + 7, 0),
+    // The car has no physical wheel bodies: line up a wheel ray with the small
+    // collider under the shrub, rather than driving the chassis over its centre.
+    ({ x, z }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x + 0.91, z + 7, 0),
     { x, z },
   );
   await page.keyboard.down('KeyW');

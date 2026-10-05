@@ -593,12 +593,9 @@ export class Vehicle {
       const roughness = wheelSurface.id === 'water'
         ? wheelSurface.roughness * THREE.MathUtils.lerp(0.65, 1.1, Math.min(1, this.wheelWaterDepth[i] / 0.45))
         : wheelSurface.roughness;
-      const softObstacle = this.softObstacleAt(wheel.position.x, wheel.position.z);
       this.rideBumps[i] = THREE.MathUtils.damp(
         this.rideBumps[i], groundRipple * roughness * wheel.intensity, 22, dt,
       );
-      this.controller.setWheelSuspensionRestLength(i,
-        REST_LENGTH + softObstacle * 0.12 * wheel.intensity);
     }
 
     function smoothStep(value: number) {
