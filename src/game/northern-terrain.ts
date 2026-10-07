@@ -15,7 +15,7 @@ import { applyAdventures, adventureSurface, adventureTrailDistance, ADVENTURE_PR
 import { applyMarsh, marshWeight, marshTrailSample, marshPoolRadius, marshMudPatch, MARSH_POOLS, MARSH_START, MARSH_LOOKOUT, MARSH_SIGNS, MARSH_WILLOWS } from './northern-marsh';
 import { applyEmber, emberWeight, emberRadius, emberTrailSample, EMBER_START, EMBER_LOOKOUT, EMBER_FLOOR, EMBER_SIGNS, EMBER_COLUMNS } from './northern-ember';
 import { applyPass, passWeight, passTrailSample, passBowlRadius, PASS_TRAILS, PASS_SIGNS, PASS_TORS, PASS_START, PASS_LOOKOUT } from './northern-pass';
-import { applyCoast, coastShoreX, coastWeight, coastTrailSample, COAST_STACKS, COAST_SIGNS } from './northern-coast';
+import { applyCoast, coastShoreX, coastWeight, coastTrailSample, COAST_STACKS, COAST_SIGNS, COAST_BEACH_LOGS } from './northern-coast';
 
 // ---------------------------------------------------------------------------
 // World / chunk geometry
@@ -790,13 +790,20 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
     authoredProp(sign.x, sign.z, 15, 1);
     authoredProp(sign.x, sign.z, 7, 1);
   }
+  for (const log of COAST_BEACH_LOGS) authoredProp(log.x, log.z, 14, log.scale, 0, log.angle);
+  let lastCoastLogZ = -Infinity;
   for (let step = 325; step <= 500; step += 13) {
     const pz = step + 4 * Math.sin(step * 1.71);
     const shore = shoreX(pz);
     for (const d of [18, 55, 106]) {
       const px = shore + d + 6 * Math.sin(pz * 0.13 + d);
       if (coastTrailSample(px, pz).distance < 9) continue;
-      authoredProp(px, pz, d === 18 ? 14 : 1, d === 18 ? 0.9 + 0.3 * Math.sin(pz) : 1.5 + 0.7 * Math.sin(pz), 0, pz * 2.39);
+      if (d === 18) {
+        if (pz - lastCoastLogZ < 10) continue;
+        lastCoastLogZ = pz;
+      }
+      authoredProp(px, pz, d === 18 ? 14 : 1, d === 18 ? 1.3 + 0.1 * Math.sin(pz) : 1.5 + 0.7 * Math.sin(pz),
+        0, d === 18 ? 0.25 * Math.sin(pz * 0.17) : pz * 2.39);
     }
     for (const d of [-3, 2]) {
       const px = shore + d;

@@ -23,6 +23,13 @@ export const COAST_TRAILS = [
   { name: 'Pebble cove', points: [point(395, 42, 1.2), point(365, 30, 0.8), point(337, 30, 0.8)] },
 ];
 export const COAST_START = point(400, 85, 21);
+const beachLoop = COAST_TRAILS[1].points;
+const beachLoopX = (z: number) => beachLoop[3].x + (beachLoop[4].x - beachLoop[3].x) * (z - 430) / 40;
+// Low, crosswise obstacles make the sheltered beach more tactile without closing the route.
+export const COAST_BEACH_LOGS = [
+  { x: beachLoopX(440), z: 440, scale: 1.15, angle: 0.12 },
+  { x: beachLoopX(460), z: 460, scale: 1.1, angle: -0.18 },
+];
 export const COAST_STACKS = [point(347, 1, 1.1), point(430, -2, 1.6), point(444, 5, 1.25), point(459, -5, 1.8)]
   .map(({ x, z, y }) => ({ x, z, scale: y }));
 export const COAST_SIGNS = [

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { before, test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { COAST_TRAILS, coastShoreX } from '../src/game/northern-coast';
+import { COAST_BEACH_LOGS, COAST_TRAILS, coastShoreX } from '../src/game/northern-coast';
 import { generateNorthernChunk, sampledHeightAt, waterHeightAt, northernSurfaceAt, NORTHERN_SPAWN } from '../src/game/northern-terrain';
 import { InProcessChunkTransport, NorthernStreamingRuntime } from '../src/game/northern-streaming';
 import { Vehicle } from '../src/game/vehicle';
@@ -50,6 +50,42 @@ test('coastal water triangles remain inside the physical shoreline', () => {
       assert.equal(waterHeightAt(x, z), 0, `rendered water must be wet at ${x},${z}`);
       assert.ok(sampledHeightAt(x, z) <= 0.001);
     }
+  }
+});
+
+test('the real vehicle feels beach logs under its wheels', async () => {
+  const scattered = [420, 471, 495].map(z => {
+    const chunk = generateNorthernChunk(-7, Math.floor(z / 96));
+    const index = Array.from(chunk.props.type).findIndex((type, i) =>
+      type === 14 && chunk.props.x[i] < -660 && Math.abs(chunk.props.z[i] - z) < 1);
+    assert.ok(index >= 0, `scattered beach log near ${z} exists`);
+    return { x: chunk.props.x[index], z: chunk.props.z[index] };
+  });
+  const logs = [...COAST_BEACH_LOGS, ...scattered];
+  for (const log of logs) {
+    const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+    const runtime = new NorthernStreamingRuntime(scene, world, new InProcessChunkTransport());
+    try {
+      const start = { x: log.x, z: log.z + 11 };
+      await runtime.ensureReady(start.x, start.z); world.step();
+      const car = new Vehicle(scene, world, { ...start, y: sampledHeightAt(start.x, start.z) + 1.25 }, 1.45, northernSurfaceAt, waterHeightAt);
+      let lift = 0, maxBody = -Infinity, minBody = Infinity;
+      for (let tick = 0; tick < 2400 && car.position.z > log.z - 9; tick++) {
+        car.beforeStep({ steer: 0, forward: tick > 90, reverse: false }, 1 / 60);
+        world.step(); car.capture();
+        if (Math.abs(car.position.z - log.z) >= 3) continue;
+        maxBody = Math.max(maxBody, car.position.y - sampledHeightAt(car.position.x, car.position.z));
+        minBody = Math.min(minBody, car.position.y - sampledHeightAt(car.position.x, car.position.z));
+        for (let wheel = 0; wheel < 4; wheel++) {
+          const point = car.controller.wheelContactPoint(wheel);
+          if (car.controller.wheelIsInContact(wheel) && point)
+            lift = Math.max(lift, point.y - sampledHeightAt(point.x, point.z));
+        }
+      }
+      assert.ok(car.position.z < log.z - 9, `car stuck at beach log: ${car.position.z}`);
+      assert.ok(lift > 0.2, `beach log at ${log.z} wheel contact lift=${lift}`);
+      assert.ok(maxBody - minBody > 0.15, `beach log at ${log.z} chassis motion=${maxBody - minBody}`);
+    } finally { runtime.dispose(); world.free(); disposeScene(scene); }
   }
 });
 

@@ -46,13 +46,25 @@ export function applyWestCoast(x:number,z:number,ground:number):number {
   }
   return ground+(shaped-ground)*weight;
 }
+const between = (a: { x: number; z: number }, b: { x: number; z: number }, t: number) =>
+  ({ x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t });
+const northSpit = WEST_REGIONS[0].trails[0].points;
+const hiddenCoves = WEST_REGIONS[1].trails[2].points;
+const duneCircuit = WEST_REGIONS[2].trails[1].points;
+// Low logs across each region's beach route; the scattered shore logs remain optional detours.
+export const WEST_ROUTE_LOGS = [
+  { ...between(northSpit[4], northSpit[5], 0.5), size: 1.1, angle: 1.1 },
+  { ...between(hiddenCoves[2], hiddenCoves[3], 0.5), size: 1.25, angle: 0.08 },
+  { ...between(duneCircuit[0], duneCircuit[1], 0.75), size: 1.2, angle: 0.4 },
+];
 export const WEST_PROPS: {kind:'westSign'|'coastLog'|'layeredRock'|'reed'|'forestPine';x:number;z:number;size:number;variant?: number; angle?:number}[]=[
   {kind:'westSign',x:ESTUARY_START.x+10,z:110,size:1},
   {kind:'westSign',...westPoint(-300,47,0),size:1},
   {kind:'westSign',...westPoint(575,54,0),size:1},
   ...[-335,-385,-440,-535,-590,605,645].map((z,i)=>({kind:'layeredRock' as const,...westPoint(z,z>0?8:42,0),size:0.7+(i%3)*0.15,angle:i*1.3})),
-  ...[-365,-470,-565,595,630].map((z,i)=>({kind:'coastLog' as const,...westPoint(z,6,0),size:0.8,angle:0.4+i*0.7})),
-  {kind:'coastLog',x:-533,z:139,size:0.75,angle:0.2},
+  ...WEST_ROUTE_LOGS.map(log => ({ kind: 'coastLog' as const, ...log })),
+  ...[-365,-470,-565,575,625].map(z=>({kind:'coastLog' as const,...westPoint(z,6,0),size:1.3,angle:0.2*Math.sin(z*0.17)})),
+  {kind:'coastLog',x:-533,z:139,size:1.3,angle:1.1},
   {kind:'layeredRock',x:-571,z:165,size:0.8},
 ];
 for(let i=0;i<30;i++) {

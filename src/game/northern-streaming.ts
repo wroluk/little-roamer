@@ -523,17 +523,28 @@ function setPropTransform(target: THREE.Object3D, chunk: NorthernChunk, index: n
   const type = chunk.props.type[index];
   const propName = NORTHERN_PROP_TYPES[type];
   const scale = chunk.props.scale[index];
-  if (propName === 'trailLog') {
+  if (propName === 'trailLog' || propName === 'coastLog') {
     const x = chunk.props.x[index];
     const z = chunk.props.z[index];
     const angle = chunk.props.rotationY[index];
-    const halfLength = 3 * scale;
+    const halfLength = (propName === 'trailLog' ? 3 : 1.9) * scale;
     const dx = Math.cos(angle) * halfLength;
     const dz = -Math.sin(angle) * halfLength;
     const startY = sampledHeightAt(x - dx, z - dz);
     const endY = sampledHeightAt(x + dx, z + dz);
     const direction = new THREE.Vector3(dx * 2, endY - startY, dz * 2).normalize();
-    target.position.set(x, (startY + endY) / 2 + 0.04 * scale, z);
+    const middleY = (startY + endY) / 2;
+    let clearance = 0.04 * scale;
+    if (propName === 'coastLog') {
+      // A log's center-height placement can bury one end on a sloping beach.
+      // Follow the beach and keep its underside just above small terrain crests.
+      for (const fraction of [-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75]) {
+        const ground = sampledHeightAt(x + dx * fraction, z + dz * fraction);
+        const line = middleY + (endY - startY) * fraction / 2;
+        clearance = Math.max(clearance, ground - line + 0.04 * scale);
+      }
+    }
+    target.position.set(x, middleY + clearance, z);
     target.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), direction);
     target.scale.set(scale, scale, scale);
     target.updateMatrix();
@@ -575,11 +586,28 @@ function matchingConvexHull(geometry: THREE.BufferGeometry, matrix: THREE.Matrix
   return desc;
 }
 
-function shrubColliderMesh(chunk: NorthernChunk): { vertices: Float32Array; indices: Uint32Array } | null {
+function lowPropColliderMesh(chunk: NorthernChunk): { vertices: Float32Array; indices: Uint32Array } | null {
   const vertices: number[] = [];
   const indices: number[] = [];
   const sides = 6;
+  let driftwoodGeometry: THREE.BufferGeometry | undefined;
+  const dummy = new THREE.Object3D();
+  const point = new THREE.Vector3();
   for (let i = 0; i < chunk.props.count; i++) {
+    if (chunk.props.type[i] === 4) {
+      driftwoodGeometry ??= PROP_GEOMETRY_FACTORY.driftwood();
+      setPropTransform(dummy, chunk, i);
+      const positions = driftwoodGeometry.getAttribute('position');
+      const meshIndices = driftwoodGeometry.getIndex();
+      const base = vertices.length / 3;
+      for (let vertex = 0; vertex < positions.count; vertex++) {
+        point.fromBufferAttribute(positions, vertex).applyMatrix4(dummy.matrix);
+        vertices.push(point.x, point.y, point.z);
+      }
+      if (meshIndices) for (let vertex = 0; vertex < meshIndices.count; vertex++)
+        indices.push(base + meshIndices.getX(vertex));
+      continue;
+    }
     if (chunk.props.type[i] !== 5) continue;
     const x = chunk.props.x[i];
     const y = chunk.props.y[i];
@@ -597,6 +625,7 @@ function shrubColliderMesh(chunk: NorthernChunk): { vertices: Float32Array; indi
       indices.push(base + side, base + sides, base + (side + 1) % sides);
     }
   }
+  driftwoodGeometry?.dispose();
   return indices.length ? { vertices: new Float32Array(vertices), indices: new Uint32Array(indices) } : null;
 }
 
@@ -962,11 +991,11 @@ export class NorthernStreamingRuntime {
     if (!record.chunk || record.hasCollider) return;
     const desc = RAPIER.ColliderDesc.trimesh(record.chunk.vertices, record.chunk.indices).setFriction(0.9);
     record.collider = this.world.createCollider(desc);
-    // One low, narrow mesh per chunk gives every shrub a real wheel contact while
-    // keeping the dense grassland from allocating hundreds of separate colliders.
-    const shrubs = shrubColliderMesh(record.chunk);
-    if (shrubs) record.propColliders.push(this.world.createCollider(
-      RAPIER.ColliderDesc.trimesh(shrubs.vertices, shrubs.indices).setFriction(0.9)));
+    // One mesh per chunk gives shrubs and scattered driftwood wheel contact
+    // without allocating a separate collider for every small prop.
+    const lowProps = lowPropColliderMesh(record.chunk);
+    if (lowProps) record.propColliders.push(this.world.createCollider(
+      RAPIER.ColliderDesc.trimesh(lowProps.vertices, lowProps.indices).setFriction(0.9)));
     const dummy = new THREE.Object3D();
     for (let i = 0; i < record.chunk.props.count; i++) {
       const type = record.chunk.props.type[i];
