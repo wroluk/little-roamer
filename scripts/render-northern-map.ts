@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
 import { sampledHeightAt, waterHeightAt, ROUTES, NORTHERN_SPAWN } from '../src/game/northern-terrain';
 import { ADVENTURE_REGIONS } from '../src/game/northern-adventures';
-import { VALLEY_TRAIL } from '../src/game/northern-valley';
+import { VALLEY_TRAIL, VALLEY_ROCK_BRANCH, VALLEY_MUD_ROUTE, VALLEY_DRY_ROUTE, VALLEY_FORDS, VALLEY_LOOKOUT } from '../src/game/northern-valley';
 import { FOREST_TRAILS } from '../src/game/northern-forest';
 import { COAST_TRAILS, COAST_START } from '../src/game/northern-coast';
 import { PASS_TRAILS, PASS_START } from '../src/game/northern-pass';
@@ -53,7 +53,7 @@ try {
   const paths = (points: readonly {x:number;z:number}[], color: string, width: number) =>
     `<polyline points="${points.map(p=>`${x(p.x)},${y(p.z)}`).join(' ')}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
   const existing = [
-    {name:'River Valley',start:{x:-290,z:205},bounds:[-425,-190,65,330],detail:'Shallow fords · sculpted riverbanks'},
+    {name:'River Valley',start:{x:-290,z:205},bounds:[-425,-190,65,330],detail:'Two fords · rock branch · dry or muddy return'},
     {name:'Pine Hollow',start:{x:-95,z:465},bounds:[-215,65,330,595],detail:'Forest ravine · rock saddle · lake view'},
     {name:'Fjord Coast / Pebble Cove',start:COAST_START,bounds:[-725,-435,255,550],detail:'Beach logs · rocks in shallow water'},
     {name:'High Pass',start:PASS_START,bounds:[475,695,-660,-350],detail:'Twin peaks · ice hollow · high lookout'},
@@ -79,7 +79,7 @@ try {
     return { ...r, detail: details[id] };
   })];
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1400" viewBox="0 0 1800 1400"><style>text{font-family:Arial,Helvetica,sans-serif}</style><rect width="1800" height="1400" fill="#f5f1e6"/>`;
-  svg += text(60,75,'NORTHERN REACH',44,'#29483e',700)+text(60,116,'Current terrain · 1,536 × 1,536 m · north is up · September 2026',22);
+  svg += text(60,75,'NORTHERN REACH',44,'#29483e',700)+text(60,116,'Current terrain · 1,536 × 1,536 m · north is up · October 2026',22);
   svg += text(60,165,'TERRAIN, WATER & DRIVING ROUTES',16,'#506759',700);
   svg += `<image x="${left}" y="${top}" width="${mapSize}" height="${mapSize}" href="${raster}"/>`;
   for(let n=0;n<=16;n++) {
@@ -88,22 +88,24 @@ try {
   }
   for(const route of ROUTES) svg+=paths(route.line,'#534b37',5)+paths(route.line,'#f5e5b9',2.8);
   for(const points of [VALLEY_TRAIL,...[FOREST_TRAILS,COAST_TRAILS,PASS_TRAILS,EMBER_TRAILS,MARSH_TRAILS].flatMap(a=>a.map(t=>t.points))]) svg+=paths(points,'#f6f5da',2);
+  for(const points of [VALLEY_ROCK_BRANCH,VALLEY_MUD_ROUTE,VALLEY_DRY_ROUTE]) svg+=paths(points,'#63351c',4)+paths(points,'#ffc267',2.4);
+  for(const ford of VALLEY_FORDS) svg+=`<circle cx="${x(ford.x)}" cy="${y(ford.z)}" r="4" fill="#fff8e8" stroke="#63351c" stroke-width="2"/>`;
+  svg+=`<circle cx="${x(VALLEY_LOOKOUT.x)}" cy="${y(VALLEY_LOOKOUT.z)}" r="4" fill="#ffc267" stroke="#63351c" stroke-width="2"/>`;
   for(const r of ADVENTURE_REGIONS) for(const trail of r.trails) svg+=newIds.has(r.id)
     ? paths(trail.points,'#63351c',4)+paths(trail.points,'#ffc267',2.4) : paths(trail.points,'#f6f5da',2);
   regions.forEach((r,i)=>{
-    const fresh=i>=13, color=fresh?'#b65724':'#275d55', [l,rr,t,b]=r.bounds;
+    const fresh=i===0||i>=13, color=fresh?'#b65724':'#275d55', [l,rr,t,b]=r.bounds;
     svg+=`<rect x="${x(l)}" y="${y(t)}" width="${(rr-l)*mapSize/worldSize}" height="${(b-t)*mapSize/worldSize}" rx="9" fill="none" stroke="${fresh?'#ffb85f':'#d1e4ce'}" stroke-width="${fresh?3:1.5}" stroke-dasharray="8 5"/>`;
     svg+=`<circle cx="${x(r.start.x)}" cy="${y(r.start.z)}" r="17" fill="${color}" stroke="#fff8e8" stroke-width="2"/>`;
     svg+=text(x(r.start.x)-(i>=9?11:6),y(r.start.z)+7,String(i+1),20,'#ffffff',700);
     const cy=211+i*61;
     svg+=`<circle cx="1212" cy="${cy-7}" r="17" fill="${color}"/>`+text(i>=9?1201:1206,cy,String(i+1),20,'#ffffff',700);
     svg+=text(1245,cy,r.name,22,color,700)+text(1245,cy+25,r.detail,17);
-    if(fresh)svg+=text(1245,cy+43,'REFINED IN THIS UPDATE',11,color,700);
   });
   svg+=`<circle cx="${x(NORTHERN_SPAWN.x)}" cy="${y(NORTHERN_SPAWN.z)}" r="6" fill="#fff" stroke="#263c32" stroke-width="2"/>`;
   svg+=text(x(NORTHERN_SPAWN.x)+12,y(NORTHERN_SPAWN.z)+5,'START',14,'#223e30',700);
   svg+='<text transform="translate(85 750) rotate(-90)" font-size="16" fill="#ffffff" font-weight="700">OPEN SEA · WESTERN WALL REMOVED</text>';
-  svg+=text(1178,1200,'Dashed outlines: approximate authored regions',18)+text(1178,1230,'Pale trails: existing  ·  amber trails: new',18)+text(1178,1260,'Fine grid: 96 m streaming chunks',18);
+  svg+=text(1178,1200,'Dashed outlines: approximate authored regions',18)+text(1178,1230,'Amber trails and numbers: recent updates',18)+text(1178,1260,'Fine grid: 96 m streaming chunks',18);
   svg+=`<path d="M 60 1313 h ${300*mapSize/worldSize} m 0 -7 v 14 M 60 1306 v 14" stroke="#29483e" stroke-width="3"/>`+text(60,1345,'0',16)+text(230,1345,'300 m',16);
   svg+=text(395,1320,'Relief and water sampled from the game; individual props are omitted.',18)+text(395,1350,'Region numbers identify areas, not a required driving order.',18);
   svg+='</svg>';
@@ -112,5 +114,22 @@ try {
   await page.setContent(`<body style="margin:0"><img width="1800" height="1400" src="data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}"></body>`);
   await page.locator('img').evaluate((img: HTMLImageElement)=>img.decode());
   await page.screenshot({path:`${dir}/mapa-northern-reach.png`});
-  console.log(`Updated ${dir}/mapa-northern-reach.{svg,png}`);
+  let valleySvg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="980" viewBox="300 775 175 190"><style>text{font-family:Arial,Helvetica,sans-serif}</style>`;
+  valleySvg += `<image x="${left}" y="${top}" width="${mapSize}" height="${mapSize}" href="${raster}"/>`;
+  valleySvg += paths(VALLEY_TRAIL,'#fff5dc',2.5);
+  for(const points of [VALLEY_ROCK_BRANCH,VALLEY_MUD_ROUTE,VALLEY_DRY_ROUTE]) valleySvg+=paths(points,'#63351c',4)+paths(points,'#ffc267',2.4);
+  for(const ford of VALLEY_FORDS) valleySvg+=`<circle cx="${x(ford.x)}" cy="${y(ford.z)}" r="3" fill="#fff8e8" stroke="#63351c" stroke-width="1.4"/>`;
+  valleySvg+=`<circle cx="${x(VALLEY_LOOKOUT.x)}" cy="${y(VALLEY_LOOKOUT.z)}" r="3" fill="#ffc267" stroke="#63351c" stroke-width="1.4"/>`;
+  valleySvg+=text(306,786,'RIVER VALLEY',7,'#ffffff',700)
+    +text(309,870,'Cairn Ford',3.5,'#fff8e8',700)
+    +text(437,849,'Willow Ford',3.5,'#fff8e8',700)
+    +text(410,812,'Rock lookout',3.5,'#fff8e8',700)
+    +text(389,934,'Dry / muddy return',3.5,'#fff8e8',700);
+  valleySvg+='</svg>';
+  await writeFile(`${dir}/mapa-river-valley.svg`,valleySvg);
+  await page.setViewportSize({width:900,height:980});
+  await page.setContent(`<body style="margin:0"><img width="900" height="980" src="data:image/svg+xml;base64,${Buffer.from(valleySvg).toString('base64')}"></body>`);
+  await page.locator('img').evaluate((img: HTMLImageElement)=>img.decode());
+  await page.screenshot({path:`${dir}/mapa-river-valley.png`});
+  console.log(`Updated Northern Reach and River Valley maps in ${dir}`);
 } finally { await browser.close(); }

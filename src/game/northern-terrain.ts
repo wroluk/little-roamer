@@ -1,3 +1,4 @@
+import { VALLEY_LOOKOUT, VALLEY_ROCKS, valleyBranchSample, valleyMudPatch, valleyExperienceClearance } from './northern-valley';
 import { VALLEY_TRAIL, VALLEY_MARKERS, VALLEY_CAIRNS, valleyWeight, valleyRiverWeight, valleyFordAmount, valleyHills, valleyTrailSample, valleyRiverBed, valleyRiverCenter } from './northern-valley';
 import { FOREST_TRAILS, FOREST_SIGNS, FOREST_CAIRNS, FOREST_OUTCROPS, FOREST_GROVES, FOREST_LOOKOUT, forestWeight, forestRelief, forestTrailSample, forestTrailElevation } from './northern-forest';
 // The Northern Reach: a fixed, finite, chunk-streamed world model.
@@ -384,6 +385,16 @@ function authoredGround(x: number, z: number): number {
 
 export function northernHeightAt(x: number, z: number): number {
   let ground = authoredGround(x, z);
+  if (x > -290 && x < -230 && z > 105 && z < 155) {
+    const branch = valleyBranchSample(x, z);
+    if (branch.distance < 7) {
+      const grade = lerp(authoredGround(-240, 140), authoredGround(-270, 115), branch.fraction);
+      const keepBypass = smooth((valleyTrailSample(x, z).distance - 3) / 3);
+      ground = lerp(ground, grade, (1 - smooth((branch.distance - 2.5) / 4.5)) * keepBypass);
+    }
+  }
+  const lookout = 1 - smooth((Math.hypot(x - VALLEY_LOOKOUT.x, z - VALLEY_LOOKOUT.z) - 4) / 5);
+  if (lookout > 0) ground = lerp(ground, authoredGround(VALLEY_LOOKOUT.x, VALLEY_LOOKOUT.z), lookout);
   // A small level turnout keeps the optional valley spawn and reset from rolling downhill.
   const clearing = 1 - smooth((Math.hypot(x + 240, z - 232) - 5) / 16);
   if (clearing > 0) ground = lerp(ground, authoredGround(-240, 232), clearing);
@@ -430,6 +441,9 @@ export function northernSurfaceAt(x: number, z: number): SurfaceId {
     return d < 44 ? 'sand' : d < 86 ? 'rock' : 'grass';
   }
 
+  if (valleyMudPatch(x, z)) return 'mud';
+  if (x > -290 && x < -230 && z > 105 && z < 155 && valleyBranchSample(x, z).distance < 3) return 'rock';
+  if (Math.hypot(x - VALLEY_LOOKOUT.x, z - VALLEY_LOOKOUT.z) < 6) return 'dirt';
   if (valleyTrailSample(x, z).distance < 4.5) return 'dirt';
   if (forestWeight(x, z) > 0.1) {
     if (forestTrailSample(x, z).distance < 4.5 || Math.hypot(x - FOREST_LOOKOUT.x, z - FOREST_LOOKOUT.z) < 7) return 'dirt';
@@ -648,7 +662,7 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
       if (coastTrailSample(px, pz).distance < 8) continue;
       if (forestTrailSample(px, pz).distance < 7) continue;
       if (Math.hypot(px - FOREST_LOOKOUT.x, pz - FOREST_LOOKOUT.z) < 13) continue;
-      if (valleyTrailSample(px, pz).distance < 6) continue;
+      if (valleyTrailSample(px, pz).distance < 6 || valleyExperienceClearance(px, pz)) continue;
       if (valleyFordAmount(px) > 0.2 && valleyWeight(px, pz) > 0 && polylineSample(RIVER_OUT_LINE, px, pz).distance < 43) continue;
       if (Math.hypot(px - NORTHERN_SPAWN.x, pz - NORTHERN_SPAWN.z) < 14) continue;
       if (ROUTES.some(route => polylineSample(route.line, px, pz).distance < route.width / 2 + 2)) continue;
@@ -674,16 +688,17 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
     rotationY.push(angle); scale.push(size);
     variant.push(meshVariant);
   };
+  for (const rock of VALLEY_ROCKS) authoredProp(rock.x, rock.z, NORTHERN_PROP_TYPES.indexOf('shoalBoulder'), rock.size);
   for (const marker of VALLEY_MARKERS) authoredProp(marker.x, marker.z, 7, 1);
   for (const [px, pz] of [[-207, 322], [-231, 233], [-354, 255]]) {
     authoredProp(px, pz, 8, 1);
     authoredProp(px, pz, 7, 1);
   }
   // Hand-placed groves frame the crossings and leave their approaches unobstructed.
-  for (const [gx, gz] of [[-215, 219], [-264, 152], [-365, 235], [-321, 166]]) {
+  for (const [gx, gz] of [[-215, 219], [-264, 152], [-365, 235], [-321, 166], [-226, 259], [-255, 249]]) {
     for (let i = 0; i < 7; i++) {
       const px = gx + Math.sin(i * 2.4) * (4 + i), pz = gz + Math.cos(i * 2.4) * (4 + i);
-      if (valleyTrailSample(px, pz).distance < 7 || waterHeightAt(px, pz) !== null) continue;
+      if (valleyTrailSample(px, pz).distance < 7 || valleyExperienceClearance(px, pz) || waterHeightAt(px, pz) !== null) continue;
       const size = 1.2 + (i % 3) * 0.2;
       authoredProp(px, pz, 9, size);
     }

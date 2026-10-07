@@ -6,12 +6,9 @@ import {
 } from './game/vehicle';
 import { FollowCamera, horizontalDragDirection } from './game/camera';
 import { FixedClock } from './game/driving';
-import { sampledHeightAt } from './game/northern-terrain';
-import { COAST_START } from './game/northern-coast';
-import { PASS_START } from './game/northern-pass';
-import { EMBER_START } from './game/northern-ember';
-import { MARSH_START, marshWeight } from './game/northern-marsh';
-import { ADVENTURE_REGIONS, shoalsWaterRegion } from './game/northern-adventures';
+import { NORTHERN_STARTS, nearestNorthernStart, regionalSpawn } from './game/regional-starts';
+import { marshWeight } from './game/northern-marsh';
+import { shoalsWaterRegion } from './game/northern-adventures';
 import { lakeShoreDistance, inletDistance, inletWidth } from './game/northern-watershed';
 import { RAMPS } from './game/terrain';
 import { FORDS, VOLCANOES, GLACIER, GLACIER_ASCENT, VOLCANO_ASCENT } from './game/highlands';
@@ -116,7 +113,7 @@ async function boot() {
         vehicle.capture();
       }
       vehicle.syncVisuals(1);
-      const terrainEffects = new TerrainEffects(scene, area.waterHeight);
+      const terrainEffects = new TerrainEffects(scene, area.waterHeight, area.surfaceHeight);
       return { scene, world, vehicle, follow, terrainEffects, runtime };
     } catch (error) {
       runtime?.dispose();
@@ -127,42 +124,11 @@ async function boot() {
   }
   const requestedArea = new URLSearchParams(window.location.search).get('area');
   let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'valley'];
-  if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'river-valley') {
-    area = { ...area, spawn: { x: -240, z: 232, y: sampledHeightAt(-240, 232) + 1.25 },
-      welcomeTitle: 'Follow the river.',
-      description: 'Two shallow fords, sheltered banks and a winding ridge loop. Follow amber posts through the water, or stone cairns into the hills.',
-      readyMessage: 'River Valley. The amber posts mark the shallow crossings.' };
-  }
-  if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'fjord-coast') {
-    area = { ...area, spawn: { ...COAST_START, y: sampledHeightAt(COAST_START.x, COAST_START.z) + 1.25 },
-      welcomeTitle: 'Explore the coast.',
-      description: 'Follow the clifftop trail, descend to sheltered pebble coves and circle the sea stacks along the beach.',
-      readyMessage: 'Fjord Coast. Follow the beach loop down to the shallows.' };
-  }
-  if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'high-pass') {
-    area = { ...area, spawn: { ...PASS_START, y: sampledHeightAt(PASS_START.x, PASS_START.z) + 1.25 },
-      welcomeTitle: 'Above the clouds.',
-      description: 'Wind between twin peaks, climb to the north lookout and descend into the frozen Blue Hollow. Stone cairns guide the mountain circuit.',
-      readyMessage: 'High Pass. Follow the cairns; Blue Hollow is slippery.' };
-  }
-  if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'ember-basin') {
-    area = { ...area, spawn: { ...EMBER_START, y: sampledHeightAt(EMBER_START.x, EMBER_START.z) + 1.25 },
-      welcomeTitle: 'Around the old crater.',
-      description: 'Circle the caldera rim, descend into soft ash and weave past basalt columns on the way to the northern overlook.',
-      readyMessage: 'Ember Basin. Follow the ochre trail; loose ash slows the crater descent.' };
-  }
-  if (area.id === 'northern-reach' && new URLSearchParams(window.location.search).get('start') === 'willow-marsh') {
-    area = { ...area, spawn: { ...MARSH_START, y: sampledHeightAt(MARSH_START.x, MARSH_START.z) + 1.25 },
-      welcomeTitle: 'Among the willows.',
-      description: 'A soft muddy patch begins the dry hummock loop. Or take the marked Reed Ford to Heron lookout, then follow the hidden pass into Stonegate Basin.',
-      hint: 'Try the brown mud on the hummock loop, or follow amber posts into Reed Ford.',
-      readyMessage: 'Willow Marsh. Amber posts mark the shallow crossing.' };
-  }
-  const adventure = ADVENTURE_REGIONS.find(r => r.id === new URLSearchParams(window.location.search).get('start'));
-  if (area.id === 'northern-reach' && adventure) {
-    area = { ...area, spawn: { ...adventure.start, y: sampledHeightAt(adventure.start.x, adventure.start.z) + 1.25 },
-      welcomeTitle: adventure.name, description: adventure.description,
-      hint: adventure.description, readyMessage: `${adventure.name}. Choose your own line.` };
+  const requestedStart = NORTHERN_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
+  if (area.id === 'northern-reach' && requestedStart) {
+    area = { ...area, spawn: regionalSpawn(requestedStart),
+      welcomeTitle: requestedStart.welcomeTitle, description: requestedStart.description,
+      hint: requestedStart.hint ?? area.hint, readyMessage: requestedStart.readyMessage };
   }
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
@@ -216,7 +182,8 @@ async function boot() {
     element('surface-label').textContent = surfaceLabel();
     element('surface-trait').textContent = vehicle.currentSurface.trait;
     element('loading-status').textContent = area.readyMessage;
-    element<HTMLButtonElement>('reset').title = `Return to the ${area.name} starting area (R)`;
+    element<HTMLButtonElement>('reset').title = area.id === 'northern-reach'
+      ? 'Return to the nearest regional start (R)' : `Return to the ${area.name} starting area (R)`;
   }
   presentArea();
   const clock = new FixedClock();
@@ -326,6 +293,8 @@ async function boot() {
   const reset = async () => {
     if (mode !== 'playing') return;
     controls?.clear();
+    const start = area.id === 'northern-reach' ? nearestNorthernStart(vehicle.position.x, vehicle.position.z) : null;
+    const destination = start ? regionalSpawn(start) : area.spawn;
     if (runtime) {
       mode = 'loading';
       resetInProgress = true;
@@ -337,14 +306,14 @@ async function boot() {
       vehicle.model.visible = false;
       element('travelling').hidden = false;
       element('travel-status').textContent = 'Preparing terrain around the starting point...';
-      await runtime.ensureReady(area.spawn.x, area.spawn.z);
+      await runtime.ensureReady(destination.x, destination.z);
       if (hasFailed()) {
         resetInProgress = false;
         return;
       }
       world.step();
     }
-    vehicle.reset();
+    vehicle.reset(destination);
     for (let i = 0; i < 30; i++) {
       vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
       world.step();
@@ -368,7 +337,7 @@ async function boot() {
         pause();
       }
     }
-    toast('Back on your wheels. Off you go.');
+    toast(start ? `Back at ${start.name}` : 'Back on your wheels. Off you go.');
   };
   controls = new Controls(pause, () => { void reset().catch(showError); });
   canvas.addEventListener('pointerdown', event => {
@@ -530,6 +499,8 @@ async function boot() {
           terrainFeedback: vehicle.terrainFeedback,
           waterDepth: vehicle.waterDepth,
           terrainParticles: terrainEffects.count,
+          terrainTracks: terrainEffects.ground.trackCount,
+          terrainRipples: terrainEffects.ground.rippleCount,
           terrainParticleCapacity: terrainEffects.capacity,
           terrainEffectUsesInstanceColors: terrainEffects.usesInstanceColors,
           reducedMotion: reducedMotion.matches,
@@ -600,7 +571,7 @@ async function boot() {
       });
       vehicle.syncVisuals(alpha);
       updateNavigation();
-      terrainEffects.update(Math.min(elapsed, 0.05), vehicle);
+      terrainEffects.update(Math.min(elapsed, 0.05), vehicle, controls!.state.value);
       const surface = vehicle.currentSurface;
       const surfaceHud = element('surface');
       if (surface.id === 'water') {

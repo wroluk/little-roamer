@@ -1,3 +1,4 @@
+import { nearestNorthernStart } from '../../src/game/regional-starts';
 import { test, expect } from '@playwright/test';
 import { COAST_START, coastShoreX } from '../../src/game/northern-coast';
 
@@ -31,7 +32,10 @@ test('Fjord Coast beach drives smoothly and resets to the clifftop', async ({ pa
   await page.screenshot({ path: testInfo.outputPath('fjord-beach.png') });
   expect(beach.streaming.activeRender).toBeLessThanOrEqual(25);
   expect(beach.streaming.activePhysics).toBeLessThanOrEqual(9);
+  const beforeReset = (await state()).position;
+  const expectedStart = nearestNorthernStart(beforeReset.x, beforeReset.z);
   await page.locator('#reset').click();
-  await expect.poll(async () => (await state()).position.z).toBeCloseTo(COAST_START.z, 0);
+  await expect.poll(async () => (await state()).position.x).toBeCloseTo(expectedStart.position.x, 0);
+  await expect.poll(async () => (await state()).position.z).toBeCloseTo(expectedStart.position.z, 0);
   expect(errors).toEqual([]);
 });

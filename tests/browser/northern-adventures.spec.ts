@@ -1,3 +1,4 @@
+import { nearestNorthernStart } from '../../src/game/regional-starts';
 import { test, expect } from '@playwright/test';
 import { ADVENTURE_REGIONS, BASIN_LOOKOUT, shoalPoint } from '../../src/game/northern-adventures';
 
@@ -35,8 +36,11 @@ for (const region of ADVENTURE_REGIONS.filter(r => ['timber-run','stonegate-basi
   await page.screenshot({ path: testInfo.outputPath('feature.png') });
   expect((await state()).streaming.activeRender).toBeLessThanOrEqual(25);
   expect((await state()).streaming.activePhysics).toBeLessThanOrEqual(9);
+  const beforeReset = (await state()).position;
+  const expectedStart = nearestNorthernStart(beforeReset.x, beforeReset.z);
   await page.locator('#reset').click();
-  await expect.poll(async () => (await state()).position.z).toBeCloseTo(region.start.z, 0);
+  await expect.poll(async () => (await state()).position.x).toBeCloseTo(expectedStart.position.x, 0);
+  await expect.poll(async () => (await state()).position.z).toBeCloseTo(expectedStart.position.z, 0);
   expect((await state()).waterDepth).toBe(0);
   expect(errors).toEqual([]);
 });

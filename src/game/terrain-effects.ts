@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { GroundEffects } from './ground-effects';
+import type { DriveInput } from './driving';
 import type { SurfaceId } from './surfaces';
 import type { Vehicle, WheelTerrainState } from './vehicle';
 
@@ -38,7 +40,10 @@ export class TerrainEffects {
   private reduced = false;
   private activeCount = 0;
 
-  constructor(private readonly scene: THREE.Scene, private readonly waterHeight: (x: number, z: number) => number | null) {
+  readonly ground: GroundEffects;
+
+  constructor(private readonly scene: THREE.Scene, private readonly waterHeight: (x: number, z: number) => number | null, heightAt: (x: number, z: number) => number = () => 0) {
+    this.ground = new GroundEffects(scene, heightAt, waterHeight);
     this.mesh.frustumCulled = false;
     this.mesh.visible = false;
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -60,6 +65,7 @@ export class TerrainEffects {
   }
 
   clear() {
+    this.ground.clear();
     for (const particle of this.particles) particle.remaining = 0;
     this.emitDebt.fill(0);
     this.activeCount = 0;
@@ -67,27 +73,27 @@ export class TerrainEffects {
   }
 
   dispose() {
+    this.ground.dispose();
     this.scene.remove(this.mesh);
     this.mesh.dispose();
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
   }
 
-  update(dt: number, vehicle: Vehicle) {
-    if (!this.reduced) {
-      for (let i = 0; i < vehicle.terrainWheels.length; i++) {
-        const wheel = vehicle.terrainWheels[i];
-        const waterY = wheel.surface.id === 'water'
-          ? this.waterHeight(wheel.position.x, wheel.position.z)
-          : null;
-        const depthScale = waterY === null ? 1
-          : 0.45 + Math.max(0, Math.min(1, (waterY - wheel.position.y) / 0.45)) * 0.8;
-        const rate = wheel.surface.particleRate * wheel.intensity * depthScale * 15;
-        this.emitDebt[i] = Math.min(2, this.emitDebt[i] + dt * rate);
-        while (this.emitDebt[i] >= 1) {
-          this.emit(wheel, vehicle, i);
-          this.emitDebt[i]--;
-        }
+  update(dt: number, vehicle: Vehicle, input: DriveInput = { steer: 0, forward: false, reverse: false }) {
+    this.ground.update(dt, vehicle, input, this.reduced ? 0.65 : 1);
+    for (let i = 0; i < vehicle.terrainWheels.length; i++) {
+      const wheel = vehicle.terrainWheels[i];
+      const waterY = wheel.surface.id === 'water'
+        ? this.waterHeight(wheel.position.x, wheel.position.z)
+        : null;
+      const depthScale = waterY === null ? 1
+        : 0.45 + Math.max(0, Math.min(1, (waterY - wheel.position.y) / 0.45)) * 0.8;
+      const rate = wheel.surface.particleRate * wheel.intensity * depthScale * (this.reduced ? 8 : 15);
+      this.emitDebt[i] = Math.min(2, this.emitDebt[i] + dt * rate);
+      while (this.emitDebt[i] >= 1) {
+        this.emit(wheel, vehicle, i);
+        this.emitDebt[i]--;
       }
     }
 

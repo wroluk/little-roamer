@@ -69,3 +69,46 @@ test('real four-wheel vehicle crosses both streamed fords in both directions', a
     } finally { runtime.dispose(); world.free(); disposeScene(scene); }
   }
 });
+
+import { VALLEY_ROCK_BRANCH, VALLEY_MUD_ROUTE, VALLEY_DRY_ROUTE, VALLEY_LOOKOUT } from '../src/game/northern-valley';
+
+test('route choices offer rock, mud and a dry alternative with an open lookout', () => {
+  assert.equal(northernSurfaceAt(-262, 143), 'rock');
+  assert.equal(northernSurfaceAt(-293, 268), 'mud');
+  assert.notEqual(northernSurfaceAt(-294, 262), 'mud');
+  for (const dx of [-2, 0, 2]) for (const dz of [-2, 0, 2]) {
+    assert.equal(waterHeightAt(VALLEY_LOOKOUT.x+dx, VALLEY_LOOKOUT.z+dz), null);
+    assert.ok(Math.abs(sampledHeightAt(VALLEY_LOOKOUT.x+dx, VALLEY_LOOKOUT.z+dz)-sampledHeightAt(VALLEY_LOOKOUT.x, VALLEY_LOOKOUT.z)) < 0.15);
+  }
+});
+
+test('real vehicle drives rocky branch, bypass, muddy return and dry line both ways', async () => {
+  const routes = [VALLEY_ROCK_BRANCH, [VALLEY_TRAIL[4], VALLEY_TRAIL[5]], VALLEY_MUD_ROUTE, VALLEY_DRY_ROUTE];
+  for (const [routeIndex, source] of routes.entries()) for (const reverse of [false, true]) {
+    const path = reverse ? [...source].reverse() : source;
+    const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+    const runtime = new NorthernStreamingRuntime(scene, world, new InProcessChunkTransport());
+    try {
+      const start = path[0];
+      await runtime.ensureReady(start.x, start.z); world.step();
+      const car = new Vehicle(scene, world, { ...start, y: sampledHeightAt(start.x,start.z)+1.25 }, 1.45, northernSurfaceAt, waterHeightAt);
+      car.body.setRotation(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), Math.atan2(-(path[1].x-start.x),-(path[1].z-start.z))),true);
+      const forward = new THREE.Vector3();
+      let next=1, lift=0, mud=false;
+      for (let tick=0; tick<5000 && next<path.length; tick++) {
+        const target=path[next], dx=target.x-car.position.x, dz=target.z-car.position.z;
+        if (Math.hypot(dx,dz)<2.5) { next++; continue; }
+        forward.set(0,0,-1).applyQuaternion(car.body.rotation() as THREE.Quaternion);
+        const heading=Math.atan2(forward.x,-forward.z), desired=Math.atan2(dx,-dz);
+        const error=Math.atan2(Math.sin(desired-heading),Math.cos(desired-heading));
+        car.beforeStep({steer:Math.max(-1,Math.min(1,error*2)),forward:tick>90 && Math.abs(car.speed)<4,reverse:false},1/60);
+        world.step(); car.capture();
+        mud ||= car.currentSurface.id === 'mud';
+        for(let i=0;i<4;i++) { const contact=car.controller.wheelContactPoint(i); if(contact && car.controller.wheelIsInContact(i)) lift=Math.max(lift,contact.y-sampledHeightAt(contact.x,contact.z)); }
+      }
+      assert.equal(next,path.length,`route ${routeIndex}, reverse=${reverse} stopped at ${car.position.x},${car.position.z}`);
+      if(routeIndex===0) assert.ok(lift>0.08,`rock branch must lift wheels onto rocks; lift=${lift}`);
+      if(routeIndex===2) assert.ok(mud,'mud route should encounter mud');
+    } finally { runtime.dispose(); world.free(); disposeScene(scene); }
+  }
+});

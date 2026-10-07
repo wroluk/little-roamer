@@ -702,8 +702,8 @@ export class Vehicle {
     }
   }
 
-  reset() {
-    this.body.setTranslation(this.spawn, true);
+  reset(destination = this.spawn) {
+    this.body.setTranslation(destination, true);
     this.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
     this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
     this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -715,7 +715,7 @@ export class Vehicle {
     this.freeWheelSpeeds.fill(0);
     this.oldRideBumps.fill(0);
     this.rideBumps.fill(0);
-    this.surface = SURFACES[this.surfaceAt(this.spawn.x, this.spawn.z)];
+    this.surface = SURFACES[this.surfaceAt(destination.x, destination.z)];
     this.candidateSurface = this.surface.id;
     this.candidateTime = 0;
     this.blended = {
@@ -723,7 +723,8 @@ export class Vehicle {
       steering: this.surface.steering, feedback: this.surface.feedback,
     };
     this.terrainIntensity = 0;
-    for (const wheel of this.terrainWheels) { wheel.intensity = 0; wheel.slip = 0; }
+    for (const wheel of this.terrainWheels) { wheel.intensity = 0; wheel.slip = 0; wheel.grounded = false; }
+    this.maximumWaterDepth = 0;
     for (let i = 0; i < 4; i++) {
       this.controller.setWheelEngineForce(i, 0);
       this.controller.setWheelBrake(i, 0);

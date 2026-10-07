@@ -58,3 +58,46 @@ export const VALLEY_CAIRNS = [
 export function valleyRiverCenter(x: number): number {
   return 178 + (-x - 220) * 30 / 130 + 3 * Math.sin((x + 240) * Math.PI / 105);
 }
+
+/** Optional line rejoins the established ridge; the original trail is the bypass. */
+export const VALLEY_ROCK_BRANCH = [
+  { x: -240, z: 140 }, { x: -252, z: 148 }, { x: -270, z: 140 },
+  { x: -278, z: 126 }, { x: -270, z: 115 },
+] as const;
+export const VALLEY_LOOKOUT = { x: -285, z: 120 };
+export const VALLEY_ROCKS = [
+  { x: -254, z: 147.5, size: 0.8 },
+  { x: -262, z: 142.5, size: 1 },
+  { x: -272, z: 138, size: 0.85 },
+] as const;
+export const VALLEY_MUD_ROUTE = [{ x: -310, z: 275 }, { x: -272, z: 258 }] as const;
+export const VALLEY_DRY_ROUTE = [{ x: -310, z: 275 }, { x: -294, z: 262 }, { x: -272, z: 258 }] as const;
+
+const BRANCH_LENGTHS = VALLEY_ROCK_BRANCH.slice(1).map((p, i) => Math.hypot(p.x - VALLEY_ROCK_BRANCH[i].x, p.z - VALLEY_ROCK_BRANCH[i].z));
+const BRANCH_LENGTH = BRANCH_LENGTHS.reduce((sum, length) => sum + length, 0);
+
+export function valleyBranchSample(x: number, z: number) {
+  let distance = Infinity, fraction = 0, travelled = 0;
+  const lengths = BRANCH_LENGTHS;
+  for (let i = 0; i < lengths.length; i++) {
+    const a = VALLEY_ROCK_BRANCH[i], b = VALLEY_ROCK_BRANCH[i + 1], length = lengths[i];
+    const t = Math.max(0, Math.min(1, ((x - a.x) * (b.x - a.x) + (z - a.z) * (b.z - a.z)) / length ** 2));
+    const d = Math.hypot(x - a.x - t * (b.x - a.x), z - a.z - t * (b.z - a.z));
+    if (d < distance) { distance = d; fraction = (travelled + t * length) / BRANCH_LENGTH; }
+    travelled += length;
+  }
+  return { distance, fraction };
+}
+
+export function valleyMudPatch(x: number, z: number) {
+  // One side of the broad return trail stays dry and visibly offers another line.
+  const dx = x + 293, dz = z - 268;
+  return ((dx * 0.91 - dz * 0.41) / 9) ** 2 + ((dx * 0.41 + dz * 0.91) / 2.7) ** 2 < 1;
+}
+
+export function valleyExperienceClearance(x: number, z: number) {
+  return (x > -290 && x < -230 && z > 103 && z < 155 && valleyBranchSample(x, z).distance < 7)
+    || Math.hypot(x - VALLEY_LOOKOUT.x, z - VALLEY_LOOKOUT.z) < 13
+    // Open the southern foreground of the lookout toward the crossings.
+    || (x > -308 && x < -269 && z > 120 && z < 148);
+}

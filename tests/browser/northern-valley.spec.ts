@@ -1,3 +1,4 @@
+import { nearestNorthernStart } from '../../src/game/regional-starts';
 import { test, expect } from '@playwright/test';
 import { VALLEY_FORDS } from '../../src/game/northern-valley';
 
@@ -30,8 +31,11 @@ test('River Valley entry, streamed fords in both directions, and reset', async (
     expect(after.streaming.activeRender).toBeLessThanOrEqual(25);
     expect(after.streaming.activePhysics).toBeLessThanOrEqual(9);
   }
+  const beforeReset = (await state()).position;
+  const expectedStart = nearestNorthernStart(beforeReset.x, beforeReset.z);
   await page.locator('#reset').click();
-  await expect.poll(async () => (await state()).position.z).toBeCloseTo(232, 0);
+  await expect.poll(async () => (await state()).position.x).toBeCloseTo(expectedStart.position.x, 0);
+  await expect.poll(async () => (await state()).position.z).toBeCloseTo(expectedStart.position.z, 0);
   await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(-270, 115, Math.PI / 2));
   await page.screenshot({ path: testInfo.outputPath('ridge.png') });
   expect(errors).toEqual([]);

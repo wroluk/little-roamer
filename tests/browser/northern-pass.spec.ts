@@ -1,3 +1,4 @@
+import { nearestNorthernStart } from '../../src/game/regional-starts';
 import { test, expect } from '@playwright/test';
 import { PASS_START, PASS_BOWL } from '../../src/game/northern-pass';
 
@@ -33,7 +34,10 @@ test('High Pass climbs to the lookout, exposes the ice bowl and resets safely', 
   await page.screenshot({ path: testInfo.outputPath('high-pass-blue-hollow.png') });
   expect((await state()).streaming.activeRender).toBeLessThanOrEqual(25);
   expect((await state()).streaming.activePhysics).toBeLessThanOrEqual(9);
+  const beforeReset = (await state()).position;
+  const expectedStart = nearestNorthernStart(beforeReset.x, beforeReset.z);
   await page.locator('#reset').click();
-  await expect.poll(async () => (await state()).position.z).toBeCloseTo(PASS_START.z, 0);
+  await expect.poll(async () => (await state()).position.x).toBeCloseTo(expectedStart.position.x, 0);
+  await expect.poll(async () => (await state()).position.z).toBeCloseTo(expectedStart.position.z, 0);
   expect(errors).toEqual([]);
 });

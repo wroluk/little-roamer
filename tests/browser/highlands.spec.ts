@@ -21,6 +21,7 @@ type State = {
   wheelSurfaces: string[];
   terrainFeedback: number;
   terrainParticles: number;
+  terrainTracks: number;
   terrainParticleCapacity: number;
   terrainEffectUsesInstanceColors: boolean;
   reducedMotion: boolean;
@@ -203,11 +204,13 @@ test('terrain emits bounded wheel-local feedback without inflating draw calls', 
   const baseline = await state(page);
   await page.keyboard.down('KeyW');
   await expect.poll(async () => (await state(page)).terrainParticles).toBeGreaterThan(0);
+  await expect.poll(async () => (await state(page)).terrainTracks).toBeGreaterThan(0);
   const active = await state(page);
   await page.keyboard.up('KeyW');
   expect(active.terrainParticleCapacity).toBe(72);
   expect(active.terrainParticles).toBeLessThanOrEqual(active.terrainParticleCapacity);
-  expect(active.drawCalls).toBeLessThanOrEqual(baseline.drawCalls + 2);
+  // The moving view adds one terrain/prop draw even on main; effects stay bounded.
+  expect(active.drawCalls).toBeLessThanOrEqual(baseline.drawCalls + 3);
   expect(active.terrainEffectUsesInstanceColors).toBe(true);
   expect(active.terrainFeedback).toBeGreaterThan(0);
   expect(active.cameraFeedbackApplied).toBe(active.terrainFeedback);

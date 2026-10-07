@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { nearestNorthernStart } from '../../src/game/regional-starts';
 import { generateNorthernChunk } from '../../src/game/northern-terrain';
 
 type StreamingStats = {
@@ -175,6 +176,8 @@ test('travelling through all three destinations releases and rebuilds streamed r
 test('streamed reset locks travel and honors a pause requested while terrain loads', async ({ page }) => {
   await enter(page);
   await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(-300, 300, 0));
+  const positionBeforeReset = (await state(page)).position;
+  const regionalStart = nearestNorthernStart(positionBeforeReset.x, positionBeforeReset.z);
   await page.locator('#reset').click();
   await expect(page.locator('#area-select')).toBeDisabled();
   await page.keyboard.press('Escape');
@@ -183,8 +186,8 @@ test('streamed reset locks travel and honors a pause requested while terrain loa
   await expect(page.locator('#area-select')).toHaveValue('northern-reach');
   const reset = await state(page);
   expect(reset.mode).toBe('paused');
-  expect(reset.position.x).toBeCloseTo(24, 0);
-  expect(reset.position.z).toBeCloseTo(560, 0);
+  expect(reset.position.x).toBeCloseTo(regionalStart.position.x, 0);
+  expect(reset.position.z).toBeCloseTo(regionalStart.position.z, 0);
 });
 
 test('fatal errors stay terminal while an asynchronous area load is in flight', async ({ page }) => {

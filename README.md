@@ -195,7 +195,7 @@ acceptance.**
 | Forward | Hold the orange forward pedal | W or Up |
 | Reverse | Hold the cream reverse pedal | S or Down |
 | Brake | Hold both pedals, or the opposite direction while moving | Up + Down or W + S |
-| Reset upright at the clearing | Reset car | R |
+| Reset upright at the nearest regional start | Reset car | R |
 | Pause | Pause button | Escape |
 | Resume | Keep roaming | Focus the button and press Enter |
 
@@ -207,7 +207,10 @@ backgrounding. Returning from another tab leaves the game paused until
 **Keep roaming** is pressed, preventing unintended movement.
 
 If the car gets wedged or rolls over, **Reset car** clears its motion and
-returns it to the starting area. Tree trunks/canopies, boulders, ramps,
+returns it to the nearest established regional start in Northern Reach, including
+unvisited starts. Other worlds use their original starting area. A brief message
+names the destination; regional resets cost journey progress without returning
+you across the whole world. Tree trunks/canopies, boulders, ramps,
 signposts/boards, and the visible sandstone perimeter are solid. Tiny flowers,
 painted ramp stripes, and distant scenery are decorative.
 
@@ -329,7 +332,7 @@ follow the car instead of covering the whole map.
 
 Development builds expose `window.__ROAMER__` for reproducible behavioral
 inspection, snapshots, and test positioning. Production builds omit this hook.
-The app intentionally has no saving, infinite terrain, multiplayer,
+The app intentionally has no saved journeys, infinite terrain, multiplayer,
 realistic drivetrain/damage, or native app packaging.
 
 ## Samurai Village
@@ -356,7 +359,7 @@ between the crossings. From the usual spawn, follow Lake Road, then Coast Road
 west; the River Valley sign near `(-207, 322)` marks the turn north.
 
 For a short visit, open `?area=northern-reach&start=river-valley`. This starts
-south of Willow Ford and keeps Reset in the valley for that visit. Choosing
+south of Willow Ford. Reset uses the nearest regional start as you explore. Choosing
 another area clears the special starting point.
 
 `src/game/northern-valley.ts` defines the authored geography independently of
@@ -383,7 +386,7 @@ The western branch climbs to **Heron lookout**, overlooking the smaller pool.
 
 Start directly at `http://127.0.0.1:5173/?area=northern-reach&start=willow-marsh`,
 or append `?area=northern-reach&start=willow-marsh` to the published game's URL.
-Reset returns to the dry entrance clearing. Stay between the ford posts:
+The entrance clearing is a regional reset point. Stay between the ford posts:
 the open pools are deeper than the marked crossing.
 
 `src/game/northern-marsh.ts` authors the region within `x = -430..-145`,
@@ -401,7 +404,7 @@ toward the crater. Moss patches soften the southern scree.
 
 Start directly at `http://127.0.0.1:5173/?area=northern-reach&start=ember-basin`,
 or append `?area=northern-reach&start=ember-basin` to the published game's URL.
-Reset returns to the caldera entrance. The longer ash descent is graded for
+The caldera entrance is a regional reset point. The longer ash descent is graded for
 the reduced traction, so the car can climb back out along the same trail.
 
 `src/game/northern-ember.ts` defines the region within `x = 480..710`,
@@ -469,10 +472,11 @@ and verify that the arch's passage and overhead stone behave correctly.
 
 ## Northern Reach · Timber Run, Boulder Shoals and Stonegate Basin
 
-[Northern Reach regional overview (September 2026, PNG)](artifacts/northern-reach/mapa-northern-reach.png)
-shows all sixteen enhanced regions; the three western shore areas are highlighted in amber. The
-[SVG source](artifacts/northern-reach/mapa-northern-reach.svg) is also committed.
-Regenerate both from the game's terrain with
+[Northern Reach regional overview (October 2026, PNG)](artifacts/northern-reach/mapa-northern-reach.png)
+shows all sixteen enhanced regions, with the updated River Valley and three western shore areas
+highlighted in amber. The [River Valley close-up](artifacts/northern-reach/mapa-river-valley.png)
+shows the two fords, rock branch, and dry or muddy return lines. Both maps have SVG sources.
+Regenerate the maps from the game's terrain with
 `node --import tsx scripts/render-northern-map.ts` (requires Playwright Chromium).
 
 Three connected driving playgrounds extend the authored terrain:
@@ -495,8 +499,8 @@ Stonegate Basin. A short muddy patch and the stone-shelf climb make the surface
 changes part of the route. Signs and the terrain show the choices; either line
 can be bypassed or explored in reverse.
 
-Append these query strings to the local or published game URL. Reset returns
-to each region's dry starting clearing. `src/game/northern-adventures.ts`
+Append these query strings to the local or published game URL. The regional starting point is
+at each region's dry starting clearing. `src/game/northern-adventures.ts`
 contains their layouts, blended terrain and authored obstacles. They use the
 existing chunk streaming and shared render/collision lattice. Tests drive every
 trail in both directions and verify that the wheels actually climb the logs
@@ -511,7 +515,7 @@ climbs to a level lookout at 140 m, while **Blue Hollow** descends into a
 sheltered ice basin with reduced traction.
 
 Start directly at `http://127.0.0.1:5173/?area=northern-reach&start=high-pass`.
-Reset returns to the level turnout at this entrance. In Codespaces or on
+The level turnout at this entrance is a regional reset point. In Codespaces or on
 GitHub Pages, append `?area=northern-reach&start=high-pass` to the game's URL.
 
 `src/game/northern-pass.ts` defines the region within `x = 475..695`,
@@ -546,7 +550,7 @@ Coast Road, which continues west to River Valley.
 
 The lookout is at `(-98, 375)`, the ravine follows approximately `x = -72` from
 `z = 500` to `438`, and the region grades into its surroundings between
-`x = -215..65` and `z = 330..595`. Reset keeps the usual Northern Reach spawn.
+`x = -215..65` and `z = 330..595`. Reset chooses the nearest established regional start.
 The existing lake, river-valley fords, main-road grades and starting clearing
 are retained.
 
@@ -556,3 +560,32 @@ signs and outcrops stream with their owning chunks; pine trunks and rock outcrop
 are solid, while tree crowns remain decorative. Checks cover driving all three
 routes with the real vehicle, trail slopes across their width, chunk seams,
 landmark ownership, and browser driving through the ravine and up to the lookout.
+
+## River Valley driving loop
+
+Open `?area=northern-reach&start=river-valley` for a short exploratory visit.
+Follow the sheltered approach into Willow Ford. On the north bank, the rock
+branch bends west over three staggered low stones; the existing dirt trail
+provides an easier climb. Both lead to the ridge and its open river-facing
+turnout. Continue to Cairn Ford and return along the southern trail, where a
+short muddy patch has a dry line alongside it. Every route works both ways.
+Aim for a relaxed five-minute wander including stops and retries; there is no
+clock or reward for finishing. The controls and basic handling are unchanged.
+
+Across all areas, grounded tires leave temporary marks on dirt, mud, coastal
+sand, and loose black sand. In
+shallow water, the trailing wheels leave faint, short wakes while the spray
+remains the main feedback. Tire marks have varied lengths and gaps, appearing
+more often while turning or changing speed, with stronger marks during a turn, acceleration, or
+braking. Marks are pooled (256 segments, 18-second lifetime); wakes are pooled
+separately. Reset and travel clear both. Reduced graphics keep sparser marks
+and fewer particles. These effects never deform
+the ground.
+Saved parking positions, a journal and accumulated dirt on the car are
+left for a later update.
+
+Manual acceptance for this update: on an actual iPad, drive both route choices,
+check that the rocky branch rewards careful wheel placement and the ridge
+reveals the crossings, then recover from deep coastal water. Verify two-thumb
+controls, offline reload and at least 30 FPS.
+Desktop browser checks do not establish these device results.

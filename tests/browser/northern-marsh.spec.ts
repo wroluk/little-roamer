@@ -1,3 +1,4 @@
+import { nearestNorthernStart } from '../../src/game/regional-starts';
 import { test, expect } from '@playwright/test';
 import { MARSH_START, MARSH_LOOKOUT } from '../../src/game/northern-marsh';
 
@@ -50,8 +51,11 @@ test('Willow Marsh ford crosses in both directions and reset returns to dry grou
   await page.screenshot({ path: testInfo.outputPath('heron-lookout.png') });
   expect((await state()).streaming.activeRender).toBeLessThanOrEqual(25);
   expect((await state()).streaming.activePhysics).toBeLessThanOrEqual(9);
+  const beforeReset = (await state()).position;
+  const expectedStart = nearestNorthernStart(beforeReset.x, beforeReset.z);
   await page.locator('#reset').click();
-  await expect.poll(async () => (await state()).position.z).toBeCloseTo(MARSH_START.z, 0);
+  await expect.poll(async () => (await state()).position.x).toBeCloseTo(expectedStart.position.x, 0);
+  await expect.poll(async () => (await state()).position.z).toBeCloseTo(expectedStart.position.z, 0);
   expect((await state()).waterDepth).toBe(0);
   expect(errors).toEqual([]);
 });
