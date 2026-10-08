@@ -49,7 +49,7 @@ export function nearestNorthernStart(x: number, z: number): RegionalStart {
       < Math.hypot(x - best.position.x, z - best.position.z) ? candidate : best);
 }
 
-export function regionalSpawn(start: RegionalStart) {
+export function regionalSpawn(start: Pick<RegionalStart, 'position'>) {
   const { x, z } = start.position;
   return { x, y: sampledHeightAt(x, z) + 1.25, z };
 }

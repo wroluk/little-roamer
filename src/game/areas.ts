@@ -11,8 +11,10 @@ import {
   BrowserChunkTransport, NorthernStreamingRuntime, type NorthernStreamingStats,
 } from './northern-streaming';
 import type { SurfaceId } from './surfaces';
+import { MARS_HALF, HABITAT_START, marsSpawn, marsSurfaceAt, marsSurfaceHeight } from './mars-terrain';
+import { MarsStreamingRuntime, MarsWorkerTransport } from './mars-streaming';
 
-export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village';
+export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars';
 export type AreaRuntime = {
   update: (x: number, z: number) => void;
   ensureReady: (x: number, z: number) => Promise<void>;
@@ -52,6 +54,17 @@ export type Area = {
 };
 
 export const AREAS: Record<AreaId, Area> = {
+  mars: {
+    id: 'mars', name: 'Mars Outpost', label: '05 / A LITTLE FARTHER FROM HOME',
+    tagline: 'Small wheels. Another world.', description: 'Leave the ivory domes of Habitat Seven. Follow the pale road to Crown Crater, circle its rim, or wind down to the old impact stone.',
+    hint: 'Pale tracks lead to Crown Crater. Light-tipped posts mark the rim and floor descent.',
+    welcomeEyebrow: 'MARS OUTPOST / HABITAT & CROWN', welcomeTitle: 'Another world.',
+    readyMessage: 'Habitat Seven is ready. Follow the crater road north.', ambientLight: '#f3d8c8',
+    spawn: marsSpawn(HABITAT_START), half: MARS_HALF, climbingPower: 1.45,
+    sky: '#bb8f80', fogNear: 80, fogFar: 480, groundLight: '#6d4540', sunlight: '#fff0d6',
+    surfaceHeight: marsSurfaceHeight, surfaceAt: marsSurfaceAt, waterHeight: () => null,
+    build: (scene, world, onError) => new MarsStreamingRuntime(scene, world, new MarsWorkerTransport(), onError),
+  },
   'samurai-village': {
     id: 'samurai-village', name: 'Samurai Village', label: '04 / THE LANTERN VILLAGE',
     tagline: 'Follow the red lanterns.',
@@ -109,5 +122,5 @@ export const AREAS: Record<AreaId, Area> = {
 };
 
 export function isAreaId(value: string | null): value is AreaId {
-  return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village';
+  return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village' || value === 'mars';
 }

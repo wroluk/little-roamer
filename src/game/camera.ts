@@ -18,10 +18,13 @@ export class FollowCamera {
   private readonly wanted = new THREE.Vector3();
   private readonly smoothed = new THREE.Vector3();
   private readonly direction = new THREE.Vector3();
+  private readonly escapeDirection = new THREE.Vector3();
+  private readonly escapePosition = new THREE.Vector3();
   private readonly shape = new RAPIER.Ball(0.4);
   private readonly identity = { x: 0, y: 0, z: 0, w: 1 };
   private initialized = false;
   private feedbackTime = 0;
+  private avoidingCabin = false;
 
   constructor(
     readonly camera: THREE.PerspectiveCamera,
@@ -30,7 +33,7 @@ export class FollowCamera {
     private readonly groundHeight = surfaceHeight,
   ) {}
 
-  reset() { this.initialized = false; this.feedbackTime = 0; }
+  reset() { this.initialized = false; this.feedbackTime = 0; this.avoidingCabin = false; }
 
   orbit(yaw: number, pitch: number) {
     this.orbitYaw = Math.atan2(
@@ -90,6 +93,29 @@ export class FollowCamera {
       0.1, distanceToCamera, true, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC);
     const allowedDistance = hit ? Math.max(0, hit.time_of_impact - 0.12) : distanceToCamera;
     this.camera.position.copy(this.origin).addScaledVector(this.direction, allowedDistance);
+    // A shortened boom must not become an accidental view from inside the cabin.
+    // Try higher views on the requested side, then around it; every candidate is swept.
+    this.avoidingCabin = allowedDistance < (this.avoidingCabin ? 5 : 3.5);
+    if (this.avoidingCabin) {
+      const azimuth = Math.atan2(this.direction.x, this.direction.z);
+      let bestDistance = allowedDistance;
+      this.escapePosition.copy(this.camera.position);
+      search: for (const yaw of [0, Math.PI / 3, -Math.PI / 3, Math.PI]) {
+        for (const elevation of [1.05, 1.32, Math.PI / 2]) {
+          this.escapeDirection.set(Math.sin(azimuth + yaw) * Math.cos(elevation), Math.sin(elevation),
+            Math.cos(azimuth + yaw) * Math.cos(elevation));
+          const escapeHit = this.world.castShape(this.origin, this.identity, this.escapeDirection, this.shape,
+            0.1, 7, true, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC);
+          const clear = escapeHit ? Math.max(0, escapeHit.time_of_impact - 0.12) : 7;
+          if (clear > bestDistance) {
+            bestDistance = clear; this.escapePosition.copy(this.origin).addScaledVector(this.escapeDirection, clear);
+          }
+          if (clear >= 4) break search;
+        }
+      }
+      this.camera.position.copy(this.escapePosition);
+      this.target.copy(car.position); this.target.y += 0.45;
+    }
     this.camera.lookAt(this.target);
   }
 }

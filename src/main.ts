@@ -7,6 +7,7 @@ import {
 import { FollowCamera, horizontalDragDirection } from './game/camera';
 import { FixedClock } from './game/driving';
 import { NORTHERN_STARTS, nearestNorthernStart, regionalSpawn } from './game/regional-starts';
+import { MARS_STARTS, nearestMarsStart, marsSpawn } from './game/mars-terrain';
 import { marshWeight } from './game/northern-marsh';
 import { shoalsWaterRegion } from './game/northern-adventures';
 import { lakeShoreDistance, inletDistance, inletWidth } from './game/northern-watershed';
@@ -78,11 +79,13 @@ async function boot() {
   await RAPIER.init();
   if (hasFailed()) return;
   const modelFromUrl = new URLSearchParams(window.location.search).get('car');
+  const availableModel = (value: unknown): value is VehicleModelId =>
+    isVehicleModelId(value) && (value !== 'mars-scout' || import.meta.env.DEV);
   let storedModel: string | null = null;
   try { storedModel = window.localStorage.getItem('little-roamer-car'); } catch { /* Storage is optional. */ }
-  let selectedModel: VehicleModelId = isVehicleModelId(modelFromUrl)
+  let selectedModel: VehicleModelId = availableModel(modelFromUrl)
     ? modelFromUrl
-    : isVehicleModelId(storedModel) ? storedModel : DEFAULT_VEHICLE_MODEL;
+    : availableModel(storedModel) ? storedModel : DEFAULT_VEHICLE_MODEL;
   async function createArea(area: Area) {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(area.sky);
@@ -123,13 +126,21 @@ async function boot() {
     }
   }
   const requestedArea = new URLSearchParams(window.location.search).get('area');
-  let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'valley'];
+  let area = AREAS[isAreaId(requestedArea) && (requestedArea !== 'mars' || import.meta.env.DEV) ? requestedArea : 'valley'];
+  if (area.id === 'mars' && !isVehicleModelId(modelFromUrl)) selectedModel = 'mars-scout';
+  if (import.meta.env.DEV) {
+    element('mars-car-option').hidden = false;
+    // The unfinished location is reachable by a development link, not the public picker.
+    if (area.id === 'mars') element<HTMLSelectElement>('area-select').add(new Option('Mars Outpost · pilot', 'mars'));
+  }
   const requestedStart = NORTHERN_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
   if (area.id === 'northern-reach' && requestedStart) {
     area = { ...area, spawn: regionalSpawn(requestedStart),
       welcomeTitle: requestedStart.welcomeTitle, description: requestedStart.description,
       hint: requestedStart.hint ?? area.hint, readyMessage: requestedStart.readyMessage };
   }
+  const marsStart = MARS_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
+  if (area.id === 'mars' && marsStart) area = { ...area, spawn: marsSpawn(marsStart.position), readyMessage: `${marsStart.name}. Take your time and explore.` };
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
     ? 'Preparing the road ahead...'
@@ -156,6 +167,7 @@ async function boot() {
   syncCarPicker();
   function surfaceLabel(): string {
     const surface = vehicle.currentSurface;
+    if (area.id === 'mars' && surface.id === 'rock') return 'Crater rock';
     if (surface.id === 'water') {
       if (area.id === 'samurai-village') return 'Shallow lake';
       if (area.id === 'northern-reach' && shoalsWaterRegion(vehicle.position.x, vehicle.position.z)) return 'Coastal shallows';
@@ -182,7 +194,7 @@ async function boot() {
     element('surface-label').textContent = surfaceLabel();
     element('surface-trait').textContent = vehicle.currentSurface.trait;
     element('loading-status').textContent = area.readyMessage;
-    element<HTMLButtonElement>('reset').title = area.id === 'northern-reach'
+    element<HTMLButtonElement>('reset').title = area.id === 'northern-reach' || area.id === 'mars'
       ? 'Return to the nearest regional start (R)' : `Return to the ${area.name} starting area (R)`;
   }
   presentArea();
@@ -293,8 +305,9 @@ async function boot() {
   const reset = async () => {
     if (mode !== 'playing') return;
     controls?.clear();
-    const start = area.id === 'northern-reach' ? nearestNorthernStart(vehicle.position.x, vehicle.position.z) : null;
-    const destination = start ? regionalSpawn(start) : area.spawn;
+    const start = area.id === 'northern-reach' ? nearestNorthernStart(vehicle.position.x, vehicle.position.z)
+      : area.id === 'mars' ? nearestMarsStart(vehicle.position.x, vehicle.position.z) : null;
+    const destination = start ? (area.id === 'mars' ? marsSpawn(start.position) : regionalSpawn(start)) : area.spawn;
     if (runtime) {
       mode = 'loading';
       resetInProgress = true;
@@ -565,6 +578,13 @@ async function boot() {
     if (mode === 'playing') {
       runtime?.update(vehicle.position.x, vehicle.position.z);
       const alpha = clock.advance(elapsed, dt => {
+        // Hold at an unready Mars chunk until collision arrives, including the next
+        // short movement interval. A delayed worker must not let the car fall through.
+        if (area.id === 'mars' && runtime) {
+          const v = vehicle.body.linvel();
+          if (!runtime.isCollisionReadyAt(vehicle.position.x, vehicle.position.z)
+            || !runtime.isCollisionReadyAt(vehicle.position.x + v.x * 0.15, vehicle.position.z + v.z * 0.15)) return;
+        }
         vehicle.beforeStep(controls!.state.value, dt);
         world.step();
         vehicle.capture();

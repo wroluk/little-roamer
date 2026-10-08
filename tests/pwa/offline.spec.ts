@@ -20,6 +20,22 @@ test('installs a standalone manifest and completes the offline cache', async ({ 
   expect(manifest.icons).toHaveLength(3);
 });
 
+test('production hides the unfinished Mars pilot and precaches its worker and Scout asset', async ({ page }) => {
+  await page.goto('/?area=mars&car=mars-scout');
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'valley');
+  await expect(page.locator('#mars-car-option')).toBeHidden();
+  await expect(page.locator('#area-select option[value="mars"]')).toHaveCount(0);
+  await expect(page.locator('input[name="car"][value="modern"]')).toBeChecked();
+  await expect(page.locator('#offline-status')).toHaveText('Ready to play offline');
+  const cached = await page.evaluate(async () => {
+    const stores = await caches.keys();
+    return (await Promise.all(stores.map(async name => (await (await caches.open(name)).keys()).map(r => r.url)))).flat();
+  });
+  expect(cached.some(url => /mars-worker-.*\.js/.test(url))).toBe(true);
+  expect(cached.some(url => url.includes('/cars/mars-scout.png'))).toBe(true);
+});
+
 test('reloads and enters both areas with no network', async ({ page, context, browserName }) => {
   test.skip(browserName === 'webkit', 'Playwright WebKit cannot navigate after context.setOffline; iPad Safari supports service workers.');
 

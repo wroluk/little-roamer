@@ -9,7 +9,7 @@ const QUAD = [0, 1, 2, 2, 1, 3];
 const TRACK_LIFE = 18;
 const WAKE_LIFE = 0.75;
 const ACCELERATION_WINDOW = 1.2;
-type TrackSurface = Extract<SurfaceId, 'dirt' | 'mud' | 'ash' | 'sand'>;
+type TrackSurface = Extract<SurfaceId, 'dirt' | 'mud' | 'ash' | 'sand' | 'regolith' | 'mars-dust'>;
 type TrackMode = 'steady' | 'accelerating' | 'turning' | 'braking';
 type Mark = { x: number; z: number; y: number; angle: number; length: number; life: number; surface: TrackSurface; emphasis: number; mode: TrackMode };
 const TRACK_STYLES: Record<TrackSurface, { color: [number, number, number]; alpha: number; halfWidth: number }> = {
@@ -17,8 +17,10 @@ const TRACK_STYLES: Record<TrackSurface, { color: [number, number, number]; alph
   mud: { color: [0.16, 0.13, 0.1], alpha: 0.07, halfWidth: 0.14 },
   ash: { color: [0.02, 0.028, 0.032], alpha: 0.06, halfWidth: 0.13 },
   sand: { color: [0.42, 0.35, 0.24], alpha: 0.05, halfWidth: 0.13 },
+  regolith: { color: [0.26, 0.09, 0.05], alpha: 0.05, halfWidth: 0.125 },
+  'mars-dust': { color: [0.24, 0.055, 0.03], alpha: 0.06, halfWidth: 0.13 },
 };
-const isTrackSurface = (id: SurfaceId): id is TrackSurface => id === 'dirt' || id === 'mud' || id === 'ash' || id === 'sand';
+const isTrackSurface = (id: SurfaceId): id is TrackSurface => id in TRACK_STYLES;
 
 /** Bounded, transient ground marks. No physics changes or per-frame allocations. */
 export class GroundEffects {

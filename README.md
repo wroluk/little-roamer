@@ -98,6 +98,26 @@ outer landscape rises into a natural collidable boundary rather than ending
 at an invisible drop. Streamed loose boulders are solid obstacles, matching
 the playful collisions in the original areas.
 
+## Mars development pilot
+
+The first Mars milestone is available locally at `http://127.0.0.1:5173/?area=mars`.
+It includes Habitat Seven, Crown Crater, their connecting roads, the crater rim
+and floor descent, a northern lookout, and the new four-wheel Mars Scout.
+Use `?area=mars&start=crown-crater` to begin at the crater entrance, or add
+`&car=classic` / `&car=modern` to try an existing car. Reset chooses the nearest
+of the two finished regional starts. Mars is hidden from the production picker
+and production direct links while its remaining regions are under construction.
+
+The design spans 768 × 768 metres. Detailed terrain streams in 96 m chunks,
+with a 5 × 5 render neighborhood and 3 × 3 collision core. A coarse visual
+terrain layer keeps the distant basin visible. Packed regolith and soft red
+dust have matching surface feedback and temporary tire marks. Delayed terrain
+generation holds the car on loaded ground until the next chunk has collision.
+
+Follow [the build plan](MARS_BUILD_PLAN.md) and [progress record](MARS_PROGRESS.md)
+for implementation status, evidence, and the next region. The broader Mars
+landscape is development terrain; the remaining seven regions are not finished.
+
 ## Terrain handling
 
 The current surface appears above the controls. Surface colors now correspond

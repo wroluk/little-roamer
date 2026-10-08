@@ -282,6 +282,29 @@ test('manual camera orbit circles the vehicle and clamps vertical travel', () =>
   } finally { world.free(); }
 });
 
+test('a wall close behind or beside the Scout redirects the camera outside its cabin', () => {
+  for (const side of [false, true]) {
+    const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+    try {
+      world.createCollider(RAPIER.ColliderDesc.cuboid(30, 0.5, 30).setTranslation(0, -0.5, 0));
+      world.createCollider(RAPIER.ColliderDesc.cuboid(side ? 0.3 : 8, 8, side ? 8 : 0.3)
+        .setTranslation(side ? 1.6 : 0, 8, side ? 0 : 1.9));
+      const vehicle = new Vehicle(scene, world, { x: 0, y: 1, z: 0 }, 1, undefined, undefined, undefined, 'mars-scout');
+      world.step(); vehicle.capture(); vehicle.syncVisuals(1);
+      const camera = new THREE.PerspectiveCamera(48, 1.5, 0.15, 250);
+      const follow = new FollowCamera(camera, world, vehicle, () => 0);
+      follow.orbit(side ? Math.PI / 2 : 0, -0.3);
+      const cabin = new THREE.Box3().setFromObject(vehicle.model).expandByScalar(0.2);
+      for (let frame = 0; frame < 120; frame++) {
+        follow.update(1 / 60);
+        assert.equal(cabin.containsPoint(camera.position), false);
+        assert.ok(camera.position.distanceTo(vehicle.position) > 3.5);
+        assert.equal(world.intersectionWithShape(camera.position, camera.quaternion, new RAPIER.Ball(0.4), RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC), null);
+      }
+    } finally { world.free(); }
+  }
+});
+
 test('terrain camera feedback is visible but remains within its collision-safe bound', () => {
   const { world, vehicle, tick } = simulation();
   try {

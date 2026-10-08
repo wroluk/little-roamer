@@ -4,6 +4,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { driveForces, MAX_FORWARD_SPEED, MAX_REVERSE_SPEED, type DriveInput } from './driving';
 import { START } from './terrain';
 import { SURFACES, type Surface, type SurfaceId } from './surfaces';
+import { buildMarsScout } from './mars-scout';
 
 const WHEEL_RADIUS = 0.48;
 const REST_LENGTH = 0.38;
@@ -14,7 +15,7 @@ const CONNECTIONS = [
 const FORWARD = new THREE.Vector3(0, 0, -1);
 const SURFACE_BLEND_SECONDS = 0.26;
 
-export const VEHICLE_MODELS = ['modern', 'classic'] as const;
+export const VEHICLE_MODELS = ['modern', 'classic', 'mars-scout'] as const;
 export type VehicleModelId = typeof VEHICLE_MODELS[number];
 export const DEFAULT_VEHICLE_MODEL: VehicleModelId = 'modern';
 export const isVehicleModelId = (value: unknown): value is VehicleModelId =>
@@ -61,7 +62,7 @@ export class Vehicle {
   private readonly wheelWaterDepth = [0, 0, 0, 0];
   private readonly surfaceCounts: Record<SurfaceId, number> = {
     dirt: 0, grass: 0, ash: 0, lava: 0, moss: 0, ice: 0, water: 0,
-    snow: 0, mud: 0, rock: 0, sand: 0,
+    snow: 0, mud: 0, rock: 0, sand: 0, regolith: 0, 'mars-dust': 0,
   };
   private surface: Surface = SURFACES.dirt;
   private candidateSurface: SurfaceId = 'dirt';
@@ -111,6 +112,10 @@ export class Vehicle {
   }
 
   private createModel() {
+    if (this.vehicleModel === 'mars-scout') {
+      buildMarsScout(this.bodyVisual, this.model, this.wheels, this.tires, CONNECTIONS, WHEEL_RADIUS, REST_LENGTH);
+      return;
+    }
     if (this.vehicleModel === 'classic') {
       this.createClassicModel();
       return;
@@ -512,7 +517,7 @@ export class Vehicle {
       feedback += softObstacle * 0.25;
       const rolling = Math.max(0, (Math.abs(speed) - 0.5) / 8);
       const sliding = Math.min(0.65, sidewaysSpeed / 5) * Math.max(0, 1 - wheel.surface.lateralGrip);
-      const softGround = wheel.surface.id === 'mud' || wheel.surface.id === 'sand' || wheel.surface.id === 'ash';
+      const softGround = wheel.surface.id === 'mud' || wheel.surface.id === 'sand' || wheel.surface.id === 'ash' || wheel.surface.id === 'mars-dust';
       wheel.intensity = wheel.grounded
         ? Math.min(1, rolling * (input.forward || input.reverse ? 1 : 0.55)
           + sliding + (softGround && (input.forward || input.reverse) ? 0.18 : 0))
