@@ -8,10 +8,15 @@ import { disposeScene } from './dispose';
 import { addDishRidgeDecor } from './mars-dish-landmarks';
 import { addGlassfallDecor } from './mars-glassfall-landmarks';
 import { glassfallWeight } from './mars-glassfall-layout';
-import { DISH_SITE } from './mars-dish-layout';
+import { DISH_SITE, DISH_ROUTES } from './mars-dish-layout';
+import { dishPosition } from './mars-layout';
 
 export type MarsSolid = { vertices: Float32Array; indices: Uint32Array };
 export type MarsDecor = { group: THREE.Group; solids: MarsSolid[]; dispose: () => void };
+
+export const MARS_MARKED_ROUTES = MARS_ROUTES.filter(route =>
+  (DISH_ROUTES.includes(route) || ['Habitat to Crown', 'Crown rim circuit', 'Crater descent',
+    'Crown north lookout', 'Eastern return'].includes(route.name)) && route.name !== 'Dish summit circuit');
 
 /** Chunk-owned scenery: authored hero forms, matching solids, and batched secondary details. */
 export function buildMarsDecor(cx: number, cz: number): MarsDecor {
@@ -115,9 +120,14 @@ export function buildMarsDecor(cx: number, cz: number): MarsDecor {
     add(groundMarsRock(marsRockGeometry(w, h, x * 0.1).rotateY(x * 0.13), x, z), pale, true);
   }
   // Split sentinel at the saddle and exposed shelf slabs give Dish Ridge its own geology.
-  for (const [x, z, w, h] of [[150, -219, 3.8, 10], [160, -216, 2.5, 7], [183, -193, 5, 3.5],
-    [207, -231, 4.5, 4], [304, -228, 3.6, 9], [281, -276, 4.2, 6], [177, -307, 5, 7]]) if (owns(x, z))
-    add(groundMarsRock(marsRockGeometry(w, h, x * 0.17).rotateY(z * 0.09), x, z), orange, true);
+  for (const [lx, lz, w, h] of [[150, -219, 3.8, 10], [160, -216, 2.5, 7], [183, -193, 5, 3.5],
+    [207, -231, 4.5, 4], [304, -228, 3.6, 9], [281, -276, 4.2, 6], [177, -307, 5, 7]]) {
+    const { x, z } = dishPosition({ x: lx, z: lz });
+    if (owns(x, z)) add(groundMarsRock(marsRockGeometry(w, h, lx * 0.17).rotateY(lz * 0.09), x, z), orange, true);
+  }
+  for (const [x, z, width, height] of [[566, -249, 2.8, 0.7], [563, -211, 3.2, 1.1], [507, -173, 3.8, 1.4]]) {
+    if (owns(x, z)) add(groundMarsRock(marsRockGeometry(width, height, x).rotateY(0.4), x, z), pale, true);
+  }
   // Small plates form ejecta rays and low wind-worn scatter. Keep every road shoulder clear.
   for (let j = 0; j < 5; j++) for (let i = 0; i < 5; i++) {
     const gx = cx * 5 + i, gz = cz * 5 + j, random = (channel: number) => marsRandom(gx, gz, channel);
@@ -134,7 +144,7 @@ export function buildMarsDecor(cx: number, cz: number): MarsDecor {
       .rotateY(random(7) * Math.PI * 2), x, z);
     add(geo, r < 125 ? pale : orange, true);
   }
-  for (const route of MARS_ROUTES.filter(route => !['Habitat courtyard', 'Dish summit circuit'].includes(route.name))) for (let i = 1; i < route.points.length; i += route.points.length > 20 ? 4 : 1) {
+  for (const route of MARS_MARKED_ROUTES) for (let i = 1; i < route.points.length; i += route.points.length > 20 ? 4 : 1) {
     const p = route.points[i], a = route.points[i - 1];
     const length = Math.hypot(p.x - a.x, p.z - a.z);
     const x = p.x + (p.z - a.z) / length * 7, z = p.z - (p.x - a.x) / length * 7;

@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { DISH_ROUTES, DISH_START, DISH_LOOKOUT } from '../../src/game/mars-dish-layout';
 import type { MarsPoint } from '../../src/game/mars-terrain';
 import { driveMarsRoute } from './mars-driving';
+import { dishPosition } from '../../src/game/mars-layout';
 
 test.use({ deviceScaleFactor: 1 });
 type Snapshot = { position: MarsPoint; rotation: { x: number; y: number; z: number; w: number }; speed: number; contacts: number; cameraObstructed: boolean; streaming: { activeRender: number; activePhysics: number } };
@@ -17,8 +18,8 @@ test('Dish Ridge approach, receiver and western lookout are readable from the Sc
   await boot(page);
   await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.follow.orbit(0, -0.32));
   for (const [name, point, heading] of [
-    ['approach', { x: 0, z: -270 }, -1.60], ['receiver', DISH_LOOKOUT, -1.85],
-    ['lookout', DISH_LOOKOUT, 2.08], ['outpost-view', DISH_LOOKOUT, 2.68], ['eastern-ledge', { x: 294, z: -216 }, 0.88],
+    ['approach', DISH_START, -1.60], ['receiver', DISH_LOOKOUT, -1.85],
+    ['lookout', DISH_LOOKOUT, 2.08], ['outpost-view', DISH_LOOKOUT, 2.68], ['eastern-ledge', dishPosition({ x: 294, z: -216 }), 0.88],
   ] as const) {
     await page.evaluate(({ point, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(point.x, point.z, heading), { point, heading });
     await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
@@ -45,7 +46,7 @@ test('Dish Ridge Scout climbs the switchbacks and returns by the eastern ledge w
 test('Dish feedback: industrial receiver, stable cabinets, upward view and orange rock fragments', async ({ page }, info) => {
   test.setTimeout(90_000); await boot(page);
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
-  await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(294, -216, Math.PI));
+  await page.evaluate(p => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(p.x, p.z, Math.PI), dishPosition({ x: 294, z: -216 }));
   await expect(page.locator('#surface')).toContainText('Martian rock');
   await page.keyboard.down('KeyW');
   await expect.poll(async () => page.evaluate(() => {
@@ -62,7 +63,8 @@ test('Dish feedback: industrial receiver, stable cabinets, upward view and orang
     ['antenna-front', DISH_LOOKOUT.x, DISH_LOOKOUT.z, -1.85],
     ['antenna-framework', 294, -216, 0.88],
   ] as const) {
-    await page.evaluate(({ x, z, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, heading), { x, z, heading });
+    const point = name === 'antenna-front' ? { x, z } : dishPosition({ x, z });
+    await page.evaluate(({ x, z, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, heading), { ...point, heading });
     await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
     expect((await state(page)).cameraObstructed).toBe(false);
     if (name === 'antenna-front') expect(await page.evaluate(() => {
@@ -73,7 +75,8 @@ test('Dish feedback: industrial receiver, stable cabinets, upward view and orang
   }
   await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.follow.orbit(0, 0.45));
   for (const [name, heading] of [['cabinet-lids', -0.49], ['cabinet-lids-oblique', -0.7]] as const) {
-    await page.evaluate(heading => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(218, -241, heading), heading);
+    await page.evaluate(({ x, z, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, heading),
+      { ...dishPosition({ x: 218, z: -241 }), heading });
     await page.screenshot({ path: info.outputPath(`${name}.png`) });
   }
   expect(errors).toEqual([]);
@@ -87,7 +90,7 @@ test('Dish tripod legs seat in their feet and rising braces join the bearing sup
     ['service-bridge', 250, -244, 0.67], ['tripod-east', 255, -268, 1.91],
   ] as const) {
     if (name === 'service-bridge') await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.follow.orbit(0, -0.35));
-    await page.evaluate(({ x, z, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, heading), { x, z, heading });
+    await page.evaluate(({ x, z, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, heading), { ...dishPosition({ x, z }), heading });
     await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
     expect((await state(page)).cameraObstructed).toBe(false);
     await page.screenshot({ path: info.outputPath(`${name}.png`) });
@@ -101,7 +104,7 @@ test('Dish relay antennas stand on the level service island', async ({ page }, i
   for (const [name, x, z, heading] of [
     ['relay-array', 238, -290, Math.PI], ['relay-footings', 259, -280, 1.7],
   ] as const) {
-    await page.evaluate(({ x, z, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, heading), { x, z, heading });
+    await page.evaluate(({ x, z, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, heading), { ...dishPosition({ x, z }), heading });
     await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
     expect((await state(page)).cameraObstructed).toBe(false);
     await page.screenshot({ path: info.outputPath(`${name}.png`) });

@@ -4,9 +4,11 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
-Started 2026-10-07. **The user resumed construction. Iron Maze is in progress; finish and verify it, then stop before Keyhole Badlands.** Mars stays out of the production picker during development. Existing world code was clean at the start; the two concept/plan documents were untracked.
+Started 2026-10-07. **Current user scope: expand Mars to 1,536 m and prove the separated Dish Ridge → Glassfall → Iron Maze journey. Focused checks only; the user drives it before longer validation.** Habitat and Crown stay at pilot positions in this pass. Do not proceed to Keyhole Badlands. Mars stays out of the production picker during development.
 
 ## Milestones
+
+The completed regional gates below refer to the original compact layout. The expanded-layout journey needs fresh user acceptance and later driving/browser verification.
 
 - [x] World layout, region design cards, and concept map.
 - [x] Deterministic terrain and worker streaming, with seam and lifecycle tests.
@@ -21,6 +23,7 @@ Started 2026-10-07. **The user resumed construction. Iron Maze is in progress; f
 - [ ] Rust Dunes.
 - [ ] Lava Tubes and Quiet Vault.
 - [ ] Full circuit, regression checks, public integration, and device acceptance.
+- [ ] Expanded-layout eastern journey accepted and reverified.
 
 ## Decisions
 
@@ -202,3 +205,44 @@ The user requested continuation, authorizing Iron Maze as the next individual re
 - Removed the lighter radial streaks and made flow vertex colors uniformly near-black. Increased roughness and removed metalness to subdue pale specular highlights; geometry and collision are unchanged.
 - The focused uniform-color/collision test and production build (including typecheck) passed. Browser and longer checks remain deferred for user review.
 - Next: user reviews the black flows in-game before any further changes.
+
+### Expanded exploration layout — 2026-10-09
+
+- User approved a 1,536 × 1,536 m world and an initial Dish Ridge → Glassfall → Iron Maze journey, with focused checks only before their first drive. This supersedes the compact-world layout; it does not authorize new regions or a release.
+- Added shared world bounds and explicit regional placements. Dish moves to (398, -472), Glassfall to (500, -30) with 1.45-times-wider landforms, and Iron to (380, 460) with 1.4-times-wider landforms. Road widths, buildings, rocks and vehicle scale stay unchanged, except modestly enlarged Iron hero fins. Habitat and Crown retain pilot positions.
+- Reauthored the Crown connection, Habitat spoke and two eastern connectors. Rust gullies, central shoulders and a sediment ridge screen destinations; pale ground/ejecta and low iron fins introduce the next geology. Broad connector shoulders avoid narrow artificial embankments. Fog remains 80–480 m.
+- Updated nominal/apron chunk bounds, exact surface-sampling clamps, Great Ring position, horizon generation and landmark ownership. The detailed streaming rings remain 5×5 render / 3×3 collision. Updated regional starts, scenery ownership and browser capture coordinates together.
+- Redrew `artifacts/mars/concept-map.svg` and updated regional cards and README. Earlier regional maps/captures are explicitly historical; new Chromium views are [rust gully](artifacts/mars/expansion-review/rust-gully.png), [Glassfall reveal](artifacts/mars/expansion-review/glassfall-reveal.png), and [Iron reveal](artifacts/mars/expansion-review/iron-reveal.png).
+- Fourteen distinct focused unit checks passed across the iteration: expanded bounds/apron sampling, connected route spacing, terrain sightline occlusion/reveal, exact seams/LOD edges, route grades and reset clearings, dish shell/terrace/relay placement, closed Iron geometry, glass source/contours/color/collision, and streaming transitions/disposal. One shifted-lattice descent grade marginally exceeded the existing limit; raising its intermediate road point by 1 m fixed it without changing the assertion.
+- Final production build/typecheck and `git diff --check` passed. A short Chromium scenario (about 14 seconds) loaded three new viewpoints with wheel contact and no page errors. Inspected the actual captures and broadened the new connector shoulders after the first pass. This is a presentation smoke check, not a completed drive.
+- User-directed omissions: no long real-driving route suites, full browser regression, WebKit region gate, PWA rerun or device-performance acceptance. The last full-suite status remains unchanged/unrecorded. Expanded-layout acceptance is still pending; prior compact-region gates do not certify it.
+- Exact next step: user opens `http://127.0.0.1:5173/?area=mars&start=dish-ridge`, drives the southern descent through Glassfall and toward Iron, and reviews the sense of scale and reveal timing. Address that feedback before long validation, further redistribution or Keyhole work. No commit or push was requested for this revision.
+
+### Landscape feedback and streaming cost — 2026-10-09
+
+- Removed road subtraction from the glass footprint. The firm loop now goes around the flow ends instead of cutting light strips through them; the optional crossing still traverses intact glass. Moved the nearby pale slabs clear of the revised route.
+- Removed the two large screening peaks north of Glassfall, lowered its approach to 8–12 m, widened the flat/pale transition, and replaced the central Gaussian hills with two low asymmetric sediment shoulders (14–18 m). Iron retains a stronger 46 m screening shoulder and its verified hidden/reveal sequence.
+- Removed both small precursor fins found on steep slopes. The main Iron field is unchanged; the remaining small approach fin sits on gentle ground.
+- Increased haze modestly from 80–480 m to 65–370 m. Geometry and atmosphere now leave Glassfall open rather than surrounding it with competing peaks.
+- Simplified glass to a uniform 1.2 m clipped lattice: **14,750 triangles total, 6,170 in the largest chunk**, measured at about **140 ms for the whole field** locally. An initial smaller adaptive version showed fine open seams at mismatched subdivisions; the final uniform lattice removes those seams. New checks enforce matching interior edges, per-chunk/whole-field budgets, and a 15 cm boundary approximation appropriate to the simplified geometry.
+- Removed repeated whole-horizon index allocation and normal recomputation during chunk activation. The static normal buffer and dynamic index buffer are now reused, updating only tiles whose visibility changes. Lifecycle checks verify buffer identity, unchanged normals, active-ring bounds and disposal.
+- Eleven distinct focused unit checks passed across the iteration, including full glass checks, real-Scout lateral grip, route grades, Iron solids, bounds, reveal logic and streaming. Final build/typecheck and whitespace check passed. The short four-view Chromium and WebKit smoke checks passed (about 21 seconds combined); inspected actual captures of the open plain, intact flows and Iron approach.
+- Current review images are in `artifacts/mars/landscape-feedback-review/`, with WebKit counterparts in `webkit/`. Concept map and region documentation reflect the latest feedback; the earlier tall-ridge captures remain historical.
+- Long real-driving/full-browser/PWA suites remain deferred. Local geometry timings are not an iPad frame-rate guarantee. Next: user drives Glassfall's revised loop and the Iron approach, checking the quieter landscape and reduced loading pauses before further validation. No commit or push performed.
+
+### Unmarked wilderness, stronger haze and sampling reuse — 2026-10-09
+
+- User approved the quieter landscape but reported remaining Glassfall/Iron pauses and distant scenery appearing. Removed the Glassfall crossing route entirely, including its terrain grading/coloring, map line and route-index consumers. The flow field remains driveable over natural dust and raised glass; the firm perimeter loop and connected exits remain.
+- Restricted trail posts to the existing developed Habitat/Crown/Dish routes. Glassfall, Iron and their connecting wild roads have no posts or post colliders. Updated the Glassfall welcome hint to describe off-road exploration instead of a crossing road.
+- Increased haze from 65–370 m to **55–220 m**. Actual Chromium/WebKit captures retain nearby glass and Iron silhouettes while substantially fading distant scenery. Current captures: `artifacts/mars/wild-terrain-review/` and its `webkit/` subfolder.
+- Local sampling identified repeated full terrain/road evaluation while grounding scenery. Added a bounded **8,192-entry** cache of immutable Float32 lattice heights and removed repeated corner evaluations within each interpolation. Heights, normals, meshes and vehicle handling are otherwise unchanged. Tests compare exact lattice interpolation after cache eviction.
+- On the same sampled chunk sequence, local Glassfall scenery construction fell from roughly **16–63 ms to 11–32 ms**, and sampled Iron chunks from roughly **6–13 ms to 1–4 ms**, including the reduction from removed posts. These are local CPU construction measurements, not device frame-time guarantees; some chunk activations still exceed a 16 ms frame.
+- **13 focused unit checks passed**, covering post removal/retention, cache eviction, exact terrain sampling, grades, route connectivity, glass geometry/collision/grip and streaming lifecycle. Typecheck/build passed. **Four short browser checks passed** in about 38 seconds: presentation in both engines and an actual Scout drive across an unmarked glass edge in each.
+- Long route drives, full suites and PWA checks remain deferred; no new full-suite gate is claimed. Next: user reviews haze visibility and remaining pauses while driving through Glassfall and Iron. Sustained target-device profiling remains open. No commit or push requested or performed.
+
+### Iron crest correction — 2026-10-09
+
+- User spotted twin peaks with a deep top gap. The non-planar top had been triangulated as a fan from one low end, producing an unintended sunken roof. Replaced it with four paired strips joining opposite crest sections.
+- Narrowed the top from 22% to 8% of base width, retaining irregular heights, all lower strata and grounded feet. Rendering and collision still use the same closed geometry; triangle count is unchanged.
+- Both focused Iron geometry tests pass, including downward rays at each interior crest station of every fin to reject sunken caps. Build/typecheck pass. Short Chromium/WebKit presentation/reset checks pass; long driving/full/PWA suites remain deferred. Added a dedicated end-on crest capture to the presentation scenario.
+- Next: user reviews the narrower, solid tops. No commit or push performed; earlier target-device performance review remains open.

@@ -4,6 +4,7 @@ import { generateMarsChunk, type MarsChunk } from './mars-terrain';
 import { buildMarsDecor, attachMarsSolids, type MarsDecor } from './mars-landmarks';
 import type { NorthernStreamingStats } from './northern-streaming';
 import { buildMarsHorizonLandmarks } from './mars-horizon-landmarks';
+import { MARS_MIN_CHUNK, MARS_MAX_CHUNK } from './mars-layout';
 
 export interface MarsTransport { generate(cx: number, cz: number): Promise<MarsChunk>; dispose(): void }
 export class MarsWorkerTransport implements MarsTransport {
@@ -47,29 +48,47 @@ export class MarsStreamingRuntime {
   private lastActivationMs = 0;
   private material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true });
   private horizon: THREE.Mesh;
-  private horizonIndices = new Map<string, number[]>();
+  private horizonTiles = new Map<string, { start: number; count: number; visible: boolean }>();
+  private horizonSourceIndices: Uint32Array;
+  private horizonTriangleCount = 0;
   private distantLandmarks = buildMarsHorizonLandmarks();
   constructor(private scene: THREE.Scene, private world: RAPIER.World, private transport: MarsTransport,
     private onError: (error: Error) => void = () => {}) {
     // A coarse, non-colliding horizon keeps the Great Ring visible. Detailed active chunks
     // replace its corresponding tiles, so no coincident surfaces or distant physics load.
-    const vertices: number[] = [], colors: number[] = [];
-    for (let cz = -5; cz <= 4; cz++) for (let cx = -5; cx <= 4; cx++) {
+    const vertices: number[] = [], colors: number[] = [], indices: number[] = [];
+    for (let cz = MARS_MIN_CHUNK; cz <= MARS_MAX_CHUNK; cz++) for (let cx = MARS_MIN_CHUNK; cx <= MARS_MAX_CHUNK; cx++) {
       const c = generateMarsChunk(cx, cz, 4), offset = vertices.length / 3;
       vertices.push(...c.vertices); colors.push(...c.colors);
-      this.horizonIndices.set(key(cx, cz), Array.from(c.indices, i => i + offset));
+      this.horizonTiles.set(key(cx, cz), { start: indices.length, count: c.indices.length, visible: true });
+      for (const index of c.indices) indices.push(index + offset);
     }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    this.horizonSourceIndices = Uint32Array.from(indices);
+    g.setIndex(new THREE.BufferAttribute(this.horizonSourceIndices.slice(), 1).setUsage(THREE.DynamicDrawUsage));
+    g.computeVertexNormals();
+    this.horizonTriangleCount = indices.length / 3;
     this.horizon = new THREE.Mesh(g, this.material); this.horizon.name = 'Mars · distant basin'; this.scene.add(this.horizon);
     this.scene.add(this.distantLandmarks.group);
     this.refreshHorizon();
   }
   private refreshHorizon() {
     for (const anchor of this.distantLandmarks.anchors) anchor.group.visible = !this.entries.get(key(anchor.cx, anchor.cz))?.mesh;
-    const indices: number[] = [];
-    for (const [k, values] of this.horizonIndices) if (!this.entries.get(k)?.mesh) indices.push(...values);
-    this.horizon.geometry.setIndex(indices); this.horizon.geometry.computeVertexNormals();
+    const index = this.horizon.geometry.index!;
+    let changed = false;
+    for (const [key, tile] of this.horizonTiles) {
+      const visible = !this.entries.get(key)?.mesh;
+      if (visible === tile.visible) continue;
+      const end = tile.start + tile.count;
+      if (visible) index.array.set(this.horizonSourceIndices.subarray(tile.start, end), tile.start);
+      else index.array.fill(0, tile.start, end);
+      tile.visible = visible;
+      this.horizonTriangleCount += (visible ? 1 : -1) * tile.count / 3;
+      index.addUpdateRange(tile.start, tile.count);
+      changed = true;
+    }
+    if (changed) index.needsUpdate = true;
   }
   update(x: number, z: number) {
     if (this.disposed) return;
@@ -79,7 +98,7 @@ export class MarsStreamingRuntime {
       const desired = new Set<string>(), needed: { cx: number; cz: number; distance: number }[] = [];
       for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) {
         const a = cx + dx, b = cz + dz;
-        if (a < -5 || a > 4 || b < -5 || b > 4) continue;
+        if (a < MARS_MIN_CHUNK || a > MARS_MAX_CHUNK || b < MARS_MIN_CHUNK || b > MARS_MAX_CHUNK) continue;
         const k = key(a, b); desired.add(k);
         if (Math.abs(dx) <= 1 && Math.abs(dz) <= 1) this.physics.add(k);
         if (!this.entries.has(k)) needed.push({ cx: a, cz: b, distance: dx * dx + dz * dz });
@@ -136,7 +155,7 @@ export class MarsStreamingRuntime {
     const entries = [...this.entries.values()];
     return { activeRender: entries.filter(e => e.mesh).length, activePhysics: entries.filter(e => e.colliders.length).length,
       queued: entries.filter(e => !e.mesh && !e.error).length,
-      triangles: entries.reduce((n, e) => n + (e.mesh ? e.chunk!.indices.length / 3 : 0), (this.horizon.geometry.index?.count ?? 0) / 3),
+      triangles: entries.reduce((n, e) => n + (e.mesh ? e.chunk!.indices.length / 3 : 0), this.horizonTriangleCount),
       colliderCount: entries.reduce((n, e) => n + e.colliders.length, 0), lastActivationMs: this.lastActivationMs };
   }
   dispose() {

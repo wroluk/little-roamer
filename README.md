@@ -107,6 +107,9 @@ switchbacks, a concave communications receiver, a summit loop, a western lookout
 and an optional eastern rock ledge. Glassfall adds a pale impact fan, dark slippery
 glass ribbons, a firm circuit and an eastern overlook. Iron Maze adds layered ironstone
 fins, a broad passage, a western bypass and an optional rock slalom.
+Trail posts remain around Habitat, Crown and Dish; Glassfall and Iron are unmarked.
+The glass flows have no crossing road, but remain driveable off-road.
+Stronger 55–220 m haze softens distant scenery appearing at the streaming boundary.
 Use `?area=mars&start=crown-crater` to begin at the crater entrance,
 `?area=mars&start=dish-ridge` for the ridge saddle,
 `?area=mars&start=glassfall-plain` for the impact fan,
@@ -115,12 +118,21 @@ Use `?area=mars&start=crown-crater` to begin at the crater entrance,
 of the five established regional starts. Mars is hidden from the production picker
 and production direct links while its remaining regions are under construction.
 
-The design spans 768 × 768 metres. Detailed terrain streams in 96 m chunks,
+The design spans 1,536 × 1,536 metres, matching Northern Reach. Detailed terrain streams in 96 m chunks,
 with a 5 × 5 render neighborhood and 3 × 3 collision core. A coarse visual
 terrain layer keeps the distant basin visible; simplified dish and habitat models
 preserve their silhouettes beyond the detailed chunks. Packed regolith and soft red
 dust have matching surface feedback and temporary tire marks. Delayed terrain
 generation holds the car on loaded ground until the next chunk has collision.
+
+The expanded-layout preview separates Dish Ridge, Glassfall and Iron Maze with
+winding journeys. Glassfall has a broad open plain with a gradual pale-ground
+transition; Iron remains hidden behind a screening shoulder. Both have larger landforms;
+road widths, buildings and the Scout retain their scale. Start at Dish Ridge,
+take its southern descent, then follow the road through Glassfall toward Iron.
+Habitat and Crown retain their pilot positions for this first comparison.
+See the [revised spatial map](artifacts/mars/concept-map.svg). Longer driving
+and browser acceptance for the relocated layout is pending user review.
 
 Follow [the build plan](MARS_BUILD_PLAN.md) and [progress record](MARS_PROGRESS.md)
 for implementation status, evidence, and the next region. The broader Mars

@@ -2,15 +2,47 @@ import assert from 'node:assert/strict';
 import { before, test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { MARS_ROUTES, MARS_STARTS, generateMarsChunk, marsSurfaceHeight, marsSurfaceAt, marsSpawn, nearestMarsStart } from '../src/game/mars-terrain';
+import { MARS_ROUTES, MARS_STARTS, MARS_CELL, generateMarsChunk, marsHeightAt, marsSurfaceHeight, marsSurfaceAt, marsSpawn, nearestMarsStart } from '../src/game/mars-terrain';
 import { LocalMarsTransport, MarsStreamingRuntime, type MarsTransport } from '../src/game/mars-streaming';
 import { Vehicle } from '../src/game/vehicle';
 import { disposeScene } from '../src/game/dispose';
-import { groundMarsRock, marsRockGeometry } from '../src/game/mars-landmarks';
+import { groundMarsRock, marsRockGeometry, buildMarsDecor, MARS_MARKED_ROUTES } from '../src/game/mars-landmarks';
+import { MARS_HALF } from '../src/game/mars-layout';
+import { DISH_SITE } from '../src/game/mars-dish-layout';
 before(async () => { await RAPIER.init(); });
 
+test('Mars trail posts remain in civilized regions only', () => {
+  for (const name of ['Habitat to Crown', 'Crown rim circuit', 'Crater descent', 'Dish switchbacks']) {
+    assert.ok(MARS_MARKED_ROUTES.some(route => route.name === name), name);
+  }
+  assert.ok(MARS_MARKED_ROUTES.every(route => !/Glassfall|Iron/.test(route.name)));
+  for (const [cx, cz] of [[4, -1], [4, 0], [3, 3], [4, 4]]) {
+    const decor = buildMarsDecor(cx, cz);
+    try {
+      for (const child of decor.group.children) {
+        assert.ok(child instanceof THREE.Mesh);
+        assert.ok(child.material instanceof THREE.MeshStandardMaterial);
+        assert.equal(child.material.emissiveIntensity * child.material.emissive.getHex(), 0, 'no illuminated trail caps in wild chunks');
+      }
+    } finally { decor.dispose(); }
+  }
+});
+
+test('cached Mars surface samples match immutable lattice heights after eviction', () => {
+  const sample = (ix: number, iz: number) => {
+    const a = Math.fround(marsHeightAt(ix * MARS_CELL, iz * MARS_CELL));
+    const b = Math.fround(marsHeightAt((ix + 1) * MARS_CELL, iz * MARS_CELL));
+    const c = Math.fround(marsHeightAt(ix * MARS_CELL, (iz + 1) * MARS_CELL));
+    assert.ok(Math.abs(marsSurfaceHeight((ix + 0.25) * MARS_CELL, (iz + 0.5) * MARS_CELL)
+      - (a + 0.25 * (b - a) + 0.5 * (c - a))) < 1e-9);
+  };
+  sample(210, -20); sample(175, 185);
+  for (let z = -200; z < -104; z++) for (let x = -200; x < -104; x++) sample(x, z);
+  sample(210, -20); sample(175, 185);
+});
+
 test('coarse Mars tiles retain every detailed perimeter edge at steep rim transitions', () => {
-  for (const [cx, cz] of [[-4, -3], [3, -3], [-2, 3], [2, -4]]) {
+  for (const [cx, cz] of [[-8, -7], [7, -7], [-2, 7], [2, -8]]) {
     const fine = generateMarsChunk(cx, cz), coarse = generateMarsChunk(cx, cz, 4);
     const positions = new Map<string, number>();
     for (let i = 0; i < coarse.vertices.length; i += 3) positions.set(`${coarse.vertices[i]},${coarse.vertices[i + 2]}`, coarse.vertices[i + 1]);
@@ -102,13 +134,19 @@ test('pilot roads have broad graded shoulders and regional starts are flat', () 
 test('Mars stream bounds, transitions, and cleanup leave no terrain or scenery behind', async () => {
   const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
   const runtime = new MarsStreamingRuntime(scene, world, new LocalMarsTransport());
+  const horizon = scene.getObjectByName('Mars · distant basin') as THREE.Mesh;
+  const horizonIndex = horizon.geometry.index!, horizonNormals = horizon.geometry.getAttribute('normal');
+  const normalVersion = (horizonNormals as THREE.BufferAttribute).version;
   try {
-    for (const [x, z, distantDish] of [[0, 8, true], [0, -120, false], [0, -295, false], [210, -210, false], [0, 8, true]] as const) {
+    for (const [x, z, distantDish] of [[0, 8, true], [0, -120, true], [0, -295, true], [DISH_SITE.x, DISH_SITE.z, false], [0, 8, true]] as const) {
       await runtime.ensureReady(x, z);
       assert.equal(scene.getObjectByName('Mars · distant dish')?.visible, distantDish, 'distant receiver yields to detailed scenery and returns after unloading');
       assert.ok(runtime.isCollisionReadyAt(x, z));
       assert.ok(runtime.stats.activeRender <= 25 && runtime.stats.activePhysics <= 9);
       assert.equal(runtime.stats.queued, 0);
+      assert.equal(horizon.geometry.index, horizonIndex, 'chunk activation reuses the horizon index buffer');
+      assert.equal(horizon.geometry.getAttribute('normal'), horizonNormals);
+      assert.equal((horizonNormals as THREE.BufferAttribute).version, normalVersion, 'no full-horizon normal rebuild while streaming');
     }
     runtime.dispose(); runtime.dispose();
     assert.equal(world.colliders.len(), 0);
@@ -131,7 +169,7 @@ test('failed and late Mars generation cannot produce false-ready destinations', 
 });
 
 test('the Great Ring stops the Scout at all four visible basin edges', async () => {
-  for (const [x, z] of [[0, -318], [0, 318], [-318, 0], [318, 0]]) {
+  for (const [x, z] of [[0, -(MARS_HALF - 66)], [0, MARS_HALF - 66], [-(MARS_HALF - 66), 0], [MARS_HALF - 66, 0]]) {
     const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
     const runtime = new MarsStreamingRuntime(scene, world, new LocalMarsTransport());
     try {
@@ -141,7 +179,7 @@ test('the Great Ring stops the Scout at all four visible basin edges', async () 
       for (let tick = 0; tick < 1500; tick++) {
         runtime.update(car.position.x, car.position.z); if (runtime.stats.queued) await runtime.waitForIdle();
         car.beforeStep({ steer: 0, forward: tick > 90, reverse: false }, 1 / 60); world.step(); car.capture();
-        assert.ok(Math.max(Math.abs(car.position.x), Math.abs(car.position.z)) < 380, `escaped at ${car.position.x},${car.position.z}`);
+        assert.ok(Math.max(Math.abs(car.position.x), Math.abs(car.position.z)) < MARS_HALF - 4, `escaped at ${car.position.x},${car.position.z}`);
         assert.ok(car.position.y > marsSurfaceHeight(car.position.x, car.position.z) - 0.2);
       }
     } finally { runtime.dispose(); world.free(); disposeScene(scene); }

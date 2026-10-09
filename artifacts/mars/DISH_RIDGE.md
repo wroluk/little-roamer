@@ -1,23 +1,23 @@
 # Dish Ridge — region card
 
-The ivory receiver rises above three terracotta shelves on the eastern side of Crown Crater. The dish faces southwest, so its concave surface is visible from the crater connection and its western lookout looks back toward both finished regions.
+The ivory receiver rises above three terracotta shelves northeast of Crown Crater. The expanded-layout approach follows a longer winding road; the machinery and internal road widths retain their original scale.
 
 | Feature | Placement and purpose |
 | --- | --- |
-| West saddle / reset | (130, -201), 23 m elevation; a broad arrival clearing connects directly to Crown's eastern rim. |
+| West saddle / reset | (290, -411), 23 m elevation; a broad clearing reached by the winding Crown connection. |
 | Switchbacks | Two broad rounded turns climb the southern face from 23 to 52 m. Unequal shelves and wind-cut gullies give the road a substantial landform beneath it. |
-| Communications dish | (238, -262), on a 52 m service terrace. A 34 m diameter segmented reflector, deep radial lattice trusses, four braced feed arms, a fork pivot, maintenance catwalk and ladder, and a tripod base form the primary landmark. All large parts have matching collision geometry. |
+| Communications dish | (398, -472), on a 52 m service terrace. A 34 m diameter segmented reflector, deep radial lattice trusses, four braced feed arms, a fork pivot, maintenance catwalk and ladder, and a tripod base form the primary landmark. All large parts have matching collision geometry. |
 | Summit circuit | A full driveable loop surrounds the dish; small equipment cabinets and cable covers sit within the service island. |
-| West lookout | (161, -284), 54 m elevation, on a broad supporting shoulder with a clear view toward Crown and Habitat Seven. |
+| West lookout | (321, -494), 54 m elevation, on a broad supporting shoulder. The larger world and intervening ridges replace the former all-regions panorama. |
 | Eastern ledge | A narrower rock-surfaced route loops around the eastern face and reconnects to the summit. The switchbacks remain the broad alternative. |
-| South descent | A winding descent reaches (245, -80), ready for the next Glassfall connection. The continuation is development terrain until that region is built. |
+| South descent | A winding descent reaches (405, -290), joining the rust gully and screened eastern approach to Glassfall. |
 | Secondary forms | Split wind-carved stone at the saddle, exposed shelf slabs, three offset relay masts, grounded service equipment, and paired amber route markers. |
 
 ## Quality gate
 
 Verify road grades across their widths, the summit terrace and reset clearing, chunk joins, and visible/collision agreement in the bowl and tripod. Drive each new route in both directions with the actual Scout; inspect the approach, receiver, and western lookout in Chromium and WebKit. Save captures and a map after refinement. This card records intent until the evidence in `MARS_PROGRESS.md` marks the region complete.
 
-The [terrain and route map](dish-ridge-map.svg) samples the actual implemented height field. Its southern exit ends at the unfinished Glassfall sector; Glassfall has not been started.
+The [expanded concept map](concept-map.svg) shows current placement. The [original terrain map](dish-ridge-map.svg) and captures below are historical evidence from the compact layout, not validation of the relocated region. User review and longer driving/browser gates for the expansion are pending.
 
 ## Review captures
 

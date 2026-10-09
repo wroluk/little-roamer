@@ -2,13 +2,13 @@ import { IRON_ROUTES, IRON_START, IRON_LOOKOUT, IRON_EXIT, ironHeight, ironWeigh
 import { GLASSFALL_ROUTES, GLASSFALL_START, GLASSFALL_LOOKOUT, GLASSFALL_SOUTH, glassfallHeight, glassfallWeight, glassfallRibbonMargin } from './mars-glassfall-layout';
 import type { SurfaceId } from './surfaces';
 import { DISH_ROUTES, DISH_START, DISH_LOOKOUT, DISH_SOUTH_EXIT, dishRidgeHeight, dishRegionWeight } from './mars-dish-layout';
+import { MARS_HALF, MARS_CHUNK_SIZE, MARS_MIN_CHUNK, MARS_MAX_CHUNK, marsScreenHeight } from './mars-layout';
 
-export const MARS_HALF = 384;
-export const MARS_CHUNK_SIZE = 96;
+export { MARS_HALF, MARS_CHUNK_SIZE } from './mars-layout';
 export const MARS_CELLS = 40;
 export const MARS_CELL = MARS_CHUNK_SIZE / MARS_CELLS;
 export type MarsPoint = { x: number; z: number; y: number };
-export type MarsRoute = { name: string; points: MarsPoint[]; halfWidth?: number; surface?: SurfaceId };
+export type MarsRoute = { name: string; points: MarsPoint[]; halfWidth?: number; shoulder?: number; surface?: SurfaceId };
 export const smooth = (v: number) => { const t = Math.max(0, Math.min(1, v)); return t * t * (3 - 2 * t); };
 const hill = (x: number, z: number, cx: number, cz: number, rx: number, rz: number, h: number) =>
   h * Math.exp(-(((x - cx) / rx) ** 2) - ((z - cz) / rz) ** 2);
@@ -56,16 +56,19 @@ export const nearestMarsStart = (x: number, z: number) => MARS_STARTS.reduce((a,
 export const marsSpawn = (p: { x: number; z: number }) => ({ ...p, y: marsSurfaceHeight(p.x, p.z) + 1.25 });
 
 export function marsTrailSample(x: number, z: number) {
-  let distance = Infinity, elevation = 6, weight = 0, sum = 0, halfWidth = 5.5, surface: SurfaceId = 'regolith';
+  let distance = Infinity, elevation = 6, weight = 0, sum = 0, halfWidth = 5.5, shoulder = 10, surface: SurfaceId = 'regolith';
   for (const route of MARS_ROUTES) for (let i = 1; i < route.points.length; i++) {
     const a = route.points[i - 1], b = route.points[i];
     const dx = b.x - a.x, dz = b.z - a.z;
     const t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz)));
     const d = Math.hypot(x - a.x - t * dx, z - a.z - t * dz);
-    if (d < distance) { distance = d; elevation = a.y + (b.y - a.y) * t; halfWidth = route.halfWidth ?? 5.5; surface = route.surface ?? 'regolith'; }
+    if (d < distance) {
+      distance = d; elevation = a.y + (b.y - a.y) * t; halfWidth = route.halfWidth ?? 5.5;
+      shoulder = route.shoulder ?? 10; surface = route.surface ?? 'regolith';
+    }
     if (d < 24) { const w = Math.exp(-d * d / 32); weight += w; sum += (a.y + (b.y - a.y) * t) * w; }
   }
-  return { distance, elevation: weight > 0 ? sum / weight : elevation, halfWidth, surface };
+  return { distance, elevation: weight > 0 ? sum / weight : elevation, halfWidth, shoulder, surface };
 }
 
 /** Authored bowl and road profiles are evaluated globally, independent of chunk ownership. */
@@ -76,52 +79,71 @@ export function marsHeightAt(x: number, z: number): number {
   const crater = 5 + 22 * Math.exp(-(((r - 72) / 20) ** 2))
     + 3 * Math.sin(Math.atan2(z + 195, x) * 7) * Math.exp(-(((r - 86) / 16) ** 2));
   h += (crater - h) * (1 - smooth((r - 95) / 35));
+  const outer = smooth((Math.hypot(x, z) - 120) / 150);
+  h += outer * (2.5 * Math.sin(x * 0.012 + z * 0.008) * Math.sin(z * 0.017)
+    + 1.8 * landscapeNoise(x, z, 85, 21));
+  h += marsScreenHeight(x, z);
   h = dishRidgeHeight(x, z, h);
   h = glassfallHeight(x, z, h);
   h = ironHeight(x, z, h);
   // Broken mesa shoulders and unequal buttresses replace the periodic scalloped wall.
   const edge = Math.pow(Math.abs(x) ** 8 + Math.abs(z) ** 8, 1 / 8);
   const broad = landscapeNoise(x, z, 135, 4), breaks = landscapeNoise(x, z, 43, 8);
-  const shoulder = 314 + broad * 14 + breaks * 6;
+  const shoulder = MARS_HALF - 70 + broad * 14 + breaks * 6;
   const step = broad * 4, terrace = Math.floor(step) + smooth(((step % 1) - 0.6) / 0.4);
   const crest = 78 + terrace * 6 + breaks * 15;
   h += smooth((edge - shoulder) / 25) * (10 + breaks * 7)
     + smooth((edge - shoulder - 25) / (31 + broad * 6)) * crest;
   h += (6 - h) * (1 - smooth((Math.hypot(x / 1.2, z - 44) - 57) / 20));
   const trail = marsTrailSample(x, z);
-  h += (trail.elevation - h) * (1 - smooth((trail.distance - trail.halfWidth) / 10));
+  h += (trail.elevation - h) * (1 - smooth((trail.distance - trail.halfWidth) / trail.shoulder));
   for (const p of [HABITAT_START, CROWN_START, CROWN_LOOKOUT, CROWN_FLOOR, DISH_START, DISH_LOOKOUT, DISH_SOUTH_EXIT, GLASSFALL_START, GLASSFALL_LOOKOUT, GLASSFALL_SOUTH, IRON_START, IRON_LOOKOUT, IRON_EXIT])
     h += (p.y - h) * (1 - smooth((Math.hypot(x - p.x, z - p.z) - 5) / 5));
   return h;
 }
 
+// Immutable lattice heights are reused by wheels and scenery; bound retention while roaming.
+const surfaceHeights = new Map<number, number>();
+const SURFACE_HEIGHT_LIMIT = 8192;
 /** Interpolates the exact Float32 vertices and diagonal used by Rapier's triangle mesh. */
 export function marsSurfaceHeight(x: number, z: number): number {
-  const gx = Math.max(-200, Math.min(199.99999, x / MARS_CELL));
-  const gz = Math.max(-200, Math.min(199.99999, z / MARS_CELL));
+  const min = MARS_MIN_CHUNK * MARS_CELLS, max = (MARS_MAX_CHUNK + 1) * MARS_CELLS - 0.00001;
+  const gx = Math.max(min, Math.min(max, x / MARS_CELL));
+  const gz = Math.max(min, Math.min(max, z / MARS_CELL));
   const ix = Math.floor(gx), iz = Math.floor(gz), u = gx - ix, v = gz - iz;
-  const h = (dx: number, dz: number) => Math.fround(marsHeightAt((ix + dx) * MARS_CELL, (iz + dz) * MARS_CELL));
-  return u + v <= 1 ? h(0, 0) + u * (h(1, 0) - h(0, 0)) + v * (h(0, 1) - h(0, 0))
-    : h(1, 1) + (1 - u) * (h(0, 1) - h(1, 1)) + (1 - v) * (h(1, 0) - h(1, 1));
+  const h = (dx: number, dz: number) => {
+    const key = (iz + dz - min) * ((MARS_MAX_CHUNK - MARS_MIN_CHUNK + 1) * MARS_CELLS + 1) + ix + dx - min;
+    let height = surfaceHeights.get(key);
+    if (height === undefined) {
+      height = Math.fround(marsHeightAt((ix + dx) * MARS_CELL, (iz + dz) * MARS_CELL));
+      if (surfaceHeights.size === SURFACE_HEIGHT_LIMIT) surfaceHeights.delete(surfaceHeights.keys().next().value!);
+      surfaceHeights.set(key, height);
+    }
+    return height;
+  };
+  const a = h(1, 0), b = h(0, 1);
+  if (u + v <= 1) {
+    const c = h(0, 0);
+    return c + u * (a - c) + v * (b - c);
+  }
+  const c = h(1, 1);
+  return c + (1 - u) * (b - c) + (1 - v) * (a - c);
 }
 /** Shared continuous boundary for the glass skin and wheel grip. */
 export function marsGlassMargin(x: number, z: number): number {
-  const ribbon = glassfallRibbonMargin(x, z);
-  if (ribbon < -MARS_CELL) return ribbon;
-  const trail = marsTrailSample(x, z);
-  return trail.surface === 'mars-glass' ? ribbon : Math.min(ribbon, trail.distance - trail.halfWidth - 1.2);
+  return glassfallRibbonMargin(x, z);
 }
 export function marsGlassAt(x: number, z: number): boolean {
   return marsGlassMargin(x, z) > 0;
 }
 export function marsSurfaceAt(x: number, z: number): SurfaceId {
-  const trail = marsTrailSample(x, z);
   if (marsGlassAt(x, z)) return 'mars-glass';
+  const trail = marsTrailSample(x, z);
   if (trail.distance < trail.halfWidth) return trail.surface === 'mars-glass' ? 'regolith' : trail.surface;
   if (Math.hypot(x / 1.2, z - 44) < 57) return 'regolith';
   if (dishRegionWeight(x, z) > 0.65 && marsSurfaceHeight(x, z) > 35) return 'rock';
   const r = Math.hypot(x, z + 195);
-  return r > 58 && r < 98 || Math.max(Math.abs(x), Math.abs(z)) > 330 ? 'rock' : 'mars-dust';
+  return r > 58 && r < 98 || Math.max(Math.abs(x), Math.abs(z)) > MARS_HALF - 54 ? 'rock' : 'mars-dust';
 }
 const linear = (n: number) => n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
 export function marsColor(x: number, z: number, height: number): number[] {
@@ -136,14 +158,19 @@ export function marsColor(x: number, z: number, height: number): number[] {
   const iron = ironWeight(x, z);
   for (let i = 0; i < 3; i++) base[i] += ([0.61, 0.35, 0.22][i] - base[i]) * iron;
   const glassfall = glassfallWeight(x, z);
-  for (let i = 0; i < 3; i++) base[i] += ([0.77, 0.65, 0.48][i] - base[i]) * glassfall;
+  const paleApproach = 0.45 * Math.exp(-(((x - 525) / 65) ** 2 + ((z + 195) / 95) ** 2));
+  const ironApproach = 0.45 * Math.exp(-(((x - 455) / 90) ** 2 + ((z - 260) / 100) ** 2));
+  for (let i = 0; i < 3; i++) {
+    base[i] += ([0.77, 0.65, 0.48][i] - base[i]) * Math.max(glassfall, paleApproach);
+    base[i] += ([0.55, 0.31, 0.22][i] - base[i]) * ironApproach;
+  }
   const dish = dishRegionWeight(x, z);
   return base.map((v, i) => linear(Math.max(0, Math.min(1, v + dish * [-0.025, -0.028, -0.028][i] + bands * (0.025 + dish * 0.014) + grain + path * [0.1, 0.115, 0.085][i]))));
 }
 
 export type MarsChunk = { cx: number; cz: number; vertices: Float32Array; colors: Float32Array; indices: Uint32Array };
 export function generateMarsChunk(cx: number, cz: number, stride: 1 | 4 = 1): MarsChunk {
-  if (!Number.isInteger(cx) || !Number.isInteger(cz) || cx < -5 || cx > 4 || cz < -5 || cz > 4) throw new Error('Mars chunk outside apron');
+  if (!Number.isInteger(cx) || !Number.isInteger(cz) || cx < MARS_MIN_CHUNK || cx > MARS_MAX_CHUNK || cz < MARS_MIN_CHUNK || cz > MARS_MAX_CHUNK) throw new Error('Mars chunk outside apron');
   if (stride === 4) return generateMarsHorizonChunk(cx, cz);
   const n = MARS_CELLS / stride, vertices = new Float32Array((n + 1) ** 2 * 3), colors = new Float32Array(vertices.length), indices = new Uint32Array(n * n * 6);
   for (let j = 0; j <= n; j++) for (let i = 0; i <= n; i++) {

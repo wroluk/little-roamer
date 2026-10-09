@@ -62,7 +62,7 @@ export const AREAS: Record<AreaId, Area> = {
     welcomeEyebrow: 'MARS OUTPOST / HABITAT · CROWN · DISH RIDGE', welcomeTitle: 'Another world.',
     readyMessage: 'Habitat Seven is ready. Follow the crater road north.', ambientLight: '#f3d8c8',
     spawn: marsSpawn(HABITAT_START), half: MARS_HALF, climbingPower: 1.45,
-    sky: '#bb8f80', fogNear: 80, fogFar: 480, groundLight: '#6d4540', sunlight: '#fff0d6',
+    sky: '#bb8f80', fogNear: 55, fogFar: 220, groundLight: '#6d4540', sunlight: '#fff0d6',
     surfaceHeight: marsSurfaceHeight, surfaceAt: marsSurfaceAt, waterHeight: () => null,
     particleColors: { rock: '#b76b49' },
     build: (scene, world, onError) => new MarsStreamingRuntime(scene, world, new MarsWorkerTransport(), onError),

@@ -146,7 +146,7 @@ async function boot() {
     ...(marsStart.id === 'iron-maze' ? { welcomeTitle: 'Between the iron blades.',
       hint: 'Follow the broad passage, take the western bypass, or weave through the rock slalom.' } : {}),
     ...(marsStart.id === 'glassfall-plain' ? { welcomeTitle: 'Where the ground turned to glass.',
-      hint: 'Follow the firm loop around the pale fan, or try the dark glass crossing.' } : {}) };
+      hint: 'Follow the firm loop around the pale fan, or leave the road to explore the dark glass flows.' } : {}) };
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
     ? 'Preparing the road ahead...'

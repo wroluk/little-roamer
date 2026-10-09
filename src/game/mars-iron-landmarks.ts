@@ -14,7 +14,7 @@ export function ironFinGeometry(fin: IronFin): THREE.BufferGeometry {
     const ring: THREE.Vector3[] = [];
     for (const side of [-1, 1]) for (let k = 0; k < 5; k++) {
       const t = (side < 0 ? k : 4 - k) / 4;
-      const width = fin.width * (0.65 + Math.sin(t * Math.PI) * 0.35) * (1 - level * 0.78);
+      const width = fin.width * (0.65 + Math.sin(t * Math.PI) * 0.35) * (level === 1 ? 0.08 : 1 - level * 0.78);
       const lx = side * width + level * Math.sin(t * 5 + fin.seed) * 1.2, lz = (t - 0.5) * fin.length;
       const x = fin.x + lx * c + lz * s, z = fin.z - lx * s + lz * c;
       const ground = marsSurfaceHeight(x, z);
@@ -32,9 +32,12 @@ export function ironFinGeometry(fin: IronFin): THREE.BufferGeometry {
     triangle(rings[r][i], rings[r + 1][i], rings[r][j], color);
     triangle(rings[r][j], rings[r + 1][i], rings[r + 1][j], color);
   }
-  for (const r of [0, rings.length - 1]) for (let i = 1; i < 9; i++) {
-    if (r === 0) triangle(rings[r][0], rings[r][i], rings[r][i + 1], palette[0]);
-    else triangle(rings[r][0], rings[r][i + 1], rings[r][i], palette[4]);
+  for (let i = 1; i < 9; i++) triangle(rings[0][0], rings[0][i], rings[0][i + 1], palette[0]);
+  // Bridge each pair of crest segments instead of fanning a sunken roof from one low end.
+  const top = rings[rings.length - 1];
+  for (let i = 0; i < 4; i++) {
+    triangle(top[i], top[8 - i], top[i + 1], palette[4]);
+    triangle(top[i], top[9 - i], top[8 - i], palette[4]);
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));

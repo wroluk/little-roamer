@@ -1,24 +1,73 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 940"><rect width="900" height="940" fill="#211d24"/><style>text{font-family:system-ui;fill:#f1dbc4} .label{font-size:17px;font-weight:600}</style><text x="48" y="54" font-size="30">MARS OUTPOST</text><text x="48" y="83" font-size="15" fill="#bc978b">768 × 768 m · authored regions · concept layout</text><rect x="66" y="86" width="768" height="768" rx="180" fill="#6e3d36" stroke="#be7854" stroke-width="22"/><rect x="100" y="120" width="700" height="700" rx="165" fill="#ac6950" stroke="#8a4b3e" stroke-width="25"/>
-<path d="M450,275 L660,250" stroke="#efd09b" stroke-width="7" fill="none"/>
-<path d="M660,250 L695,450" stroke="#efd09b" stroke-width="7" fill="none"/>
-<path d="M695,450 L680,660" stroke="#efd09b" stroke-width="7" fill="none"/>
-<path d="M680,660 L450,715" stroke="#efd09b" stroke-width="7" fill="none"/>
-<path d="M450,715 L240,670" stroke="#efd09b" stroke-width="7" fill="none"/>
-<path d="M240,670 L205,470" stroke="#efd09b" stroke-width="7" fill="none"/>
-<path d="M205,470 L240,250" stroke="#efd09b" stroke-width="7" fill="none"/>
-<path d="M240,250 L450,275" stroke="#efd09b" stroke-width="7" fill="none"/>
-<path d="M450,518 L450,275" stroke="#d8b181" stroke-width="5" fill="none" stroke-dasharray="10 5"/>
-<path d="M450,518 L695,450" stroke="#d8b181" stroke-width="5" fill="none" stroke-dasharray="10 5"/>
-<path d="M450,518 L450,715" stroke="#d8b181" stroke-width="5" fill="none" stroke-dasharray="10 5"/>
-<path d="M450,518 L240,670" stroke="#d8b181" stroke-width="5" fill="none" stroke-dasharray="10 5"/>
-<path d="M450,518 L205,470" stroke="#d8b181" stroke-width="5" fill="none" stroke-dasharray="10 5"/>
-<circle cx="450" cy="275" r="36" fill="#fff0c9" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="450" y="336">Crown Crater</text>
-<circle cx="660" cy="250" r="36" fill="#fff0c9" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="660" y="311">Dish Ridge</text>
-<circle cx="695" cy="450" r="36" fill="#fff0c9" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="695" y="511">Glassfall Plain</text>
-<circle cx="680" cy="660" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="680" y="721">Iron Maze</text>
-<circle cx="450" cy="715" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="450" y="776">Keyhole Badlands</text>
-<circle cx="240" cy="670" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="240" y="731">Fossil Delta</text>
-<circle cx="205" cy="470" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="205" y="531">Rust Dunes</text>
-<circle cx="240" cy="250" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="240" y="311">Lava Tubes</text>
-<circle cx="450" cy="518" r="36" fill="#fff0c9" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="450" y="579">Habitat Seven</text>
-<text x="450" y="135" text-anchor="middle" font-size="17">N ↑ · THE GREAT RING</text><text x="48" y="896" font-size="16">Light markers: completed regions · Dark markers: planned regions</text><text x="48" y="923" font-size="14">Solid line: outer circuit · Dashed: outpost spokes · All routes work both ways</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1000">
+  <rect width="1100" height="1000" fill="#211d24"/>
+  <style>text{font-family:system-ui;fill:#f1dbc4}.label{font-size:15px;font-weight:600}.small{font-size:12px}.road{fill:none;stroke:#efd09b;stroke-width:3}.future{fill:none;stroke:#bc978b;stroke-width:2;stroke-dasharray:7 6}</style>
+  <text x="50" y="45" font-size="28">MARS OUTPOST / EXPLORATION LAYOUT</text>
+  <text x="50" y="72" font-size="15">1,536 x 1,536 m / Eastern journey preview / North is up</text>
+  <rect x="66" y="106" width="768" height="768" rx="100" fill="#ac6950" stroke="#6e3d36" stroke-width="25"/>
+  <text x="450" y="132" text-anchor="middle" font-size="15">THE GREAT RING</text>
+  <g transform="translate(450 490) scale(.5)">
+    <path d="M162,-320 L193,-365 L267,-350 L296,-280 L245,-213 L191,-233 Z" fill="#a1644d"/>
+    <path d="M171,134 L229,87 L294,115 L315,206 L262,271 L193,242 Z" fill="#a1644d"/>
+    <path d="M389,291 L425,265 L496,270 L543,312 L517,351 L422,362 L388,332 Z" fill="#754537"/>
+    <ellipse cx="398" cy="-472" rx="95" ry="100" fill="#bc7655"/>
+    <ellipse cx="500" cy="-30" rx="119" ry="141" fill="#dac49c"/>
+    <ellipse cx="380" cy="460" rx="129" ry="115" fill="#82503a"/>
+    <circle cx="0" cy="-195" r="75" fill="#d5ab80" stroke="#ecd1a3" stroke-width="12"/>
+    <circle cx="0" cy="48" r="55" fill="#cba580"/>
+    <g fill="#302e2e">
+      <path d="M552,-69 Q470,-30 400,6 Q475,-2 552,-69"/>
+      <path d="M552,-69 Q514,25 443,74 Q521,58 552,-69"/>
+      <path d="M552,-69 Q560,10 525,80 Q568,50 552,-69"/>
+      <circle cx="552" cy="-69" r="14"/>
+    </g>
+    <g stroke="#49372f" stroke-width="8">
+      <path d="M364,380 l-3,38 M369,433 l2,30 M372,488 l-2,30 M447,400 l-7,58 M475,418 l-6,50 M308,386 l-2,28 M302,455 l2,36"/>
+    </g>
+    <g fill="none" stroke="#efd09b" stroke-width="6">
+      <path d="M0,8 L-12,-65 L0,-120 M75,-195 L110,-225 L145,-272 L155,-325 L190,-365 L240,-378 L290,-411"/>
+      <path d="M290,-411 L331,-389 L388,-386 L409,-408 L376,-423 L333,-431 L330,-443 L359,-462 L370,-472"/>
+      <path d="M388,-386 L415,-376 L423,-358 L419,-335 L410,-311 L405,-290"/>
+      <path d="M405,-290 L425,-278 L460,-300 L505,-292 L548,-256 L549,-218 L525,-194 L477,-170 L449,-137 L426,-110"/>
+      <path d="M426,-110 L449,-137 L488,-147 L533,-136 L573,-107 L594,-68 L594,-21 L577,22 L558,80 L501,100 L441,103 L401,72 L374,16 L375,-33 L403,-74 Z"/>
+      <path d="M501,100 L520,112 L520,141 L531,187 L511,228 L464,250 L418,252 L380,279 L374,315 L404,363"/>
+      <path d="M404,363 L408,398 L408,439 L404,477 L404,512 L376,548"/>
+      <path d="M404,363 L366,362 L320,365 L281,393 L269,438 L274,485 L304,526 L341,545 L376,548"/>
+      <path d="M376,548 L337,571 L289,573 L243,568"/>
+      <path d="M42,20 L100,24 L155,-10 L202,-5 L235,-50 L290,-82 L345,-76 L426,-110"/>
+    </g>
+    <path d="M243,568 L0,530 L-430,430 L-520,20 L-430,-420 L0,-195" fill="none" stroke="#efcfab" stroke-width="5" stroke-dasharray="15 12"/>
+    <g fill="#f9ebc7" stroke="#46383b" stroke-width="4">
+      <circle cx="0" cy="48" r="11"/><circle cx="0" cy="-195" r="11"/><circle cx="398" cy="-472" r="11"/>
+      <circle cx="500" cy="-30" r="11"/><circle cx="380" cy="460" r="11"/>
+    </g>
+    <g fill="#392e38" stroke="#dfaa77" stroke-width="4">
+      <circle cx="0" cy="530" r="16"/><circle cx="-430" cy="430" r="16"/><circle cx="-520" cy="20" r="16"/><circle cx="-430" cy="-420" r="16"/>
+    </g>
+    <g fill="#d8efc2" stroke="#254839" stroke-width="4">
+      <path d="M549,-230 l12,24 h-24 Z"/><path d="M374,303 l12,24 h-24 Z"/>
+    </g>
+  </g>
+  <g class="label">
+    <text x="408" y="380">Crown Crater</text><text x="394" y="535">Habitat Seven</text>
+    <text x="606" y="237">Dish Ridge</text><text x="660" y="471">Glassfall Plain</text>
+    <text x="604" y="735">Iron Maze</text><text x="396" y="782">Keyhole / reserved</text>
+    <text x="177" y="733">Delta / reserved</text><text x="119" y="527">Dunes / reserved</text>
+    <text x="178" y="303">Tubes / reserved</text>
+  </g>
+  <text x="858" y="190" class="label">FIRST REVIEW JOURNEY</text>
+  <text x="858" y="223" class="small">Dish: relocated, same machinery</text>
+  <text x="858" y="245" class="small">Low approach: open pale plain</text>
+  <text x="858" y="267" class="small">Glassfall: 1.45x wider landforms</text>
+  <text x="858" y="289" class="small">Sediment wash: hidden Iron entry</text>
+  <text x="858" y="311" class="small">Iron Maze: 1.4x wider corridors</text>
+  <text x="858" y="366" class="label">VISIBILITY</text>
+  <text x="858" y="393" class="small">Low shoulders; Iron stays screened</text>
+  <text x="858" y="415" class="small">Green triangles mark reveals</text>
+  <text x="858" y="437" class="small">Stronger haze: 55-220 m</text>
+  <text x="858" y="492" class="label">SCOPE</text>
+  <text x="858" y="519" class="small">Habitat/Crown: pilot positions</text>
+  <text x="858" y="541" class="small">Dashed routes: future, not built</text>
+  <text x="858" y="563" class="small">Road and vehicle scale retained</text>
+  <text x="66" y="925" font-size="15">Spatial design map; user driving review pending. Not a full-world completion claim.</text>
+  <text x="66" y="951" font-size="13">Routes and centres follow the expanded layout. Region outlines are schematic; heights are verified separately.</text>
+</svg>

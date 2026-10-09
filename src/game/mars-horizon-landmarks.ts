@@ -28,7 +28,8 @@ export function buildMarsHorizonLandmarks() {
     }
     group.add(object); anchors.push({ cx: Math.floor(x / 96), cz: Math.floor(z / 96), group: object });
   };
-  anchor(DISH_SITE.x, DISH_SITE.z, 'Mars · distant dish', add => addDishRidgeDecor(2, -3, add, palette, true));
+  anchor(DISH_SITE.x, DISH_SITE.z, 'Mars · distant dish',
+    add => addDishRidgeDecor(Math.floor(DISH_SITE.x / 96), Math.floor(DISH_SITE.z / 96), add, palette, true));
   for (const [x, z, radius] of [[-28, 37, 10], [23, 37, 8], [6, 84, 11]]) anchor(x, z, 'Mars · distant habitat', add => {
     const y = marsSurfaceHeight(x, z), dome = marsHabitatGeometry(radius, 1);
     add(dome.opaque.translate(x, y + 1.2, z), palette.ivory);
