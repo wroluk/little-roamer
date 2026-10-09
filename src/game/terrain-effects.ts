@@ -32,7 +32,7 @@ export class TerrainEffects {
     moss: new THREE.Color('#7f995d'), ice: new THREE.Color('#c5edf2'),
     water: new THREE.Color('#bcebed'), snow: new THREE.Color('#e8f4ef'),
     mud: new THREE.Color('#665744'), rock: new THREE.Color('#7b8582'),
-    sand: new THREE.Color('#bca77e'), regolith: new THREE.Color('#bf7857'), 'mars-dust': new THREE.Color('#ae573d'),
+    sand: new THREE.Color('#bca77e'), regolith: new THREE.Color('#bf7857'), 'mars-dust': new THREE.Color('#ae573d'), 'mars-glass': new THREE.Color('#596060'),
   } satisfies Record<SurfaceId, THREE.Color>;
   private readonly emitDebt = [0, 0, 0, 0];
   private next = 0;
@@ -42,8 +42,11 @@ export class TerrainEffects {
 
   readonly ground: GroundEffects;
 
-  constructor(private readonly scene: THREE.Scene, private readonly waterHeight: (x: number, z: number) => number | null, heightAt: (x: number, z: number) => number = () => 0) {
+  constructor(private readonly scene: THREE.Scene, private readonly waterHeight: (x: number, z: number) => number | null,
+    heightAt: (x: number, z: number) => number = () => 0, particleColors: Partial<Record<SurfaceId, string>> = {}) {
+    for (const id of Object.keys(particleColors) as SurfaceId[]) this.colors[id].set(particleColors[id]!);
     this.ground = new GroundEffects(scene, heightAt, waterHeight);
+    this.mesh.name = 'terrain-particles';
     this.mesh.frustumCulled = false;
     this.mesh.visible = false;
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);

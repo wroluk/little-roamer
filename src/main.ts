@@ -116,7 +116,7 @@ async function boot() {
         vehicle.capture();
       }
       vehicle.syncVisuals(1);
-      const terrainEffects = new TerrainEffects(scene, area.waterHeight, area.surfaceHeight);
+      const terrainEffects = new TerrainEffects(scene, area.waterHeight, area.surfaceHeight, area.particleColors);
       return { scene, world, vehicle, follow, terrainEffects, runtime };
     } catch (error) {
       runtime?.dispose();
@@ -140,7 +140,13 @@ async function boot() {
       hint: requestedStart.hint ?? area.hint, readyMessage: requestedStart.readyMessage };
   }
   const marsStart = MARS_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
-  if (area.id === 'mars' && marsStart) area = { ...area, spawn: marsSpawn(marsStart.position), readyMessage: `${marsStart.name}. Take your time and explore.` };
+  if (area.id === 'mars' && marsStart) area = { ...area, spawn: marsSpawn(marsStart.position), readyMessage: `${marsStart.name}. Take your time and explore.`,
+    ...(marsStart.id === 'dish-ridge' ? { welcomeTitle: 'Above the red basin.',
+      hint: 'Follow the posts up the switchbacks. The eastern rock ledge loops back to the summit.' } : {}),
+    ...(marsStart.id === 'iron-maze' ? { welcomeTitle: 'Between the iron blades.',
+      hint: 'Follow the broad passage, take the western bypass, or weave through the rock slalom.' } : {}),
+    ...(marsStart.id === 'glassfall-plain' ? { welcomeTitle: 'Where the ground turned to glass.',
+      hint: 'Follow the firm loop around the pale fan, or try the dark glass crossing.' } : {}) };
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
     ? 'Preparing the road ahead...'
@@ -167,7 +173,7 @@ async function boot() {
   syncCarPicker();
   function surfaceLabel(): string {
     const surface = vehicle.currentSurface;
-    if (area.id === 'mars' && surface.id === 'rock') return 'Crater rock';
+    if (area.id === 'mars' && surface.id === 'rock') return 'Martian rock';
     if (surface.id === 'water') {
       if (area.id === 'samurai-village') return 'Shallow lake';
       if (area.id === 'northern-reach' && shoalsWaterRegion(vehicle.position.x, vehicle.position.z)) return 'Coastal shallows';

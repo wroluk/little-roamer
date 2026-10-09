@@ -1,8 +1,14 @@
+import { addIronDecor } from './mars-iron-landmarks';
+import { ironWeight } from './mars-iron-layout';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { MARS_ROUTES, marsSurfaceHeight, marsTrailSample, marsRandom } from './mars-terrain';
 import { disposeScene } from './dispose';
+import { addDishRidgeDecor } from './mars-dish-landmarks';
+import { addGlassfallDecor } from './mars-glassfall-landmarks';
+import { glassfallWeight } from './mars-glassfall-layout';
+import { DISH_SITE } from './mars-dish-layout';
 
 export type MarsSolid = { vertices: Float32Array; indices: Uint32Array };
 export type MarsDecor = { group: THREE.Group; solids: MarsSolid[]; dispose: () => void };
@@ -108,11 +114,16 @@ export function buildMarsDecor(cx: number, cz: number): MarsDecor {
   for (const [x, z, w, h] of [[-37, -275, 7, 11], [-22, -285, 5, 16], [26, -282, 8, 13], [14, -217, 2, 2.4]]) if (owns(x, z)) {
     add(groundMarsRock(marsRockGeometry(w, h, x * 0.1).rotateY(x * 0.13), x, z), pale, true);
   }
+  // Split sentinel at the saddle and exposed shelf slabs give Dish Ridge its own geology.
+  for (const [x, z, w, h] of [[150, -219, 3.8, 10], [160, -216, 2.5, 7], [183, -193, 5, 3.5],
+    [207, -231, 4.5, 4], [304, -228, 3.6, 9], [281, -276, 4.2, 6], [177, -307, 5, 7]]) if (owns(x, z))
+    add(groundMarsRock(marsRockGeometry(w, h, x * 0.17).rotateY(z * 0.09), x, z), orange, true);
   // Small plates form ejecta rays and low wind-worn scatter. Keep every road shoulder clear.
   for (let j = 0; j < 5; j++) for (let i = 0; i < 5; i++) {
     const gx = cx * 5 + i, gz = cz * 5 + j, random = (channel: number) => marsRandom(gx, gz, channel);
     const x = cx * 96 + 3 + i * 18.6 + random(0) * 15, z = cz * 96 + 3 + j * 18.6 + random(1) * 15;
-    if (marsTrailSample(x, z).distance < 10 || Math.hypot(x / 1.2, z - 44) < 78 || random(2) < 0.43) continue;
+    if (marsTrailSample(x, z).distance < 10 || Math.hypot(x / 1.2, z - 44) < 78
+      || Math.hypot(x - DISH_SITE.x, z - DISH_SITE.z) < 23 || glassfallWeight(x, z) > 0.45 || ironWeight(x, z) > 0.45 || random(2) < 0.43) continue;
     const slope = Math.hypot(marsSurfaceHeight(x + 2, z) - marsSurfaceHeight(x - 2, z),
       marsSurfaceHeight(x, z + 2) - marsSurfaceHeight(x, z - 2)) / 4;
     if (slope > 0.65) continue; // Loose stones collect on shelves, not vertical cliff faces.
@@ -123,11 +134,13 @@ export function buildMarsDecor(cx: number, cz: number): MarsDecor {
       .rotateY(random(7) * Math.PI * 2), x, z);
     add(geo, r < 125 ? pale : orange, true);
   }
-  for (const route of MARS_ROUTES.slice(0, 5)) for (let i = 1; i < route.points.length; i += route.points.length > 20 ? 4 : 1) {
+  for (const route of MARS_ROUTES.filter(route => !['Habitat courtyard', 'Dish summit circuit'].includes(route.name))) for (let i = 1; i < route.points.length; i += route.points.length > 20 ? 4 : 1) {
     const p = route.points[i], a = route.points[i - 1];
     const length = Math.hypot(p.x - a.x, p.z - a.z);
     const x = p.x + (p.z - a.z) / length * 7, z = p.z - (p.x - a.x) / length * 7;
     if (!owns(x, z)) continue;
+    const road = marsTrailSample(x, z);
+    if (road.distance < road.halfWidth + 0.7) continue; // Keep neighboring branches clear at junctions.
     const y = marsSurfaceHeight(x, z);
     cylinder(x, y + 0.7, z, 0.13, 1.4, orange, true);
     cylinder(x, y + 1.45, z, 0.22, 0.16, light);
@@ -182,11 +195,14 @@ export function buildMarsDecor(cx: number, cz: number): MarsDecor {
         .rotateY(side < 0 ? Math.PI : 0).translate(x, y + 3, z + side * 0.18), sign);
     }
   }
+  addDishRidgeDecor(cx, cz, add, { ivory, orange, dark, light });
+  addGlassfallDecor(cx, cz, add);
+  addIronDecor(cx, cz, add);
   for (const [material, geometries] of parts) {
     const geometry = mergeGeometries(geometries)!; geometries.forEach(g => g.dispose());
     const mesh = new THREE.Mesh(geometry, material);
     const display = material instanceof THREE.MeshBasicMaterial && material.map;
-    mesh.castShadow = !display; mesh.receiveShadow = !display;
+    mesh.castShadow = !display && material.userData.castShadow !== false; mesh.receiveShadow = !display;
     if (wayfindingMaterials.has(material)) mesh.name = 'mars-wayfinding-display';
     group.add(mesh);
   }
@@ -195,8 +211,8 @@ export function buildMarsDecor(cx: number, cz: number): MarsDecor {
 }
 
 /** Flat triangular panels and shared struts, cut precisely at the foundation plane. */
-export function marsHabitatGeometry(radius: number): { opaque: THREE.BufferGeometry; glazed: THREE.BufferGeometry; frame: THREE.BufferGeometry } {
-  const source = new THREE.IcosahedronGeometry(1, 3);
+export function marsHabitatGeometry(radius: number, detail = 3): { opaque: THREE.BufferGeometry; glazed: THREE.BufferGeometry; frame: THREE.BufferGeometry } {
+  const source = new THREE.IcosahedronGeometry(1, detail);
   const positions = source.getAttribute('position');
   const opaque: number[] = [], glazed: number[] = [], struts: THREE.BufferGeometry[] = [];
   const edges = new Set<string>();

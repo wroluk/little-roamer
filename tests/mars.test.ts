@@ -103,8 +103,9 @@ test('Mars stream bounds, transitions, and cleanup leave no terrain or scenery b
   const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
   const runtime = new MarsStreamingRuntime(scene, world, new LocalMarsTransport());
   try {
-    for (const [x, z] of [[0, 8], [0, -120], [0, -295], [210, -210], [0, 8]]) {
+    for (const [x, z, distantDish] of [[0, 8, true], [0, -120, false], [0, -295, false], [210, -210, false], [0, 8, true]] as const) {
       await runtime.ensureReady(x, z);
+      assert.equal(scene.getObjectByName('Mars · distant dish')?.visible, distantDish, 'distant receiver yields to detailed scenery and returns after unloading');
       assert.ok(runtime.isCollisionReadyAt(x, z));
       assert.ok(runtime.stats.activeRender <= 25 && runtime.stats.activePhysics <= 9);
       assert.equal(runtime.stats.queued, 0);

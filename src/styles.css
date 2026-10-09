@@ -191,3 +191,5 @@ h2 { font-family: Georgia, serif; font-size: 34px; letter-spacing: -1px; font-we
   *, *::before, *::after { transition: none !important; }
   .surface-indicator.changed { transform: translateX(-50%); }
 }
+
+.surface-indicator[data-surface="mars-glass"] i { background: #596060; }

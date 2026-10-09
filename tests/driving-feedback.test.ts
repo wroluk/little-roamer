@@ -12,6 +12,19 @@ function vehicle() {
     terrainWheels: Array.from({length:4}, () => ({position:new THREE.Vector3(), grounded:true, surface:SURFACES.dirt, slip:0, intensity:0.5})) } as unknown as Vehicle;
 }
 
+test('area particle palette colours emitted rock fragments without changing other areas', () => {
+  for (const override of [undefined, { rock: '#b76b49' }]) {
+    const scene = new THREE.Scene(), effects = new TerrainEffects(scene, () => null, () => 0, override), car = vehicle();
+    car.terrainWheels.forEach(wheel => { wheel.surface = SURFACES.rock; });
+    for (let i = 0; i < 5; i++) effects.update(0.1, car);
+    assert.ok(effects.count > 0);
+    const mesh = scene.children.find(object => object instanceof THREE.InstancedMesh) as THREE.InstancedMesh;
+    const color = new THREE.Color(); mesh.getColorAt(0, color);
+    assert.equal(color.getHexString(), override ? 'b76b49' : '7b8582');
+    effects.dispose();
+  }
+});
+
 test('ground marks require contact and movement, stay bounded, expire, and dispose', () => {
   const scene=new THREE.Scene(), marks=new GroundEffects(scene,()=>0,()=>0.2), car=vehicle();
   for(let i=0;i<600;i++) { car.terrainWheels.forEach(w=>{w.position.z+=0.4;}); marks.update(1/60,car); }

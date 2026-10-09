@@ -3,6 +3,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { generateMarsChunk, type MarsChunk } from './mars-terrain';
 import { buildMarsDecor, attachMarsSolids, type MarsDecor } from './mars-landmarks';
 import type { NorthernStreamingStats } from './northern-streaming';
+import { buildMarsHorizonLandmarks } from './mars-horizon-landmarks';
 
 export interface MarsTransport { generate(cx: number, cz: number): Promise<MarsChunk>; dispose(): void }
 export class MarsWorkerTransport implements MarsTransport {
@@ -47,6 +48,7 @@ export class MarsStreamingRuntime {
   private material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true });
   private horizon: THREE.Mesh;
   private horizonIndices = new Map<string, number[]>();
+  private distantLandmarks = buildMarsHorizonLandmarks();
   constructor(private scene: THREE.Scene, private world: RAPIER.World, private transport: MarsTransport,
     private onError: (error: Error) => void = () => {}) {
     // A coarse, non-colliding horizon keeps the Great Ring visible. Detailed active chunks
@@ -60,9 +62,11 @@ export class MarsStreamingRuntime {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     this.horizon = new THREE.Mesh(g, this.material); this.horizon.name = 'Mars · distant basin'; this.scene.add(this.horizon);
+    this.scene.add(this.distantLandmarks.group);
     this.refreshHorizon();
   }
   private refreshHorizon() {
+    for (const anchor of this.distantLandmarks.anchors) anchor.group.visible = !this.entries.get(key(anchor.cx, anchor.cz))?.mesh;
     const indices: number[] = [];
     for (const [k, values] of this.horizonIndices) if (!this.entries.get(k)?.mesh) indices.push(...values);
     this.horizon.geometry.setIndex(indices); this.horizon.geometry.computeVertexNormals();
@@ -139,5 +143,6 @@ export class MarsStreamingRuntime {
     if (this.disposed) return; this.disposed = true; this.transport.dispose();
     for (const e of this.entries.values()) this.remove(e); this.entries.clear();
     this.scene.remove(this.horizon); this.horizon.geometry.dispose(); this.material.dispose();
+    this.scene.remove(this.distantLandmarks.group); this.distantLandmarks.dispose();
   }
 }

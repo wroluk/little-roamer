@@ -40,7 +40,7 @@ export class FollowCamera {
       Math.sin(this.orbitYaw + yaw),
       Math.cos(this.orbitYaw + yaw),
     );
-    this.orbitPitch = THREE.MathUtils.clamp(this.orbitPitch + pitch, -0.32, 0.62);
+    this.orbitPitch = THREE.MathUtils.clamp(this.orbitPitch + pitch, -0.75, 0.62);
   }
 
   update(dt: number, showcase = false, feedback = 0) {
@@ -59,7 +59,9 @@ export class FollowCamera {
     const horizontalDistance = portrait ? 13.5 : 11.5;
     const height = portrait ? 8.5 : 7.3;
     const boomLength = Math.hypot(horizontalDistance, height);
-    const pitch = Math.atan2(height, horizontalDistance) + this.orbitPitch;
+    // After lowering the boom, lift the gaze to admire tall landmarks without going underground.
+    this.target.y += Math.max(0, -this.orbitPitch - 0.48) * 18;
+    const pitch = Math.atan2(height, horizontalDistance) + Math.max(-0.48, this.orbitPitch);
     this.orbitDirection.set(
       -Math.sin(this.heading + this.orbitYaw),
       0,

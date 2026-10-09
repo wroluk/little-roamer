@@ -8,8 +8,8 @@ The central clearing is (0, 48). Region centres follow an irregular circuit insi
 | --- | --- | --- | --- | --- |
 | Habitat Seven | Low ivory domes, orange airlocks, dark solar wings; flat ochre apron | Broad courtyard circuit and departure lane; optional cargo-pad loop | Three geodesic domes with triangular glazing and pale structural struts, numbered landing pad, raised solar panels and a four-legged cargo lander | North departure frames Crown; reset (0, 8); four outward spokes |
 | Crown Crater | Pale scalloped bowl, three broken crown teeth above the north rim | Broad rim circuit; winding descent to a small dark impact stone on the floor | Exposed sediment bands, radial ejecta slabs, paired route posts and a north lookout | Look south to Habitat; reset (0, -120); west reserved for Tubes, east for Dish |
-| Dish Ridge | High terracotta shoulder with an ivory concave dish above it | Long switchbacks and broad turnouts; optional rock shelf | Dish has a visible open bowl, three supporting legs, feed arm, relay masts and cable trenches | Overlook sees Crown and Habitat; reset on west saddle; descends south to Glassfall |
-| Glassfall Plain | Low pale fan cut by charcoal glass streaks | Firm loop around impact scar; optional slick transverse crossing | Raised impact lip, glossy dark streaks flush with terrain, scattered pale ejecta | Dish remains north reference; reset west approach; southern fan opens to Iron |
+| Dish Ridge | High terracotta shoulder with an ivory concave dish above it | Long switchbacks and broad turnouts; optional rock shelf | 34 m segmented reflector, radial lattice trusses, four braced feed arms, fork pivot, catwalk, ladder, three supporting legs and relay masts | Overlook sees Crown and Habitat; reset on west saddle; descends south to Glassfall |
+| Glassfall Plain | Low pale fan crossed by solid dark melt flows | Firm loop around impact scar; optional slick crossing | Raised impact lip, continuous rounded glass flows without plate fractures or shards, scattered pale ejecta | Dish remains north reference; reset west approach; southern fan opens to Iron |
 | Iron Maze | Tall rust-black fins, uneven roofline, open ochre corridors | Clear broad central passage and perimeter bypass; narrow optional slalom | Fins have individual tapered profiles and visible sediment feet; one fallen slab forms a side pocket | Dish glimpsed between fins; reset north entrance; south exit curves toward Keyhole |
 | Keyhole Badlands | Horizontal buff/red strata with a single large arch | Winding dry wash; optional elevated ledge reconnects to it | Beveled, genuinely open Keyhole Arch; terraced buttes; eroded wash banks | Arch frames Habitat from south approach; reset east wash; west exit to Delta |
 | Fossil Delta | Branching low channels and pale sediment fans | Two channel branches reconnect; firmer bank route above them | Flat sediment slabs, stranded dark boulder, a stepped fan visible from overlook | Keyhole silhouette to east; reset upper bank; west/north trail reaches Dunes |
@@ -23,6 +23,10 @@ Hero forms use authored profiles, ribs, bevels, strata, and asymmetric silhouett
 The landing pad and roads meet the terrain without raised collision lips. Domes use flat triangular panels cut at the foundation plane, with matching panel colliders; airlocks and support feet have matching solids. The crater has a genuine terrain bowl; the visible road is the collision surface. Future arches and tubes require open meshes with matching triangle collisions; a bounding box must never seal a visible passage.
 
 Review each region from three named views: arrival (silhouette and route choice), feature (shape and collision clearance), and overlook (relationship to the wider map). Save actual game captures after each milestone. Concept drawings are only layout evidence.
+
+## Dish Ridge — 2026-10-09
+
+Dish Ridge's completed implementation is documented in its [region card](DISH_RIDGE.md), [actual terrain map](dish-ridge-map.svg), and linked game captures. Its western lookout is at (161, -284), on a 54 m shoulder. Low-detail receiver and habitat models preserve sightlines outside the detailed terrain ring. The southern road now connects to Glassfall Plain.
 
 ## Pilot visual revisions — 2026-10-08
 
@@ -41,3 +45,11 @@ Mars wayfinding uses clipped-corner dark housings between two ivory side pylons 
 The first image-feedback review grounds rock skirts across their footprints and keeps loose scatter off steep walls. Independent deterministic shape and placement choices mix chips, slabs and taller knuckles. The Great Ring uses irregular shoulders and terraced buttresses; warm haze runs from 80 to 480 m after the user's request for a slight reduction. Coarse horizon tiles retain the detailed boundary lattice to meet streamed terrain without cracks. See [feedback response and captures](FEEDBACK1_RESPONSE.md).
 
 The second review aligns solar-panel posts to the tilted underside and local terrain. A later follow-up removes the north lookout board completely, leaving the rock silhouettes and route posts in view. The landing pad has a layered octagonal paint outline and large, centred **07** stencil numerals, without a text label. The Mars haze keeps its 80–480 m range; its dusty rose tint was darkened slightly once more after the pad review. See [feedback 2 response and captures](FEEDBACK2_RESPONSE.md).
+
+## Glassfall Plain — 2026-10-09
+
+See the [region card](GLASSFALL_PLAIN.md) for the impact scar, three melt ribbons, firm circuit, crossing, eastern lookout and connecting roads. The next region is Iron Maze; stop before building it for user review.
+
+## Iron Maze — 2026-10-09
+
+The [region card](IRON_MAZE.md) details the layered fin field, Split Anvil, main passage, western bypass, rock slalom and eastern lookout. Its westbound exit reserves the transition to Keyhole Badlands; stop before that region for review.

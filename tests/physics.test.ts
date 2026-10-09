@@ -279,6 +279,10 @@ test('manual camera orbit circles the vehicle and clamps vertical travel', () =>
     assert.ok(camera.position.y > sideHeight + 3);
     assert.ok(camera.position.distanceTo(vehicle.position) < 16);
     assert.deepEqual(camera.up.toArray(), [0, 1, 0]);
+    follow.orbit(0, -10);
+    for (let i = 0; i < 90; i++) follow.update(1 / 60);
+    assert.ok(camera.getWorldDirection(new THREE.Vector3()).y > 0.2, 'upward orbit reveals the sky above tall landmarks');
+    assert.ok(camera.position.y >= surfaceHeight(camera.position.x, camera.position.z) + 0.4, 'low boom stays above ground');
   } finally { world.free(); }
 });
 

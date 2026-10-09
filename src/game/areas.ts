@@ -46,6 +46,7 @@ export type Area = {
   surfaceHeight: (x: number, z: number) => number;
   waterHeight: (x: number, z: number) => number | null;
   surfaceAt: (x: number, z: number) => SurfaceId;
+  particleColors?: Partial<Record<SurfaceId, string>>;
   build: (
     scene: THREE.Scene,
     world: RAPIER.World,
@@ -56,13 +57,14 @@ export type Area = {
 export const AREAS: Record<AreaId, Area> = {
   mars: {
     id: 'mars', name: 'Mars Outpost', label: '05 / A LITTLE FARTHER FROM HOME',
-    tagline: 'Small wheels. Another world.', description: 'Leave the ivory domes of Habitat Seven. Follow the pale road to Crown Crater, circle its rim, or wind down to the old impact stone.',
-    hint: 'Pale tracks lead to Crown Crater. Light-tipped posts mark the rim and floor descent.',
-    welcomeEyebrow: 'MARS OUTPOST / HABITAT & CROWN', welcomeTitle: 'Another world.',
+    tagline: 'Small wheels. Another world.', description: 'Leave the ivory domes of Habitat Seven. Explore Crown Crater, climb Dish Ridge, then cross the pale impact fan of Glassfall Plain.',
+    hint: 'Pale tracks lead to Crown Crater. From its eastern rim, follow the posts toward Dish Ridge.',
+    welcomeEyebrow: 'MARS OUTPOST / HABITAT · CROWN · DISH RIDGE', welcomeTitle: 'Another world.',
     readyMessage: 'Habitat Seven is ready. Follow the crater road north.', ambientLight: '#f3d8c8',
     spawn: marsSpawn(HABITAT_START), half: MARS_HALF, climbingPower: 1.45,
     sky: '#bb8f80', fogNear: 80, fogFar: 480, groundLight: '#6d4540', sunlight: '#fff0d6',
     surfaceHeight: marsSurfaceHeight, surfaceAt: marsSurfaceAt, waterHeight: () => null,
+    particleColors: { rock: '#b76b49' },
     build: (scene, world, onError) => new MarsStreamingRuntime(scene, world, new MarsWorkerTransport(), onError),
   },
   'samurai-village': {

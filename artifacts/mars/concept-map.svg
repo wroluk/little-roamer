@@ -13,12 +13,12 @@
 <path d="M450,518 L240,670" stroke="#d8b181" stroke-width="5" fill="none" stroke-dasharray="10 5"/>
 <path d="M450,518 L205,470" stroke="#d8b181" stroke-width="5" fill="none" stroke-dasharray="10 5"/>
 <circle cx="450" cy="275" r="36" fill="#fff0c9" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="450" y="336">Crown Crater</text>
-<circle cx="660" cy="250" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="660" y="311">Dish Ridge</text>
-<circle cx="695" cy="450" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="695" y="511">Glassfall Plain</text>
+<circle cx="660" cy="250" r="36" fill="#fff0c9" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="660" y="311">Dish Ridge</text>
+<circle cx="695" cy="450" r="36" fill="#fff0c9" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="695" y="511">Glassfall Plain</text>
 <circle cx="680" cy="660" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="680" y="721">Iron Maze</text>
 <circle cx="450" cy="715" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="450" y="776">Keyhole Badlands</text>
 <circle cx="240" cy="670" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="240" y="731">Fossil Delta</text>
 <circle cx="205" cy="470" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="205" y="531">Rust Dunes</text>
 <circle cx="240" cy="250" r="36" fill="#392e38" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="240" y="311">Lava Tubes</text>
 <circle cx="450" cy="518" r="36" fill="#fff0c9" stroke="#dfaa77" stroke-width="3"/><text class="label" text-anchor="middle" x="450" y="579">Habitat Seven</text>
-<text x="450" y="135" text-anchor="middle" font-size="17">N ↑ · THE GREAT RING</text><text x="48" y="896" font-size="16">Light markers: first pilot · Dark markers: later region milestones</text><text x="48" y="923" font-size="14">Solid line: outer circuit · Dashed: outpost spokes · All routes work both ways</text></svg>
+<text x="450" y="135" text-anchor="middle" font-size="17">N ↑ · THE GREAT RING</text><text x="48" y="896" font-size="16">Light markers: completed regions · Dark markers: planned regions</text><text x="48" y="923" font-size="14">Solid line: outer circuit · Dashed: outpost spokes · All routes work both ways</text></svg>

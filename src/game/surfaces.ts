@@ -1,6 +1,6 @@
 export type SurfaceId =
   | 'grass' | 'dirt' | 'ash' | 'lava' | 'moss' | 'ice' | 'water'
-  | 'snow' | 'mud' | 'rock' | 'sand' | 'regolith' | 'mars-dust';
+  | 'snow' | 'mud' | 'rock' | 'sand' | 'regolith' | 'mars-dust' | 'mars-glass';
 
 export type Surface = {
   id: SurfaceId;
@@ -31,6 +31,12 @@ export const SURFACES: Record<SurfaceId, Surface> = {
     power: 1, rollingBrake: 0, brakeEffect: 1, drag: 0, speed: 1, steering: 1,
     suspensionStiffness: 30, suspensionCompression: 4.4, suspensionRelaxation: 5.2,
     roughness: 0.022, feedback: 0.022, particleColor: '#bf7857', particleRate: 0.45,
+  },
+  'mars-glass': {
+    id: 'mars-glass', label: 'Impact glass', trait: 'Smooth & slippery', longitudinalGrip: 0.65, lateralGrip: 0.36, uphillSlip: 0,
+    power: 0.9, rollingBrake: 0.04, brakeEffect: 0.38, drag: 0.01, speed: 1, steering: 0.7,
+    suspensionStiffness: 31, suspensionCompression: 4.2, suspensionRelaxation: 5,
+    roughness: 0.008, feedback: 0.01, particleColor: '#596060', particleRate: 0.1,
   },
   'mars-dust': {
     id: 'mars-dust', label: 'Martian dust', trait: 'Loose & soft', longitudinalGrip: 0.66, lateralGrip: 0.62, uphillSlip: 0.8,

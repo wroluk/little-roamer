@@ -4,7 +4,7 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
-Started 2026-10-07. **Stopped on 2026-10-08 after implementing and verifying the Habitat Seven / Crown Crater pilot. The user requested stopping before the next region. Do not begin Dish Ridge under the current authorization.** Mars stays out of the production picker during development. Existing world code was clean at the start; the two concept/plan documents were untracked.
+Started 2026-10-07. **The user resumed construction. Iron Maze is in progress; finish and verify it, then stop before Keyhole Badlands.** Mars stays out of the production picker during development. Existing world code was clean at the start; the two concept/plan documents were untracked.
 
 ## Milestones
 
@@ -13,8 +13,8 @@ Started 2026-10-07. **Stopped on 2026-10-08 after implementing and verifying the
 - [x] Habitat Seven, Crown Crater, northern Great Ring, and connected pilot routes.
 - [x] Mars Scout model, surface feedback, regional starts, and development entry.
 - [x] Pilot driving and visual checks in Chromium and WebKit; build and PWA checks (known WebKit offline-reload skip remains manual acceptance).
-- [ ] Dish Ridge.
-- [ ] Glassfall Plain.
+- [x] Dish Ridge.
+- [x] Glassfall Plain.
 - [ ] Iron Maze.
 - [ ] Keyhole Badlands.
 - [ ] Fossil Delta.
@@ -27,7 +27,7 @@ Started 2026-10-07. **Stopped on 2026-10-08 after implementing and verifying the
 - Work in individually verified milestones. Do not implement seven unreviewed regions in one pass.
 - Keep existing gravity and four-wheel physics. The Scout is a new vehicle model; terrain supplies handling differences.
 - Preserve Northern Reach's runtime while introducing a small Mars-specific generator/runtime. Share existing vehicle, camera, effects, and disposal APIs; avoid a risky rewrite of Northern Reach's region-specific prop system.
-- The first pilot uses only Habitat Seven and Crown Crater regional starts. Future regions appear on the design map, not as finished in-game destinations.
+- Established starts are Habitat Seven, Crown Crater, Dish Ridge, and Glassfall Plain. Future regions appear on the design map, not as finished in-game destinations.
 
 ## Evidence and next action
 
@@ -85,6 +85,120 @@ Latest follow-up: removed the north lookout board and all of its generated displ
 
 Push preparation: darkened the Mars sky/fog tint one small step from `#bf9384` to `#bb8f80`, retaining the 80–480 m fog range and all lighting values. The user requested a commit and push of the current Mars work. Typecheck, production build, `git diff --check`, and the focused Mars presentation scenario in Chromium and WebKit passed; refreshed `pilot-habitat.png` and `pilot-crown-overlook.png` with the new tint. `npm test` could not open its tsx IPC pipe in the sandbox; the equivalent Node test runner began passing but was stopped when the user explicitly asked to skip long-running tests. The full browser and PWA suites were likewise skipped at the user's request. Prior focused Mars checks are recorded above. Region work stays stopped; physical iPad Safari acceptance remains outstanding.
 
-Region work remains stopped. Preview the pilot with `npm run dev` at `http://127.0.0.1:5173/?area=mars`; use `&start=crown-crater` for the crater entrance. The Great Ring outside the pilot and other sectors remain development terrain, not finished regions. No automatic continuation has been scheduled.
+Testing policy updated for faster Mars iteration: focused checks are the default, the affected scenarios run in both browser engines at each completed-region gate, and full unit/browser suites run after each block of three completed post-pilot regions, broad shared-system changes, or before public release. Routine commits and pushes alone do not require full suites. The last full-suite run remains unrecorded for this pilot; run the next full gate after Dish Ridge, Glassfall Plain, and Iron Maze are complete, or sooner if shared-system work warrants it.
 
-Dish Ridge is the next implementation milestone **only after the user asks to resume region work**. Start by reading its design card and inspecting the Crown connection; build and verify that region individually using the plan's geometry, landmark, real-driving, and browser gates.
+Region work resumed and completed with Dish Ridge. Its detailed card, map and review captures are linked from `artifacts/mars/DISH_RIDGE.md`. Preview with `npm run dev` at `http://127.0.0.1:5173/?area=mars`; use `&start=dish-ridge` for its west saddle. The Great Ring outside completed sectors and the other regions remain development terrain. No automatic continuation has been scheduled.
+
+Latest user scope (2026-10-09): the user resumed construction of the next region, Glassfall Plain. Finish it under the focused region gates, then stop before Iron Maze for review.
+
+### Dish Ridge implementation — 2026-10-09
+
+- Added six connected routes: Crown saddle, broad southern switchbacks, summit circuit, western lookout, optional eastern rock ledge, and south descent ending before Glassfall. The west saddle is the third regional reset/start (`?area=mars&start=dish-ridge`).
+- Built a closed concave receiver with matching collision, panel variation, rear ribs, feed arms, open tripod, service cabinets, relay masts and grounded feet. Authored split sentinels and shelf slabs complement the ridge's unequal terraces and gullies.
+- Broadened the lookout and eastern supporting shoulders after visual review. Added distant dish/habitat silhouettes that yield to detailed chunks, preserving the intended sightlines while keeping the existing streaming bounds.
+- An actual driving failure exposed a route marker across the lookout junction. Markers now check clearance from neighboring branches; the original lookout assertions pass in both directions.
+- Typecheck, production build and 23 focused unit checks passed: six new routes in both directions, the existing Crown rim in both directions, route grades and reset clearings, bowl topology/cavity, terrain seams and sampling, streaming transitions/failures/disposal, and shared resource cleanup. No handling changes were made.
+- Saved and inspected the actual terrain/route map, five tablet views in each browser, and both completed-circuit captures, linked from `artifacts/mars/DISH_RIDGE.md`. All four final region browser cases passed: presentation/reset and the complete 629 m switchback/summit/ledge return circuit without reset, in Chromium and WebKit. Each full browser drive took about 1.8 minutes.
+- Repeated browser driving attempts timed out under software rendering. An experiment with Playwright's controlled clock was also too slow and was removed. The driving check now uses real animation timing at a smaller viewport; tablet-resolution visual coverage remains separate. No route was shortened and no completion assertion was relaxed.
+- Final sequential `npm run test:pwa` passed its production build and five startup/cache/offline checks. The existing WebKit offline-reload case was skipped and remains manual acceptance. Full unrelated suites were not run, in line with the focused iteration policy.
+- User scope remains: finish this region, then stop. Glassfall has not been started. No commit, push, or public release has been performed for this region.
+
+Next action: wait for the user's Dish Ridge review. Address feedback within this region; start Glassfall only after the user resumes region construction. The next full unit/browser regression gate remains after Glassfall and Iron Maze, or sooner for broad shared-system changes. Physical iPad Safari acceptance remains outstanding.
+
+### Dish feedback and upward camera — 2026-10-09
+
+- Rebuilt the antenna around the user's industrial radio-telescope reference: 34 m segmented concave reflector, deep radial/hoop lattice, four paired and braced feed arms, large elevation bearing and fork mount, and a maintenance catwalk with rails and ladder. Detailed and distant versions retain the same silhouette; large structures use matching collision meshes.
+- Removed coplanar cabinet-side/lid intersections. Overhanging orange caps now sit above the cabinet bodies with a small clear seam.
+- Added an area-specific particle palette: Martian rock throws terracotta fragments. Other locations keep their existing rock colour and all handling remains unchanged.
+- Extended the upward camera range. The boom lowers to a safe limit, then the gaze rises so tall landmarks fit in view; ground clearance and obstacle sweeps remain active.
+- Typecheck, production build, 15 focused unit tests and all four selected browser cases passed. Units cover the concave shell, the summit/ledge routes in both directions, particle colours and default-area isolation, camera orbit/ground clearance/obstruction recovery, and resource cleanup. Chromium and WebKit both passed the feedback capture/actual rock-driving scenario and the existing camera drag scenario.
+- Inspected and saved updated antenna, cabinet and particle captures in `artifacts/mars/dish-feedback-review/`, with corresponding WebKit captures in its `webkit/` subfolder. Links and reference are in `artifacts/mars/DISH_RIDGE.md`. No full suite or PWA rerun was needed for these geometry, colour and camera changes.
+- Feedback fixes are ready for user review. Stop remains in effect before Glassfall; no new region, commit or push was made.
+
+### Dish tripod joints — 2026-10-09
+
+- Extended all three leg ends into their foundation pads and added raised sockets, burying the full angled end caps.
+- Joined the rising orange braces to a central collar and a vertical support reaching the bearing above. Updated visible geometry and matching solids together, including the distant silhouette.
+- Production build/typecheck, five focused unit checks (including the summit circuit driven both ways), and the Chromium tripod inspection scenario passed. Reviewed three close views and saved them in `artifacts/mars/dish-tripod-review/`. This local geometry fix did not require full suites or PWA checks.
+- Ready for user review. Remain stopped before Glassfall; no commit or push requested for this refinement.
+
+### Dish relay placement feedback
+
+- Identified the user's pictured structures as the three relay antennas. Their original steep-slope placements stretched the terrain-conforming foundations into tall exposed plinths.
+- Moved all three onto the level service island at (227, -274), (238, -280), and (251, -274), clear of the main tripod and summit road. Replaced the stretched foundations with low pads and refined the panels, aerials and service boxes to communicate their purpose.
+- Production build/typecheck, six focused unit checks (including foundation-footprint flatness, road clearance and summit driving in both directions), and the Chromium relay inspection passed. Inspected and saved two captures in `artifacts/mars/dish-relay-review/`.
+- The first browser invocation was blocked by an automatic approval-review usage-limit failure. After the user resumed, the approved retry completed successfully. No outstanding blocker remains.
+- Ready for review; remain stopped before Glassfall. No commit or push performed.
+
+### Dish service access follow-up
+
+- Connected the previously floating service deck to the azimuth bearing with an overlapping solid bridge, and braced its outer edge back to the tripod's central column. The ladder now leads to a supported platform.
+- Production build/typecheck, the summit circuit driven both ways in focused unit checks, and the Chromium tripod/service-view scenario passed. Inspected and saved the side view at `artifacts/mars/dish-tripod-review/service-bridge.png`.
+- Ready for review. Continue to stop before Glassfall; no commit or push performed.
+
+### Service support endpoint correction
+
+- User found that the added deck braces stopped short of the tripod joint and exposed their upper end caps below the deck.
+- Both braces now end at the centre of the existing shared tripod collar. Their upper endpoints sit inside a thicker deck slab, with enough depth to contain the full angled caps. Render and collision use the same beams.
+- Production build/typecheck, summit driving in both directions, Chromium close-view inspection, and `git diff --check` passed. Refreshed `artifacts/mars/dish-tripod-review/service-bridge.png` after visual inspection.
+- Ready for review. Continue to stop before Glassfall; no commit or push performed.
+
+
+### Glassfall Plain started
+
+The user requested the next region, superseding the earlier stop before Glassfall. Its design card is `artifacts/mars/GLASSFALL_PLAIN.md`. Finish and verify this region, then stop before Iron Maze for review.
+
+### Glassfall implementation and focused verification — 2026-10-09
+
+- Built the pale impact fan, breached scar, three tapered glass ribbons, unequal fracture splinters, pale eastern shields, grounded radial ejecta and a supported 18 m lookout.
+- Added six routes: Dish connection, firm circuit, optional glass crossing, lookout spur, Habitat spoke and southern exit. Glassfall is the fourth regional reset/start (`?area=mars&start=glassfall-plain`). Iron Maze remains unbuilt.
+- Glass appearance and wheel surface classification share the exact terrain triangles. Refined the initially flat black material with radial flow striations. Added a dedicated lower-grip impact-glass profile without changing the vehicle physics algorithms.
+- Typecheck/build and 38 distinct focused unit checks passed: all six routes driven both ways, adjacent Dish descent and Habitat courtyard both ways, grade/reset checks, exact seams and sampling, streaming failures/cleanup, glass boundary agreement, actual Scout sliding comparison, existing surface behavior and resource disposal.
+- Both engines passed the crossing out and back. WebKit also passed the complete firm circuit. The first Chromium circuit run was interrupted by a development-server reload after a welcome-text edit; rerun is pending. Presentation/reset passed in both engines, but WebKit screenshots needed an extra rendered frame before capture; refreshed capture run is pending.
+- Actual terrain map is `artifacts/mars/glassfall-plain-map.svg`; captures and the region card are under `artifacts/mars/`. Complete remaining browser checks and sequential PWA check before marking this milestone finished.
+
+### Glassfall milestone complete — 2026-10-09
+
+- The isolated Chromium firm-circuit rerun passed. All six final regional browser scenarios passed across Chromium and WebKit: presentation/reset, complete firm circuit, and glass crossing out and back. Refreshed and inspected the captures after waiting for rendered camera frames.
+- Sequential `npm run test:pwa` passed the production build and five checks. The existing WebKit offline-reload scenario remains skipped and requires manual iPad Safari acceptance; it is not counted as passed.
+- `git diff --check` passed. Region card, actual terrain map, concept-map status and README are updated. Review evidence is in `artifacts/mars/GLASSFALL_PLAIN.md` and `artifacts/mars/glassfall-review/`.
+- Next action: wait for the user's Glassfall review and address feedback. Do not start Iron Maze until asked. The next full unit/browser gate remains after Iron Maze, completing the three-region block. No commit or push was requested or performed.
+
+### Iron Maze started — 2026-10-09
+
+The user requested continuation, authorizing Iron Maze as the next individual region. Built six routes, a fifth regional start, an ochre corridor floor, broad lookout shoulder and twelve authored blades/fragments. Initial focused checks pass all new routes both ways and verify closed outward-facing fin geometry with buried feet. Visual review prompted varied ridgelines and more level sediment bands. Focused browser checks and the three-region full regression gate are in progress. Stop before Keyhole Badlands.
+
+### Glass edge and raised-slab feedback — 2026-10-09
+
+- Replaced whole-triangle glass selection with continuous contour clipping, refined near the shoreline. Removed the coarse dark terrain tint underneath and disabled glass shadow casting to eliminate its false dark fringe.
+- Following the user's additional direction, made the ribbons solid raised slabs: gently undulating 31–45 cm interiors with 1.8 m rounded bevels down to the ground. The rendered mesh supplies the collision mesh; firm routes remain excluded, and wheel grip follows the continuous glass footprint.
+- Typecheck, production build and three focused glass unit checks passed, including nondegenerate contours, relief bounds, collision registration and the existing actual-Scout lateral-grip comparison.
+- User explicitly requested to check first without longer checks. No browser captures, route-driving suites, full regression or PWA rerun were performed for this revision. Existing saved images show the previous flat version; actual driving over the new slab bevels and visual acceptance remain unverified.
+- Exact next step: user previews `?area=mars&start=glassfall-plain` and drives the crossing, then address feedback before running longer checks. Iron Maze status is unchanged; do not proceed to Keyhole Badlands.
+
+### Obsidian direction — 2026-10-09
+
+- User rejected the soft lava-flow appearance and chose low angular obsidian plates with taller shards beside the crossing.
+- Split the glass fields into irregular fracture cells with pale gaps, flat dark faces and straight chamfers. Plate heights vary from 22–42 cm; removed sinusoidal relief and flowing color bands. Added solid pointed fragments outside the full route shoulders.
+- Initial focused glass checks and build passed. Reduced unnecessary edge subdivision and cached base-terrain heights after the geometry check exposed excessive generation cost. The bounded representative chunk now generates about 59,500 triangles in 3.4 seconds on this machine; further performance and visual review remain outstanding.
+- Browser, real route-driving, full-suite and PWA checks remain deferred at the user's request. Existing captures do not show this revision. Next: user reviews the obsidian appearance and low crossing before further checks or region work.
+
+### Restore solid lava-like flows — 2026-10-09
+
+- User preferred the earlier lava-like version and requested solid flows without sand-filled fractures, simpler geometry and no shards.
+- Removed the fracture-cell mask and restored continuous raised flows, rounded 1.8 m edges, 31–45 cm relief and radial streaks. Removed both the added roadside shards and the original scar splinter cluster; retained the central impact stone. Matching collision and the firm route remain.
+- Kept cached terrain samples and boundary-only refinement; no interior fracture subdivision remains. Typecheck, three focused glass tests and production build passed. The focused tests took about eight seconds.
+- No browser, route-driving, full-suite or PWA checks were run. Next step remains the user's visual/driving review of Glassfall; do not advance region work.
+
+### Connect flows to the impact source — 2026-10-09
+
+- Added a shared 10 m-radius dark melt pool under the central impact rock, joining all three flow roots without pale gaps.
+- Added five grounded black rocks around the central stone, with matching collision. The compact cluster stays at the impact source rather than scattering shards along the driving routes.
+- Typecheck, four focused glass checks and production build passed. New coverage samples the continuous connection from the source into each flow and verifies the glass grip classification.
+- Longer browser/driving/PWA checks remain deferred. Next: user reviews the source connection and rock cluster in-game.
+
+### Black flow coloring — 2026-10-09
+
+- Removed the lighter radial streaks and made flow vertex colors uniformly near-black. Increased roughness and removed metalness to subdue pale specular highlights; geometry and collision are unchanged.
+- The focused uniform-color/collision test and production build (including typecheck) passed. Browser and longer checks remain deferred for user review.
+- Next: user reviews the black flows in-game before any further changes.

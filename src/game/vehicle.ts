@@ -62,7 +62,7 @@ export class Vehicle {
   private readonly wheelWaterDepth = [0, 0, 0, 0];
   private readonly surfaceCounts: Record<SurfaceId, number> = {
     dirt: 0, grass: 0, ash: 0, lava: 0, moss: 0, ice: 0, water: 0,
-    snow: 0, mud: 0, rock: 0, sand: 0, regolith: 0, 'mars-dust': 0,
+    snow: 0, mud: 0, rock: 0, sand: 0, regolith: 0, 'mars-dust': 0, 'mars-glass': 0,
   };
   private surface: Surface = SURFACES.dirt;
   private candidateSurface: SurfaceId = 'dirt';

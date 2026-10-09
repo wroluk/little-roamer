@@ -98,25 +98,36 @@ outer landscape rises into a natural collidable boundary rather than ending
 at an invisible drop. Streamed loose boulders are solid obstacles, matching
 the playful collisions in the original areas.
 
-## Mars development pilot
+## Mars development regions
 
-The first Mars milestone is available locally at `http://127.0.0.1:5173/?area=mars`.
-It includes Habitat Seven, Crown Crater, their connecting roads, the crater rim
-and floor descent, a northern lookout, and the new four-wheel Mars Scout.
-Use `?area=mars&start=crown-crater` to begin at the crater entrance, or add
+Mars is available locally at `http://127.0.0.1:5173/?area=mars`.
+It includes Habitat Seven, Crown Crater, Dish Ridge, Glassfall Plain, Iron Maze, their connecting roads,
+the crater rim and floor descent, and the four-wheel Mars Scout. Dish Ridge adds
+switchbacks, a concave communications receiver, a summit loop, a western lookout,
+and an optional eastern rock ledge. Glassfall adds a pale impact fan, dark slippery
+glass ribbons, a firm circuit and an eastern overlook. Iron Maze adds layered ironstone
+fins, a broad passage, a western bypass and an optional rock slalom.
+Use `?area=mars&start=crown-crater` to begin at the crater entrance,
+`?area=mars&start=dish-ridge` for the ridge saddle,
+`?area=mars&start=glassfall-plain` for the impact fan,
+`?area=mars&start=iron-maze` for the fin field, or add
 `&car=classic` / `&car=modern` to try an existing car. Reset chooses the nearest
-of the two finished regional starts. Mars is hidden from the production picker
+of the five established regional starts. Mars is hidden from the production picker
 and production direct links while its remaining regions are under construction.
 
 The design spans 768 × 768 metres. Detailed terrain streams in 96 m chunks,
 with a 5 × 5 render neighborhood and 3 × 3 collision core. A coarse visual
-terrain layer keeps the distant basin visible. Packed regolith and soft red
+terrain layer keeps the distant basin visible; simplified dish and habitat models
+preserve their silhouettes beyond the detailed chunks. Packed regolith and soft red
 dust have matching surface feedback and temporary tire marks. Delayed terrain
 generation holds the car on loaded ground until the next chunk has collision.
 
 Follow [the build plan](MARS_BUILD_PLAN.md) and [progress record](MARS_PROGRESS.md)
 for implementation status, evidence, and the next region. The broader Mars
-landscape is development terrain; the remaining seven regions are not finished.
+landscape is development terrain; the remaining four regions are not finished.
+See the [Dish Ridge card](artifacts/mars/DISH_RIDGE.md) and
+[Glassfall Plain card](artifacts/mars/GLASSFALL_PLAIN.md), plus the
+[Iron Maze card](artifacts/mars/IRON_MAZE.md), for layouts and review captures.
 
 ## Terrain handling
 
@@ -258,14 +269,17 @@ appear in development; the public `RAPIER.init()` API is used.
 
 Choose tests by the change while working. A recent local run took about four
 minutes for all unit tests, 22 minutes for the full Chromium and WebKit browser
-suite, and 20 seconds for PWA tests. Times vary by machine.
+suite, and 20 seconds for PWA tests. Times vary by machine. Routine Mars commits
+and pushes use focused checks; they do not trigger the full suites by themselves.
 
 | When | Checks |
 | --- | --- |
-| Each edit or small fix | `npm run typecheck` and the relevant unit test file. |
-| Gameplay, terrain, controls, or browser UI change | The affected Playwright spec in Chromium and WebKit; keep real driving checks for driving changes. |
-| Startup, storage, caching, or offline change | Affected browser specs plus `npm run test:pwa`. |
-| Before merging a substantial feature or releasing | The full unit, browser, build, and PWA checks below. |
+| Documentation only | No automated tests. |
+| Code edit or small fix | `npm run typecheck`, unit tests for changed behavior when applicable, and `npm run build` before calling it ready. |
+| Mars visual-only change | Inspect a game capture and run its focused browser case in Chromium; add WebKit if rendering may differ. |
+| Gameplay, terrain, routes, collisions, or controls | Relevant real-driving unit and browser cases; run the affected browser cases in both engines at the completed-region gate. |
+| Startup, storage, caching, or offline change | Affected browser cases plus `npm run test:pwa`. |
+| Every three completed post-pilot Mars regions, broad shared-system change, or public release | Full unit and browser suites; include PWA before release. |
 
 For example, test a navigation change without running every terrain simulation:
 
@@ -275,8 +289,9 @@ node --import tsx --test tests/navigation.test.ts
 ```
 
 Playwright runs both configured browser projects unless `--project` is given.
-Use one project for quick iteration only when browser differences are irrelevant;
-check both before finishing a browser-facing change. The full checks are:
+Use `--project=chromium-tablet` for quick visual iteration. Check WebKit when
+rendering or platform behavior could differ, and check both engines for the
+affected scenarios before finishing each Mars region. The full checks are:
 
 ```sh
 npm run typecheck
