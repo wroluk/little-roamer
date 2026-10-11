@@ -7,8 +7,8 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 Started 2026-10-07. **Current user scope: all regions and the texture-free buried
 hull are accepted; mark Mars complete, enable the public location picker, finish
 pending checks, commit and publish.** This supersedes the earlier pause on long
-checks. Public Mars and Scout integration and automated release verification are
-complete; commit and GitHub Pages publication are next.
+checks. Public Mars and Scout integration, automated release verification,
+commit and GitHub Pages publication are complete.
 Physical-iPad performance, two-thumb touch and
 installed-PWA acceptance remain unverified.
 
@@ -31,7 +31,7 @@ Checked region entries mean implemented with the focused evidence recorded below
 - [x] All nine regions and the final buried hull visually accepted by the user.
 - [x] Public Mars picker, Scout selection, direct links and regional starts.
 - [x] Full circuit and automated release regression checks (explicit skips below).
-- [ ] Commit and GitHub Pages publication.
+- [x] Commit and GitHub Pages publication.
 - [ ] Physical-iPad acceptance (not certified by desktop automation).
 - [x] Expanded-layout eastern journey accepted and reverified.
 
@@ -59,10 +59,19 @@ worker and Mars, while both generated successfully online. This additional
 automation limitation is skipped explicitly and joins offline navigation,
 two-contact touch and sustained 30 FPS in physical-iPad manual acceptance.
 
+Release commit **`9a00f8d`** was pushed to main and deployed successfully by
+[GitHub Pages run 38125537132](https://github.com/wroluk/little-roamer/actions/runs/38125537132).
+CI independently passed the full unit suite and production build. Live checks
+in Chromium and WebKit confirmed the public Mars selection, default Scout,
+entering gameplay and completed offline cache at
+https://wroluk.github.io/little-roamer/?area=mars.
+
 Final logs are `files/mars-release-browser-final.log`,
 `files/mars-release-iron-retry.log`, and `files/mars-release-pwa-final.log` in the
-session artifacts. Next: commit the accepted implementation and selected final
-captures, push main, and verify the exact GitHub Pages deployment.
+session artifacts. No automated release work remains. Next: physical-iPad
+manual acceptance when the device is available; no further region work is planned.
+Superseded local review captures and user-supplied feedback were left untouched
+and uncommitted; final region and texture-free hull captures are committed.
 
 ### Historical release attempts (resolved by restart and retries)
 
