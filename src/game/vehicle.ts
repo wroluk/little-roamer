@@ -5,6 +5,7 @@ import { driveForces, MAX_FORWARD_SPEED, MAX_REVERSE_SPEED, type DriveInput } fr
 import { START } from './terrain';
 import { SURFACES, type Surface, type SurfaceId } from './surfaces';
 import { buildMarsScout } from './mars-scout';
+import { detailedWheel, solidPanel } from './vehicle-geometry';
 
 const WHEEL_RADIUS = 0.48;
 const REST_LENGTH = 0.38;
@@ -126,8 +127,6 @@ export class Vehicle {
     const cladding = mat('#263434');
     const trim = mat('#d9d0b5', 0.45);
     const glass = mat('#315e66', 0.24);
-    const tire = mat('#202b2d');
-    const hub = mat('#ded5bd', 0.38);
     const lights = new THREE.MeshStandardMaterial({
       color: '#fff7d6', emissive: '#ffe5a3', emissiveIntensity: 0.42, roughness: 0.3,
     });
@@ -173,18 +172,8 @@ export class Vehicle {
         -tw, bottomY + height, topFront, tw, bottomY + height, topFront,
         tw, bottomY + height, topRear, -tw, bottomY + height, topRear,
       ];
-      const indices = [
-        0, 2, 1, 0, 3, 2,
-        4, 5, 6, 4, 6, 7,
-        0, 1, 5, 0, 5, 4,
-        1, 2, 6, 1, 6, 5,
-        2, 3, 7, 2, 7, 6,
-        3, 0, 4, 3, 4, 7,
-      ];
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-      geometry.setIndex(indices);
-      geometry.computeVertexNormals();
+      const points = Array.from({ length: 8 }, (_, i) => vertices.slice(i * 3, i * 3 + 3));
+      const geometry = solidPanel(points);
       return addMesh(geometry, material);
     };
 
@@ -194,33 +183,42 @@ export class Vehicle {
       topFront: number, topRear: number,
       material: THREE.Material,
     ) => {
-      const x = side * 0.711;
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.Float32BufferAttribute([
-        x, 0.63, front,
-        x, 0.63, rear,
-        x, 1.17, topRear,
-        x, 1.17, topFront,
-      ], 3));
-      geometry.setIndex(side < 0 ? [0, 1, 2, 0, 2, 3] : [0, 2, 1, 0, 3, 2]);
-      geometry.computeVertexNormals();
-      return addMesh(geometry, material);
+      const points = [
+        [side * 0.725, 0.63, front], [side * 0.725, 0.63, rear],
+        [side * 0.646, 1.17, topRear], [side * 0.646, 1.17, topFront],
+      ];
+      return addMesh(solidPanel([...points, ...points.map(([x, y, z]) => [x - side * 0.012, y, z])]), material);
+    };
+
+    const windscreen = (rear: boolean) => {
+      const points = rear
+        ? [[-0.665, 0.63, 0.942], [0.665, 0.63, 0.942], [0.589, 1.16, 0.802], [-0.589, 1.16, 0.802]]
+        : [[-0.665, 0.64, -0.425], [0.665, 0.64, -0.425], [0.589, 1.16, -0.201], [-0.589, 1.16, -0.201]];
+      addMesh(solidPanel([...points, ...points.map(([x, y, z]) => [x, y, z + (rear ? -0.012 : 0.012)])]), glass);
     };
 
     // Chunky compact-SUV silhouette, kept deliberately simple like a die-cast toy.
-    box(1.62, 0.43, 2.72, 0, 0.15, 0.02, paint);
+    addMesh(solidPanel([
+      [-0.81, -0.065, -1.34], [0.81, -0.065, -1.34], [-0.81, -0.065, 1.38], [0.81, -0.065, 1.38],
+      [-0.81, 0.365, -1.34], [0.81, 0.365, -1.34],
+      [-0.81, 0.58, -0.42], [0.81, 0.58, -0.42], [-0.81, 0.55, 1.38], [0.81, 0.55, 1.38],
+    ]), paint);
     box(1.7, 0.18, 2.64, 0, -0.09, 0.04, cladding);
-    trapezoid(1.58, 1.45, 0.25, -1.38, -0.42, -1.25, -0.37, 0.36, paint);
+    // A shallow crown and sloping shoulders form a solid bonnet, not an open shell.
+    addMesh(solidPanel([
+      [-0.79, 0.35, -1.39], [0.79, 0.35, -1.39], [-0.79, 0.35, -0.38], [0.79, 0.35, -0.38],
+      [-0.74, 0.54, -1.39], [0.74, 0.54, -1.39], [-0.72, 0.61, -0.38], [0.72, 0.61, -0.38],
+      [-0.49, 0.58, -1.34], [0.49, 0.58, -1.34], [-0.47, 0.65, -0.38], [0.47, 0.65, -0.38],
+    ]), paint);
     trapezoid(1.48, 1.27, 0.72, -0.48, 0.97, -0.17, 0.78, 0.49, darkPaint);
     box(1.3, 0.12, 1.06, 0, 1.23, 0.31, paint);
 
     // Windscreens and four distinct side windows give the cabin its angular Karoq-like profile.
-    box(1.22, 0.56, 0.035, 0, 0.87, -0.344, glass, 0.51);
-    box(1.2, 0.51, 0.035, 0, 0.87, 0.869, glass, -0.35);
+    windscreen(false);
+    windscreen(true);
     for (const side of [-1, 1]) {
       sideWindow(side, -0.42, 0.17, -0.15, 0.2, glass);
       sideWindow(side, 0.25, 0.84, 0.23, 0.75, glass);
-      box(0.045, 0.6, 0.075, side * 0.724, 0.89, 0.21, cladding);
       box(0.05, 0.07, 0.24, side * 0.825, 0.52, 0.06, cladding);
       box(0.11, 0.2, 0.28, side * 0.86, 0.69, -0.38, paint);
 
@@ -255,26 +253,9 @@ export class Vehicle {
     box(0.76, 0.08, 0.05, 0, 0.2, 1.455, cladding);
     box(1.2, 0.08, 0.22, 0, 1.24, 0.85, cladding);
 
-    const tireGeo = new THREE.CylinderGeometry(WHEEL_RADIUS, WHEEL_RADIUS, 0.36, 12);
-    const hubGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.375, 10);
-    tireGeo.rotateZ(Math.PI / 2);
-    hubGeo.rotateZ(Math.PI / 2);
-    const treadGeo = new THREE.BoxGeometry(0.39, 0.065, 0.17);
     for (const connection of CONNECTIONS) {
       const wheel = new THREE.Group();
-      const spinner = new THREE.Group();
-      const rubber = new THREE.Mesh(tireGeo, tire);
-      const rim = new THREE.Mesh(hubGeo, hub);
-      rubber.castShadow = true;
-      rim.castShadow = true;
-      spinner.add(rubber, rim);
-      for (let j = 0; j < 12; j++) {
-        const angle = j * Math.PI / 6;
-        const tread = new THREE.Mesh(treadGeo, cladding);
-        tread.position.set(0, Math.cos(angle) * 0.46, Math.sin(angle) * 0.46);
-        tread.rotation.x = angle;
-        spinner.add(tread);
-      }
+      const spinner = detailedWheel('modern', WHEEL_RADIUS);
       wheel.add(spinner);
       wheel.position.set(connection.x, -REST_LENGTH, connection.z);
       this.model.add(wheel);
@@ -315,8 +296,6 @@ export class Vehicle {
     const dark = mat('#293e3d');
     const roof = mat('#ffebc4');
     const glass = mat('#397b7d', 0.25);
-    const tire = mat('#293638');
-    const hub = mat('#efe2be');
     const lights = new THREE.MeshStandardMaterial({
       color: '#fff3cc', emissive: '#ffe4a6', emissiveIntensity: 0.3, roughness: 0.7,
     });
@@ -360,43 +339,25 @@ export class Vehicle {
     box(1.19, 0.08, 0.09, 0, 1.19, -0.28, dark);
     box(1.19, 0.08, 0.09, 0, 1.19, 0.65, dark);
 
-    const tireGeo = new THREE.CylinderGeometry(WHEEL_RADIUS, WHEEL_RADIUS, 0.36, 12);
-    const hubGeo = new THREE.CylinderGeometry(0.27, 0.27, 0.375, 8);
-    tireGeo.rotateZ(Math.PI / 2);
-    hubGeo.rotateZ(Math.PI / 2);
-    const treadGeo = new THREE.BoxGeometry(0.39, 0.065, 0.17);
     for (const connection of CONNECTIONS) {
       const wheel = new THREE.Group();
-      const spinner = new THREE.Group();
-      const rubber = new THREE.Mesh(tireGeo, tire);
-      const rim = new THREE.Mesh(hubGeo, hub);
-      rubber.castShadow = true;
-      rim.castShadow = true;
-      spinner.add(rubber, rim);
-      for (let j = 0; j < 12; j++) {
-        const angle = j * Math.PI / 6;
-        const tread = new THREE.Mesh(treadGeo, dark);
-        tread.position.set(0, Math.cos(angle) * 0.46, Math.sin(angle) * 0.46);
-        tread.rotation.x = angle;
-        spinner.add(tread);
-      }
+      const spinner = detailedWheel('classic', WHEEL_RADIUS);
       wheel.add(spinner);
       wheel.position.set(connection.x, -REST_LENGTH, connection.z);
       this.model.add(wheel);
       this.wheels.push(wheel);
       this.tires.push(spinner);
     }
-    const spare = new THREE.Mesh(tireGeo, tire);
+    const spare = detailedWheel('classic', WHEEL_RADIUS);
     spare.rotation.y = Math.PI / 2;
     spare.position.set(0, 0.53, 1.51);
     spare.scale.setScalar(0.84);
-    spare.castShadow = true;
-    this.bodyVisual.add(spare);
-    const spareHub = new THREE.Mesh(hubGeo, hub);
-    spareHub.rotation.copy(spare.rotation);
-    spareHub.position.copy(spare.position);
-    spareHub.scale.copy(spare.scale);
-    this.bodyVisual.add(spareHub);
+    spare.updateMatrix();
+    for (const child of [...spare.children]) {
+      child.updateMatrix();
+      child.applyMatrix4(spare.matrix);
+      this.bodyVisual.add(child);
+    }
 
     const batch = (group: THREE.Group) => {
       const batches = new Map<THREE.Material, THREE.BufferGeometry[]>();
