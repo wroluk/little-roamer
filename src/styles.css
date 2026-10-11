@@ -123,6 +123,7 @@ h2 { font-family: Georgia, serif; font-size: 34px; letter-spacing: -1px; font-we
 .pwa-status { position: absolute; right: max(32px, env(safe-area-inset-right)); bottom: max(13px, env(safe-area-inset-bottom)); z-index: 6; display: flex; align-items: center; gap: 8px; color: #fff9e8; font-size: 7px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 1px 5px #203c37; pointer-events: none; }
 .pwa-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #e3ae66; }
 .offline-ready .pwa-status::before { background: #72c080; }
+.pwa-status:has(button:not([hidden])) { z-index: 12; }
 .pwa-status button { pointer-events: auto; min-height: 34px; border: 1px solid #ffffff80; border-radius: 10px; padding: 6px 10px; color: #31534a; background: #fff9e8; font-size: 8px; font-weight: 800; text-transform: uppercase; }
 @media (max-width: 850px) {
   .compass { grid-template-columns: 18px 23px 34px; padding-inline: 7px; }
@@ -135,6 +136,7 @@ h2 { font-family: Georgia, serif; font-size: 34px; letter-spacing: -1px; font-we
   .welcome-card p { font-size: 12px; }
   .welcome-footnote { left: 32px; font-size: 7px; }
   .pwa-status { display: none; }
+  .pwa-status:has(button:not([hidden])) { display: flex; }
 }
 @media (orientation: portrait) {
   .topbar { top: max(22px, env(safe-area-inset-top)); gap: 10px; }

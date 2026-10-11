@@ -39,6 +39,10 @@ publishes successful `main` builds. Other HTTPS static hosts can also serve
 installed app online downloads it in the background. An **Update game** button
 appears when the new offline version is ready, avoiding a forced reload while
 driving.
+The update control stays above the home/pause overlays and remains available on
+small screens. Selecting it shows update progress; the newly activated worker
+takes control and reloads the game. Failed or stalled requests show a retry message
+rather than leaving an inactive button.
 
 Safari may remove offline website data under severe storage pressure. Reopen
 the HTTPS URL and add/cache the app again if that happens.
