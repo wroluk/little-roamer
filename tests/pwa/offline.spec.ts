@@ -20,13 +20,14 @@ test('installs a standalone manifest and completes the offline cache', async ({ 
   expect(manifest.icons).toHaveLength(3);
 });
 
-test('production hides the unfinished Mars pilot and precaches its worker and Scout asset', async ({ page }) => {
+test('production exposes Mars and Scout and precaches their assets', async ({ page }) => {
   await page.goto('/?area=mars&car=mars-scout');
   await expect(page.locator('#start')).toBeEnabled();
-  await expect(page.locator('body')).toHaveAttribute('data-area', 'valley');
-  await expect(page.locator('#mars-car-option')).toBeHidden();
-  await expect(page.locator('#area-select option[value="mars"]')).toHaveCount(0);
-  await expect(page.locator('input[name="car"][value="modern"]')).toBeChecked();
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
+  await expect(page.locator('#mars-car-option')).toBeVisible();
+  await expect(page.locator('#area-select option[value="mars"]')).toHaveText('Mars Outpost');
+  await expect(page.locator('input[name="car"][value="mars-scout"]')).toBeChecked();
+  expect(await page.evaluate(() => '__ROAMER__' in window)).toBe(false);
   await expect(page.locator('#offline-status')).toHaveText('Ready to play offline');
   const cached = await page.evaluate(async () => {
     const stores = await caches.keys();
@@ -36,7 +37,61 @@ test('production hides the unfinished Mars pilot and precaches its worker and Sc
   expect(cached.some(url => url.includes('/cars/mars-scout.png'))).toBe(true);
 });
 
-test('reloads and enters both areas with no network', async ({ page, context, browserName }) => {
+test('production home picker supports Mars travel and remembers the Scout', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('#area-select').selectOption('mars');
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
+  await page.locator('input[name="car"][value="mars-scout"]').check();
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.goto('/?area=valley');
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('input[name="car"][value="mars-scout"]')).toBeChecked();
+  await page.goto('/?area=mars&start=lava-tubes&car=classic');
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
+  await expect(page.locator('input[name="car"][value="classic"]')).toBeChecked();
+  await expect(page.locator('#welcome-title')).toHaveText('Beneath the cooled lava.');
+  await page.locator('#start').click();
+  await expect(page.locator('#controls')).toBeVisible();
+  await expect(page.locator('#error')).toBeHidden();
+});
+
+test('the cached Mars worker generates all four new regions without network access', async ({ page, context, browserName }) => {
+  test.skip(browserName === 'webkit', 'Playwright WebKit fails offline module-worker startup for both Northern and Mars; verify on physical iPad Safari.');
+  await page.goto('/');
+  await expect(page.locator('#offline-status')).toHaveText('Ready to play offline');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  const workerUrl = await page.evaluate(async () => {
+    for (const name of await caches.keys()) for (const request of await (await caches.open(name)).keys()) {
+      if (/mars-worker-.*\.js/.test(request.url)) return request.url;
+    }
+    throw new Error('Mars worker missing from offline cache');
+  });
+  await context.setOffline(true);
+  try {
+    const results = await page.evaluate(url => new Promise<{ id: number; vertices: number; indices: number; finite: boolean }[]>((resolve, reject) => {
+      const worker = new Worker(url, { type: 'module' });
+      const results: { id: number; vertices: number; indices: number; finite: boolean }[] = [];
+      const timer = window.setTimeout(() => { worker.terminate(); reject(new Error('Offline Mars worker timed out')); }, 20_000);
+      worker.onerror = event => { window.clearTimeout(timer); worker.terminate(); reject(new Error(event.message)); };
+      worker.onmessage = event => {
+        const { id, chunk, error } = event.data;
+        if (error || !chunk) { window.clearTimeout(timer); worker.terminate(); reject(new Error(error ?? 'No offline chunk')); return; }
+        results.push({ id, vertices: chunk.vertices.length, indices: chunk.indices.length, finite: chunk.vertices.every(Number.isFinite) });
+        if (results.length === 4) { window.clearTimeout(timer); worker.terminate(); resolve(results); }
+      };
+      [[0, 5], [-5, 4], [-6, 0], [-5, -5]].forEach(([cx, cz], id) => worker.postMessage({ id, cx, cz }));
+    }), workerUrl!);
+    expect(results.map(result => result.id).sort()).toEqual([0, 1, 2, 3]);
+    for (const result of results) expect(result).toMatchObject({ vertices: 5043, indices: 9600, finite: true });
+  } finally { await context.setOffline(false); }
+});
+
+test('reloads and travels through Highlands, Valley and Mars with no network', async ({ page, context, browserName }) => {
   test.skip(browserName === 'webkit', 'Playwright WebKit cannot navigate after context.setOffline; iPad Safari supports service workers.');
 
   await page.goto('/?area=highlands');
@@ -58,4 +113,17 @@ test('reloads and enters both areas with no network', async ({ page, context, br
   await expect(page.locator('#start')).toBeEnabled();
   await page.locator('#start').click();
   await expect.poll(() => page.evaluate(() => document.body.dataset.area)).toBe('valley');
+  await page.locator('#pause').click();
+  await page.locator('#home').click();
+  await page.locator('#area-select').selectOption('mars');
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('input[name="car"][value="mars-scout"]').check();
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('#start').click();
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
+  await expect(page.locator('#controls')).toBeVisible();
+  await page.keyboard.down('KeyW');
+  await page.waitForTimeout(800);
+  await page.keyboard.up('KeyW');
+  await expect(page.locator('#error')).toBeHidden();
 });

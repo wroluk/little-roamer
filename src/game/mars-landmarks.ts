@@ -1,4 +1,14 @@
 import { addIronDecor } from './mars-iron-landmarks';
+import { addWreckDecor } from './mars-wreck-landmarks';
+import { wreckClearance } from './mars-wreck-layout';
+import { addKeyholeDecor } from './mars-keyhole-landmarks';
+import { keyholeWeight } from './mars-keyhole-layout';
+import { addDeltaDecor } from './mars-delta-landmarks';
+import { addDunesDecor } from './mars-dunes-landmarks';
+import { addTubesDecor } from './mars-tubes-landmarks';
+import { deltaWeight } from './mars-delta-layout';
+import { dunesWeight } from './mars-dunes-layout';
+import { tubesWeight } from './mars-tubes-layout';
 import { ironWeight } from './mars-iron-layout';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -133,7 +143,9 @@ export function buildMarsDecor(cx: number, cz: number): MarsDecor {
     const gx = cx * 5 + i, gz = cz * 5 + j, random = (channel: number) => marsRandom(gx, gz, channel);
     const x = cx * 96 + 3 + i * 18.6 + random(0) * 15, z = cz * 96 + 3 + j * 18.6 + random(1) * 15;
     if (marsTrailSample(x, z).distance < 10 || Math.hypot(x / 1.2, z - 44) < 78
-      || Math.hypot(x - DISH_SITE.x, z - DISH_SITE.z) < 23 || glassfallWeight(x, z) > 0.45 || ironWeight(x, z) > 0.45 || random(2) < 0.43) continue;
+      || Math.hypot(x - DISH_SITE.x, z - DISH_SITE.z) < 23 || glassfallWeight(x, z) > 0.45 || ironWeight(x, z) > 0.45
+      || keyholeWeight(x, z) > 0.45 || deltaWeight(x, z) > 0.45 || dunesWeight(x, z) > 0.45
+      || tubesWeight(x, z) > 0.45 || wreckClearance(x, z) || random(2) < 0.43) continue;
     const slope = Math.hypot(marsSurfaceHeight(x + 2, z) - marsSurfaceHeight(x - 2, z),
       marsSurfaceHeight(x, z + 2) - marsSurfaceHeight(x, z - 2)) / 4;
     if (slope > 0.65) continue; // Loose stones collect on shelves, not vertical cliff faces.
@@ -208,6 +220,11 @@ export function buildMarsDecor(cx: number, cz: number): MarsDecor {
   addDishRidgeDecor(cx, cz, add, { ivory, orange, dark, light });
   addGlassfallDecor(cx, cz, add);
   addIronDecor(cx, cz, add);
+  addKeyholeDecor(cx, cz, add);
+  addDeltaDecor(cx, cz, add);
+  addDunesDecor(cx, cz, add);
+  addTubesDecor(cx, cz, add);
+  addWreckDecor(cx, cz, add);
   for (const [material, geometries] of parts) {
     const geometry = mergeGeometries(geometries)!; geometries.forEach(g => g.dispose());
     const mesh = new THREE.Mesh(geometry, material);

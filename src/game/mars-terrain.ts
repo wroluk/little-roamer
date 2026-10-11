@@ -1,4 +1,10 @@
 import { IRON_ROUTES, IRON_START, IRON_LOOKOUT, IRON_EXIT, ironHeight, ironWeight } from './mars-iron-layout';
+import { KEYHOLE_ROUTES, KEYHOLE_START, KEYHOLE_LOOKOUT, KEYHOLE_EXIT, keyholeHeight, keyholeWeight, keyholeRockAt } from './mars-keyhole-layout';
+import { DELTA_ROUTES, DELTA_START, DELTA_LOOKOUT, DELTA_EXIT, deltaHeight } from './mars-delta-layout';
+import { wreckSandHeight } from './mars-wreck-layout';
+import { DUNES_ROUTES, DUNES_START, DUNES_LOOKOUT, DUNES_EXIT, dunesHeight, dunesWeight } from './mars-dunes-layout';
+import { TUBES_ROUTES, TUBES_START, TUBES_LOOKOUT, TUBES_EXIT, tubesHeight, tubesWeight } from './mars-tubes-layout';
+import { MARS_HABITAT_SPOKES } from './mars-spoke-layout';
 import { GLASSFALL_ROUTES, GLASSFALL_START, GLASSFALL_LOOKOUT, GLASSFALL_SOUTH, glassfallHeight, glassfallWeight, glassfallRibbonMargin } from './mars-glassfall-layout';
 import type { SurfaceId } from './surfaces';
 import { DISH_ROUTES, DISH_START, DISH_LOOKOUT, DISH_SOUTH_EXIT, dishRidgeHeight, dishRegionWeight } from './mars-dish-layout';
@@ -43,6 +49,11 @@ export const MARS_ROUTES: MarsRoute[] = [
   ...DISH_ROUTES,
   ...GLASSFALL_ROUTES,
   ...IRON_ROUTES,
+  ...KEYHOLE_ROUTES,
+  ...DELTA_ROUTES,
+  ...DUNES_ROUTES,
+  ...TUBES_ROUTES,
+  ...MARS_HABITAT_SPOKES,
 ];
 export const MARS_STARTS = [
   { id: 'habitat-seven', name: 'Habitat Seven', position: HABITAT_START },
@@ -50,6 +61,10 @@ export const MARS_STARTS = [
   { id: 'dish-ridge', name: 'Dish Ridge', position: DISH_START },
   { id: 'glassfall-plain', name: 'Glassfall Plain', position: GLASSFALL_START },
   { id: 'iron-maze', name: 'Iron Maze', position: IRON_START },
+  { id: 'keyhole-badlands', name: 'Keyhole Badlands', position: KEYHOLE_START },
+  { id: 'fossil-delta', name: 'Fossil Delta', position: DELTA_START },
+  { id: 'rust-dunes', name: 'Rust Dunes', position: DUNES_START },
+  { id: 'lava-tubes', name: 'Lava Tubes', position: TUBES_START },
 ];
 export const nearestMarsStart = (x: number, z: number) => MARS_STARTS.reduce((a, b) =>
   Math.hypot(x - a.position.x, z - a.position.z) <= Math.hypot(x - b.position.x, z - b.position.z) ? a : b);
@@ -86,6 +101,11 @@ export function marsHeightAt(x: number, z: number): number {
   h = dishRidgeHeight(x, z, h);
   h = glassfallHeight(x, z, h);
   h = ironHeight(x, z, h);
+  h = keyholeHeight(x, z, h);
+  h = deltaHeight(x, z, h);
+  h = dunesHeight(x, z, h);
+  h = tubesHeight(x, z, h);
+  h = wreckSandHeight(x, z, h);
   // Broken mesa shoulders and unequal buttresses replace the periodic scalloped wall.
   const edge = Math.pow(Math.abs(x) ** 8 + Math.abs(z) ** 8, 1 / 8);
   const broad = landscapeNoise(x, z, 135, 4), breaks = landscapeNoise(x, z, 43, 8);
@@ -97,7 +117,8 @@ export function marsHeightAt(x: number, z: number): number {
   h += (6 - h) * (1 - smooth((Math.hypot(x / 1.2, z - 44) - 57) / 20));
   const trail = marsTrailSample(x, z);
   h += (trail.elevation - h) * (1 - smooth((trail.distance - trail.halfWidth) / trail.shoulder));
-  for (const p of [HABITAT_START, CROWN_START, CROWN_LOOKOUT, CROWN_FLOOR, DISH_START, DISH_LOOKOUT, DISH_SOUTH_EXIT, GLASSFALL_START, GLASSFALL_LOOKOUT, GLASSFALL_SOUTH, IRON_START, IRON_LOOKOUT, IRON_EXIT])
+  for (const p of [HABITAT_START, CROWN_START, CROWN_LOOKOUT, CROWN_FLOOR, DISH_START, DISH_LOOKOUT, DISH_SOUTH_EXIT, GLASSFALL_START, GLASSFALL_LOOKOUT, GLASSFALL_SOUTH, IRON_START, IRON_LOOKOUT, IRON_EXIT, KEYHOLE_START, KEYHOLE_LOOKOUT, KEYHOLE_EXIT,
+    DELTA_START, DELTA_LOOKOUT, DELTA_EXIT, DUNES_START, DUNES_LOOKOUT, DUNES_EXIT, TUBES_START, TUBES_LOOKOUT, TUBES_EXIT])
     h += (p.y - h) * (1 - smooth((Math.hypot(x - p.x, z - p.z) - 5) / 5));
   return h;
 }
@@ -138,6 +159,8 @@ export function marsGlassAt(x: number, z: number): boolean {
 }
 export function marsSurfaceAt(x: number, z: number): SurfaceId {
   if (marsGlassAt(x, z)) return 'mars-glass';
+  if (keyholeRockAt(x, z)) return 'rock';
+  if (tubesWeight(x, z) > 0.65) return 'rock';
   const trail = marsTrailSample(x, z);
   if (trail.distance < trail.halfWidth) return trail.surface === 'mars-glass' ? 'regolith' : trail.surface;
   if (Math.hypot(x / 1.2, z - 44) < 57) return 'regolith';
@@ -151,12 +174,18 @@ export function marsColor(x: number, z: number, height: number): number[] {
   const r = Math.hypot(x, z + 195);
   const bands = Math.sin(height * 0.35 + landscapeNoise(x, z, 65, 11) * 2);
   const pale = (1 - smooth((Math.abs(r - 74) - 14) / 24)) * 0.7;
-  const path = 1 - smooth((trail - 3.5) / 3);
+  const path = (1 - smooth((trail - 3.5) / 3)) * (1 - tubesWeight(x, z));
   // Broad variation survives coarse sampling without shimmering stripe patterns.
   const grain = 0.018 * (landscapeNoise(x, z, 9, 14) - 0.5);
   const base = [0.64 + pale * 0.12, 0.32 + pale * 0.2, 0.23 + pale * 0.15];
   const iron = ironWeight(x, z);
   for (let i = 0; i < 3; i++) base[i] += ([0.61, 0.35, 0.22][i] - base[i]) * iron;
+  const keyhole = keyholeWeight(x, z);
+  for (let i = 0; i < 3; i++) base[i] += ([0.72, 0.49, 0.32][i] - base[i]) * keyhole;
+  for (const [weight, palette] of [
+    [dunesWeight(x, z), [0.76, 0.41, 0.24]],
+    [tubesWeight(x, z), [0.36, 0.30, 0.28]],
+  ] as const) for (let i = 0; i < 3; i++) base[i] += (palette[i] - base[i]) * weight;
   const glassfall = glassfallWeight(x, z);
   const paleApproach = 0.45 * Math.exp(-(((x - 525) / 65) ** 2 + ((z + 195) / 95) ** 2));
   const ironApproach = 0.45 * Math.exp(-(((x - 455) / 90) ** 2 + ((z - 260) / 100) ** 2));

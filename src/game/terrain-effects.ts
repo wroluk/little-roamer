@@ -5,6 +5,7 @@ import type { SurfaceId } from './surfaces';
 import type { Vehicle, WheelTerrainState } from './vehicle';
 
 const PARTICLE_COUNT = 72;
+export type ParticleColors = Partial<Record<SurfaceId, string | ((x: number, z: number) => string)>>;
 type Particle = {
   readonly position: THREE.Vector3;
   readonly velocity: THREE.Vector3;
@@ -43,8 +44,11 @@ export class TerrainEffects {
   readonly ground: GroundEffects;
 
   constructor(private readonly scene: THREE.Scene, private readonly waterHeight: (x: number, z: number) => number | null,
-    heightAt: (x: number, z: number) => number = () => 0, particleColors: Partial<Record<SurfaceId, string>> = {}) {
-    for (const id of Object.keys(particleColors) as SurfaceId[]) this.colors[id].set(particleColors[id]!);
+    heightAt: (x: number, z: number) => number = () => 0, private readonly particleColors: ParticleColors = {}) {
+    for (const id of Object.keys(particleColors) as SurfaceId[]) {
+      const color = particleColors[id];
+      if (typeof color === 'string') this.colors[id].set(color);
+    }
     this.ground = new GroundEffects(scene, heightAt, waterHeight);
     this.mesh.name = 'terrain-particles';
     this.mesh.frustumCulled = false;
@@ -141,7 +145,9 @@ export class TerrainEffects {
     particle.remaining = particle.lifetime;
     particle.size = surface.id === 'ash' ? 1.4 : surface.id === 'water' ? 0.78 : 0.9;
     particle.gravity = surface.id === 'water' || surface.id === 'lava' ? 7 : 2.4;
-    this.mesh.setColorAt(particleIndex, this.colors[surface.id]);
+    const palette = this.particleColors[surface.id];
+    this.mesh.setColorAt(particleIndex, typeof palette === 'function'
+      ? this.color.set(palette(wheel.position.x, wheel.position.z)) : this.colors[surface.id]);
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
   }
 

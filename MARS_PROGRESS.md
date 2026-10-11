@@ -4,11 +4,17 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
-Started 2026-10-07. **Current user scope: expand Mars to 1,536 m and prove the separated Dish Ridge → Glassfall → Iron Maze journey. Focused checks only; the user drives it before longer validation.** Habitat and Crown stay at pilot positions in this pass. Do not proceed to Keyhole Badlands. Mars stays out of the production picker during development.
+Started 2026-10-07. **Current user scope: all regions and the texture-free buried
+hull are accepted; mark Mars complete, enable the public location picker, finish
+pending checks, commit and publish.** This supersedes the earlier pause on long
+checks. Public Mars and Scout integration and automated release verification are
+complete; commit and GitHub Pages publication are next.
+Physical-iPad performance, two-thumb touch and
+installed-PWA acceptance remain unverified.
 
 ## Milestones
 
-The completed regional gates below refer to the original compact layout. The expanded-layout journey needs fresh user acceptance and later driving/browser verification.
+Checked region entries mean implemented with the focused evidence recorded below, not a public-release or full browser-circuit gate. Earlier complete gates refer to the compact layout. The user accepted the expanded eastern presentation; full expanded-world acceptance remains separate.
 
 - [x] World layout, region design cards, and concept map.
 - [x] Deterministic terrain and worker streaming, with seam and lifecycle tests.
@@ -17,20 +23,92 @@ The completed regional gates below refer to the original compact layout. The exp
 - [x] Pilot driving and visual checks in Chromium and WebKit; build and PWA checks (known WebKit offline-reload skip remains manual acceptance).
 - [x] Dish Ridge.
 - [x] Glassfall Plain.
-- [ ] Iron Maze.
-- [ ] Keyhole Badlands.
-- [ ] Fossil Delta.
-- [ ] Rust Dunes.
-- [ ] Lava Tubes and Quiet Vault.
-- [ ] Full circuit, regression checks, public integration, and device acceptance.
-- [ ] Expanded-layout eastern journey accepted and reverified.
+- [x] Iron Maze implementation and user-reviewed presentation.
+- [x] Keyhole Badlands implementation and focused region checks.
+- [x] Fossil Delta implementation and focused region checks.
+- [x] Rust Dunes implementation and focused region checks.
+- [x] Lava Tubes and Quiet Vault implementation and focused region checks.
+- [x] All nine regions and the final buried hull visually accepted by the user.
+- [x] Public Mars picker, Scout selection, direct links and regional starts.
+- [x] Full circuit and automated release regression checks (explicit skips below).
+- [ ] Commit and GitHub Pages publication.
+- [ ] Physical-iPad acceptance (not certified by desktop automation).
+- [x] Expanded-layout eastern journey accepted and reverified.
 
 ## Decisions
 
-- Work in individually verified milestones. Do not implement seven unreviewed regions in one pass.
+- Work in region-focused milestones. The latest user instruction permits continuing without manual checks between regions; keep automated evidence and remaining acceptance gaps explicit.
 - Keep existing gravity and four-wheel physics. The Scout is a new vehicle model; terrain supplies handling differences.
 - Preserve Northern Reach's runtime while introducing a small Mars-specific generator/runtime. Share existing vehicle, camera, effects, and disposal APIs; avoid a risky rewrite of Northern Reach's region-specific prop system.
-- Established starts are Habitat Seven, Crown Crater, Dish Ridge, and Glassfall Plain. Future regions appear on the design map, not as finished in-game destinations.
+- Nine regional starts are wired publicly. Route/landmark implementation is distinct from full-world, browser-circuit and target-device acceptance.
+
+## Public release verification — 2026-10-11
+
+**Final automated outcome:** 286 unit tests passed; typecheck and production
+build passed. All 203 executable browser cases passed across the original run
+and targeted retries; the known WebKit two-contact touch case remains skipped.
+After the Mac restart, Iron slalom passed unchanged in isolation and all 47
+remaining browser cases passed in 16.7 minutes. No physics or driving assertions
+were weakened. Production/PWA checks passed 8 cases with 2 explicit WebKit skips.
+
+The offline-worker test now reloads after service-worker installation before
+going offline, matching the prompt-based activation policy. Chromium verifies
+cached generation in all four new regions and offline travel into Mars.
+WebKit offline module-worker startup failed for both the unchanged Northern
+worker and Mars, while both generated successfully online. This additional
+automation limitation is skipped explicitly and joins offline navigation,
+two-contact touch and sustained 30 FPS in physical-iPad manual acceptance.
+
+Final logs are `files/mars-release-browser-final.log`,
+`files/mars-release-iron-retry.log`, and `files/mars-release-pwa-final.log` in the
+session artifacts. Next: commit the accepted implementation and selected final
+captures, push main, and verify the exact GitHub Pages deployment.
+
+### Historical release attempts (resolved by restart and retries)
+
+- Resume on 2026-10-11: both blank browser probes initially passed. The original
+  WebKit Tubes skylight timeout passed unchanged in isolation (3 minutes), then
+  passed again during the 67-case retry. Twenty previously failed cases passed,
+  including the Vault approach and all remaining full regional/spoke circuits.
+  The runtime failed again during Iron slalom: one timeout followed by 46 browser
+  launch aborts. A fresh WebKit launch without game code also aborts.
+  Cumulative unique browser results are **156 passed, 1 known skip, 47 unresolved**.
+  Production/PWA checks still have not run. The next isolated reproduction is
+  now Iron slalom, not Tubes; `--last-failed` now selects the remaining 47 cases.
+  Retry log: `files/mars-release-browser-retry.log`; isolated successful Tubes
+  evidence: `files/mars-release-tubes-retry.log`. No game code was changed.
+- Production picker and direct links now accept Mars and all three cars, without
+  exposing the development debug API. Production acceptance covers remembered
+  Scout selection, explicit regional/car links, and offline travel into Mars.
+- The first full unit run exposed a steep triangle at the Quiet Vault approach's
+  eastern shoulder. Broadened only that route's shoulder from 2 m to 5 m; its
+  centreline, road width, physics and original 0.55 grade limit are unchanged.
+  The all-route grade/reset check now passes.
+- Latest full unit release gate: **286 passed, zero failed or skipped** after
+  the shoulder fix. Typecheck and production build also passed. The continuous
+  5,102 m outer circuit passed in both directions with the real Scout.
+- Inspected current home-screen captures at 1080 x 810, 810 x 1080 and 390 x 844;
+  the Mars option, three car choices and start button remain accessible.
+- The complete 204-case Chromium/WebKit browser run finished after 1.9 hours:
+  **136 passed, 1 known WebKit touch skip, 67 failed**. All Chromium cases passed.
+  WebKit first timed out on the full Tubes skylight passage; the remaining 66
+  cases could not launch WebKit (`Abort trap: 6`). The chained PWA suite did not run.
+- Independent blank-page launch probes now fail in both WebKit and Chromium,
+  without loading game code. Chromium reports macOS `bootstrap_check_in`
+  failure 141; `launchctl` also reports 141 (`Reentrancy avoided`). This is a
+  local browser/runtime blocker, not evidence that 67 game behaviors regressed.
+  The first route timeout remains unresolved until it can be reproduced alone.
+  No physics or test assertions were changed in response.
+- Logs and browser artifacts are in the session's `files/mars-release-*` paths,
+  not committed test output. Preserve `mars-release-browser/.last-run.json` so
+  Playwright can retry only the failed cases.
+- Next: restore browser launching (restart the Copilot app/session, and the Mac
+  if necessary), reproduce `full Tubes skylight passage` alone in WebKit using a
+  separate output directory, then retry the 67 failures with `--last-failed`
+  and the original `mars-release-browser` output directory. If a driving failure
+  persists, compare against `main` before changing physics or assertions.
+  Run production/PWA checks sequentially afterward; then commit, publish and
+  verify the deployed game. No release commit or push has happened.
 
 ## Evidence and next action
 
@@ -246,3 +324,186 @@ The user requested continuation, authorizing Iron Maze as the next individual re
 - Narrowed the top from 22% to 8% of base width, retaining irregular heights, all lower strata and grounded feet. Rendering and collision still use the same closed geometry; triangle count is unchanged.
 - Both focused Iron geometry tests pass, including downward rays at each interior crest station of every fin to reject sunken caps. Build/typecheck pass. Short Chromium/WebKit presentation/reset checks pass; long driving/full/PWA suites remain deferred. Added a dedicated end-on crest capture to the presentation scenario.
 - Next: user reviews the narrower, solid tops. No commit or push performed; earlier target-device performance review remains open.
+
+### Remaining-region implementation — 2026-10-09
+
+- Committed all approved expansion/wilderness/crest work as **`1decdc7`** and pushed `origin/main`. Subsequent new-region work is uncommitted; the commit/push request preceded this work.
+- User explicitly authorized proceeding without their checks between regions, running only tests relevant to changed regions. No unrelated full suite, public release or PWA gate was run.
+- **Keyhole:** winding low wash, true open beveled arch, horizontal buff/rust strata, terraced secondary buttes, optional 24 m ledge and gentle alternative. Initial large-triangle color patches were replaced with actual horizontal mesh cuts after capture review. Iron connects at the east; the west wash leads to Delta.
+- **Delta:** two descending dry channels fork and rejoin, with an elevated sediment-shelf route, pale slabs and a stranded dark boulder. Both branches reach the Dunes connector.
+- **Dunes:** broad loose-dust crescent rising to 29 m, dark solid bedrock island, firm western perimeter and lower eastern loop. Existing dust traction is used without changing vehicle physics.
+- **Tubes:** two open basalt roof sections, daylight skylight, solid half-buried Quiet Vault with restrained teal seams, side alcove and elevated surface bypass. Capture review prompted irregular roof profiles and surrounding basalt banks instead of identical straight extrusions. The north/east return reconnects to Crown's existing western rim, closing the authored outer route graph.
+- Added all four regional spawns, nearest-reset selection, welcome hints, materials, deterministic chunk-owned solids, region cards and concept-map routes. Wild regions remain unmarked. Kept the requested 55–220 m haze; the old promise of seeing Habitat through Keyhole is explicitly superseded by that range.
+- **36 real-Scout unit driving cases passed**: every one of the 18 new routes in both directions, including optional routes, Vault alcove and Crown return. All ten Tubes cases were repeated after roof/bank refinement. **Seven targeted geometry/integration checks passed**, covering open passages, solid roofs/piers, grade sampling, branch/region joins, resets, surface contrast, terrain/collision sampling and bounded meshes. Build/typecheck passed.
+- **Eight regional browser checks passed in Chromium and WebKit**: views/reset plus Keyhole arch passage, Delta channel segment, Dunes crest segment and the full covered Tubes passage in both directions. These are representative feature drives, not complete regional browser circuits. Final Tubes appearance/drive checks are repeated after the geology refinement; see the follow-up entry for that outcome.
+- Current captures are in `keyhole-review/`, `fossil-delta-review/`, `rust-dunes-review/` and `lava-tubes-review/` under `artifacts/mars/`, with WebKit counterparts. The map reflects actual route nodes, not reserved circles.
+- **Remaining acceptance:** full-length regional browser routes/bypasses, sustained full-circuit drive, missing western/southern Habitat spokes, perimeter integration, device frame-rate/streaming profiling, PWA/offline and public-picker release gates. The last full-suite record remains unchanged; none was run this iteration. Manual iPad Safari two-contact touch and offline reload remain open as previously recorded.
+- Next: complete the remaining region-specific browser circuits and integration work under the user's scoped-testing instruction; do not advertise Mars publicly or mark the release gate complete.
+
+Final Tubes follow-up: the revised roof/bank presentation and both-direction passage drive passed again in Chromium and WebKit (two checks, about 96 seconds). Inspected the final capture and saved both engines' images in `lava-tubes-review/`. Final build/typecheck and `git diff --check` passed. The four new regions are available locally; their changes remain uncommitted.
+
+### Integration and remaining acceptance — 2026-10-09
+
+- Added the **southern Habitat → Keyhole** and **western Habitat → Delta** shortcuts. They join existing courtyard and regional route nodes exactly and remain unmarked in the wilderness. An initial southern departure clipped the third habitat dome; actual Scout tests found it, and the departure now goes around the east side via (40, 110).
+- Both new spokes pass actual Scout driving in both directions, with the existing grade limits unchanged. The map, region cards and design now show all four Habitat destination spokes.
+- Added an explicit continuous outer itinerary using only existing road segments. The real Scout completed **4,888 m clockwise and counterclockwise**, visiting all route junctions without resetting or teleporting. Simulated driving durations were approximately 796 and 805 seconds; these are physics simulation times, not wall-clock browser or device performance claims.
+- Streaming stayed within the existing 25 render / 9 physics chunk bounds; peak collider count was 187. The final car remained above terrain throughout (minimum measured body-to-terrain clearance approximately 0.60 m). Resource cleanup checks account for the live car's colliders separately from disposed terrain/scenery.
+- Existing lifecycle/failure checks and attempts to escape the Great Ring at all four sides passed. No vehicle physics or safety assertions were weakened.
+- Full western-region/spoke browser coverage is running in both engines, using actual animation-loop keyboard driving. Route profiles record frame intervals, chunk-activation peaks and resource counts; these desktop automation measurements are not physical iPad acceptance. PWA and final lifecycle results will be recorded below.
+
+### Acceptance paused for region refinement — 2026-10-10
+
+- User requested no further long tests until the new regions are improved. Stopped the resumed WebKit circuit run; remaining circuit and PWA checks are deferred, not passed.
+- Before interruption, the full-route run reported 20 Chromium and 11 WebKit passes. There are 35 completed-route captures, but no final run report; captures alone do not certify the remaining cases. Preserved evidence in the session's `files/mars-circuit-interrupted/` directory.
+- All 118 Mars unit tests passed previously, including the continuous outer circuit in both directions. The nine-region travel/car-switch/area-cleanup browser checks passed in Chromium and WebKit (two cases).
+- Updated the development picker and welcome copy to describe nine regions and four Habitat routes. Production availability remains gated. These latest text edits have not had a final build.
+- Next: refine the new regions from user feedback using visual inspection and short, focused checks only. Do not resume long route, full-suite or PWA runs until authorized. New-region and integration changes remain uncommitted.
+
+### Buried Lava Tubes and fractured Vault — 2026-10-10
+
+- Replaced the two freestanding 42 m roof sections with **two roughly parallel buried tubes, 244 m and 218 m long**. The western entrance starts 43 m later; independent bends avoid identical straight extrusions. A low lava field surrounds the passages, with floors near 6 m and upper terrain around 20 m.
+- Terrain forms irregular stepped trench walls. Thin basalt roof skins (roughly 1-1.7 m) supply the second driveable level, with matching triangle collision above and below. Roof strips have deterministic nearby chunk ownership; reconstruction tests reject missing or duplicated strips across owners.
+- Added **six actual roof openings**, broken rim stones, large fallen blocks beside the easy line, and low driveable plates across it. A cross-passage connects the tubes under the collapsed area at Z -456. Left clearance through the side rubble for that connection.
+- Extended underground routes and the western surface bypass around the northern mouths, preserving the Crown and Dunes connections. Removed the pale trail tint from the basalt region; rock grip applies both inside and above the tubes. Shared vehicle physics and camera behavior are unchanged.
+- Rebuilt the Quiet Vault at (-419, -526) as asymmetrical fractured gate leaves around a narrow tapered marker, with sparse pale-teal inlays. It sits in a recessed side alcove rather than reading as a cube.
+- **12 short unit checks passed** (about 27 seconds), including both-direction actual Scout drives over collapse rubble, across the roof and through the connecting chamber, plus roof thickness/opening, chunk-owner, reset, mesh-budget and terrain checks. **Six focused Chromium/WebKit browser cases passed**: presentation and short rubble/rooftop drives. The rooftop case verifies the car remains above 18 m over the buried floor. Repeated both presentation cases after correcting the capture camera framing.
+- Inspected real game captures of the entrances, interior, skylight, upper field and Vault. Saved current views in `artifacts/mars/lava-tubes-review/` and `webkit/`; the new `roof-drive.png` and `rubble-drive.png` show short Chromium driving results. Updated the region card, concept map, README and design/build descriptions.
+- Final production build/typecheck and whitespace check passed. **No long route, full-world or PWA suites ran.** Historical circuit results do not certify these changed routes; physical iPad and full-length two-tube journeys remain deferred. No commit or push.
+- Next: user reviews Lava Tubes at `http://127.0.0.1:5173/?area=mars&start=lava-tubes`. Address this region's feedback before changing Delta, Dunes or Keyhole. The local server remains running.
+
+### Tube rubble, supported rim stones and basalt particles — 2026-10-10
+
+- Added small flattened dodecahedral stones, matching Northern Reach's roadside rock family, along both tube floors. Deterministic variation changes spacing, width and rotation. Embedded bases and protrusions below 24 cm produce wheel-sized bumps without adding tall obstacles.
+- Fixed the photographed hovering rim stones: moved footprints back onto intact crust, inset stones from the open portal ends, and conformed their buried bases to roof slopes. Regression rays check the base perimeter against the actual rendered roof triangles, not just an analytical height estimate.
+- Kept every tube chunk below the existing 5,000-solid-triangle budget; reduced initial rubble density rather than relaxing the budget. Eight short real-Scout drives cover both directions over rubble, across the roof, through the junction and along the western tube.
+- Dark basalt now emits dark brown-gray rock particles rather than Mars's default orange fragments. Particle palette overrides can resolve the wheel's position; other Mars rock regions retain their rusty palette and other areas retain their defaults.
+- Final focused results: 16 tube/western geometry and driving checks passed, five effects checks passed, build/typecheck passed. Six short browser scenarios passed across Chromium/WebKit; both rubble drives were repeated after final density tuning, followed by a Chromium drive/capture after the particle fix. Inspected the updated roof, floor and driving captures. No long-route, full-suite or PWA tests ran.
+- Next: user checks the small bumps and supported roof stones in the local Lava Tubes preview. Continue refining this region only; broader acceptance remains paused. Changes are uncommitted.
+
+### Natural Keyhole bridges — 2026-10-10
+
+- Replaced the upright gate-like arch with a **176 m east-west sandstone rib**, with unequal spring points, a thin crown, changing width and irregular faces. Added a smaller diagonal companion arch northeast at (103, 467). Both have genuine open passages and matching mesh collision.
+- Raised broad rocky shoulders into the spring points, buried the rock bases, added low fractured foothill slabs, and muted the strata palette to match neighboring geology. Removed the broad flat apron beneath the original freestanding monument; retained the easy wash.
+- Added optional western/eastern crest approaches. The main crest rises from 18 m to about 35 m and descends to 16 m; its crossing is a separate solid mesh, not a terrain road that fills the opening. The western approach leaves the existing lookout and the eastern approach rejoins the regional start.
+- Actual driving initially found steep terrain intruding through the crest landings; capped those shoulders below the rock crown. A companion-passage drive found an abrupt exit bank; widened its low wash and moved a nearby butte out of the exit. Both fixes preserve the original driving assertions.
+- **Seven focused unit checks passed**, including real Scout crest crossings and companion-arch passage in both directions, geometry openness/thickness/budget checks and route grades. Four Chromium/WebKit cases passed for presentation, the main lower passage and an actual above-wash crossing; both presentation/lower-passage cases were repeated with the final companion wash and now also drive beneath that arch. The browser crest check confirms the Scout is above 32 m, not on the wash below.
+- Inspected actual arch, companion and crest captures; current images are in `artifacts/mars/keyhole-review/` and `webkit/`. Updated the concept map with both arches, the approaches and dashed optional crest crossing, plus the region card, README, design, build plan and welcome hint.
+- Final build/typecheck and whitespace check passed. No long regional/full-world/PWA suites or physical-device gate ran. Full-world circuit evidence predates this revision and is not renewed by these local checks. Changes remain uncommitted.
+- Next: user reviews Keyhole at `http://127.0.0.1:5173/?area=mars&start=keyhole-badlands`, including the optional route from the western lookout across the crest. Address feedback before refining another region.
+
+### Slight haze reduction — 2026-10-10
+
+- At the user's request, eased Mars fog from **55–220 m to 65–250 m**. Sky color, lighting, geometry and streaming settings are unchanged.
+- Build/typecheck passed. Captured and inspected a short Chromium Keyhole preview (`keyhole-review/haze-eased.png`) without page errors; no long checks ran.
+- Updated current visibility documentation and the concept map. Next: user reviews the slightly clearer distance in the running local preview. Changes remain uncommitted; broader acceptance stays deferred.
+
+Follow-up: eased haze one more step to **75–280 m** at the user's request. Build/typecheck and a short Chromium capture passed; inspected and refreshed `keyhole-review/haze-eased.png`. Current docs/map reflect the new range. No long checks ran. Next: user reviews visibility locally; geometry and lighting remain unchanged.
+
+### Scenery pop-in follow-up
+
+- Retained 75–280 m haze and the existing 5 x 5 render / 3 x 3 collision rings. Small scenery fades across 130–180 m with opaque screen-door dithering rather than transparent material sorting. Distant newly activated details ease in over 0.65 seconds; geometry within 70 m is immediately visible.
+- Added persistent, simplified visual-only Keyhole arches, Iron fins, Glassfall skins and Lava Tube roofs alongside the distant Dish/Habitat. Each anchor blends complementarily with its detailed owner using independent material uniforms. Long formations return to their silhouettes before their owning chunks unload; no additional distant colliders are created.
+- Matching shadow fades are explicitly disposed with each chunk. Streaming idle waits retain the actual observer position rather than moving visibility calculations to the chunk corner. Existing detailed terrain/horizon replacement is unchanged.
+- Eight focused unit checks passed, covering fade continuity, near visibility, long-landmark unloading, a fixed sub-15,000-triangle distant-landmark budget, shadow-material disposal, worker failures, and retained arch/roof geometry. Build/typecheck passed. Four focused Chromium/WebKit cases passed: pixel-level complementary fades without holes and short real-Scout chunk-boundary crossings in both directions. The initial synthetic fixture imported a second Three.js instance; corrected it to reuse the game's exact browser module.
+- Inspected actual approach captures in both engines; archived boundary captures in `artifacts/mars/scenery-review/`. No long regional circuits, full suites, PWA tests or physical-device acceptance ran. Prior full-suite status remains unchanged; changes are uncommitted.
+- Next: review distant scenery while approaching/leaving landmarks in the running local Mars preview, then continue user-directed region refinements. Full-world and iPad acceptance remain deferred.
+
+### Restore previous haze — 2026-10-10
+
+- User found the simplified silhouettes and scenery fading visually unsatisfactory and requested reverting the last haze reduction for now. Restored **65–250 m** from 75–280 m; this does not revert the first reduction from 55–220 m.
+- Left the geometry, current fading system, lighting, streaming and collision ranges unchanged. Updated current docs and the concept-map legend.
+- Typecheck/build and one short Chromium chunk-boundary scenario passed. Inspected and saved `artifacts/mars/scenery-review/haze-restored.png`. No long suites or PWA checks ran; prior full-suite evidence and deferred acceptance are unchanged.
+- Next: user reviews the restored haze locally before further region or visibility refinements. The visible LOD/fade quality concern remains open, not claimed resolved by this setting change. Changes remain uncommitted.
+
+### Remove experimental scenery transitions — 2026-10-10
+
+- At the user's request, removed the recent scenery/shadow fading and extra simplified Keyhole, Iron, Glassfall and Lava Tube silhouettes, including their optional low-detail generator paths and experiment-specific tests. Restored the original streaming implementation and distant Dish/Habitat behavior.
+- Kept **65–250 m haze**, all earlier region refinements, and the existing render/collision ranges. Updated current visibility documentation; previous scenery-review captures are historical evidence of the removed experiment.
+- Typecheck/build, two focused streaming lifecycle/error tests, and the existing Chromium Keyhole views/reset/short-passage scenario passed. Inspected the actual arch capture and saved `keyhole-review/visibility-restored.png`. No long regional, full-suite or PWA checks ran; deferred full-world/device acceptance remains unchanged.
+- Next: user reviews the restored presentation in the running local preview, then directs the next region refinement. Original chunk pop-in can still occur; no new transition workaround is claimed. Changes remain uncommitted.
+
+### Fossil Delta default Martian sand — 2026-10-10
+
+- Removed Delta's beige regional ground-color override so channels, shelves and surrounding fan use the default rusty-orange Mars palette, including existing natural variation and lighter path accents. Retained pale sediment slabs and the dark stranded boulder as contrasting landmarks.
+- Geometry, collision, routes, handling, haze and other regional palette overrides are unchanged. Updated the Delta design card, design table and concept-map fill.
+- Typecheck/build and two focused Delta unit checks passed, including a new ground-palette regression for channels and shelves. The Chromium Delta views/reset/short-feature drive scenario passed; inspected its actual feature and lookout captures and saved `fossil-delta-review/martian-feature.png` and `martian-lookout.png`. No long suites, WebKit rerun or PWA checks ran for this color-only change; prior full-suite and deferred acceptance status is unchanged.
+- Next: user reviews the default sand in the local Fossil Delta preview before choosing further region refinements. Changes remain uncommitted.
+
+### Unmarked buried spacecraft — 2026-10-10
+
+- Added an original approximately 94 m survey-carrier wreck at (-653, 265), off the west side of the Fossil Delta / Rust Dunes transition. Dull ivory/grey segmented plating, a tilted buried bow, exposed broken spine, incomplete aft bulkhead, open twin exhaust throats and five large grounded fragments form the discovery. No reference artwork is shipped or copied; no region, route, sign, mission, beacon, reset destination or loot was added.
+- Surveyed the actual transition: existing low relief could not conceal the required ship scale. Added two local asymmetric windward sand shoulders east/north of the site, rather than putting it beside a road. Existing route grading remains authoritative. The west/south remains open to cross-country exploration, without an access trail.
+- The 13 m-plus fracture has an uninterrupted sandy floor; the forward hold is also driveable beneath the remaining shell. Visible structural meshes provide their exact triangle colliders. Scatter is excluded around the hull and breach. The initial drive exposed an overly steep inner dune approach; widened/repositioned that bank and verified the final passage in both directions. A first visual pass read too much like an open shelter; added the broken pressure bulkhead, low cargo sponsons, crushed bow and recessed bow structure.
+- Four wreck unit checks passed: bounded/open geometry; terrain occlusion from sampled nearby route centrelines at terrain + 4 m against an 18-point upper hull envelope within 250 m; real Scout breach crossings both ways; and actual forward-hold driving both ways. Three focused Delta/Dunes regression checks passed. Sightline testing includes the northern bedrock perimeter and crescent, not only the closest connector. It does not guarantee concealment from elevated orbit cameras, every road-shoulder position or arbitrary off-road viewpoints.
+- Chromium and WebKit each passed the short wreck scenario: exterior/engine/breach views, connector/perimeter screening views, driving inside the hold and both transverse crossings. Actual captures were inspected under `artifacts/mars/wreck-review/` (separate engine folders). Camera framing was corrected to avoid accumulating orbit pitch between views.
+- Typecheck and production build passed; existing large-bundle warning remains. Haze stays 65–250 m; no fading or extra distant silhouettes were reintroduced. Delta's orange ground and pale slabs remain intact.
+- No long regional circuits, full suites, PWA checks or physical-iPad gate ran; the user explicitly paused them. Last full-suite evidence remains the previously recorded historical run, not renewed by this feature. All prior uncommitted work was preserved; no commits, pushes or branch operations occurred. The existing port-5173 preview was left running.
+- Next: user explores/reviews the unmarked wreck in the existing Delta / Dunes transition. Keep the full integration, public release and iPad acceptance gates deferred until requested.
+
+Exact focused commands:
+```sh
+npm run typecheck
+node --import tsx --test --test-name-pattern='wreck|windward|Scout can explore|Delta|Dunes' tests/mars-wreck.test.ts tests/mars-western.test.ts
+npm run build
+./node_modules/.bin/playwright test tests/browser/mars-wreck.spec.ts --output=artifacts/mars/wreck-review
+git diff --check
+```
+
+### Wreck scale and mechanical detail — 2026-10-10
+
+- Replaced the small twin exhausts with one 25.4 m drive bell, with its lower half buried in the existing sand. Segmented thick heat-shield petals, torn casing and reinforced rim surround a deep tapered chamber; concentric collars, swept stator blades, an annular rear housing and spindle provide real mechanical depth. The bell is many rover widths across without raising the wreck above the established screening envelope.
+- Added missing casing sections, torn metal at the fracture, bolted service covers, radiator slats, internal conduits and small maintenance rungs. Retained the main breach and sandy forward hold. Structural skins, engine walls and framing remain collidable; small flush fittings are visual detail without extra collision complexity.
+- Site, screening dunes, roads, default orange ground, haze and streaming are unchanged. Expanded the sightline envelope to include the new nozzle lip. Updated geometry checks to measure render/collision triangle budgets instead of the original coarse-model mesh count; ray checks verify a 16 m open span and deeply recessed machinery.
+- Four focused wreck unit checks passed, including both-direction real-Scout hold and breach drives; typecheck/build passed. The short wreck browser scenario passed in Chromium and WebKit, with an additional close engine-scale view. Inspected actual engine, side and rover-comparison captures in `artifacts/mars/wreck-detail-review/`.
+- No long regional/full suites or PWA tests ran; full-world and physical-device acceptance remain deferred, with earlier full-suite evidence unchanged. Next: user reviews the larger buried engine and finer hull detail at the same hidden site. Changes remain uncommitted.
+
+### Buried capital-vessel fragment and weathered gray — 2026-10-10
+
+- Reworked the discovery around an implied much larger vessel rather than a complete 94 m ship. Removed the recognizable forward shell, bow and long upper spine. The drive bell is now 53 m in diameter, with its centre and over two-thirds of its height below the sand. Only the upper curved machinery and partial mounting remain exposed; low broken structural teeth continue across a scattered footprint over 100 m long.
+- Changed ivory to dark neutral gray. Added a shared, locally generated mipmapped grime texture for fine streaks/mottling, with per-vertex soot and rusty dust at actual terrain contact. Kept small service details for scale, structural collision, the open crossing and the driveable sand over the former hold. Screening terrain, main routes and 65–250 m haze are unchanged.
+- Four focused unit checks passed, including scale, gray/weathered material attributes, sampled main-trail occlusion using the new geometry's exposed upper vertices, and both-direction real driving. Typecheck/build passed. Chromium's first browser attempt was interrupted by navigation; the final scenario passed. WebKit initially timed out at startup with unusually long elapsed wall time; its isolated rerun passed without changing assertions or physics. Inspected actual game captures in `wreck-buried-review/` and `wreck-buried-webkit-review/`.
+- No full regional/circuit, full-suite or PWA checks were requested or run. Earlier full-suite evidence and physical-device acceptance remain unchanged/deferred. Next: user judges this in-game buried-fragment study, especially the huge partial nozzle and dirty-gray surface. Changes remain uncommitted.
+
+### Connected twin-engine aft section — 2026-10-10
+
+- Added a second full-size 53 m drive, offset 56 m west and 16 m farther into the wreck, settled 2 m deeper. Its more intact casing contrasts with the broken original; both retain recessed annular housings, stator blades, collars, stiffeners and dirty-gray finishes. Omitted fully buried lower engine sectors to keep the existing render/collision triangle budgets.
+- Removed the ambiguous repeated black structural teeth. A continuous braced thrust frame now ties the pair to a tapering buried machinery spine, with recessed service panels and vents. Filled more casing panels and added interior stiffeners/lighter mechanical surfaces so the remains are not just empty skins. The entire ship remains implied, not exposed.
+- The broader western silhouette initially became visible from the Dunes perimeter. Broadened the existing north sand bank westward (profile width 59 to 82 m), preserving the main routes and the original sightline assertions. Both drives now pass the actual-geometry, sampled main-route occlusion check. No access trail or marker was added; the transverse crossing and forward exploration line remain clear.
+- Typecheck/build and eight focused wreck/Delta/Dunes checks passed, including both-direction actual Scout drives, paired nozzle depth, geometry/material budgets and terrain screening. Both Chromium/WebKit short wreck scenarios passed after final detailing. Inspected final paired-engine and close-up captures in `artifacts/mars/wreck-twin-review/`; map and design notes are updated.
+- No long regional/circuit, full-suite or PWA tests ran. Prior full-suite evidence and deferred physical-device/public acceptance are unchanged. Next: user reviews the paired drives and connected aft machinery in the running preview. Changes remain uncommitted.
+
+### Simplify wreck surfaces for driving — 2026-10-10
+
+- Removed the small non-colliding covers, bolts, pipes, rungs, slats and panels. Also removed narrow raised ribs, braces, collars, stator blades and torn casing tongues that could catch wheels. Every remaining visible wreck mesh now provides matching triangle collision; no invisible collision fillers were introduced.
+- Closed the 0.26 m casing-bay slots and narrow angular gaps between nozzle petals. Retained both giant engines, broad casing, recessed annular housings, connecting thrust frame, machinery spine, heavy ground-seated debris and procedural weathering. Site, sand screens, routes, terrain and handling are unchanged. Large intentional breaks and steep edges remain obstacles, not universally safe driving surfaces.
+- Five focused wreck unit checks passed, including a new raycast continuity check at the upper casing seam and real Scout roof traversal in both directions. The driving helper accepts an explicit initial surface height for this roof-only test; existing terrain-start behavior is unchanged. Replaced obsolete detail-count minimums with a bounded triangle budget and exact visual/collision triangle parity.
+- Typecheck/build passed. Both short Chromium/WebKit wreck scenarios passed, including a new actual drive from sand onto the machinery spine with elevation confirmation. Inspected actual twin-engine and on-spine captures in `artifacts/mars/wreck-clean-review/`. Existing sightline, nozzle-depth, sand-passage and forward exploration checks remain intact.
+- No long regional circuits, full suites or PWA/device checks ran; previously recorded full-suite evidence and deferred acceptance are unchanged. Changes remain uncommitted; the port-5173 preview remains running.
+- Next: user drives the simplified wreck off the usual crossing, especially casing seams and spine edges, and judges whether the remaining large broken sections need further shaping.
+
+### New rounded-hull form study — 2026-10-10
+
+- Following rejection of the twin-engine wreck and approval of reference 6's broken cylinder with reference 4's rounded end, replaced the old model completely. One 113 m hull section, up to 39 m across, has a continuous curved shoulder, a roughly 20 m mouth, a large western side breach and a rear that sinks beneath the sand. No reference images are shipped.
+- Modeled outer and inner skins as one closed wall volume around the openings. The main wall is roughly 1.8 m thick, with a much thicker rounded shoulder and a visible layered core at the breach. Shared vertices prevent panel slots; all three emitted meshes supply exact collision. Removed all old engines, spine and debris. The base gray finish uses subtle procedural mottling/panel joints rather than small physical fittings. This is deliberately the first shape/scale study, not final mechanical detailing.
+- Kept the site and absence of trail/signs. The original sandy ground provides the interior floor and both entrances, with no raised threshold. Expanded scatter exclusion to cover the new entrance and full buried footprint. The taller silhouette initially failed concealment from the Delta shelf; increased the existing east/north bank amplitudes from 17/18 m to 22/20.5 m without weakening sightline assertions or changing route grading.
+- Nine focused wreck/Delta/Dunes checks passed: closed-volume edge pairing, material/triangle bounds, physical wall thickness, mouth depth, cabin clearance, sampled main-trail concealment, continuous roof traversal, sandy interior exploration and real mouth-to-side-breach driving in both directions, plus nearby region regressions. Typecheck/build and diff formatting checks passed.
+- Both Chromium and WebKit passed the short new hull scenario, including rendered exterior/interior views and real driving through both entrances. Inspected final captures in `artifacts/mars/wreck-hull-review/`, including a lower-angle `shape-study.png`. The first prototype captures in `wreck-hull-study/` predate the refined entrance and restored screening.
+- No long circuits, full suites, PWA checks or physical-device acceptance ran. Previously recorded full-suite evidence and deferred public/device gates are unchanged. Updated the design, concept map and focused-check documentation. Changes remain uncommitted; the existing port-5173 preview remains running.
+- Next: user judges this new in-game silhouette, apparent wall mass and entry proportions before further detailing. Preserve the broad sandy passages and closed collision volume during any subsequent refinement.
+
+### Worn mechanical finish on the approved hull — 2026-10-10
+
+- User approved the shape and thick walls and requested continuing. Added staggered armor-panel joints, broad circumferential metal bands, inset-looking service covers/vents, worn identification bars, localized corrosion and scorching. The hull remains predominantly gray, with a separately grained layered wall core.
+- These details are flush procedural surface treatments with shallow bump shading and variable roughness, not new small mesh fittings. Compared all three position/index fingerprints before and after: approved geometry and exact collision are byte-for-byte unchanged. No changes to entrances, sandy floor, routes, screening terrain, streaming or vehicle handling.
+- Outer/inner materials share one 1024 x 512 color atlas and one packed bump/roughness atlas; cut edges have a 128 x 128 grain map. Raw shared pixel data totals 4.0625 MiB before mipmaps. Generation is deterministic and local, without reference-image assets. Existing scene disposal releases all shared maps, including the new bump/roughness map.
+- Six focused wreck checks passed, including new deterministic finish, predominantly gray/localized corrosion, shared texture budget and disposal checks, plus existing closed volume, sightlines and actual Scout driving. Typecheck/build and diff formatting checks passed. Both Chromium and WebKit short wreck scenarios passed, including both-direction entry/breach driving. Inspected actual exterior, lower-angle plating and interior views under `artifacts/mars/wreck-finish-review/`.
+- No long circuits, full suites, PWA or physical-device checks ran. Earlier full-suite evidence and deferred release/device gates are unchanged. Changes remain uncommitted and the port-5173 preview remains running.
+- Next: user reviews the weathered mechanical finish in game. Keep the approved hull shape and clear sandy passages fixed during any further visual refinement.
+
+### Restore the wreck's texture-free visual style — 2026-10-10
+
+- User identified the textured finish as inconsistent with other objects and approved returning to clean materials. Removed the procedural atlas generator and all color, bump, roughness and grain maps, including painted-on service covers, vents, markings and rust streaks. No texture coordinates or texture allocations remain on the wreck.
+- Kept the approved curved hull, thick rounded shoulder, layered cut edges and exact physical surfaces. Added a few broad gray armor sections using vertex colors; duplicated outer vertices only at the render representation level, retaining smooth normals and the same triangle positions. Restrained vertex-color dust shading now follows actual terrain contact. No fittings, obstacles, terrain or route changes.
+- Six focused wreck checks passed, including texture-free material/attribute assertions, deterministic vertex colors, closed wall volume, sightlines and real Scout driving. Typecheck/build and diff formatting checks passed. Both short Chromium/WebKit scenarios passed; inspected actual side and mouth views in `artifacts/mars/wreck-solid-review/`.
+- No long circuits, full suites, PWA or physical-device checks ran; earlier full-suite evidence and deferred release/device gates are unchanged. Changes remain uncommitted, and the existing preview remains running.
+- Next: user reviews the clean material/color treatment alongside the rest of Mars. Any future mechanical additions should be substantial integrated geometry, not texture-painted recesses or small wheel-catching fittings.

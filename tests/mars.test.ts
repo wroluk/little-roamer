@@ -9,6 +9,7 @@ import { disposeScene } from '../src/game/dispose';
 import { groundMarsRock, marsRockGeometry, buildMarsDecor, MARS_MARKED_ROUTES } from '../src/game/mars-landmarks';
 import { MARS_HALF } from '../src/game/mars-layout';
 import { DISH_SITE } from '../src/game/mars-dish-layout';
+import { driveMarsPath } from './mars-driving';
 before(async () => { await RAPIER.init(); });
 
 test('Mars trail posts remain in civilized regions only', () => {
@@ -188,26 +189,7 @@ test('the Great Ring stops the Scout at all four visible basin edges', async () 
 
 for (const route of MARS_ROUTES) for (const reversed of [false, true]) test(`Mars Scout drives ${route.name}${reversed ? ' in reverse direction' : ''}`, async () => {
   const path = reversed ? [...route.points].reverse() : route.points;
-  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
-  const runtime = new MarsStreamingRuntime(scene, world, new LocalMarsTransport());
-  try {
-    await runtime.ensureReady(path[0].x, path[0].z); world.step();
-    const car = new Vehicle(scene, world, marsSpawn(path[0]), 1.45, marsSurfaceAt, () => null, undefined, 'mars-scout');
-    car.body.setRotation(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(-(path[1].x - path[0].x), -(path[1].z - path[0].z))), true);
-    let next = 1, minHeight = Infinity;
-    for (let tick = 0; tick < 14000 && next < path.length; tick++) {
-      const target = path[next], dx = target.x - car.position.x, dz = target.z - car.position.z;
-      if (Math.hypot(dx, dz) < 3.5) { next++; continue; }
-      runtime.update(car.position.x, car.position.z);
-      if (runtime.stats.queued) await runtime.waitForIdle();
-      const f = new THREE.Vector3(0, 0, -1).applyQuaternion(car.body.rotation());
-      const desired = Math.atan2(dx, -dz), heading = Math.atan2(f.x, -f.z);
-      const error = Math.atan2(Math.sin(desired - heading), Math.cos(desired - heading));
-      car.beforeStep({ steer: Math.max(-1, Math.min(1, error * 2)), forward: tick > 90 && Math.abs(car.speed) < 6, reverse: false }, 1 / 60);
-      world.step(); car.capture();
-      minHeight = Math.min(minHeight, car.position.y - marsSurfaceHeight(car.position.x, car.position.z));
-    }
-    assert.equal(next, path.length, `stopped before ${next} at ${car.position.x},${car.position.z}; contacts=${car.contactCount()}`);
-    assert.ok(minHeight > -0.15, 'vehicle stays above visible collision terrain');
-  } finally { runtime.dispose(); world.free(); disposeScene(scene); }
+  const result = await driveMarsPath(path);
+  assert.equal(result.next, path.length, `stopped before ${result.next} at ${result.position.x},${result.position.z}; contacts=${result.contacts}`);
+  assert.ok(result.minHeight > -0.15, 'vehicle stays above visible collision terrain');
 });

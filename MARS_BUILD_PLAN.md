@@ -2,6 +2,14 @@
 
 This plan develops the [Mars Outpost concept](LOCATION_IDEAS.md#mars-outpost--expanded-concept) as a sequence of finished, driveable places. Northern Reach showed that a large generated landscape can be technically complete yet feel sparse. Mars should grow from a small polished pilot: **one region at a time, each reviewed on screen and driven with the real car before the next begins**. Do not publish a broad placeholder map as the new location.
 
+**Current release decision:** the user has accepted all regions and the texture-free
+buried hull, declared Mars complete, and requested public picker availability,
+all pending checks, a commit, and publication. This supersedes the historical
+development-only gate and pause on long checks below. Run the full automated
+release gates before publishing; physical-iPad acceptance remains explicitly
+unverified rather than inferred from desktop WebKit. See `MARS_PROGRESS.md`
+for current results.
+
 ## Target experience
 
 - A **1,536 × 1,536 m** continuous world, matching Northern Reach's footprint, with nine distinct regions and the Great Ring as a varied, solid perimeter.
@@ -38,10 +46,10 @@ Develop the remaining regions in this order, following the outer circuit. Each i
 | 1 | **Dish Ridge** | A readable switchback with broad turnouts, a solid communications dish, and a view back to the crater and outpost. |
 | 2 | **Glassfall Plain** | A shaped impact fan with distinct glassy streaks, a firm perimeter route, and unmarked off-road exploration over the glass. No crossing road or trail posts. |
 | 3 | **Iron Maze** | Rock fins with varied silhouettes and matching collision; a clearly readable corridor and a smoother bypass. |
-| 4 | **Keyhole Badlands** | A layered wash and a genuine open arch the car can pass beneath; a low route and optional ledge return. |
+| 4 | **Keyhole Badlands** | Two asymmetric sandstone bridges rooted in rocky shoulders; an open wash below and an optional narrow main-crest crossing reached from graded approaches. |
 | 5 | **Fossil Delta** | Branching dry channels with coherent sediment terraces; multiple lines that reconnect instead of ending in traps. |
 | 6 | **Rust Dunes** | A sculpted crescent and bedrock island, with dust that affects traction and a reliable firm perimeter route. |
-| 7 | **Lava Tubes** | A short daylight-visible passage, drivable surface bypass, and a side alcove for the Quiet Vault; roof, opening, and Vault collisions must match what is seen. |
+| 7 | **Lava Tubes** | Two long, partly buried parallel passages with staggered entrances, roof-collapse skylights, driveable rubble, a connecting chamber and driveable roofs; the fractured Quiet Vault occupies a side alcove. Visible rock and alien geometry share their collision meshes. |
 
 For **every** region, follow the same review loop:
 
@@ -72,6 +80,10 @@ The user approved expanding to Northern Reach's footprint after finding that the
 - User-directed gate for this iteration: focused checks and a playable preview first. Long route-driving/browser suites, full regression and PWA acceptance wait until after user review. Earlier regional passes do not certify the relocated layout.
 
 ## Verification and acceptance
+
+**Latest user override — 2026-10-09:** continue through Keyhole, Delta, Dunes and Tubes without waiting for manual review between regions. Run tests relevant to changed regions only; defer unrelated full suites, public integration and device/PWA release acceptance. Keep incomplete acceptance items explicit rather than treating implementation as release readiness.
+
+**Integration follow-up — 2026-10-09:** the user then asked to continue the missing work while they review the new regions later. Add the missing Habitat spokes, complete regional browser-route coverage, continuous circuit and lifecycle checks, and the offline gate. Continue to exclude unrelated world suites; keep public availability gated until visual review and real-device acceptance.
 
 - During each iteration, run change-focused checks: `npm run typecheck`, relevant Mars terrain/region unit tests, and the affected Playwright case in Chromium for visual review. Add WebKit immediately when browser behavior may differ. Drive changed terrain, routes, handling, and collisions with the real Scout. At the completed-region gate, run the affected driving and browser scenarios in **both Chromium and WebKit**. Unit coverage checks deterministic generation, exact sampled height versus triangles, seam equality, geometry bounds, landmark collider clearance, regional starts, and stream lifecycle.
 - Before calling the location ready: `npm run build`, affected unit tests, and all Mars browser scenarios in both engines. Because Mars changes startup choice, worker caching, and offline content, run `npm run test:pwa` **after** browser tests; the suites share `test-results` and must run sequentially.

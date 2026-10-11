@@ -1,8 +1,9 @@
 # Little Roamer
 
-An open-ended 3D toy 4WD playground with four places to explore: sunny hills
-in **Sunshine Valley**, the volcanic **Iceland Highlands**, and the streamed
-1.5 km-wide wilderness of **Northern Reach**, and **Samurai Village**.
+An open-ended 3D toy 4WD playground with five places to explore: sunny hills
+in **Sunshine Valley**, the volcanic **Iceland Highlands**, the streamed
+1.5 km-wide wilderness of **Northern Reach**, **Samurai Village**, and
+**Mars Outpost**.
 No score, objectives, timers, accounts, audio, or downloads of external artwork.
 
 Built with TypeScript, Vite, Three.js and Rapier. All meshes and trail-sign
@@ -11,9 +12,9 @@ textures are generated locally. Runtime requests stay on the game server.
 ## Install on iPad for offline play
 
 Little Roamer is an installable PWA. The production build precaches the game,
-all area generators, the Northern Reach worker, Rapier physics, icons, and
+all area generators, the Northern Reach and Mars workers, Rapier physics, icons, and
 generated styling for offline use.
-Northern chunks are regenerated deterministically from cached code; no network
+Northern and Mars chunks are regenerated deterministically from cached code; no network
 or previously generated chunk database is needed while driving.
 
 1. Publish `dist/` on an **HTTPS** static URL.
@@ -59,8 +60,8 @@ Keep this terminal/session and the Mac awake while playing.
 ## Choose your next adventure
 
 Use the Home Screen to choose Sunshine Valley, Iceland Highlands, Northern
-Reach, or Samurai Village, and to switch between the green Modern Roamer and
-the orange Classic expedition wagon. The car choice is remembered locally and
+Reach, Samurai Village, or Mars Outpost, and to switch between the green Modern
+Roamer, the orange Classic expedition wagon, and the Mars Scout. The car choice is remembered locally and
 does not change the shared four-wheel physics or terrain handling. Pause and
 choose **Choose another location** to return to these options. Switching areas
 clears held controls and returns the car to that area's safe starting point.
@@ -72,6 +73,7 @@ Direct links:
 - Sunshine Valley: `http://127.0.0.1:5173/?area=valley`
 - Iceland Highlands: `http://127.0.0.1:5173/?area=highlands`
 - Northern Reach: `http://127.0.0.1:5173/?area=northern-reach`
+- Mars Outpost: https://wroluk.github.io/little-roamer/?area=mars
 
 In the highlands, follow the **amber posts** for broad, shallow river crossings.
 Drive down the bank, through the water, and up the opposite side. The riverbed
@@ -98,25 +100,44 @@ outer landscape rises into a natural collidable boundary rather than ending
 at an invisible drop. Streamed loose boulders are solid obstacles, matching
 the playful collisions in the original areas.
 
-## Mars development regions
+## Mars Outpost
 
-Mars is available locally at `http://127.0.0.1:5173/?area=mars`.
-It includes Habitat Seven, Crown Crater, Dish Ridge, Glassfall Plain, Iron Maze, their connecting roads,
+Choose **Mars Outpost** in the location dropdown, or open
+https://wroluk.github.io/little-roamer/?area=mars (locally: `http://127.0.0.1:5173/?area=mars`).
+It includes Habitat Seven, Crown Crater, Dish Ridge, Glassfall Plain, Iron Maze, Keyhole Badlands,
+Fossil Delta, Rust Dunes, Lava Tubes and their connecting roads,
 the crater rim and floor descent, and the four-wheel Mars Scout. Dish Ridge adds
 switchbacks, a concave communications receiver, a summit loop, a western lookout,
 and an optional eastern rock ledge. Glassfall adds a pale impact fan, dark slippery
 glass ribbons, a firm circuit and an eastern overlook. Iron Maze adds layered ironstone
 fins, a broad passage, a western bypass and an optional rock slalom.
+Keyhole adds two natural sandstone bridges, a layered wash and an optional drive across
+the main arch's narrow crest; Delta adds branching dry channels
+and a sediment shelf; Dunes adds a loose crescent and firm perimeter; Tubes adds
+two long buried passages with roof-collapse skylights, bumpy basalt rubble, a connecting
+chamber and driveable ground above. The Quiet Vault is a fractured alien gate in a side
+alcove. An unmarked, partly buried hollow wreck waits off the Delta-to-Dunes
+connector, with thick broken walls and sandy passages to explore.
+The northwest road rejoins Crown.
+Habitat has four destination spokes: north to Crown, east to Glassfall,
+south to Keyhole's wash and west to Delta's sediment shelf.
 Trail posts remain around Habitat, Crown and Dish; Glassfall and Iron are unmarked.
 The glass flows have no crossing road, but remain driveable off-road.
-Stronger 55–220 m haze softens distant scenery appearing at the streaming boundary.
+Moderate 65–250 m haze softens distant transitions. Scenery loads with its chunks;
+the original distant Dish and Habitat silhouettes remain outside detailed coverage.
+The 5 x 5 render and 3 x 3 collision rings are unchanged.
 Use `?area=mars&start=crown-crater` to begin at the crater entrance,
 `?area=mars&start=dish-ridge` for the ridge saddle,
 `?area=mars&start=glassfall-plain` for the impact fan,
-`?area=mars&start=iron-maze` for the fin field, or add
+`?area=mars&start=iron-maze` for the fin field,
+`?area=mars&start=keyhole-badlands` for the arch,
+`?area=mars&start=fossil-delta` for the channels,
+`?area=mars&start=rust-dunes` for the crescent,
+`?area=mars&start=lava-tubes` for the passage, or add
 `&car=classic` / `&car=modern` to try an existing car. Reset chooses the nearest
-of the five established regional starts. Mars is hidden from the production picker
-and production direct links while its remaining regions are under construction.
+of the nine regional starts. Direct Mars links default to the Scout; an explicit
+`car` parameter selects another model. Changing locations through the home screen
+preserves your chosen car.
 
 The design spans 1,536 × 1,536 metres, matching Northern Reach. Detailed terrain streams in 96 m chunks,
 with a 5 × 5 render neighborhood and 3 × 3 collision core. A coarse visual
@@ -125,18 +146,18 @@ preserve their silhouettes beyond the detailed chunks. Packed regolith and soft 
 dust have matching surface feedback and temporary tire marks. Delayed terrain
 generation holds the car on loaded ground until the next chunk has collision.
 
-The expanded-layout preview separates Dish Ridge, Glassfall and Iron Maze with
+The expanded layout separates Dish Ridge, Glassfall and Iron Maze with
 winding journeys. Glassfall has a broad open plain with a gradual pale-ground
 transition; Iron remains hidden behind a screening shoulder. Both have larger landforms;
 road widths, buildings and the Scout retain their scale. Start at Dish Ridge,
 take its southern descent, then follow the road through Glassfall toward Iron.
-Habitat and Crown retain their pilot positions for this first comparison.
-See the [revised spatial map](artifacts/mars/concept-map.svg). Longer driving
-and browser acceptance for the relocated layout is pending user review.
+Habitat and Crown retain their original positions.
+See the [spatial map](artifacts/mars/concept-map.svg).
 
 Follow [the build plan](MARS_BUILD_PLAN.md) and [progress record](MARS_PROGRESS.md)
-for implementation status, evidence, and the next region. The broader Mars
-landscape is development terrain; the remaining four regions are not finished.
+for completion status, release evidence, and the remaining physical-iPad checks.
+All nine regions and the connecting route network are implemented and visually
+accepted; desktop automation does not certify sustained performance on an iPad.
 See the [Dish Ridge card](artifacts/mars/DISH_RIDGE.md) and
 [Glassfall Plain card](artifacts/mars/GLASSFALL_PLAIN.md), plus the
 [Iron Maze card](artifacts/mars/IRON_MAZE.md), for layouts and review captures.
@@ -250,7 +271,7 @@ backgrounding. Returning from another tab leaves the game paused until
 **Keep roaming** is pressed, preventing unintended movement.
 
 If the car gets wedged or rolls over, **Reset car** clears its motion and
-returns it to the nearest established regional start in Northern Reach, including
+returns it to the nearest established regional start in Northern Reach or Mars, including
 unvisited starts. Other worlds use their original starting area. A brief message
 names the destination; regional resets cost journey progress without returning
 you across the whole world. Tree trunks/canopies, boulders, ramps,
@@ -278,6 +299,12 @@ static host. A harmless upstream Rapier initialization deprecation warning may
 appear in development; the public `RAPIER.init()` API is used.
 
 ## Checks
+
+The unmarked Delta / Dunes wreck has focused geometry, terrain sightline and
+real-Scout checks in `tests/mars-wreck.test.ts`, plus the short dual-engine
+`tests/browser/mars-wreck.spec.ts` scenario (rounded entrance, sandy interior,
+side-breach driving both ways, and rendered views). See `artifacts/mars/DESIGN.md` for its location and sightline limitations;
+it has no in-game marker or approach trail.
 
 Choose tests by the change while working. A recent local run took about four
 minutes for all unit tests, 22 minutes for the full Chromium and WebKit browser

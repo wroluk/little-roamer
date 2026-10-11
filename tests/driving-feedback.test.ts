@@ -5,6 +5,7 @@ import { GroundEffects, TRACK_CAPACITY } from '../src/game/ground-effects';
 import { TerrainEffects } from '../src/game/terrain-effects';
 import { SURFACES } from '../src/game/surfaces';
 import type { Vehicle } from '../src/game/vehicle';
+import { AREAS } from '../src/game/areas';
 
 function vehicle() {
   return { speed: 3, rotation: new THREE.Quaternion(), forward: new THREE.Vector3(0,0,-1),
@@ -21,6 +22,20 @@ test('area particle palette colours emitted rock fragments without changing othe
     const mesh = scene.children.find(object => object instanceof THREE.InstancedMesh) as THREE.InstancedMesh;
     const color = new THREE.Color(); mesh.getColorAt(0, color);
     assert.equal(color.getHexString(), override ? 'b76b49' : '7b8582');
+    effects.dispose();
+  }
+});
+
+test('Mars emits dark basalt in the tubes and retains rusty rock particles elsewhere', () => {
+  for (const [x, z, expected] of [[-430, -400, '514640'], [398, -472, 'b76b49']] as const) {
+    const scene = new THREE.Scene(), effects = new TerrainEffects(scene, () => null, () => 0, AREAS.mars.particleColors);
+    const car = vehicle();
+    car.terrainWheels.forEach(wheel => { wheel.surface = SURFACES.rock; wheel.position.set(x, 0, z); });
+    for (let i = 0; i < 5; i++) effects.update(0.1, car);
+    assert.ok(effects.count > 0);
+    const mesh = scene.children.find(object => object instanceof THREE.InstancedMesh) as THREE.InstancedMesh;
+    const color = new THREE.Color(); mesh.getColorAt(0, color);
+    assert.equal(color.getHexString(), expected);
     effects.dispose();
   }
 });

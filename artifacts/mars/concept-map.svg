@@ -2,7 +2,7 @@
   <rect width="1100" height="1000" fill="#211d24"/>
   <style>text{font-family:system-ui;fill:#f1dbc4}.label{font-size:15px;font-weight:600}.small{font-size:12px}.road{fill:none;stroke:#efd09b;stroke-width:3}.future{fill:none;stroke:#bc978b;stroke-width:2;stroke-dasharray:7 6}</style>
   <text x="50" y="45" font-size="28">MARS OUTPOST / EXPLORATION LAYOUT</text>
-  <text x="50" y="72" font-size="15">1,536 x 1,536 m / Eastern journey preview / North is up</text>
+  <text x="50" y="72" font-size="15">1,536 x 1,536 m / Nine-region development layout / North is up</text>
   <rect x="66" y="106" width="768" height="768" rx="100" fill="#ac6950" stroke="#6e3d36" stroke-width="25"/>
   <text x="450" y="132" text-anchor="middle" font-size="15">THE GREAT RING</text>
   <g transform="translate(450 490) scale(.5)">
@@ -12,6 +12,16 @@
     <ellipse cx="398" cy="-472" rx="95" ry="100" fill="#bc7655"/>
     <ellipse cx="500" cy="-30" rx="119" ry="141" fill="#dac49c"/>
     <ellipse cx="380" cy="460" rx="129" ry="115" fill="#82503a"/>
+    <ellipse cx="0" cy="532" rx="220" ry="155" fill="#c59569"/>
+    <ellipse cx="-428" cy="434" rx="173" ry="119" fill="#ac6950"/>
+    <ellipse cx="-525" cy="15" rx="145" ry="185" fill="#c47740"/>
+    <path d="M-600,177 Q-561,260 -595,351 M-727,186 Q-654,132 -597,186"
+      fill="none" stroke="#c98554" stroke-width="24"/>
+    <g transform="translate(-653 265) rotate(13.75)" fill="#626765" stroke="#393d3c" stroke-width="2">
+      <path d="M-11,-50 Q-20,-43 -20,-23 L-9,-21 L-10,17 L-17,19 L-12,47 Q0,57 12,47 L19,-30 Q20,-43 11,-50 Z"/>
+      <path d="M-10,-49 Q0,-44 10,-49" fill="none"/>
+    </g>
+    <ellipse cx="-460" cy="-458" rx="145" ry="218" fill="#675047"/>
     <circle cx="0" cy="-195" r="75" fill="#d5ab80" stroke="#ecd1a3" stroke-width="12"/>
     <circle cx="0" cy="48" r="55" fill="#cba580"/>
     <g fill="#302e2e">
@@ -23,6 +33,22 @@
     <g stroke="#49372f" stroke-width="8">
       <path d="M364,380 l-3,38 M369,433 l2,30 M372,488 l-2,30 M447,400 l-7,58 M475,418 l-6,50 M308,386 l-2,28 M302,455 l2,36"/>
     </g>
+    <g fill="#b5825e">
+      <ellipse cx="-76" cy="530" rx="38" ry="30"/><ellipse cx="78" cy="530" rx="36" ry="27"/>
+      <ellipse cx="62" cy="492" rx="21" ry="18"/><ellipse cx="144" cy="442" rx="21" ry="18"/>
+    </g>
+    <path d="M-88,530 Q-40,522 0,530 Q40,536 88,530 M62,492 Q105,470 144,442"
+      fill="none" stroke="#c59670" stroke-width="12"/>
+    <path d="M-600,120 Q-510,75 -525,-5 Q-526,-70 -566,-90" fill="none" stroke="#e5a05d" stroke-width="18"/>
+    <ellipse cx="-472" cy="12" rx="20" ry="27" fill="#504139"/>
+    <path d="M-430,-330 Q-423,-410 -430,-456 Q-435,-526 -431,-574 M-490,-373 Q-483,-425 -485,-456 Q-492,-540 -492,-591"
+      fill="none" stroke="#51443c" stroke-width="44"/>
+    <g fill="#29262a">
+      <ellipse cx="-427" cy="-381" rx="11" ry="12"/><ellipse cx="-430" cy="-456" rx="11" ry="12"/>
+      <ellipse cx="-433" cy="-535" rx="11" ry="12"/><ellipse cx="-486" cy="-413" rx="11" ry="12"/>
+      <ellipse cx="-485" cy="-456" rx="11" ry="12"/><ellipse cx="-490" cy="-558" rx="11" ry="12"/>
+    </g>
+    <path d="M-423,-522 L-419,-530 L-415,-522" fill="none" stroke="#a3b9a5" stroke-width="3"/>
     <g fill="none" stroke="#efd09b" stroke-width="6">
       <path d="M0,8 L-12,-65 L0,-120 M75,-195 L110,-225 L145,-272 L155,-325 L190,-365 L240,-378 L290,-411"/>
       <path d="M290,-411 L331,-389 L388,-386 L409,-408 L376,-423 L333,-431 L330,-443 L359,-462 L370,-472"/>
@@ -34,14 +60,31 @@
       <path d="M404,363 L366,362 L320,365 L281,393 L269,438 L274,485 L304,526 L341,545 L376,548"/>
       <path d="M376,548 L337,571 L289,573 L243,568"/>
       <path d="M42,20 L100,24 L155,-10 L202,-5 L235,-50 L290,-82 L345,-76 L426,-110"/>
+      <path d="M40,64 L40,110 L35,150 L20,175 L0,228 L-20,280 L-4,337 L17,384 L0,434 L0,486"/>
+      <path d="M-12,60 L-75,88 L-139,115 L-187,170 L-205,233 L-235,295 L-285,350 L-345,405"/>
+      <path d="M243,568 L213,590 L176,596 L145,575 L115,602 L72,618 L28,605 L0,579 L0,530 L0,486 L-28,459 L-72,448"/>
+      <path d="M-72,448 L-105,464 L-131,499 L-136,540 L-119,571 L-92,580 L-57,591 L-25,620 L8,632 L42,632 L72,618"/>
+      <path d="M-72,448 L-100,416 L-150,419 L-181,451 L-190,490 L-179,544 L-155,590 L-111,626 L-58,646 L8,632"/>
+      <path d="M-92,580 L-106,560 L-110,537 L-96,530 L-88,530 M88,530 L119,547 L145,575"/>
+      <path d="M-88,530 L88,530" stroke-dasharray="5 5" stroke-width="3"/>
+      <path d="M-190,490 L-235,495 L-270,520 L-300,505 L-332,486 L-370,470 L-430,440 L-482,415 L-505,365 L-544,333 L-535,280"/>
+      <path d="M-370,470 L-418,510 L-475,490 L-525,435 L-532,394 L-505,365"/>
+      <path d="M-300,505 L-313,462 L-331,430 L-345,405 L-385,376 L-430,354 L-475,348 L-505,365"/>
+      <path d="M-535,280 L-515,239 L-535,190 L-600,155 L-648,95 L-655,20 L-630,-55 L-560,-108 L-480,-160"/>
+      <path d="M-600,155 L-578,113 L-552,75 L-528,28 L-528,-5 L-545,-50 L-566,-79 L-560,-108"/>
+      <path d="M-535,190 L-472,145 L-431,77 L-409,15 L-425,-49 L-460,-111 L-480,-160"/>
+      <path d="M-480,-160 L-445,-213 L-455,-275 L-431,-304 L-429,-330 L-427,-355 L-427,-381 L-427,-413 L-429,-438 L-430,-456 L-432,-482 L-433,-506 L-433,-535 L-432,-558 L-431,-574 L-429,-602 L-392,-622 L-351,-585 L-340,-536 L-357,-493"/>
+      <path d="M-455,-275 L-514,-318 L-536,-370 L-526,-430 L-536,-493 L-541,-552 L-537,-624 L-475,-643 L-392,-622"/>
+      <path d="M-455,-275 L-479,-310 L-491,-346 L-490,-373 L-488,-393 L-486,-413 L-485,-436 L-485,-456 L-485,-481 L-486,-509 L-488,-534 L-490,-558 L-491,-578 L-491,-591 L-491,-614 L-475,-643"/>
+      <path d="M-430,-456 L-456,-456 L-485,-456 M-433,-506 L-420,-513 L-418,-520"/>
+      <path d="M-357,-493 L-318,-473 L-275,-433 L-229,-412 L-179,-393 L-133,-349 L-106,-295 L-103,-246 L-75,-195"/>
     </g>
-    <path d="M243,568 L0,530 L-430,430 L-520,20 L-430,-420 L0,-195" fill="none" stroke="#efcfab" stroke-width="5" stroke-dasharray="15 12"/>
     <g fill="#f9ebc7" stroke="#46383b" stroke-width="4">
       <circle cx="0" cy="48" r="11"/><circle cx="0" cy="-195" r="11"/><circle cx="398" cy="-472" r="11"/>
       <circle cx="500" cy="-30" r="11"/><circle cx="380" cy="460" r="11"/>
     </g>
-    <g fill="#392e38" stroke="#dfaa77" stroke-width="4">
-      <circle cx="0" cy="530" r="16"/><circle cx="-430" cy="430" r="16"/><circle cx="-520" cy="20" r="16"/><circle cx="-430" cy="-420" r="16"/>
+    <g fill="#f9ebc7" stroke="#46383b" stroke-width="4">
+      <circle cx="145" cy="575" r="11"/><circle cx="-300" cy="505" r="11"/><circle cx="-535" cy="190" r="11"/><circle cx="-455" cy="-275" r="11"/>
     </g>
     <g fill="#d8efc2" stroke="#254839" stroke-width="4">
       <path d="M549,-230 l12,24 h-24 Z"/><path d="M374,303 l12,24 h-24 Z"/>
@@ -50,11 +93,11 @@
   <g class="label">
     <text x="408" y="380">Crown Crater</text><text x="394" y="535">Habitat Seven</text>
     <text x="606" y="237">Dish Ridge</text><text x="660" y="471">Glassfall Plain</text>
-    <text x="604" y="735">Iron Maze</text><text x="396" y="782">Keyhole / reserved</text>
-    <text x="177" y="733">Delta / reserved</text><text x="119" y="527">Dunes / reserved</text>
-    <text x="178" y="303">Tubes / reserved</text>
+    <text x="604" y="735">Iron Maze</text><text x="396" y="842">Keyhole Badlands</text>
+    <text x="177" y="773">Fossil Delta</text><text x="119" y="527">Rust Dunes</text>
+    <text x="178" y="203">Lava Tubes / Vault</text>
   </g>
-  <text x="858" y="190" class="label">FIRST REVIEW JOURNEY</text>
+  <text x="858" y="190" class="label">EASTERN JOURNEY</text>
   <text x="858" y="223" class="small">Dish: relocated, same machinery</text>
   <text x="858" y="245" class="small">Low approach: open pale plain</text>
   <text x="858" y="267" class="small">Glassfall: 1.45x wider landforms</text>
@@ -63,11 +106,14 @@
   <text x="858" y="366" class="label">VISIBILITY</text>
   <text x="858" y="393" class="small">Low shoulders; Iron stays screened</text>
   <text x="858" y="415" class="small">Green triangles mark reveals</text>
-  <text x="858" y="437" class="small">Stronger haze: 55-220 m</text>
+  <text x="858" y="437" class="small">Moderate haze: 65-250 m</text>
   <text x="858" y="492" class="label">SCOPE</text>
-  <text x="858" y="519" class="small">Habitat/Crown: pilot positions</text>
-  <text x="858" y="541" class="small">Dashed routes: future, not built</text>
+  <text x="858" y="519" class="small">Four Habitat destination spokes</text>
+  <text x="858" y="541" class="small">Outer route graph now connected</text>
   <text x="858" y="563" class="small">Road and vehicle scale retained</text>
-  <text x="66" y="925" font-size="15">Spatial design map; user driving review pending. Not a full-world completion claim.</text>
+  <text x="858" y="606" class="label">UNMARKED DISCOVERY</text>
+  <text x="858" y="632" class="small">Buried wreck west of Delta / Dunes</text>
+  <text x="858" y="654" class="small">Sand-screened; no access trail</text>
+  <text x="66" y="925" font-size="15">Development layout; full-circuit and device acceptance pending. Not a public-release claim.</text>
   <text x="66" y="951" font-size="13">Routes and centres follow the expanded layout. Region outlines are schematic; heights are verified separately.</text>
 </svg>

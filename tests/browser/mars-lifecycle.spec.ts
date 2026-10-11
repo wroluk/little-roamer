@@ -1,0 +1,56 @@
+import { expect, test } from '@playwright/test';
+import { MARS_STARTS } from '../../src/game/mars-terrain';
+
+test.use({ deviceScaleFactor: 1 });
+test('nine-region travel, car switches and returning home release Mars resources', async ({ page }, info) => {
+  test.setTimeout(180_000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/?area=mars');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
+  await page.locator('#start').click();
+  type State = { geometries: number; textures: number; car: string; area: string;
+    streaming: { activeRender: number; activePhysics: number; queued: number } | null };
+  type Game = { snapshot(): State; placeVehicle(x: number, z: number, heading: number): Promise<void>;
+    waitForStreamingIdle(): Promise<void> };
+  const state = () => page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
+  const samples: { id: string; pass: number; state: State }[] = [];
+  for (const pass of [0, 1]) for (const start of MARS_STARTS) {
+    await page.evaluate(async p => {
+      const game = (window as unknown as { __ROAMER__: Game }).__ROAMER__;
+      await game.placeVehicle(p.x, p.z, 0); await game.waitForStreamingIdle();
+      await new Promise(requestAnimationFrame);
+    }, start.position);
+    const s = await state();
+    expect(s.streaming?.activeRender).toBeLessThanOrEqual(25);
+    expect(s.streaming?.activePhysics).toBeLessThanOrEqual(9);
+    expect(s.streaming?.queued).toBe(0);
+    if (pass) {
+      const first = samples.find(sample => sample.id === start.id)!;
+      expect(s.geometries).toBeLessThanOrEqual(first.state.geometries + 2);
+      expect(s.textures).toBeLessThanOrEqual(first.state.textures + 1);
+    }
+    samples.push({ id: start.id, pass, state: s });
+  }
+  await page.locator('#pause').click(); await page.locator('#home').click();
+  await page.locator('#area-select').selectOption('valley');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  const baseline = await state();
+  for (const car of ['classic', 'modern', 'mars-scout']) {
+    await page.locator(`input[name="car"][value="${car}"]`).check();
+    await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
+    await page.locator('#area-select').selectOption('mars');
+    await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
+    expect((await state()).car).toBe(car);
+    await page.locator('#area-select').selectOption('valley');
+    await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
+  }
+  await page.locator('input[name="car"][value="mars-scout"]').check();
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  const returned = await state();
+  expect(returned.geometries).toBeLessThanOrEqual(baseline.geometries + 2);
+  expect(returned.textures).toBeLessThanOrEqual(baseline.textures + 1);
+  expect(errors).toEqual([]);
+  await info.attach('region-resource-samples', { body: JSON.stringify(samples, null, 2), contentType: 'application/json' });
+});

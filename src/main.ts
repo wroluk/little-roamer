@@ -79,13 +79,11 @@ async function boot() {
   await RAPIER.init();
   if (hasFailed()) return;
   const modelFromUrl = new URLSearchParams(window.location.search).get('car');
-  const availableModel = (value: unknown): value is VehicleModelId =>
-    isVehicleModelId(value) && (value !== 'mars-scout' || import.meta.env.DEV);
   let storedModel: string | null = null;
   try { storedModel = window.localStorage.getItem('little-roamer-car'); } catch { /* Storage is optional. */ }
-  let selectedModel: VehicleModelId = availableModel(modelFromUrl)
+  let selectedModel: VehicleModelId = isVehicleModelId(modelFromUrl)
     ? modelFromUrl
-    : availableModel(storedModel) ? storedModel : DEFAULT_VEHICLE_MODEL;
+    : isVehicleModelId(storedModel) ? storedModel : DEFAULT_VEHICLE_MODEL;
   async function createArea(area: Area) {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(area.sky);
@@ -126,13 +124,8 @@ async function boot() {
     }
   }
   const requestedArea = new URLSearchParams(window.location.search).get('area');
-  let area = AREAS[isAreaId(requestedArea) && (requestedArea !== 'mars' || import.meta.env.DEV) ? requestedArea : 'valley'];
+  let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'valley'];
   if (area.id === 'mars' && !isVehicleModelId(modelFromUrl)) selectedModel = 'mars-scout';
-  if (import.meta.env.DEV) {
-    element('mars-car-option').hidden = false;
-    // The unfinished location is reachable by a development link, not the public picker.
-    if (area.id === 'mars') element<HTMLSelectElement>('area-select').add(new Option('Mars Outpost · pilot', 'mars'));
-  }
   const requestedStart = NORTHERN_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
   if (area.id === 'northern-reach' && requestedStart) {
     area = { ...area, spawn: regionalSpawn(requestedStart),
@@ -145,6 +138,14 @@ async function boot() {
       hint: 'Follow the posts up the switchbacks. The eastern rock ledge loops back to the summit.' } : {}),
     ...(marsStart.id === 'iron-maze' ? { welcomeTitle: 'Between the iron blades.',
       hint: 'Follow the broad passage, take the western bypass, or weave through the rock slalom.' } : {}),
+    ...(marsStart.id === 'keyhole-badlands' ? { welcomeTitle: 'Through the weathered stone.',
+      hint: 'Follow the wash beneath the sandstone bridges, or climb from the western ledge onto the narrow main crest. The outer wash stays gentle.' } : {}),
+    ...(marsStart.id === 'fossil-delta' ? { welcomeTitle: 'Where ancient water wandered.',
+      hint: 'The two dry channels rejoin below the sediment fan. Climb the shelf for a view of their branches.' } : {}),
+    ...(marsStart.id === 'rust-dunes' ? { welcomeTitle: 'Across the rust-colored sands.',
+      hint: 'Stay on the firm perimeter, or climb the loose crescent above the dark bedrock island.' } : {}),
+    ...(marsStart.id === 'lava-tubes' ? { welcomeTitle: 'Beneath the cooled lava.',
+      hint: 'Two buried tubes meet beneath a collapsed roof. Follow the light through fallen basalt, or roam above. Something waits in the eastern alcove.' } : {}),
     ...(marsStart.id === 'glassfall-plain' ? { welcomeTitle: 'Where the ground turned to glass.',
       hint: 'Follow the firm loop around the pale fan, or leave the road to explore the dark glass flows.' } : {}) };
   document.body.dataset.area = area.id;

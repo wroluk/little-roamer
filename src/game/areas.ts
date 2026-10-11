@@ -13,6 +13,8 @@ import {
 import type { SurfaceId } from './surfaces';
 import { MARS_HALF, HABITAT_START, marsSpawn, marsSurfaceAt, marsSurfaceHeight } from './mars-terrain';
 import { MarsStreamingRuntime, MarsWorkerTransport } from './mars-streaming';
+import { tubesWeight } from './mars-tubes-layout';
+import type { ParticleColors } from './terrain-effects';
 
 export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars';
 export type AreaRuntime = {
@@ -46,7 +48,7 @@ export type Area = {
   surfaceHeight: (x: number, z: number) => number;
   waterHeight: (x: number, z: number) => number | null;
   surfaceAt: (x: number, z: number) => SurfaceId;
-  particleColors?: Partial<Record<SurfaceId, string>>;
+  particleColors?: ParticleColors;
   build: (
     scene: THREE.Scene,
     world: RAPIER.World,
@@ -57,14 +59,14 @@ export type Area = {
 export const AREAS: Record<AreaId, Area> = {
   mars: {
     id: 'mars', name: 'Mars Outpost', label: '05 / A LITTLE FARTHER FROM HOME',
-    tagline: 'Small wheels. Another world.', description: 'Leave the ivory domes of Habitat Seven. Explore Crown Crater, climb Dish Ridge, then cross the pale impact fan of Glassfall Plain.',
-    hint: 'Pale tracks lead to Crown Crater. From its eastern rim, follow the posts toward Dish Ridge.',
-    welcomeEyebrow: 'MARS OUTPOST / HABITAT · CROWN · DISH RIDGE', welcomeTitle: 'Another world.',
+    tagline: 'Small wheels. Another world.', description: 'Nine places to discover, from ivory habitat domes and black glass flows to stone arches, rust dunes and open lava tubes.',
+    hint: 'Four routes leave Habitat Seven toward Crown Crater, Glassfall Plain, Keyhole Badlands and Fossil Delta. The outer circuit connects every region.',
+    welcomeEyebrow: 'MARS OUTPOST / NINE REGIONS TO ROAM', welcomeTitle: 'Another world.',
     readyMessage: 'Habitat Seven is ready. Follow the crater road north.', ambientLight: '#f3d8c8',
     spawn: marsSpawn(HABITAT_START), half: MARS_HALF, climbingPower: 1.45,
-    sky: '#bb8f80', fogNear: 55, fogFar: 220, groundLight: '#6d4540', sunlight: '#fff0d6',
+    sky: '#bb8f80', fogNear: 65, fogFar: 250, groundLight: '#6d4540', sunlight: '#fff0d6',
     surfaceHeight: marsSurfaceHeight, surfaceAt: marsSurfaceAt, waterHeight: () => null,
-    particleColors: { rock: '#b76b49' },
+    particleColors: { rock: (x, z) => tubesWeight(x, z) > 0.4 ? '#514640' : '#b76b49' },
     build: (scene, world, onError) => new MarsStreamingRuntime(scene, world, new MarsWorkerTransport(), onError),
   },
   'samurai-village': {
