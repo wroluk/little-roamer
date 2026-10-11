@@ -32,6 +32,7 @@ const landscapeNoise = (x: number, z: number, scale: number, channel: number) =>
   return low * (1 - b) + high * b;
 };
 export const HABITAT_START = { x: 0, z: 8, y: 6 };
+export const HABITAT_PAD = { x: 0, z: 40, y: 6 };
 export const CROWN_START = { x: 0, z: -120, y: 26 };
 export const CROWN_LOOKOUT = { x: 0, z: -296, y: 31 };
 export const CROWN_FLOOR = { x: 0, z: -205, y: 5 };
@@ -56,7 +57,7 @@ export const MARS_ROUTES: MarsRoute[] = [
   ...MARS_HABITAT_SPOKES,
 ];
 export const MARS_STARTS = [
-  { id: 'habitat-seven', name: 'Habitat Seven', position: HABITAT_START },
+  { id: 'habitat-seven', name: 'Habitat Seven', position: HABITAT_PAD },
   { id: 'crown-crater', name: 'Crown Crater', position: CROWN_START },
   { id: 'dish-ridge', name: 'Dish Ridge', position: DISH_START },
   { id: 'glassfall-plain', name: 'Glassfall Plain', position: GLASSFALL_START },

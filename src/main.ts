@@ -2,8 +2,9 @@ import './styles.css';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import {
-  DEFAULT_VEHICLE_MODEL, isVehicleModelId, Vehicle, type VehicleModelId,
+  isVehicleModelId, Vehicle, type VehicleModelId,
 } from './game/vehicle';
+import { earthVehicle, vehicleAvailable } from './game/vehicle-selection';
 import { FollowCamera, horizontalDragDirection } from './game/camera';
 import { FixedClock } from './game/driving';
 import { NORTHERN_STARTS, nearestNorthernStart, regionalSpawn } from './game/regional-starts';
@@ -79,11 +80,11 @@ async function boot() {
   await RAPIER.init();
   if (hasFailed()) return;
   const modelFromUrl = new URLSearchParams(window.location.search).get('car');
+  const requestedArea = new URLSearchParams(window.location.search).get('area');
   let storedModel: string | null = null;
   try { storedModel = window.localStorage.getItem('little-roamer-car'); } catch { /* Storage is optional. */ }
-  let selectedModel: VehicleModelId = isVehicleModelId(modelFromUrl)
-    ? modelFromUrl
-    : isVehicleModelId(storedModel) ? storedModel : DEFAULT_VEHICLE_MODEL;
+  let selectedEarthModel = earthVehicle(requestedArea === 'mars' ? null : modelFromUrl, storedModel);
+  let selectedModel: VehicleModelId = selectedEarthModel;
   async function createArea(area: Area) {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(area.sky);
@@ -106,7 +107,8 @@ async function boot() {
         (x, z) => runtime?.shrubBumpAt(x, z) ?? 0,
         selectedModel,
       );
-      const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight);
+      const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight,
+        area.id === 'mars' ? { pitch: -0.2, yaw: 0 } : undefined);
       // Populate scene queries and settle all four wheels before handing over control.
       for (let i = 0; i < 90; i++) {
         vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
@@ -123,9 +125,15 @@ async function boot() {
       throw error;
     }
   }
-  const requestedArea = new URLSearchParams(window.location.search).get('area');
   let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'valley'];
-  if (area.id === 'mars' && !isVehicleModelId(modelFromUrl)) selectedModel = 'mars-scout';
+  if (area.id === 'mars') selectedModel = 'mars-scout';
+  const syncCarUrl = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('car', selectedModel);
+    window.history.replaceState(null, '', url);
+  };
+  syncCarUrl();
+  try { window.localStorage.setItem('little-roamer-car', selectedEarthModel); } catch { /* Storage is optional. */ }
   const requestedStart = NORTHERN_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
   if (area.id === 'northern-reach' && requestedStart) {
     area = { ...area, spawn: regionalSpawn(requestedStart),
@@ -169,7 +177,12 @@ async function boot() {
     carPicker.disabled = !enabled;
   };
   const syncCarPicker = () => {
-    for (const input of carInputs) input.checked = input.value === selectedModel;
+    for (const input of carInputs) {
+      const available = vehicleAvailable(area.id, input.value);
+      input.checked = input.value === selectedModel;
+      input.disabled = !available;
+      input.closest('label')!.hidden = !available;
+    }
   };
   syncCarPicker();
   function surfaceLabel(): string {
@@ -412,16 +425,18 @@ async function boot() {
   carPicker.addEventListener('focusin', () => controls?.clear());
   carPicker.addEventListener('change', event => {
     const input = event.target;
-    if (!(input instanceof HTMLInputElement) || !isVehicleModelId(input.value)) return;
+    if (mode !== 'ready' || !(input instanceof HTMLInputElement) || !isVehicleModelId(input.value)
+      || !vehicleAvailable(area.id, input.value)) return;
     selectedModel = input.value;
     vehicle.setModel(selectedModel);
     follow.reset();
     follow.update(1 / 60, true);
     syncCarPicker();
-    try { window.localStorage.setItem('little-roamer-car', selectedModel); } catch { /* Storage is optional. */ }
-    const url = new URL(window.location.href);
-    url.searchParams.set('car', selectedModel);
-    window.history.replaceState(null, '', url);
+    if (area.id !== 'mars') {
+      selectedEarthModel = selectedModel;
+      try { window.localStorage.setItem('little-roamer-car', selectedEarthModel); } catch { /* Storage is optional. */ }
+    }
+    syncCarUrl();
   });
   async function travel(id: AreaId) {
     if (mode === 'loading' || mode === 'error' || id === area.id) {
@@ -444,6 +459,7 @@ async function boot() {
     // Let the loading card paint before generating terrain and the physics mesh.
     await new Promise<void>(resolve => window.setTimeout(resolve, 40));
     if (hasFailed()) return;
+    selectedModel = id === 'mars' ? 'mars-scout' : selectedEarthModel;
     const next = await createArea(AREAS[id]);
     if (hasFailed()) {
       next.runtime?.dispose();
@@ -460,6 +476,7 @@ async function boot() {
     ({ scene, world, vehicle, follow, terrainEffects, runtime } = next);
     terrainEffects.setReduced(graphicsReduced);
     area = AREAS[id];
+    syncCarPicker();
     presentArea();
     renderer.renderLists.dispose();
     playingTime = 0;
@@ -474,6 +491,7 @@ async function boot() {
     follow.update(1 / 60, true);
     const url = new URL(window.location.href);
     url.searchParams.set('area', id);
+    url.searchParams.set('car', selectedModel);
     url.searchParams.delete('start');
     window.history.replaceState(null, '', url);
     element('start').focus();

@@ -8,8 +8,39 @@ import { marsGlassMargin, marsSurfaceAt, marsSurfaceHeight, marsTrailSample, nea
 import { addGlassfallDecor, glassfallSkinGeometry, glassfallRelief } from '../src/game/mars-glassfall-landmarks';
 import { Vehicle } from '../src/game/vehicle';
 import { disposeScene } from '../src/game/dispose';
+import { LocalMarsTransport, MarsStreamingRuntime } from '../src/game/mars-streaming';
+import { marsSpawn } from '../src/game/mars-terrain';
 
 before(async () => { await RAPIER.init(); });
+
+test('Scout drives flat glass but cannot power up the actual glass-covered impact lip', async () => {
+  const run = async (crater: boolean, firm = false, reverse = false) => {
+    const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+    const start = glassfallPosition({ x: 278, z: -8 });
+    const runtime = crater ? new MarsStreamingRuntime(scene, world, new LocalMarsTransport()) : null;
+    try {
+      if (runtime) await runtime.ensureReady(start.x, start.z);
+      else world.createCollider(RAPIER.ColliderDesc.cuboid(150, 0.1, 150).setTranslation(start.x, -0.1, start.z));
+      world.step();
+      const car = new Vehicle(scene, world, crater ? marsSpawn(start) : { ...start, y: 1.25 }, 1.45,
+        firm ? () => 'regolith' : crater ? marsSurfaceAt : () => 'mars-glass', () => null, undefined, 'mars-scout');
+      const direction = new THREE.Vector3(-0.18, 0, 1).normalize();
+      car.body.setRotation(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0),
+        Math.atan2(-direction.x, -direction.z) + (reverse ? Math.PI : 0)), true);
+      let furthest = 0;
+      for (let i = 0; i < 900; i++) {
+        car.beforeStep({ steer: 0, forward: i >= 90 && !reverse, reverse: i >= 90 && reverse }, 1 / 60);
+        world.step(); car.capture();
+        furthest = Math.max(furthest, (car.position.x - start.x) * direction.x + (car.position.z - start.z) * direction.z);
+      }
+      return furthest;
+    } finally { runtime?.dispose(); world.free(); disposeScene(scene); }
+  };
+  const flat = await run(false), glass = await run(true), backing = await run(true, false, true), firm = await run(true, true);
+  assert.ok(flat > 30, `level glass remains driveable: ${flat}`);
+  assert.ok(glass < 12 && backing < 12, `cannot crest the glass lip forward=${glass}, reverse=${backing}, firm=${firm}`);
+  assert.ok(firm > 25, `same slope is climbable with firm traction: ${firm}`);
+});
 test('firm roads go around intact glass rather than cutting pale lanes through it', () => {
   assert.equal(GLASSFALL_ROUTES.length, 5);
   assert.ok(GLASSFALL_ROUTES.every(route => route.surface !== 'mars-glass' && !route.name.includes('crossing')));

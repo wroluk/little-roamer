@@ -14,18 +14,22 @@ test('nine-region travel, car switches and returning home release Mars resources
     waitForStreamingIdle(): Promise<void> };
   const state = () => page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
   const samples: { id: string; pass: number; state: State }[] = [];
-  for (const pass of [0, 1]) for (const start of MARS_STARTS) {
+  // The lower habitat camera initially hides retained distant-landmark meshes.
+  // Warm their one-time GPU uploads before comparing two complete round trips.
+  for (const pass of [0, 1, 2]) for (const start of MARS_STARTS) {
     await page.evaluate(async p => {
       const game = (window as unknown as { __ROAMER__: Game }).__ROAMER__;
       await game.placeVehicle(p.x, p.z, 0); await game.waitForStreamingIdle();
-      await new Promise(requestAnimationFrame);
+      // Count uploaded resources after the teleported camera has rendered, not
+      // in the same frame as streaming completion.
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     }, start.position);
     const s = await state();
     expect(s.streaming?.activeRender).toBeLessThanOrEqual(25);
     expect(s.streaming?.activePhysics).toBeLessThanOrEqual(9);
     expect(s.streaming?.queued).toBe(0);
-    if (pass) {
-      const first = samples.find(sample => sample.id === start.id)!;
+    if (pass === 2) {
+      const first = samples.find(sample => sample.id === start.id && sample.pass === 1)!;
       expect(s.geometries).toBeLessThanOrEqual(first.state.geometries + 2);
       expect(s.textures).toBeLessThanOrEqual(first.state.textures + 1);
     }
@@ -36,16 +40,17 @@ test('nine-region travel, car switches and returning home release Mars resources
   await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
   await page.evaluate(() => new Promise(requestAnimationFrame));
   const baseline = await state();
-  for (const car of ['classic', 'modern', 'mars-scout']) {
+  for (const car of ['classic', 'modern']) {
     await page.locator(`input[name="car"][value="${car}"]`).check();
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
     await page.locator('#area-select').selectOption('mars');
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
-    expect((await state()).car).toBe(car);
+    expect((await state()).car).toBe('mars-scout');
     await page.locator('#area-select').selectOption('valley');
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
+    expect((await state()).car).toBe(car);
   }
-  await page.locator('input[name="car"][value="mars-scout"]').check();
+  await expect(page.locator('#mars-car-option')).toBeHidden();
   await expect(page.locator('#start')).toBeEnabled();
   await page.evaluate(() => new Promise(requestAnimationFrame));
   const returned = await state();

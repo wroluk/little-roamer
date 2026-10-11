@@ -37,9 +37,10 @@ test('production exposes Mars and Scout and precaches their assets', async ({ pa
   expect(cached.some(url => url.includes('/cars/mars-scout.png'))).toBe(true);
 });
 
-test('production home picker supports Mars travel and remembers the Scout', async ({ page }) => {
+test('production home picker restricts cars by world and remembers the Earth car', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('input[name="car"][value="classic"]').check();
   await page.locator('#area-select').selectOption('mars');
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
@@ -47,11 +48,13 @@ test('production home picker supports Mars travel and remembers the Scout', asyn
   await expect(page.locator('#start')).toBeEnabled();
   await page.goto('/?area=valley');
   await expect(page.locator('#start')).toBeEnabled();
-  await expect(page.locator('input[name="car"][value="mars-scout"]')).toBeChecked();
+  await expect(page.locator('input[name="car"][value="classic"]')).toBeChecked();
+  await expect(page.locator('#mars-car-option')).toBeHidden();
   await page.goto('/?area=mars&start=lava-tubes&car=classic');
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
-  await expect(page.locator('input[name="car"][value="classic"]')).toBeChecked();
+  await expect(page.locator('input[name="car"][value="mars-scout"]')).toBeChecked();
+  await expect(page).toHaveURL(/car=mars-scout/);
   await expect(page.locator('#welcome-title')).toHaveText('Beneath the cooled lava.');
   await page.locator('#start').click();
   await expect(page.locator('#controls')).toBeVisible();

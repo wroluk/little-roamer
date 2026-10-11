@@ -64,8 +64,9 @@ Keep this terminal/session and the Mac awake while playing.
 ## Choose your next adventure
 
 Use the Home Screen to choose Sunshine Valley, Iceland Highlands, Northern
-Reach, Samurai Village, or Mars Outpost, and to switch between the green Modern
-Roamer, the orange Classic expedition wagon, and the Mars Scout. The car choice is remembered locally and
+Reach, Samurai Village, or Mars Outpost. Earth offers the green Modern
+Roamer and orange Classic expedition wagon; Mars exclusively uses the Mars Scout.
+Your Earth car choice is remembered locally across trips to Mars and
 does not change the shared four-wheel physics or terrain handling. Pause and
 choose **Choose another location** to return to these options. Switching areas
 clears held controls and returns the car to that area's safe starting point.
@@ -137,11 +138,15 @@ Use `?area=mars&start=crown-crater` to begin at the crater entrance,
 `?area=mars&start=keyhole-badlands` for the arch,
 `?area=mars&start=fossil-delta` for the channels,
 `?area=mars&start=rust-dunes` for the crescent,
-`?area=mars&start=lava-tubes` for the passage, or add
-`&car=classic` / `&car=modern` to try an existing car. Reset chooses the nearest
-of the nine regional starts. Direct Mars links default to the Scout; an explicit
-`car` parameter selects another model. Changing locations through the home screen
-preserves your chosen car.
+`?area=mars&start=lava-tubes` for the passage. Reset chooses the nearest
+of the nine regional starts. Mars always uses the Scout; incompatible `car`
+parameters are corrected to the world's available car. Returning to Earth restores
+your Modern or Classic preference (legacy saved Scout selections fall back to Modern).
+Habitat arrival and reset place you on the 07 landing pad facing Crown, with
+a lower Mars-only driving camera directly behind the car. The home screen uses
+the same angled car preview as Earth; Earth driving framing is unchanged.
+Impact glass is extremely slippery: flat flows remain driveable, but glass-covered
+impact-crater slopes cannot be powered up. Use the firm road around the scar.
 
 The design spans 1,536 × 1,536 metres, matching Northern Reach. Detailed terrain streams in 96 m chunks,
 with a 5 × 5 render neighborhood and 3 × 3 collision core. A coarse visual

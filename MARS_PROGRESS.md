@@ -4,6 +4,77 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Accepted feedback release — 2026-10-11
+
+The user accepted the final angled home preview and lower behind-car driving
+view and requested commit/publication. Publish these changes together with the
+already committed Safari update fix `b75c91b`. Per the user's instruction, do
+not repeat full local suites for this release; focused verification below is
+complete, and the existing Pages workflow retains its unit/build gate.
+
+Latest scope supersedes the publication instruction below for these changes:
+Mars Scout is exclusive to Mars; Modern/Classic are exclusive to Earth. The
+picker hides and disables incompatible models, rejects synthetic incompatible
+changes, normalizes direct links, migrates legacy Scout storage to an Earth
+default, and preserves the selected Earth model across Mars visits.
+
+Habitat arrival and regional reset now use the southern part of the 07 pad
+(0, 40), facing Crown; the (0, 8) road anchor is unchanged. Mars alone uses a
+lower driving view directly behind the car. The home screen retains the shared
+angled car showcase, with the normal transition into driving and no special fly-in.
+The user accepted the pad alone as the habitat clue and requested removing the
+initial side angle; a dome need not be visible. The original camera distance and 48-degree
+field of view are preserved (the first wide/far framing trial was discarded). Earth retains its
+original camera. Glass longitudinal/lateral grip is now 0.18/0.12 with full
+uphill slip: the actual Scout cannot crest the glass-covered impact lip in
+forward or reverse, but can drive level glass; firm perimeter routes remain.
+
+Validation completed:
+
+- Home-screen follow-up: restored the standard angled showcase on Mars while
+  retaining the lower, directly-behind driving view. Typecheck/build and both
+  browser startup scenarios pass with separate home-angle and driving-alignment
+  assertions. Inspected the current home capture in session `files/mars-home-angle/`.
+  This supersedes the earlier no-transition home framing. Not committed or pushed.
+- Rear-view follow-up: removed the initial side angle while retaining the lower
+  pitch and pad spawn. Typecheck/build and both Chromium/WebKit startup scenarios
+  pass, including explicit behind-car alignment assertions. Inspected the current
+  driving capture under the session's `files/mars-rear-camera/`; this supersedes
+  earlier side-angle captures. Changes remain local, uncommitted and unpublished.
+- Final `npm run typecheck`, `npm run build`, and 23 focused
+  model/surface/glass tests pass. The broader Mars unit run also passed all 103
+  existing Mars terrain/route checks, including every route in both directions.
+  An initial impact probe spawned inside a source rock; the corrected probe is
+  clear of it, with a firm-traction control proving the same slope is climbable.
+- Chromium and WebKit pass world/picker/storage/URL startup, static pad framing,
+  actual glass-lip driving, firm circuit, off-road glass both ways, regional reset,
+  Earth picker regressions, and nine-region resource lifecycle checks.
+- The original lifecycle assertion compared cold GPU allocation against warmed
+  distant landmarks now hidden by the lower initial camera. Reproduced separately
+  and compared against unchanged `b75c91b` on an isolated server (baseline passes).
+  The test now warms one circuit and compares two subsequent full circuits with
+  unchanged resource thresholds; both engines pass. No streaming/physics workaround.
+- One pilot rerun was interrupted by development-server reload while deleting the
+  isolated baseline scratch checkout; its isolated final rerun passes both engines.
+- Sequential `npm run test:pwa`: **12 passed, 2 existing WebKit offline skips**,
+  including tablet/phone update activation and world-restricted production selection.
+  Physical iPad offline/module-worker and two-thumb touch acceptance remain manual.
+- The final close-camera refinement passes the world/picker/framing scenario in
+  both engines. Its current captures are in the session's
+  `files/mars-feedback-close/` (per-engine `mars-pad-home.png` and
+  `mars-pad-driving.png`); these supersede the initial wider framing trial.
+- Earlier captures inspected in `artifacts/mars/feedback-final/` (per-engine
+  `mars-pad-home.png`, `mars-pad-driving.png`, `earth-original-camera.png`,
+  `glass-lip-no-climb.png`). Route evidence is in `feedback-verified/`; validation
+  logs are `feedback-focused-unit.log`, `feedback-build.log`, `feedback-final.log`,
+  `feedback-pilot-final.log`, and `feedback-pwa.log` under `artifacts/mars/`.
+
+No full unrelated local suites were rerun; the last full-suite release evidence
+below is unchanged. The user's existing untracked review images/directories are
+preserved and excluded from the release. **Exact next step:** push the accepted
+release and verify GitHub Pages and the live Mars home/driving flow.
+Physical-iPad acceptance remains outstanding.
+
 Started 2026-10-07. **Current user scope: all regions and the texture-free buried
 hull are accepted; mark Mars complete, enable the public location picker, finish
 pending checks, commit and publish.** This supersedes the earlier pause on long

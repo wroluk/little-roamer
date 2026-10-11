@@ -31,7 +31,11 @@ export class FollowCamera {
     readonly world: RAPIER.World,
     readonly vehicle: Vehicle,
     private readonly groundHeight = surfaceHeight,
-  ) {}
+    initialView?: { pitch: number; yaw: number },
+  ) {
+    this.orbitPitch = initialView?.pitch ?? 0;
+    this.orbitYaw = initialView?.yaw ?? 0;
+  }
 
   reset() { this.initialized = false; this.feedbackTime = 0; this.avoidingCabin = false; }
 

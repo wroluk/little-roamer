@@ -15,7 +15,7 @@ for current results.
 - A **1,536 × 1,536 m** continuous world, matching Northern Reach's footprint, with nine distinct regions and the Great Ring as a varied, solid perimeter.
 - An outer circuit in both directions, shorter spokes through Habitat Seven, and cross-country choices. Routes invite exploration; there are no objectives, timers, survival systems, or mandatory puzzles.
 - Each region has an unmistakable silhouette, a named landmark, a gentle route, an optional driving challenge or discovery, a useful view, and a visible connection to its neighbors. The full region roster and landmarks are in `LOCATION_IDEAS.md`.
-- The **Mars Scout** is a third, four-wheel car with its own model and thumbnail. Mars features it by default; the two existing cars remain usable there, and the Scout can be chosen elsewhere. All three use the established four-wheel physics, with Mars's surfaces supplying the new driving feel.
+- The **Mars Scout** is exclusive to Mars; Modern and Classic are exclusive to Earth. Earth preference survives Mars visits, and URLs and legacy storage are normalized. All three use the established four-wheel physics, with Mars's surfaces supplying the new driving feel.
 - Procedural scenery and geometry remain local and deterministic, preserving static hosting and offline play. Spend detail on driveable landmarks and nearby silhouettes; use instancing and distant scenery for scale.
 
 ## 1. Design the world before generating it

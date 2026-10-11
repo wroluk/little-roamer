@@ -54,9 +54,10 @@ test('Mars pilot presents the Scout, habitat and crater views; regional reset an
   await page.locator('#reset').click(); await expect(page.locator('#toast')).toHaveText('Back at Crown Crater');
   expect((await state(page)).position.z).toBeCloseTo(-120, 0);
   await page.locator('#pause').click(); await page.locator('#home').click();
+  await expect(page.getByRole('radio', { name: 'Classic' })).toHaveCount(0);
+  await page.locator('#area-select').selectOption('valley'); await expect(page.locator('#start')).toBeEnabled();
   await page.getByRole('radio', { name: 'Classic' }).check();
   expect((await state(page)).car).toBe('classic');
-  await page.locator('#area-select').selectOption('valley'); await expect(page.locator('#start')).toBeEnabled();
   expect((await state(page)).area).toBe('valley'); expect(errors).toEqual([]);
 });
 

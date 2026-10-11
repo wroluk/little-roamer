@@ -11,7 +11,7 @@ import {
   BrowserChunkTransport, NorthernStreamingRuntime, type NorthernStreamingStats,
 } from './northern-streaming';
 import type { SurfaceId } from './surfaces';
-import { MARS_HALF, HABITAT_START, marsSpawn, marsSurfaceAt, marsSurfaceHeight } from './mars-terrain';
+import { MARS_HALF, HABITAT_PAD, marsSpawn, marsSurfaceAt, marsSurfaceHeight } from './mars-terrain';
 import { MarsStreamingRuntime, MarsWorkerTransport } from './mars-streaming';
 import { tubesWeight } from './mars-tubes-layout';
 import type { ParticleColors } from './terrain-effects';
@@ -63,7 +63,7 @@ export const AREAS: Record<AreaId, Area> = {
     hint: 'Four routes leave Habitat Seven toward Crown Crater, Glassfall Plain, Keyhole Badlands and Fossil Delta. The outer circuit connects every region.',
     welcomeEyebrow: 'MARS OUTPOST / NINE REGIONS TO ROAM', welcomeTitle: 'Another world.',
     readyMessage: 'Habitat Seven is ready. Follow the crater road north.', ambientLight: '#f3d8c8',
-    spawn: marsSpawn(HABITAT_START), half: MARS_HALF, climbingPower: 1.45,
+    spawn: marsSpawn(HABITAT_PAD), half: MARS_HALF, climbingPower: 1.45,
     sky: '#bb8f80', fogNear: 65, fogFar: 250, groundLight: '#6d4540', sunlight: '#fff0d6',
     surfaceHeight: marsSurfaceHeight, surfaceAt: marsSurfaceAt, waterHeight: () => null,
     particleColors: { rock: (x, z) => tubesWeight(x, z) > 0.4 ? '#514640' : '#b76b49' },
