@@ -12,6 +12,12 @@ already committed Safari update fix `b75c91b`. Per the user's instruction, do
 not repeat full local suites for this release; focused verification below is
 complete, and the existing Pages workflow retains its unit/build gate.
 
+Published as **`e9525fd`**, including Safari update fix **`b75c91b`**.
+[Pages run 38147358987](https://github.com/wroluk/little-roamer/actions/runs/38147358987)
+passed its unit/build gate and deployment. Live WebKit verification confirmed
+Mars forces the Scout even for an incompatible car link, gameplay starts, and
+returning to Earth exposes only Modern/Classic.
+
 Latest scope supersedes the publication instruction below for these changes:
 Mars Scout is exclusive to Mars; Modern/Classic are exclusive to Earth. The
 picker hides and disables incompatible models, rejects synthetic incompatible
@@ -71,8 +77,8 @@ Validation completed:
 
 No full unrelated local suites were rerun; the last full-suite release evidence
 below is unchanged. The user's existing untracked review images/directories are
-preserved and excluded from the release. **Exact next step:** push the accepted
-release and verify GitHub Pages and the live Mars home/driving flow.
+preserved and excluded from the release. **Exact next step:** user checks the
+published update; no automated release work remains.
 Physical-iPad acceptance remains outstanding.
 
 Started 2026-10-07. **Current user scope: all regions and the texture-free buried
