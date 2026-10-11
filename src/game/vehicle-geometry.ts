@@ -8,6 +8,19 @@ export function solidPanel(points: number[][]) {
   return geometry;
 }
 
+/** A single small bevel catches the light without rounding away the toy silhouette. */
+export function beveledBox(width: number, height: number, depth: number, bevel = 0.035) {
+  const half = [width / 2, height / 2, depth / 2];
+  const cut = Math.min(bevel, ...half.map(value => value * 0.4));
+  const points: number[][] = [];
+  for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) {
+    for (let axis = 0; axis < 3; axis++) {
+      points.push([x, y, z].map((sign, i) => sign * (half[i] - (i === axis ? 0 : cut))));
+    }
+  }
+  return solidPanel(points);
+}
+
 /** Wheel axis is X; both faces are finished, including the rear-mounted spare. */
 export function detailedWheel(style: 'classic' | 'modern', radius: number) {
   const group = new THREE.Group();

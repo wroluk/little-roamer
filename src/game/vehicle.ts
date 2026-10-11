@@ -5,7 +5,7 @@ import { driveForces, MAX_FORWARD_SPEED, MAX_REVERSE_SPEED, type DriveInput } fr
 import { START } from './terrain';
 import { SURFACES, type Surface, type SurfaceId } from './surfaces';
 import { buildMarsScout } from './mars-scout';
-import { detailedWheel, solidPanel } from './vehicle-geometry';
+import { beveledBox, detailedWheel, solidPanel } from './vehicle-geometry';
 
 const WHEEL_RADIUS = 0.48;
 const REST_LENGTH = 0.38;
@@ -122,7 +122,7 @@ export class Vehicle {
       return;
     }
     const mat = (color: string, roughness = 0.7) => new THREE.MeshStandardMaterial({ color, roughness, flatShading: true });
-    const paint = mat('#6ca06c', 0.62);
+    const paint = mat('#6ca06c', 0.48);
     const darkPaint = mat('#527d58', 0.68);
     const cladding = mat('#263434');
     const trim = mat('#d9d0b5', 0.45);
@@ -149,7 +149,7 @@ export class Vehicle {
       material: THREE.Material,
       rotationX = 0,
     ) => {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+      const mesh = new THREE.Mesh(beveledBox(w, h, d), material);
       mesh.position.set(x, y, z);
       mesh.rotation.x = rotationX;
       mesh.castShadow = true;
@@ -187,6 +187,13 @@ export class Vehicle {
         [side * 0.725, 0.63, front], [side * 0.725, 0.63, rear],
         [side * 0.646, 1.17, topRear], [side * 0.646, 1.17, topFront],
       ];
+      const centerZ = (front + rear + topRear + topFront) / 4;
+      const border = points.map(([x, y, z]) => {
+        const borderY = 0.9 + (y - 0.9) * 1.065;
+        return [x - side * (borderY - y) * (0.079 / 0.54) - side * 0.003,
+          borderY, centerZ + (z - centerZ) * 1.06];
+      });
+      addMesh(solidPanel([...border, ...border.map(([x, y, z]) => [x - side * 0.015, y, z])]), cladding);
       return addMesh(solidPanel([...points, ...points.map(([x, y, z]) => [x - side * 0.012, y, z])]), material);
     };
 
@@ -220,19 +227,26 @@ export class Vehicle {
       sideWindow(side, -0.42, 0.17, -0.15, 0.2, glass);
       sideWindow(side, 0.25, 0.84, 0.23, 0.75, glass);
       box(0.05, 0.07, 0.24, side * 0.825, 0.52, 0.06, cladding);
-      box(0.11, 0.2, 0.28, side * 0.86, 0.69, -0.38, paint);
+      box(0.13, 0.13, 0.23, side * 0.85, 0.69, -0.38, paint);
+      box(0.105, 0.085, 0.018, side * 0.85, 0.69, -0.255, glass);
+      // A quiet door seam and lower crease break up the broad side panel.
+      box(0.008, 0.39, 0.012, side * 0.813, 0.31, 0.21, darkPaint);
+      box(0.01, 0.016, 0.87, side * 0.815, 0.09, 0.21, darkPaint);
 
-      // Door handles, protective side skirts and squared-off wheel-arch caps.
+      // Slim handles and protective side skirts.
       box(0.035, 0.055, 0.22, side * 0.817, 0.47, 0.02, trim);
       box(0.035, 0.055, 0.22, side * 0.817, 0.47, 0.67, trim);
       box(0.12, 0.16, 2.32, side * 0.82, -0.03, 0.04, cladding);
-      box(0.18, 0.16, 0.87, side * 0.81, 0.11, -1.0, cladding);
-      box(0.18, 0.16, 0.87, side * 0.81, 0.11, 1.0, cladding);
 
       // Thin upper lamps and lower fog lamps echo the split-light SUV front.
-      box(0.4, 0.14, 0.055, side * 0.54, 0.47, -1.39, lights);
-      box(0.18, 0.16, 0.06, side * 0.57, 0.15, -1.455, fogLights);
-      box(0.34, 0.18, 0.055, side * 0.53, 0.39, 1.395, taillights);
+      box(0.43, 0.16, 0.055, side * 0.54, 0.465, -1.392, cladding);
+      box(0.37, 0.105, 0.025, side * 0.54, 0.47, -1.425, lights);
+      box(0.34, 0.017, 0.014, side * 0.54, 0.505, -1.445, trim);
+      box(0.27, 0.19, 0.065, side * 0.57, 0.15, -1.435, cladding);
+      box(0.17, 0.10, 0.025, side * 0.57, 0.15, -1.477, fogLights);
+      box(0.37, 0.18, 0.035, side * 0.53, 0.39, 1.393, cladding);
+      box(0.32, 0.13, 0.025, side * 0.53, 0.40, 1.418, taillights);
+      box(0.14, 0.025, 0.012, side * 0.48, 0.365, 1.435, trim);
 
       // Raised roof rails.
       box(0.055, 0.055, 1.0, side * 0.53, 1.34, 0.31, trim);
@@ -241,16 +255,19 @@ export class Vehicle {
     }
 
     // Broad toy grille with simple vertical bars.
-    box(0.76, 0.31, 0.065, 0, 0.28, -1.43, cladding);
+    box(0.79, 0.30, 0.05, 0, 0.28, -1.427, trim);
+    box(0.73, 0.25, 0.035, 0, 0.28, -1.46, cladding);
     box(0.68, 0.04, 0.075, 0, 0.43, -1.467, trim);
     for (const x of [-0.24, -0.12, 0, 0.12, 0.24]) {
-      box(0.032, 0.23, 0.075, x, 0.28, -1.468, trim);
+      box(0.022, 0.21, 0.025, x, 0.28, -1.486, trim);
     }
     box(1.72, 0.16, 0.17, 0, -0.13, -1.43, cladding);
     box(0.72, 0.07, 0.04, 0, -0.08, -1.525, trim);
     box(1.72, 0.17, 0.17, 0, -0.13, 1.42, cladding);
     box(0.76, 0.07, 0.04, 0, -0.08, 1.515, trim);
-    box(0.76, 0.08, 0.05, 0, 0.2, 1.455, cladding);
+    box(0.36, 0.11, 0.02, 0, 0.18, 1.395, cladding);
+    box(0.25, 0.035, 0.024, 0, 0.43, 1.398, trim);
+    box(0.14, 0.045, 0.018, 0, 1.165, 0.842, taillights);
     box(1.2, 0.08, 0.22, 0, 1.24, 0.85, cladding);
 
     for (const connection of CONNECTIONS) {
@@ -292,7 +309,7 @@ export class Vehicle {
 
   private createClassicModel() {
     const mat = (color: string, roughness = 0.7) => new THREE.MeshStandardMaterial({ color, roughness, flatShading: true });
-    const paint = mat('#ed754b');
+    const paint = mat('#ed754b', 0.56);
     const dark = mat('#293e3d');
     const roof = mat('#ffebc4');
     const glass = mat('#397b7d', 0.25);
@@ -305,7 +322,7 @@ export class Vehicle {
       x: number, y: number, z: number,
       material: THREE.Material,
     ) => {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+      const mesh = new THREE.Mesh(beveledBox(w, h, d), material);
       mesh.position.set(x, y, z);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
@@ -313,31 +330,96 @@ export class Vehicle {
       return mesh;
     };
 
-    // The original Little Roamer: a bright expedition wagon with a loaded roof and rear spare.
-    box(1.53, 0.49, 2.78, 0, 0.11, 0, paint);
-    box(1.42, 0.14, 0.93, 0, 0.42, -0.85, paint);
-    box(1.3, 0.7, 1.27, 0, 0.67, 0.18, roof);
-    box(1.15, 0.46, 0.035, 0, 0.69, -0.471, glass);
-    box(1.15, 0.42, 0.035, 0, 0.69, 0.826, glass);
+    const panel = (points: number[][], material: THREE.Material) => {
+      const mesh = new THREE.Mesh(solidPanel(points), material);
+      mesh.castShadow = mesh.receiveShadow = true;
+      this.bodyVisual.add(mesh);
+      return mesh;
+    };
+    // Framed panes follow the actual cabin planes, including the windscreen rake.
+    const window = (points: number[][], outward: number[]) => {
+      const skin = (face: number[][], material: THREE.Material) => panel([
+        ...face, ...face.map(point => point.map((value, axis) => value - outward[axis] * 0.012)),
+      ], material);
+      skin(points, dark);
+      const center = [0, 1, 2].map(axis => points.reduce((sum, point) => sum + point[axis], 0) / points.length);
+      skin(points.map(point => point.map((value, axis) => center[axis] + (value - center[axis]) * 0.91
+        + outward[axis] * 0.006)), glass);
+    };
+
+    // Land Cruiser-inspired shoulders and a shallow crowned bonnet retain the short toy proportions.
+    panel([
+      [-0.72, -0.135, -1.39], [0.72, -0.135, -1.39], [-0.72, -0.135, 1.39], [0.72, -0.135, 1.39],
+      [-0.765, 0.08, -1.36], [0.765, 0.08, -1.36], [-0.765, 0.08, 1.35], [0.765, 0.08, 1.35],
+      [-0.765, 0.37, -1.32], [0.765, 0.37, -1.32], [-0.765, 0.42, 1.32], [0.765, 0.42, 1.32],
+      [-0.70, 0.49, -1.32], [0.70, 0.49, -1.32], [-0.70, 0.49, 1.29], [0.70, 0.49, 1.29],
+    ], paint);
+    panel([
+      [-0.70, 0.38, -1.40], [0.70, 0.38, -1.40], [-0.71, 0.43, -0.46], [0.71, 0.43, -0.46],
+      [-0.67, 0.50, -1.38], [0.67, 0.50, -1.38], [-0.68, 0.56, -0.46], [0.68, 0.56, -0.46],
+      [-0.49, 0.555, -1.32], [0.49, 0.555, -1.32], [-0.49, 0.61, -0.47], [0.49, 0.61, -0.47],
+    ], paint);
+    panel([
+      [-0.72, 0.38, -0.49], [0.72, 0.38, -0.49], [-0.72, 0.38, 1.04], [0.72, 0.38, 1.04],
+      [-0.63, 1.02, -0.24], [0.63, 1.02, -0.24], [-0.63, 1.02, 0.98], [0.63, 1.02, 0.98],
+    ], paint);
+    window([[-0.65, 0.57, -0.424], [0.65, 0.57, -0.424],
+      [0.595, 0.97, -0.268], [-0.595, 0.97, -0.268]], [0, 0, -1]);
+    window([[-0.65, 0.54, 1.031], [0.65, 0.54, 1.031],
+      [0.59, 0.96, 0.992], [-0.59, 0.96, 0.992]], [0, 0, 1]);
     for (const side of [-1, 1]) {
-      box(0.027, 0.43, 0.91, side * 0.66, 0.69, 0.12, glass);
-      box(0.04, 0.47, 0.06, side * 0.68, 0.69, 0.19, roof);
-      box(0.045, 0.06, 0.22, side * 0.783, 0.24, 0.35, dark);
-      box(0.13, 0.22, 0.28, side * 0.87, 0.53, -0.41, paint);
-      box(0.31, 0.2, 0.05, side * 0.51, 0.18, -1.405, lights);
-      box(0.21, 0.17, 0.05, side * 0.52, 0.18, 1.405, taillights);
-      box(0.26, 0.17, 0.84, side * 0.78, 0.02, -1, paint);
-      box(0.26, 0.17, 0.84, side * 0.78, 0.02, 1, paint);
-      box(0.07, 0.12, 1.18, side * 0.51, 1.15, 0.15, dark);
+      const sideWindow = (front: number, rear: number, topFront: number, topRear: number) => window([
+        [side * 0.706, 0.53, front], [side * 0.706, 0.53, rear],
+        [side * 0.645, 0.96, topRear], [side * 0.645, 0.96, topFront],
+      ], [side, 0, 0]);
+      sideWindow(-0.397, 0.22, -0.22, 0.22);
+      sideWindow(0.275, 0.92, 0.275, 0.895);
+      box(0.035, 0.045, 0.17, side * 0.767, 0.31, 0.12, dark);
+      box(0.045, 0.065, 0.14, side * 0.755, 0.56, -0.38, dark);
+      box(0.12, 0.16, 0.22, side * 0.83, 0.63, -0.37, paint);
+      box(0.08, 0.11, 0.015, side * 0.83, 0.63, -0.254, glass);
+      box(0.009, 0.37, 0.013, side * 0.768, 0.10, 0.25, dark);
+      box(0.014, 0.022, 0.88, side * 0.77, -0.075, 0.07, dark);
+      box(0.035, 0.045, 0.17, side * 0.762, 0.31, 0.79, dark);
+      box(0.14, 0.065, 0.9, side * 0.80, -0.12, 0.04, dark);
+      // Round lamps sit inside simple cream bezels, with small corner indicators.
+      for (const [radius, depth, z, material] of [
+        [0.143, 0.035, -1.431, dark], [0.124, 0.025, -1.458, roof], [0.102, 0.018, -1.477, lights],
+      ] as const) {
+        const lamp = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, depth, 20).rotateX(Math.PI / 2), material);
+        lamp.position.set(side * 0.51, 0.30, z);
+        lamp.castShadow = true;
+        this.bodyVisual.add(lamp);
+      }
+      box(0.065, 0.16, 0.025, side * 0.681, 0.30, -1.437, taillights);
+      box(0.24, 0.20, 0.035, side * 0.52, 0.18, 1.397, dark);
+      box(0.18, 0.135, 0.025, side * 0.52, 0.20, 1.423, taillights);
+      box(0.18, 0.028, 0.025, side * 0.52, 0.125, 1.423, roof);
+      box(0.07, 0.12, 1.18, side * 0.51, 1.16, 0.40, dark);
     }
-    box(1.48, 0.16, 1.44, 0, 1.07, 0.17, roof);
+    // A gently crowned cream roof follows the raked cabin instead of overhanging a cube.
+    panel([
+      [-0.685, 0.995, -0.28], [0.685, 0.995, -0.28], [-0.685, 0.995, 1.06], [0.685, 0.995, 1.06],
+      [-0.66, 1.075, -0.25], [0.66, 1.075, -0.25], [-0.66, 1.075, 1.03], [0.66, 1.075, 1.03],
+      [-0.55, 1.12, -0.18], [0.55, 1.12, -0.18], [-0.55, 1.12, 0.96], [0.55, 1.12, 0.96],
+    ], roof);
     box(1.7, 0.16, 0.18, 0, -0.12, -1.48, dark);
     box(1.7, 0.16, 0.18, 0, -0.12, 1.48, dark);
-    box(0.53, 0.16, 0.06, 0, 0.13, -1.413, dark);
+    box(1.43, 0.32, 0.055, 0, 0.30, -1.404, dark);
+    box(0.64, 0.235, 0.025, 0, 0.30, -1.442, roof);
+    box(0.58, 0.18, 0.025, 0, 0.30, -1.461, dark);
+    for (const y of [0.25, 0.30, 0.35]) box(0.52, 0.018, 0.018, 0, y, -1.48, roof);
+    box(0.72, 0.10, 0.035, 0, 0.02, -1.425, dark);
+    box(0.76, 0.055, 0.025, 0, -0.08, -1.577, roof);
+    box(1.05, 0.04, 0.98, 0, 1.14, 0.40, dark);
     box(0.6, 0.32, 0.69, 0.15, 1.32, 0.24, mat('#a7b886'));
-    box(0.65, 0.035, 0.065, 0.15, 1.495, 0.24, roof);
-    box(1.19, 0.08, 0.09, 0, 1.19, -0.28, dark);
-    box(1.19, 0.08, 0.09, 0, 1.19, 0.65, dark);
+    for (const z of [0.04, 0.44]) {
+      box(0.61, 0.022, 0.045, 0.15, 1.484, z, dark);
+      box(0.022, 0.29, 0.045, -0.155, 1.32, z, dark);
+      box(0.022, 0.29, 0.045, 0.455, 1.32, z, dark);
+    }
+    box(1.19, 0.08, 0.09, 0, 1.20, -0.09, dark);
+    box(1.19, 0.08, 0.09, 0, 1.20, 0.91, dark);
 
     for (const connection of CONNECTIONS) {
       const wheel = new THREE.Group();

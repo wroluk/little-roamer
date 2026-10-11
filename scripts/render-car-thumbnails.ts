@@ -38,6 +38,8 @@ try {
       const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
       try {
         const vehicle = new Vehicle(scene, world, { x: 0, y: 0, z: 0 }, 1, undefined, undefined, undefined, model);
+        // Rapier has not stepped here; show the Earth cars at their parked ride height.
+        if (model !== 'mars-scout') for (const wheel of vehicle.wheels) wheel.position.y = -0.24;
         scene.add(new THREE.HemisphereLight('#fef3d6', '#7f9f87', 1.9));
         const sun = new THREE.DirectionalLight('#fff0d1', 2.6);
         sun.position.set(-3, 7, -5);
