@@ -108,7 +108,7 @@ async function boot() {
         selectedModel,
       );
       const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight,
-        area.id === 'mars' ? { pitch: -0.2, yaw: 0 } : undefined);
+        { pitch: -0.2, yaw: 0 });
       // Populate scene queries and settle all four wheels before handing over control.
       for (let i = 0; i < 90; i++) {
         vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);

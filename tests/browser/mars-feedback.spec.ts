@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 test.use({ deviceScaleFactor: 1 });
 
-test('world car restrictions, saved Earth preference and landing-pad camera modes', async ({ page }, info) => {
+test('world car restrictions, saved Earth preference and shared driving camera', async ({ page }, info) => {
   test.setTimeout(120_000);
   await page.addInitScript(() => {
     if (!sessionStorage.getItem('seeded')) {
@@ -52,6 +52,6 @@ test('world car restrictions, saved Earth preference and landing-pad camera mode
   expect((await snapshot()).car).toBe('modern');
   await page.locator('#start').click();
   const earth = await snapshot();
-  expect(earth.camera[1] - earth.position.y).toBeGreaterThan(6);
-  await page.screenshot({ path: info.outputPath('earth-original-camera.png') });
+  expect(earth.camera[1] - earth.position.y).toBeLessThan(6.5);
+  await page.screenshot({ path: info.outputPath('earth-driving-camera.png') });
 });

@@ -4,6 +4,12 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Shared lower driving camera — 2026-10-12
+
+- Applied Mars's existing `-0.2` initial driving pitch to Northern Reach, Sunshine Valley, Iceland Highlands and Samurai Village. The separate home showcase framing is unchanged; yaw, boom distance and camera collision handling are unchanged.
+- Typecheck and production build passed. Focused starting-camera checks passed in landscape and portrait in Chromium and WebKit for all five locations (10 browser cases). Inspected actual Northern Reach, Iceland, Samurai Village and Valley driving captures. No long driving, full browser or PWA suites ran for this camera-only change; previous full-suite evidence is unchanged.
+- Next: review the new Earth driving views in game and tune the shared pitch only if visual feedback calls for it. The user requested a commit and push without waiting for publication.
+
 ### Home screen and driving hint refresh — 2026-10-12
 
 - The home screen now uses rendered, car-free location tiles; Northern Reach is first and the default, and Mars Outpost is last. The logo scrolls with the home content, and the pause action says “Back to home screen.”
