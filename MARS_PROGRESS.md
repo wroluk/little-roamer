@@ -4,6 +4,13 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Home screen and driving hint refresh — 2026-10-12
+
+- The home screen now uses rendered, car-free location tiles; Northern Reach is first and the default, and Mars Outpost is last. The logo scrolls with the home content, and the pause action says “Back to home screen.”
+- Shortened the Habitat Seven driving hint and moved driving hints above the phone controls and surface label. They fade after six seconds and hide on very short landscape screens. Inspected a fresh 390 × 844 Mars game capture after the final styling change.
+- Typecheck and production build passed. Five focused home/hint browser scenarios passed in Chromium and WebKit; the final hint layout rerun passed in both engines. The focused PWA thumbnail cache checks passed earlier in this home-screen iteration. Per the user's direction, no long driving or full suites were run for this UI work. The last full-suite record below is unchanged; physical iPad acceptance remains open.
+- Next: publish the home-screen refresh through Pages, inspect the deployment, then collect phone feedback.
+
 ### Accepted feedback release — 2026-10-11
 
 The user accepted the final angled home preview and lower behind-car driving

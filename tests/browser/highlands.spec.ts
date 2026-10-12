@@ -49,7 +49,7 @@ test('choose Iceland, drive, reset within Iceland, return to valley and release 
   test.setTimeout(70_000);
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/');
+  await page.goto('/?area=valley');
   await expect(page.locator('#start')).toBeEnabled();
   await page.locator('#start').click();
   await page.waitForTimeout(200);
@@ -57,7 +57,7 @@ test('choose Iceland, drive, reset within Iceland, return to valley and release 
   for (let i = 0; i < 2; i++) {
     await page.keyboard.down('KeyW');
     await returnHome(page);
-    await page.locator('#area-select').selectOption('highlands');
+    await page.locator('input[name="area"][value="highlands"]').check();
     await page.keyboard.up('KeyW');
     await expect(page.locator('#start')).toBeVisible();
     await expect(page.locator('#start')).toBeEnabled();
@@ -75,7 +75,7 @@ test('choose Iceland, drive, reset within Iceland, return to valley and release 
     await expect.poll(async () => (await state(page)).position.z).toBeCloseTo(start.spawn.z, 0);
     expect((await state(page)).position.x).toBeCloseTo(start.spawn.x, 0);
     await returnHome(page);
-    await page.locator('#area-select').selectOption('valley');
+    await page.locator('input[name="area"][value="valley"]').check();
     await expect(page.locator('#start')).toBeEnabled();
     await page.locator('#start').click();
     await page.waitForTimeout(200);
@@ -138,7 +138,7 @@ test('Iceland touch controls and Home Screen area picker fit portrait and landsc
   await returnHome(page);
   for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1024, height: 768 }]) {
     await page.setViewportSize(viewport);
-    const box = (await page.locator('#area-select').boundingBox())!;
+    const box = (await page.locator('#area-picker').boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(0);
     expect(box.y).toBeGreaterThanOrEqual(0);
     expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);

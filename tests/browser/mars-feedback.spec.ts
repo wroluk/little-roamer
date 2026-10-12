@@ -31,15 +31,15 @@ test('world car restrictions, saved Earth preference and landing-pad camera mode
   expect(playing.camera[1] - playing.position.y).toBeLessThan(5);
   await page.screenshot({ path: info.outputPath('mars-pad-driving.png') });
   await page.locator('#pause').click(); await page.locator('#home').click();
-  await page.locator('#area-select').selectOption('valley');
+  await page.locator('input[name="area"][value="valley"]').check();
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.getByRole('radio')).toHaveCount(2);
   await page.getByRole('radio', { name: 'Classic' }).check();
-  await page.locator('#area-select').selectOption('mars');
+  await page.locator('input[name="area"][value="mars"]').check();
   await expect(page.locator('#start')).toBeEnabled();
   expect((await snapshot()).car).toBe('mars-scout');
   expect(await page.evaluate(() => localStorage.getItem('little-roamer-car'))).toBe('classic');
-  await page.locator('#area-select').selectOption('valley');
+  await page.locator('input[name="area"][value="valley"]').check();
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.getByRole('radio', { name: 'Classic' })).toBeChecked();
   await page.goto('/?area=valley&car=mars-scout');

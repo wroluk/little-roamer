@@ -68,7 +68,7 @@ Reach, Samurai Village, or Mars Outpost. Earth offers the green Modern
 Roamer and orange Classic expedition wagon; Mars exclusively uses the Mars Scout.
 Your Earth car choice is remembered locally across trips to Mars and
 does not change the shared four-wheel physics or terrain handling. Pause and
-choose **Choose another location** to return to these options. Switching areas
+choose **Back to home screen** to return to these options. Switching areas
 clears held controls and returns the car to that area's safe starting point.
 **Reset car** stays in your current area. Only one area's terrain and physics
 stay loaded, and graphics resources from the old area are released.

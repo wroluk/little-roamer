@@ -28,7 +28,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: 'index.html',
-        globPatterns: ['**/*.{html,js,css,svg,png,wasm}'],
+        globPatterns: ['**/*.{html,js,css,svg,png,jpg,wasm}'],
       },
     }),
   ],

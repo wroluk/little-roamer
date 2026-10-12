@@ -29,7 +29,7 @@ test('village lanes, bamboo route, shallow torii lake and area switching', async
   await expect(page.locator('#paused')).toBeVisible();
   await page.locator('#home').click();
   await expect(page.locator('#welcome')).toBeVisible();
-  await page.locator('#area-select').selectOption('valley');
+  await page.locator('input[name="area"][value="valley"]').check();
   await expect(page.locator('#start')).toBeEnabled();
   await page.locator('#start').click();
   expect((await snapshot()).area).toBe('valley');

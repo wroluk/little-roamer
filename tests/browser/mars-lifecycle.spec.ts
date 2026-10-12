@@ -36,17 +36,17 @@ test('nine-region travel, car switches and returning home release Mars resources
     samples.push({ id: start.id, pass, state: s });
   }
   await page.locator('#pause').click(); await page.locator('#home').click();
-  await page.locator('#area-select').selectOption('valley');
+  await page.locator('input[name="area"][value="valley"]').check();
   await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
   await page.evaluate(() => new Promise(requestAnimationFrame));
   const baseline = await state();
   for (const car of ['classic', 'modern']) {
     await page.locator(`input[name="car"][value="${car}"]`).check();
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
-    await page.locator('#area-select').selectOption('mars');
+    await page.locator('input[name="area"][value="mars"]').check();
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
     expect((await state()).car).toBe('mars-scout');
-    await page.locator('#area-select').selectOption('valley');
+    await page.locator('input[name="area"][value="valley"]').check();
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
     expect((await state()).car).toBe(car);
   }

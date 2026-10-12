@@ -25,7 +25,8 @@ test('production exposes Mars and Scout and precaches their assets', async ({ pa
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
   await expect(page.locator('#mars-car-option')).toBeVisible();
-  await expect(page.locator('#area-select option[value="mars"]')).toHaveText('Mars Outpost');
+  await expect(page.locator('input[name="area"][value="mars"]')).toBeChecked();
+  await expect(page.locator('input[name="area"][value="mars"] + .area-choice')).toContainText('Mars Outpost');
   await expect(page.locator('input[name="car"][value="mars-scout"]')).toBeChecked();
   expect(await page.evaluate(() => '__ROAMER__' in window)).toBe(false);
   await expect(page.locator('#offline-status')).toHaveText('Ready to play offline');
@@ -35,13 +36,16 @@ test('production exposes Mars and Scout and precaches their assets', async ({ pa
   });
   expect(cached.some(url => /mars-worker-.*\.js/.test(url))).toBe(true);
   expect(cached.some(url => url.includes('/cars/mars-scout.png'))).toBe(true);
+  for (const area of ['northern-reach', 'valley', 'highlands', 'samurai-village', 'mars']) {
+    expect(cached.some(url => url.includes(`/locations/${area}.jpg`))).toBe(true);
+  }
 });
 
 test('production home picker restricts cars by world and remembers the Earth car', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#start')).toBeEnabled();
   await page.locator('input[name="car"][value="classic"]').check();
-  await page.locator('#area-select').selectOption('mars');
+  await page.locator('input[name="area"][value="mars"]').check();
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
   await page.locator('input[name="car"][value="mars-scout"]').check();
@@ -112,13 +116,13 @@ test('reloads and travels through Highlands, Valley and Mars with no network', a
   await expect(page.locator('#paused')).toBeVisible();
   await page.locator('#home').click();
   await expect(page.locator('#welcome')).toBeVisible();
-  await page.locator('#area-select').selectOption('valley');
+  await page.locator('input[name="area"][value="valley"]').check();
   await expect(page.locator('#start')).toBeEnabled();
   await page.locator('#start').click();
   await expect.poll(() => page.evaluate(() => document.body.dataset.area)).toBe('valley');
   await page.locator('#pause').click();
   await page.locator('#home').click();
-  await page.locator('#area-select').selectOption('mars');
+  await page.locator('input[name="area"][value="mars"]').check();
   await expect(page.locator('#start')).toBeEnabled();
   await page.locator('input[name="car"][value="mars-scout"]').check();
   await expect(page.locator('#start')).toBeEnabled();

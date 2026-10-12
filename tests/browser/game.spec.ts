@@ -20,7 +20,7 @@ const snapshot = (page: Page): Promise<Snapshot> => page.evaluate(() => {
 });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/?area=valley');
   await expect(page.locator('#start')).toBeEnabled();
 });
 
@@ -76,8 +76,8 @@ test('tablet portrait and landscape controls fit and remain usable', async ({ pa
     const navigation = (await page.locator('#navigation').boundingBox())!;
     const reverse = (await page.locator('#reverse').boundingBox())!;
     const forward = (await page.locator('#forward').boundingBox())!;
-    await expect(page.locator('#area-select')).toBeHidden();
-    await expect(page.locator('#area-select')).toBeDisabled();
+    await expect(page.locator('#area-picker')).toBeHidden();
+    await expect(page.locator('#area-picker input').first()).toBeDisabled();
     expect(Math.abs(forward.height - reverse.height)).toBeLessThanOrEqual(1);
     expect(navigation.x).toBeLessThan(viewport.width / 3);
     if (viewport.width <= viewport.height) await expect(page.locator('.wordmark')).toBeHidden();
@@ -89,17 +89,90 @@ test('tablet portrait and landscape controls fit and remain usable', async ({ pa
 });
 
 test('location selection lives on the home screen and can be reached from pause', async ({ page }) => {
-  await expect(page.locator('#area-select')).toBeVisible();
+  await expect(page.locator('#area-picker')).toBeVisible();
   await expect(page.locator('#car-picker')).toBeVisible();
   await page.locator('#start').click();
-  await expect(page.locator('#area-select')).toBeHidden();
+  await expect(page.locator('#area-picker')).toBeHidden();
   await expect(page.locator('#car-picker')).toBeHidden();
   await page.locator('#pause').click();
+  await expect(page.locator('.topbar .wordmark')).toBeVisible();
   await page.locator('#home').click();
   await expect(page.locator('#welcome')).toBeVisible();
-  await expect(page.locator('#area-select')).toBeVisible();
-  await expect(page.locator('#area-select')).toBeEnabled();
+  await expect(page.locator('.topbar .wordmark')).toBeHidden();
+  await expect(page.locator('#area-picker')).toBeVisible();
+  await expect(page.locator('#area-picker input').first()).toBeEnabled();
   await expect(page.locator('#car-picker')).toBeEnabled();
+});
+
+test('Northern Reach is the default and first location', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'northern-reach');
+  await expect(page.locator('.area-options input').first()).toHaveValue('northern-reach');
+  await expect(page.locator('input[name="area"][value="northern-reach"]')).toBeChecked();
+  await expect(page.locator('.area-options input').last()).toHaveValue('mars');
+});
+
+test('home logo scrolls with content and stays visible after a portrait resize', async ({ page }) => {
+  await page.setViewportSize({ width: 667, height: 260 });
+  const logo = page.locator('.home-wordmark');
+  await expect(logo).toBeVisible();
+  await expect(page.locator('.topbar .wordmark')).toBeHidden();
+  const before = (await logo.boundingBox())!;
+  const eyebrow = (await page.locator('#welcome-eyebrow').boundingBox())!;
+  expect(before.y + before.height).toBeLessThanOrEqual(eyebrow.y);
+  await page.locator('#start').scrollIntoViewIfNeeded();
+  await expect(page.locator('#start')).toBeInViewport();
+  expect((await logo.boundingBox())!.y).toBeLessThan(before.y);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await logo.scrollIntoViewIfNeeded();
+  await expect(logo).toBeVisible();
+  const portraitLogo = (await logo.boundingBox())!;
+  const portraitEyebrow = (await page.locator('#welcome-eyebrow').boundingBox())!;
+  expect(portraitLogo.y + portraitLogo.height).toBeLessThanOrEqual(portraitEyebrow.y);
+  await expect(page.locator('.topbar .wordmark')).toBeHidden();
+});
+
+test('location tiles and start remain usable on portrait and landscape phones', async ({ page }) => {
+  await expect(page.locator('input[name="area"][value="mars"] + .area-choice')).toContainText('Domes, dunes & craters');
+  for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 375, height: 667 }]) {
+    await page.setViewportSize(viewport);
+    await expect(page.locator('#area-picker')).toBeVisible();
+    await expect(page.locator('#area-picker input')).toHaveCount(5);
+    expect(await page.locator('.area-thumbnail').evaluateAll(images => images.every(image => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0))).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+    for (const value of ['valley', 'highlands', 'northern-reach', 'samurai-village', 'mars']) {
+      const choice = page.locator(`input[name="area"][value="${value}"]`);
+      await choice.scrollIntoViewIfNeeded();
+      const box = (await choice.locator('..').boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+    }
+    await page.locator('#start').scrollIntoViewIfNeeded();
+    await expect(page.locator('#start')).toBeInViewport();
+  }
+  await page.locator('input[name="area"][value="highlands"]').check();
+  await expect(page.locator('input[name="area"][value="highlands"]')).toBeChecked();
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page).toHaveURL(/area=highlands/);
+});
+
+test('Mars driving hint stays clear of phone controls', async ({ page }) => {
+  await page.goto('/?area=mars');
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('#start').click();
+  await expect(page.locator('#controls')).toBeVisible();
+  const hint = page.locator('#hint');
+  await expect(hint).toContainText('Four roads leave Habitat Seven');
+  for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 667, height: 375 }]) {
+    await page.setViewportSize(viewport);
+    const hintBox = (await hint.boundingBox())!;
+    const controls = (await page.locator('#controls').boundingBox())!;
+    const surface = (await page.locator('#surface').boundingBox())!;
+    expect(hintBox.y + hintBox.height).toBeLessThan(surface.y);
+    expect(hintBox.y + hintBox.height).toBeLessThan(controls.y);
+  }
+  await page.setViewportSize({ width: 667, height: 260 });
+  await expect(hint).toBeHidden();
 });
 
 test('home screen changes the car model and remembers the choice', async ({ page }) => {

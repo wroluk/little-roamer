@@ -60,7 +60,7 @@ export const AREAS: Record<AreaId, Area> = {
   mars: {
     id: 'mars', name: 'Mars Outpost', label: '05 / A LITTLE FARTHER FROM HOME',
     tagline: 'Small wheels. Another world.', description: 'Nine places to discover, from ivory habitat domes and black glass flows to stone arches, rust dunes and open lava tubes.',
-    hint: 'Four routes leave Habitat Seven toward Crown Crater, Glassfall Plain, Keyhole Badlands and Fossil Delta. The outer circuit connects every region.',
+    hint: 'Four roads leave Habitat Seven. The outer circuit links every region.',
     welcomeEyebrow: 'MARS OUTPOST / NINE REGIONS TO ROAM', welcomeTitle: 'Another world.',
     readyMessage: 'Habitat Seven is ready. Follow the crater road north.', ambientLight: '#f3d8c8',
     spawn: marsSpawn(HABITAT_PAD), half: MARS_HALF, climbingPower: 1.45,

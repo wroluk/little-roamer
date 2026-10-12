@@ -38,7 +38,7 @@ function showError(error: unknown) {
     : 'Something interrupted the game. Please reload in a current browser with WebGL enabled.';
   element<HTMLButtonElement>('pause').disabled = true;
   element<HTMLButtonElement>('reset').disabled = true;
-  element<HTMLSelectElement>('area-select').disabled = true;
+  element<HTMLFieldSetElement>('area-picker').disabled = true;
   element<HTMLFieldSetElement>('car-picker').disabled = true;
   console.error('Little Roamer:', error);
 }
@@ -125,7 +125,7 @@ async function boot() {
       throw error;
     }
   }
-  let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'valley'];
+  let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'northern-reach'];
   if (area.id === 'mars') selectedModel = 'mars-scout';
   const syncCarUrl = () => {
     const url = new URL(window.location.href);
@@ -169,11 +169,12 @@ async function boot() {
     return;
   }
   let { scene, world, vehicle, follow, terrainEffects, runtime } = initial;
-  const areaSelect = element<HTMLSelectElement>('area-select');
+  const areaPicker = element<HTMLFieldSetElement>('area-picker');
+  const areaInputs = [...areaPicker.querySelectorAll<HTMLInputElement>('input[name="area"]')];
   const carPicker = element<HTMLFieldSetElement>('car-picker');
   const carInputs = [...carPicker.querySelectorAll<HTMLInputElement>('input[name="car"]')];
   const setHomeControlsEnabled = (enabled: boolean) => {
-    areaSelect.disabled = !enabled;
+    areaPicker.disabled = !enabled;
     carPicker.disabled = !enabled;
   };
   const syncCarPicker = () => {
@@ -184,6 +185,10 @@ async function boot() {
       input.closest('label')!.hidden = !available;
     }
   };
+  const syncAreaPicker = () => {
+    for (const input of areaInputs) input.checked = input.value === area.id;
+  };
+  syncAreaPicker();
   syncCarPicker();
   function surfaceLabel(): string {
     const surface = vehicle.currentSurface;
@@ -206,7 +211,7 @@ async function boot() {
     camera.fov = 48;
     camera.updateProjectionMatrix();
     document.body.dataset.area = area.id;
-    areaSelect.value = area.id;
+    syncAreaPicker();
     element('welcome-description').textContent = area.description;
     element('welcome-eyebrow').textContent = area.welcomeEyebrow;
     element('welcome-title').textContent = area.welcomeTitle;
@@ -320,7 +325,7 @@ async function boot() {
     setHomeControlsEnabled(true);
     follow.reset();
     follow.update(1 / 60, true);
-    element('area-select').focus();
+    areaInputs.find(input => input.checked)?.focus();
   };
   const reset = async () => {
     if (mode !== 'playing') return;
@@ -421,7 +426,7 @@ async function boot() {
   element('home').addEventListener('click', home);
   element('pause').addEventListener('click', pause);
   element('reset').addEventListener('click', () => { void reset().catch(showError); });
-  areaSelect.addEventListener('focus', () => controls?.clear());
+  areaPicker.addEventListener('focusin', () => controls?.clear());
   carPicker.addEventListener('focusin', () => controls?.clear());
   carPicker.addEventListener('change', event => {
     const input = event.target;
@@ -440,7 +445,7 @@ async function boot() {
   });
   async function travel(id: AreaId) {
     if (mode === 'loading' || mode === 'error' || id === area.id) {
-      areaSelect.value = area.id;
+      syncAreaPicker();
       return;
     }
     mode = 'loading';
@@ -496,8 +501,10 @@ async function boot() {
     window.history.replaceState(null, '', url);
     element('start').focus();
   }
-  areaSelect.addEventListener('change', () => {
-    const id = areaSelect.value;
+  areaPicker.addEventListener('change', event => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || input.name !== 'area' || mode !== 'ready') return;
+    const id = input.value;
     if (!isAreaId(id)) {
       showError(new Error('That exploration area is not available.'));
       return;
@@ -641,7 +648,7 @@ async function boot() {
       playingTime += Math.min(elapsed, 0.1);
       const fallFloor = Math.min(-12, area.surfaceHeight(vehicle.position.x, vehicle.position.z) - 15);
       if (vehicle.position.y < fallFloor) void reset().catch(showError);
-      element('hint').style.opacity = playingTime > 12 ? '0' : '1';
+      element('hint').style.opacity = playingTime > 6 ? '0' : '1';
       // A sustained slow frame rate reduces fill cost and shadow work on tablets.
       if (!graphicsReduced) {
         slowFrames = elapsed > 0.038 ? slowFrames + 1 : Math.max(0, slowFrames - 1);

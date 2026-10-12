@@ -39,7 +39,7 @@ const state = (page: Page): Promise<State> => page.evaluate(
 async function enter(page: Page) {
   await page.goto('/?area=northern-reach');
   await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
-  await expect(page.locator('#area-select')).toHaveValue('northern-reach');
+  await expect(page.locator('input[name="area"][value="northern-reach"]')).toBeChecked();
   await expect(page.locator('#welcome-eyebrow')).toHaveText('NORTHERN REACH / COAST TO SUMMIT');
   await page.locator('#start').click();
 }
@@ -157,14 +157,14 @@ test('shrubs let the car pass while producing soft suspension feedback', async (
 });
 
 test('travelling through all three destinations releases and rebuilds streamed resources', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/?area=valley');
   await expect(page.locator('#start')).toBeEnabled();
   for (const [index, area] of ['northern-reach', 'highlands', 'valley', 'northern-reach'].entries()) {
     if (index > 0) {
       await page.locator('#pause').click();
       await page.locator('#home').click();
     }
-    await page.locator('#area-select').selectOption(area);
+    await page.locator(`input[name="area"][value="${area}"]`).check();
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
     await page.locator('#start').click();
     await expect.poll(async () => (await state(page)).area).toBe(area);
@@ -179,11 +179,11 @@ test('streamed reset locks travel and honors a pause requested while terrain loa
   const positionBeforeReset = (await state(page)).position;
   const regionalStart = nearestNorthernStart(positionBeforeReset.x, positionBeforeReset.z);
   await page.locator('#reset').click();
-  await expect(page.locator('#area-select')).toBeDisabled();
+  await expect(page.locator('#area-picker input').first()).toBeDisabled();
   await page.keyboard.press('Escape');
   await expect(page.locator('#paused')).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator('#area-select')).toBeDisabled();
-  await expect(page.locator('#area-select')).toHaveValue('northern-reach');
+  await expect(page.locator('#area-picker input').first()).toBeDisabled();
+  await expect(page.locator('input[name="area"][value="northern-reach"]')).toBeChecked();
   const reset = await state(page);
   expect(reset.mode).toBe('paused');
   expect(reset.position.x).toBeCloseTo(regionalStart.position.x, 0);
@@ -191,18 +191,18 @@ test('streamed reset locks travel and honors a pause requested while terrain loa
 });
 
 test('fatal errors stay terminal while an asynchronous area load is in flight', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/?area=valley');
   await expect(page.locator('#start')).toBeEnabled();
   await page.evaluate(() => {
-    const select = document.querySelector<HTMLSelectElement>('#area-select')!;
-    select.value = 'northern-reach';
-    select.dispatchEvent(new Event('change', { bubbles: true }));
+    const choice = document.querySelector<HTMLInputElement>('input[name="area"][value="northern-reach"]')!;
+    choice.checked = true;
+    choice.dispatchEvent(new Event('change', { bubbles: true }));
     document.querySelector<HTMLCanvasElement>('#game')!
       .dispatchEvent(new Event('webglcontextlost', { cancelable: true }));
   });
   await expect(page.locator('#error')).toBeVisible();
   await page.waitForTimeout(1_000);
   await expect(page.locator('#error')).toBeVisible();
-  await expect(page.locator('#area-select')).toBeDisabled();
+  await expect(page.locator('#area-picker input').first()).toBeDisabled();
   await expect(page.locator('#controls')).toBeHidden();
 });
