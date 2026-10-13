@@ -16,6 +16,7 @@ import { applyMarsh, marshWeight, marshTrailSample, marshPoolRadius, marshMudPat
 import { applyEmber, emberWeight, emberRadius, emberTrailSample, EMBER_START, EMBER_LOOKOUT, EMBER_FLOOR, EMBER_SIGNS, EMBER_COLUMNS } from './northern-ember';
 import { applyPass, passWeight, passTrailSample, passBowlRadius, PASS_TRAILS, PASS_SIGNS, PASS_TORS, PASS_START, PASS_LOOKOUT } from './northern-pass';
 import { applyCoast, coastShoreX, coastWeight, coastTrailSample, COAST_STACKS, COAST_SIGNS, COAST_BEACH_LOGS } from './northern-coast';
+import { STONE_CIRCLE, STONE_HOLLOW_PINES, stoneHollowHeight, stoneHollowClearance } from './northern-discovery-layout';
 
 // ---------------------------------------------------------------------------
 // World / chunk geometry
@@ -398,7 +399,7 @@ export function northernHeightAt(x: number, z: number): number {
   // A small level turnout keeps the optional valley spawn and reset from rolling downhill.
   const clearing = 1 - smooth((Math.hypot(x + 240, z - 232) - 5) / 16);
   if (clearing > 0) ground = lerp(ground, authoredGround(-240, 232), clearing);
-  return applyPerimeterRise(x, z, ground);
+  return applyPerimeterRise(x, z, stoneHollowHeight(x, z, ground));
 }
 
 /** Local open-water surface elevation at (x, z), or null on dry land. */
@@ -584,6 +585,7 @@ export const NORTHERN_PROP_TYPES = [
   'tree', 'roadsideRock', 'snowRock', 'reed', 'driftwood', 'shrub', 'volcanicSpike', 'fordPost', 'valleySign', 'willow', 'riverRipple', 'forestPine', 'forestSign', 'coastStack', 'coastLog', 'coastSign', 'passSign', 'graniteTor', 'emberSign', 'basaltColumn', 'marshSign', 'timberSign', 'shoalSign', 'basinSign', 'trailLog', 'shoalBoulder',
   'windSign', 'terraceSign', 'weatheredArch', 'layeredRock', 'rockRamp', 'lakeSign', 'riverSign',
   'westSign',
+  'stoneCircle',
 ] as const;
 
 function propDensityAt(surface: SurfaceId, z: number): number {
@@ -664,6 +666,7 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
       if (Math.hypot(px - PASS_START.x, pz - PASS_START.z) < 13 || Math.hypot(px - PASS_LOOKOUT.x, pz - PASS_LOOKOUT.z) < 13) continue;
       if (coastTrailSample(px, pz).distance < 8) continue;
       if (forestTrailSample(px, pz).distance < 7) continue;
+      if (stoneHollowClearance(px, pz)) continue;
       if (Math.hypot(px - FOREST_LOOKOUT.x, pz - FOREST_LOOKOUT.z) < 13) continue;
       if (valleyTrailSample(px, pz).distance < 6 || valleyExperienceClearance(px, pz)) continue;
       if (valleyFordAmount(px) > 0.2 && valleyWeight(px, pz) > 0 && polylineSample(RIVER_OUT_LINE, px, pz).distance < 43) continue;
@@ -727,6 +730,10 @@ function generateNorthernProps(cx: number, cz: number): NorthernProps {
   for (const sign of FOREST_SIGNS) {
     authoredProp(sign.x, sign.z, 12, 1);
     authoredProp(sign.x, sign.z, 7, 1);
+  }
+  authoredProp(STONE_CIRCLE.x, STONE_CIRCLE.z, NORTHERN_PROP_TYPES.indexOf('stoneCircle'), 1);
+  for (const [px, pz, size] of STONE_HOLLOW_PINES) {
+    authoredProp(px, pz, NORTHERN_PROP_TYPES.indexOf('forestPine'), size);
   }
   for (const grove of FOREST_GROVES) for (let i = 0; i < 7; i++) {
     const px = grove.x + Math.sin(i * 2.4) * (3 + i * 1.4);

@@ -16,6 +16,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { GRANITE_LANDMARKS, SEA_LANDMARKS, LAYERED_LANDMARKS, layeredRockGeometry, rockRampGeometry, weatheredArchGeometry, rockColliderMesh, graniteTorGeometry, coastStackGeometry, shoalBoulderGeometry } from './northern-rocks';
+import { stoneCircleGeometry } from './northern-stone-circle';
 import {
   isChunkInBounds, NORTHERN_CHUNK_SIZE, NORTHERN_APRON_HALF, NORTHERN_PROP_TYPES, sampledHeightAt,
   type NorthernChunk,
@@ -31,6 +32,7 @@ const SOLID_PROPS = new Set<string>([
   'marshSign', 'timberSign', 'shoalSign', 'basinSign', 'trailLog', 'shoalBoulder',
   'windSign', 'terraceSign', 'weatheredArch', 'layeredRock', 'rockRamp',
   'lakeSign', 'riverSign', 'westSign',
+  'stoneCircle',
 ]);
 
 const SHRUB_BUMP_RADIUS_SCALE = 1.8;
@@ -415,6 +417,7 @@ function grassTuftGeometry(): THREE.BufferGeometry {
 }
 
 const PROP_GEOMETRY_FACTORY: Record<PropTypeName, () => THREE.BufferGeometry> = {
+  stoneCircle: stoneCircleGeometry,
   westSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   lakeSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
   riverSign: () => new THREE.BoxGeometry(5.4, 2.2, 0.2).translate(0, 3.2, 0),
@@ -459,6 +462,7 @@ const PROP_GEOMETRY_VARIANTS: Partial<Record<PropTypeName, (() => THREE.BufferGe
 };
 
 const PROP_BASE_COLOR: Record<PropTypeName, string> = {
+  stoneCircle: '#ffffff',
   westSign: '#ffffff',
   lakeSign: '#ffffff', riverSign: '#ffffff',
   windSign: '#ffffff', terraceSign: '#ffffff', weatheredArch: '#7c8079', layeredRock: '#b38b63', rockRamp: '#bba07b',
@@ -493,7 +497,7 @@ function propMaterial(type: PropTypeName): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({ color: PROP_BASE_COLOR[type], roughness: 0.9, flatShading: true });
   if (type === 'tree') material.side = THREE.DoubleSide;
   if (type === 'layeredRock') material.color.set('#ffffff');
-  if (type === 'willow' || type === 'forestPine') material.vertexColors = true;
+  if (type === 'willow' || type === 'forestPine' || type === 'stoneCircle') material.vertexColors = true;
   const sign = SIGN_TEXT[type];
   if (!sign || typeof document === 'undefined') return material;
   const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 256;
@@ -692,10 +696,12 @@ export class NorthernStreamingRuntime {
     const capacity = options.propPoolCapacity ?? DEFAULT_PROP_POOL_CAPACITY;
     this.propPools = NORTHERN_PROP_TYPES.map(typeName =>
       (PROP_GEOMETRY_VARIANTS[typeName] ?? [PROP_GEOMETRY_FACTORY[typeName]]).map((factory, variant) =>
-        new InstancedPropPool(factory(), propMaterial(typeName), variant >= 3 ? Math.min(capacity, 16) : capacity)));
+        new InstancedPropPool(factory(), propMaterial(typeName), typeName === 'stoneCircle' ? 1
+          : variant >= 3 ? Math.min(capacity, 16) : capacity)));
     this.propPools.forEach((variants, type) => variants.forEach((pool, variant) => {
       pool.mesh.name = `Northern Reach · pooled ${NORTHERN_PROP_TYPES[type]} instances · variant ${variant + 1}`;
-      pool.mesh.castShadow = NORTHERN_PROP_TYPES[type] === 'forestPine';
+      pool.mesh.castShadow = NORTHERN_PROP_TYPES[type] === 'forestPine' || NORTHERN_PROP_TYPES[type] === 'stoneCircle';
+      pool.mesh.receiveShadow = NORTHERN_PROP_TYPES[type] === 'stoneCircle';
       this.scene.add(pool.mesh);
     }));
     this.transport.onMessage(message => this.handleMessage(message));
@@ -1015,7 +1021,7 @@ export class NorthernStreamingRuntime {
       const variant = propVariantIndex(record.chunk, i, this.propPools[type].length);
       const geometry = this.propPools[type][variant].mesh.geometry;
       setPropTransform(dummy, record.chunk, i);
-      if (['weatheredArch', 'layeredRock', 'rockRamp', 'graniteTor', 'coastStack', 'shoalBoulder'].includes(NORTHERN_PROP_TYPES[type])) {
+      if (['weatheredArch', 'layeredRock', 'rockRamp', 'graniteTor', 'coastStack', 'shoalBoulder', 'stoneCircle'].includes(NORTHERN_PROP_TYPES[type])) {
         const mesh = rockColliderMesh(geometry, dummy.matrix);
         record.propColliders.push(this.world.createCollider(
           RAPIER.ColliderDesc.trimesh(mesh.vertices, mesh.indices).setFriction(0.9)));
