@@ -1,105 +1,125 @@
 import * as THREE from 'three';
+import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { marsSurfaceHeight } from './mars-terrain';
-import { WRECK_SITE, wreckPoint } from './mars-wreck-layout';
 
-type Add = (g: THREE.BufferGeometry, m: THREE.Material, solid?: boolean) => void;
+import { WRECK_SITE } from './mars-wreck-layout';
 
-/** One thick, hollow hull section, with a rounded mouth and a sand-level side breach. */
-export function addWreckDecor(cx: number, cz: number, emit: Add) {
-  if (cx !== Math.floor(WRECK_SITE.x / 96) || cz !== Math.floor(WRECK_SITE.z / 96)) return;
-  const outer = new THREE.MeshStandardMaterial({ color: '#7c8584', roughness: 1, metalness: 0.12, vertexColors: true });
-  const inner = new THREE.MeshStandardMaterial({ color: '#545e5e', roughness: 1, vertexColors: true });
-  const edge = new THREE.MeshStandardMaterial({ color: '#73716c', roughness: 1, vertexColors: true });
-  const floor = marsSurfaceHeight(WRECK_SITE.x, WRECK_SITE.z);
-
-  // Axial position, outer radius, inner radius, centre height. The far end sinks into sand.
-  const profile = [
-    [-50, 11.5, 10, 2], [-49, 12.5, 9.9, 1.6], [-47, 14.5, 10, 0.8],
-    [-44, 17, 11.3, -1.2], [-40, 18.7, 13, -3.3], [-35, 19.5, 16.4, -5],
-    [-29, 19.5, 17.6, -5.5], [-25, 19.5, 17.7, -6], [-23, 19.5, 17.7, -6.3],
-    [-19, 19.45, 17.65, -6.8], [-12, 19.4, 17.6, -7.6], [-4, 19.3, 17.5, -8.5],
-    [5, 19.2, 17.4, -9.7], [11, 19, 17.2, -10.5], [17, 18.8, 17, -11.3],
-    [23, 18.5, 16.7, -12.3], [32, 18, 16.2, -13.6], [43, 17.2, 15.4, -15],
-    [55, 16, 14.2, -17], [63, 15.2, 13.4, -19],
-  ];
-  const segments = 64, stride = segments + 1;
-  const outside: THREE.Vector3[] = [], inside: THREE.Vector3[] = [];
-  for (const [v, radius, bore, centre] of profile) {
-    for (let j = 0; j <= segments; j++) {
-      // The breach's roof edge is bent, but adjacent panels still share exactly the same vertices.
-      const bend = v >= -23 && v <= 17 ? (Math.sin(v * 0.21) * 0.1 + Math.sin(v * 0.83) * 0.045) : 0;
-      const angle = j / segments * Math.PI * 2 + bend * Math.max(0, 1 - Math.abs(j - 21) / 8);
-      const tear = v === -23 || v === 17 ? (Math.sin(j * 0.77) * 0.65 + Math.sin(j * 0.23) * 0.9)
-        * Math.max(0, 1 - Math.abs(j - 32) / 14) : 0;
-      const p = (r: number) => new THREE.Vector3(r * Math.cos(angle), centre + r * Math.sin(angle), v + tear);
-      outside.push(p(radius)); inside.push(p(bore));
-    }
-  }
-  const present = (row: number, j: number) => {
-    if (row < 0 || row >= profile.length - 1) return false;
-    const column = (j + segments) % segments;
-    return !(profile[row][0] >= -23 && profile[row + 1][0] <= 17 && column >= 21 && column < 44);
-  };
-  const outerIndices: number[] = [], innerIndices: number[] = [], armorShades: number[] = [];
-  const edges: number[] = [], edgeColors: number[] = [];
-  const quad = (indices: number[], a: number, b: number, c: number, d: number) => indices.push(a, b, c, a, c, d);
+type Emit = (geometry: THREE.BufferGeometry, material: THREE.Material, solid?: boolean) => void;
+type Skin = 'outer' | 'inner' | 'edge' | 'armor';
+type Part = (geometry: THREE.BufferGeometry, skin: Skin) => void;
+type Ring = { outer: THREE.Vector3[]; inner: THREE.Vector3[] };
+/** A closed wall volume: continuous outer/inner skins and caps around every tear. */
+function shell(rows: Ring[], present: (row: number, column: number) => boolean, add: Part, smooth = true) {
+  const n = rows[0].outer.length;
+  const outer = rows.flatMap(row => row.outer), inner = rows.flatMap(row => row.inner);
+  const outside: number[] = [], inside: number[] = [], edges: number[] = [];
+  const exists = (i: number, j: number) => i >= 0 && i < rows.length - 1 && present(i, (j + n) % n);
   const cap = (a: number, b: number) => {
-    // A broad dark core between two skins gives broken walls real layered thickness.
-    for (const [t0, t1, shade] of [[0, 0.2, 1], [0.2, 0.78, 0.55], [0.78, 1, 0.85]]) {
-      const points = [outside[b].clone().lerp(inside[b], t0), outside[a].clone().lerp(inside[a], t0),
-        outside[a].clone().lerp(inside[a], t1), outside[b].clone().lerp(inside[b], t1)];
-      for (const i of [0, 1, 2, 0, 2, 3]) {
-        const p = points[i];
-        edges.push(p.x, p.y, p.z);
-        edgeColors.push(shade, shade, shade);
-      }
-    }
+    for (const p of [outer[b], outer[a], inner[a], outer[b], inner[a], inner[b]]) edges.push(...p.toArray());
   };
-  for (let row = 0; row < profile.length - 1; row++) for (let j = 0; j < segments; j++) {
-    if (!present(row, j)) continue;
-    const a = row * stride + j, b = a + 1, d = a + stride, c = d + 1;
-    quad(outerIndices, a, b, c, d);
-    quad(innerIndices, a, d, c, b);
-    const band = row < 2 || row === 6 || row === 14;
-    const shoulder = row >= 2 && row <= 5 && j >= 20 && j < 28;
-    armorShades.push(band ? 0.64 : shoulder ? 0.86 : 1);
-    if (!present(row - 1, j)) cap(a, b);
-    if (!present(row, j + 1)) cap(b, c);
-    if (!present(row + 1, j)) cap(c, d);
-    if (!present(row, j - 1)) cap(d, a);
+  for (let i = 0; i < rows.length - 1; i++) for (let j = 0; j < n; j++) {
+    if (!exists(i, j)) continue;
+    const a = i * n + j, b = i * n + (j + 1) % n, c = b + n, d = a + n;
+    outside.push(a, b, c, a, c, d); inside.push(a, d, c, a, c, b);
+    if (!exists(i - 1, j)) cap(a, b);
+    if (!exists(i, j + 1)) cap(b, c);
+    if (!exists(i + 1, j)) cap(c, d);
+    if (!exists(i, j - 1)) cap(d, a);
   }
-  const finish = (geometry: THREE.BufferGeometry, material: THREE.Material) => {
-    if (!geometry.hasAttribute('normal')) geometry.computeVertexNormals();
-    geometry.rotateY(WRECK_SITE.turn).translate(WRECK_SITE.x, floor, WRECK_SITE.z);
-    emit(geometry, material, true);
-  };
-  for (const [points, indices, material] of [
-    [outside, outerIndices, outer], [inside, innerIndices, inner],
-  ] as const) {
-    const geometry = new THREE.BufferGeometry(), colors: number[] = [];
-    points.forEach(p => {
-      const soot = 0.92 + Math.sin(p.z * 0.065 + p.x * 0.08) * 0.04;
-      const world = wreckPoint(p.x, p.z);
-      const dust = 1 - THREE.MathUtils.smoothstep(floor + p.y - marsSurfaceHeight(world.x, world.z), 0, 3);
-      colors.push(soot + dust * 0.025, soot - dust * 0.04, soot - dust * 0.07);
-    });
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(points.flatMap(p => p.toArray()), 3));
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  for (const [vertices, indices, skin] of [[outer, outside, 'outer'], [inner, inside, 'inner']] as const) {
+    if (!indices.length) continue;
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices.flatMap(p => p.toArray()), 3));
     geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-    if (material === outer) {
-      // Split color boundaries without changing the shared surface normals or collision triangles.
-      const armor = geometry.toNonIndexed(), color = armor.getAttribute('color');
-      for (let i = 0; i < color.count; i++) {
-        const shade = armorShades[Math.floor(i / 6)];
-        color.setXYZ(i, color.getX(i) * shade, color.getY(i) * shade, color.getZ(i) * shade);
-      }
-      geometry.dispose();
-      finish(armor, material);
-    } else finish(geometry, material);
+    if (smooth) geometry.computeVertexNormals();
+    const flat = geometry.toNonIndexed(); geometry.dispose();
+    if (!smooth) flat.computeVertexNormals();
+    add(flat, skin);
   }
-  const brokenEdges = new THREE.BufferGeometry();
-  brokenEdges.setAttribute('position', new THREE.Float32BufferAttribute(edges, 3));
-  brokenEdges.setAttribute('color', new THREE.Float32BufferAttribute(edgeColors, 3));
-  finish(brokenEdges, edge);
+  if (edges.length) {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(edges, 3));
+    geometry.computeVertexNormals(); add(geometry, 'edge');
+  }
+}
+
+function roundRow(z: number, rx: number, ry: number, cy: number, thickness: number, segments = 48, tear = 0): Ring {
+  const outer: THREE.Vector3[] = [], inner: THREE.Vector3[] = [];
+  for (let j = 0; j < segments; j++) {
+    const angle = j / segments * Math.PI * 2;
+    const tornZ = z + tear * (0.7 * Math.sin(j * 1.91) + 0.3 * Math.sin(j * 0.73));
+    outer.push(new THREE.Vector3(rx * Math.cos(angle), cy + ry * Math.sin(angle), tornZ));
+    inner.push(new THREE.Vector3((rx - thickness) * Math.cos(angle), cy + (ry - thickness) * Math.sin(angle), tornZ));
+  }
+  return { outer, inner };
+}
+const OCTAGON = [[1, 0.28], [0.68, 1], [-0.68, 1], [-1, 0.28], [-1, -0.55], [-0.64, -0.85], [0.64, -0.85], [1, -0.55]];
+function angularRow(z: number, width: number, height: number, cy: number, thickness: number, tear = 0): Ring {
+  return {
+    outer: OCTAGON.map(([x, y], i) => new THREE.Vector3(x * width, cy + y * height, z + tear * Math.sin(i * 2.2))),
+    inner: OCTAGON.map(([x, y], i) => new THREE.Vector3(x * (width - thickness), cy + y * (height - thickness), z + tear * Math.sin(i * 2.2))),
+  };
+}
+function plate(points: number[][], add: Part, skin: Skin = 'armor') {
+  add(new ConvexGeometry(points.map(p => new THREE.Vector3(...p as [number, number, number]))), skin);
+}
+/** Nose-down shuttle: the buried fuselage leaves only its stern and high fin. */
+function shuttle(add: Part) {
+  const pitched: Part = (g, skin) => add(g.rotateX(-0.42).rotateZ(-0.12).translate(0, -13, 0), skin);
+  shell([angularRow(-38, 7, 7, 0, 1.8), angularRow(-14, 12, 9, 0, 1.8),
+    angularRow(12, 14, 11, 0, 1.8), angularRow(25, 13, 10, 0, 1.8),
+    angularRow(29, 12, 9, 0, 1.8, 0.6)], () => true, pitched, false);
+  // Engine bulkhead is thick and inset; the nozzles emerge from it.
+  pitched(new THREE.BoxGeometry(21, 14, 2).translate(0, 0, 27), 'armor');
+  for (const [x, y, r] of [[-6, 0, 5], [6, 0, 5], [0, 7, 3.4]]) {
+    shell([roundRow(27, r * 0.65, r * 0.65, y, 0.8),
+      roundRow(31, r * 0.78, r * 0.78, y, 0.8),
+      roundRow(37, r, r, y, 0.9), roundRow(38, r * 1.07, r * 1.07, y, 0.9)],
+      () => true, (g, skin) => pitched(g.translate(x, 0, 0), skin === 'outer' ? 'armor' : 'inner'));
+  }
+  // Huge swept tail: tapered thickness, clipped tip, distinct rudder trailing edge.
+  plate([[-2, 7, -9], [2, 7, -9], [-1.6, 10, 26], [1.6, 10, 26],
+    [-0.7, 39, 21], [0.7, 39, 21], [-0.6, 38, 14], [0.6, 38, 14]], pitched, 'outer');
+  plate([[-0.8, 12, 26], [0.8, 12, 26], [-0.4, 37, 22], [0.4, 37, 22],
+    [-0.5, 34, 26], [0.5, 34, 26], [-1, 12, 30], [1, 12, 30]], pitched, 'armor');
+  // Swept stabilizers; one is shortened by the impact.
+  for (const [side, span] of [[-1, 30], [1, 23]]) {
+    plate([[side * 10, 0, -8], [side * span, 0, 24], [side * 12, 0, 27],
+      [side * 10, 1.8, -8], [side * span, 0.8, 24], [side * 12, 1.8, 27]], pitched, 'outer');
+  }
+}
+
+/** Buried shuttle stern, owned by one terrain chunk, with matching solid geometry. */
+export function addWreckDecor(cx: number, cz: number, emit: Emit) {
+  if (cx !== Math.floor(WRECK_SITE.x / 96) || cz !== Math.floor(WRECK_SITE.z / 96)) return;
+  const base = marsSurfaceHeight(WRECK_SITE.x, WRECK_SITE.z);
+  const materials: Record<Skin, THREE.MeshStandardMaterial> = {
+    outer: new THREE.MeshStandardMaterial({ color: '#838b89', roughness: 1, metalness: 0.12, vertexColors: true }),
+    inner: new THREE.MeshStandardMaterial({ color: '#434e50', roughness: 1, vertexColors: true }),
+    edge: new THREE.MeshStandardMaterial({ color: '#6a6860', roughness: 1, vertexColors: true }),
+    armor: new THREE.MeshStandardMaterial({ color: '#535e61', roughness: 0.95, metalness: 0.15, vertexColors: true }),
+  };
+  const parts = new Map<Skin, THREE.BufferGeometry[]>();
+  const add: Part = (geometry, skin) => {
+    const g = geometry.index ? geometry.toNonIndexed() : geometry.clone(); geometry.dispose();
+    g.deleteAttribute('uv');
+    if (!g.hasAttribute('normal')) g.computeVertexNormals();
+    g.rotateY(WRECK_SITE.turn).translate(WRECK_SITE.x, base, WRECK_SITE.z);
+    const positions = g.getAttribute('position'), colors = new Float32Array(positions.count * 3);
+    for (let i = 0; i < positions.count; i++) {
+      const dust = 1 - THREE.MathUtils.smoothstep(positions.getY(i) - marsSurfaceHeight(positions.getX(i), positions.getZ(i)), 0, 3);
+      const shade = 0.94 + 0.035 * Math.sin(positions.getX(i) * 0.09 + positions.getZ(i) * 0.07);
+      colors.set([shade + dust * 0.03, shade - dust * 0.035, shade - dust * 0.075], i * 3);
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const batch = parts.get(skin) ?? []; batch.push(g); parts.set(skin, batch);
+  };
+  shuttle(add);
+  for (const [skin, geometries] of parts) {
+    const merged = mergeGeometries(geometries);
+    geometries.forEach(g => g.dispose());
+    if (!merged) throw new Error('Could not build shuttle wreck.');
+    emit(merged, materials[skin], true);
+  }
 }

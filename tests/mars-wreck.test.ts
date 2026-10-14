@@ -16,7 +16,7 @@ const disposeMaterials = (materials: Set<THREE.Material>) => {
 };
 
 before(async () => { await RAPIER.init(); });
-test('wreck is a bounded, unmarked original structure with an unobstructed sand breach', () => {
+test('wreck is a bounded, unmarked original structure with a tall fin and solid engine shells', () => {
   const bounds = new THREE.Box3(), meshes: THREE.Mesh[] = [], materials = new Set<THREE.Material>();
   let triangles = 0, structuralTriangles = 0;
   addWreckDecor(-7, 2, (g, m, solid) => {
@@ -31,7 +31,7 @@ test('wreck is a bounded, unmarked original structure with an unobstructed sand 
     assert.ok(Array.from(colors.array).every(value => Number.isFinite(value) && value >= 0 && value <= 1));
     meshes.push(new THREE.Mesh(g, m)); materials.add(m);
   });
-  assert.ok(triangles > 0 && triangles < 10000, `curved hull budget: ${triangles} triangles`);
+  assert.ok(triangles > 0 && triangles < 10000, `shuttle budget: ${triangles} triangles`);
   assert.equal(structuralTriangles, triangles, 'no decorative pass-through geometry');
   const edges = new Map<string, number>();
   for (const mesh of meshes) {
@@ -49,34 +49,20 @@ test('wreck is a bounded, unmarked original structure with an unobstructed sand 
     }
   }
   assert.ok([...edges.values()].every(count => count === 2), 'inner and outer skins are capped into a closed wall volume');
-  assert.ok(bounds.max.z - bounds.min.z > 110 && bounds.max.z - bounds.min.z < 125, 'one long hull section, not a complete ship');
-  assert.ok(bounds.max.x - bounds.min.x > 40 && bounds.max.x - bounds.min.x < 65, 'a substantial single curved body, not paired engines');
+  assert.ok(bounds.max.z - bounds.min.z > 60 && bounds.max.z - bounds.min.z < 95, 'buried shuttle fuselage extent');
+  assert.ok(bounds.max.x - bounds.min.x > 45 && bounds.max.x - bounds.min.x < 80, 'asymmetric stabilizer span');
+  assert.ok(bounds.max.y > marsSurfaceHeight(WRECK_SITE.x, WRECK_SITE.z) + 25, 'large tail fin rises above the buried fuselage');
   for (const material of materials) if (material instanceof THREE.MeshStandardMaterial) {
     assert.ok(Math.max(material.color.r, material.color.g, material.color.b) < 0.3, 'weathered gray, not ivory plating');
     assert.ok(!Object.values(material).some(value => value instanceof THREE.Texture), 'all wreck finishes are texture-free');
   }
   assert.ok(marsTrailSample(WRECK_SITE.x, WRECK_SITE.z).distance > 95);
   assert.ok(!MARS_ROUTES.some(r => /wreck|ship/i.test(r.name)));
-  const floor = marsSurfaceHeight(WRECK_SITE.x, WRECK_SITE.z);
-  for (const u of [-6, 0, 6]) {
-    const p = wreckPoint(u, -54);
-    const ray = new THREE.Raycaster(new THREE.Vector3(p.x, floor + 2, p.z),
-      new THREE.Vector3(Math.sin(WRECK_SITE.turn), 0, Math.cos(WRECK_SITE.turn)), 0, 120);
-    const hits = ray.intersectObjects(meshes);
-    assert.ok(hits.length > 0 && hits[0].distance > 25, 'wide mouth opens into a genuinely deep hollow interior');
-  }
-  for (let u = -36; u <= 0; u += 1) {
-    const p = wreckPoint(u, -8);
+  for (const p of WRECK_PASSAGE) {
     const ray = new THREE.Raycaster(new THREE.Vector3(p.x, marsSurfaceHeight(p.x, p.z) + 0.4, p.z), new THREE.Vector3(0, 1, 0), 0, 4);
-    assert.equal(ray.intersectObjects(meshes).length, 0, `clear cabin at ${u}`);
-    assert.ok(wreckClearance(p.x, p.z), 'no random rocks in the side entry');
+    assert.equal(ray.intersectObjects(meshes).length, 0, 'clear exterior approach');
+    assert.ok(wreckClearance(p.x, p.z), 'no scatter on the approach');
   }
-  const direction = new THREE.Vector3(Math.cos(WRECK_SITE.turn), 0, -Math.sin(WRECK_SITE.turn));
-  const p = wreckPoint(-30, -28), centre = wreckPoint(0, -28);
-  const exterior = new THREE.Raycaster(new THREE.Vector3(p.x, floor + 2, p.z), direction, 0, 40).intersectObjects(meshes)[0];
-  const interior = new THREE.Raycaster(new THREE.Vector3(centre.x, floor + 2, centre.z), direction.clone().negate(), 0, 40).intersectObjects(meshes)[0];
-  assert.ok(exterior && interior);
-  assert.ok(exterior.point.distanceTo(interior.point) > 1.5, 'hull has physical wall thickness, not a single sheet');
   meshes.forEach(m => m.geometry.dispose());
   disposeMaterials(materials);
 });
@@ -91,44 +77,16 @@ test('wreck finish uses deterministic vertex colors without texture-painted deta
       assert.ok(material.vertexColors);
       assert.ok(!Object.values(material).some(value => value instanceof THREE.Texture));
     });
-    assert.equal(passes[0].length, 3, 'only the two hull skins and thick cut edges remain');
+    assert.equal(passes[0].length, 4, 'outer, inner, cut edge and armor batches');
     for (let i = 0; i < passes[0].length; i++) {
       const a = passes[0][i].geometry, b = passes[1][i].geometry;
       assert.deepEqual(a.getAttribute('color').array, b.getAttribute('color').array);
       assert.ok(Array.from(a.getAttribute('normal').array).every(Number.isFinite));
     }
-    const color = passes[0][0].geometry.getAttribute('color');
-    const shades = Array.from({ length: color.count }, (_, i) => color.getX(i));
-    assert.ok(Math.max(...shades) - Math.min(...shades) > 0.25, 'broad armor sections retain visible tonal contrast');
+    const palette = passes[0].map(mesh => (mesh.material as THREE.MeshStandardMaterial).color.getHex());
+    assert.equal(new Set(palette).size, 4, 'distinct hull, exhaust interior, cut edge and armor tones');
   } finally {
     disposeScene(scene);
-  }
-});
-
-test('Scout crosses the continuous curved hull without panel gaps', async () => {
-  const meshes: THREE.Mesh[] = [], materials = new Set<THREE.MeshStandardMaterial>();
-  addWreckDecor(-7, 2, (geometry, material) => {
-    meshes.push(new THREE.Mesh(geometry, material));
-    if (material instanceof THREE.MeshStandardMaterial) materials.add(material);
-  });
-  const roof = (v: number) => {
-    const p = wreckPoint(0, v);
-    const hits = new THREE.Raycaster(new THREE.Vector3(p.x, 80, p.z), new THREE.Vector3(0, -1, 0), 0, 100).intersectObjects(meshes);
-    assert.ok(hits.length > 0);
-    return { ...p, y: hits[0].point.y };
-  };
-  try {
-    const seam = [-29.04, -29, -28.96].map(roof);
-    assert.ok(Math.max(...seam.map(p => p.y)) - Math.min(...seam.map(p => p.y)) < 0.01, 'no wheel-width panel slot');
-    const path = [-35, -29, -25].map(roof);
-    for (const points of [path, [...path].reverse()]) {
-      const result = await driveMarsPath(points, 1400, points[0].y);
-      assert.equal(result.next, points.length, JSON.stringify(result));
-      assert.ok(result.minHeight > 2, 'the rover stayed on the casing, not the ground below');
-    }
-  } finally {
-    meshes.forEach(mesh => mesh.geometry.dispose());
-    disposeMaterials(materials);
   }
 });
 
@@ -146,7 +104,7 @@ test('windward sand screens the hull from nearby main trails at chase-camera hei
     geometry.dispose();
   });
   disposeMaterials(materials);
-  assert.ok(envelope.size > 10, 'sample the rounded end, roof and side breach');
+  assert.ok(envelope.size > 10, 'sample the fin, fuselage and engines');
   for (const route of MARS_ROUTES) {
     for (let i = 1; i < route.points.length; i++) for (let step = 0; step <= 20; step++) {
       const a = route.points[i - 1], b = route.points[i], t = step / 20;
@@ -167,18 +125,7 @@ test('windward sand screens the hull from nearby main trails at chase-camera hei
   }
 });
 
-test('Scout can explore the sandy interior in both directions', async () => {
-  const path = [-36, -24, -12, 0, 12].map(v => {
-    const p = wreckPoint(0, v); return { ...p, y: marsSurfaceHeight(p.x, p.z) };
-  });
-  for (const points of [path, [...path].reverse()]) {
-    const result = await driveMarsPath(points, 2200);
-    assert.equal(result.next, points.length, JSON.stringify(result));
-    assert.ok(result.minHeight > -0.3);
-  }
-});
-
-test('real Scout drives between the rounded mouth and side breach in both directions', async () => {
+test('real Scout follows the sandy exterior approach in both directions', async () => {
   const path = WRECK_PASSAGE.map(p => ({ ...p, y: marsSurfaceHeight(p.x, p.z) }));
   for (const points of [path, [...path].reverse()]) {
     const result = await driveMarsPath(points, 3000);

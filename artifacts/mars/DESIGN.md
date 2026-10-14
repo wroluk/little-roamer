@@ -24,61 +24,34 @@ their detailed owners load. The experimental extra landmark silhouettes and fadi
 were removed after visual review. Fog is 65–250 m; rendering remains 5 x 5 chunks
 and collision remains 3 x 3 chunks.
 
-## Unmarked wreck in the Delta / Dunes transition
+## Unmarked shuttle wreck in the Delta / Dunes transition — 2026-10-14
 
-One partly buried cylindrical hull section lies at **(-653, 265)**, west of the
-connector. This replaces the rejected twin-engine design completely. The new
-form study takes its general direction from the user's broken-cylinder and
-rounded-pod references, without shipping their imagery or copying a specific craft.
-The underlying section is **113 m long and up to 39 m across**; the rear sinks
-below the sand rather than outlining a complete vessel.
+The user selected the shuttle stern from six temporary geometry studies. It now
+replaces the cylindrical hull at **(-653, 265)**, west of the connector. The nose
+is buried at an angle, leaving a huge swept tail fin, separate rudder, asymmetric
+stabilizers and three thick open engine exhausts visible. Its gray materials and
+vertex-color dust retain the texture-free style. Every visible structural part
+supplies matching collision triangles through the existing chunk lifecycle.
 
-A continuous curved shoulder surrounds a roughly 20 m wide open mouth. The
-rounded nose is several metres thick through its shoulder; the main hull has
-roughly 1.8 m walls. A large asymmetric western breach exposes the darker inner
-skin and layered wall core. Its edges share vertices with the intact curved
-shell instead of being separate thin plates. The shell is built as a closed
-volume around both openings, with identical visible and collision triangles.
+The shuttle sits 3 m deeper than the comparison version to meet this site's sand.
+The existing east and north screening banks now have amplitudes of 39 m and 37 m,
+respectively, to conceal the taller fin. Road grading still takes precedence.
+The south/west approach remains unmarked, with no sign, reset destination or new
+route. The former hollow interior is gone; exploration is around the stern and
+buried fuselage. The recorded approach path now follows the clear west side.
 
-The user approved the silhouette and thick walls, but rejected the subsequent
-texture-based finish as inconsistent with the rest of the game. The wreck now
-uses only clean gray materials, broad contrasting armor sections and restrained
-vertex-color weathering near actual sand contact. There are no color, bump,
-roughness or grain textures, texture-painted recesses, vents or markings.
-The rounded shoulder and layered broken wall core supply the physical detail.
+Actual Chromium captures of the reveal, stern, side, connector and perimeter are
+in [shuttle-wreck](shuttle-wreck/README.md). The shuttle is hidden in both captured
+track views. This is visual evidence at those viewpoints; the updated automated
+sightline and driving checks were **not run**, per the user's instruction.
+Typecheck and production build passed. Device/WebKit acceptance remains unverified.
 
-The approved shell shape and collision triangles are preserved. Outer vertices
-are split only to give broad color sections crisp boundaries, while retaining
-their shared smooth normals. No extra fittings, loose shards, twin drives or
-machinery spine were added.
-The actual sandy ground runs through the mouth and side breach, with room to
-turn inside and explore toward the buried rear. There is no raised metal floor
-or threshold. The walls and broken edges are obstacles, not mandatory ramps.
-There is no trail, sign, destination, reset point, beacon or reward. This remains
-an unmarked discovery between existing regions, not a tenth region.
-
-Surveying the existing transition found low ground without enough relief to
-conceal a hull this size. Two asymmetric wind-deposited sand shoulders were
-therefore added on its east and north, leaving the west/south open for unmarked
-cross-country exploration. This is **new local screening terrain**, not a claim
-that the original terrain already hid it. Existing route centrelines and their
-grading take precedence. The broad northern bank from the twin-engine study is
-retained. The taller rounded hull required increasing the east/north bank
-amplitudes from 17/18 m to 22/20.5 m to restore sampled main-trail concealment.
-
-Automated sightlines sample every nearby route segment at 21 positions, at
-terrain + 4 m eye height, against the highest exposed geometry vertex in each
-8 m horizontal cell, raised a further 0.3 m for clearance.
-Each target within the existing 250 m fog range is terrain-occluded by at least
-0.3 m. This is sampled centreline evidence, not a guarantee for arbitrary orbit
-heights or off-road viewpoints. Actual connector/perimeter captures and driving
-captures of the original design are under `wreck-review/`; the other
-`wreck-detail-review/`, `wreck-buried-review/`, `wreck-buried-webkit-review/`,
-`wreck-twin-review/` and `wreck-clean-review/` folders record superseded designs.
-The approved curved hull study is in `wreck-hull-review/`; the rejected textured
-finish is in `wreck-finish-review/`. The current texture-free finish is in
-`wreck-solid-review/`. Normal chunk-owned loading,
-65–250 m haze, and the original Dish/Habitat distant silhouettes are unchanged.
+All temporary study generators, placements, plaques, scatter exclusions, A–F
+controls, URL hooks and comparison capture code have been removed. The old
+comparison screenshots remain only as archived design history in
+[wreck-comparison](wreck-comparison/README.md). The normal Mars game now contains
+only the selected hidden shuttle. Earlier wreck screenshots and acceptance
+records describe superseded geometry.
 
 ## Geometry and visual review rules
 

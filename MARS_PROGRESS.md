@@ -4,6 +4,34 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Selected shuttle installed; comparison removed — 2026-10-14
+
+- User chose study F and requested replacing the existing hidden wreck and removing all temporary wreck functionality. The buried shuttle is now the sole wreck at (-653, 265), with its tall swept fin, rudder, asymmetric stabilizers and three open exhaust bells. It sits 3 m deeper than the study version to meet the sand at the hidden site.
+- Raised the existing east/north screening bank amplitudes to 39/37 m for the taller fin; authored road grading still takes precedence. Expanded local scatter clearance to cover the exterior approach. Visible geometry supplies collision through the existing chunk lifecycle.
+- Removed both study source files, all temporary placement/scatter hooks, plaques, picker, URL handling and comparison capture script. Kept historical screenshots as archived design evidence. Main startup and general landmark integration have no remaining experiment changes.
+- Typecheck and production build passed. Inspected actual Chromium reveal, stern, side, connector and perimeter captures in `artifacts/mars/shuttle-wreck/`; the shuttle is hidden in both captured track views. These captures do not establish all-route concealment or driving acceptance.
+- Updated existing wreck unit/browser definitions from the removed hollow-hull experience to the shuttle's structure and exterior approach. **No tests ran**, including automated sightlines, driving, browser, WebKit or PWA suites. Last full-suite evidence remains 2026-10-11 and does not certify this replacement.
+- User accepted the installed shuttle and requested commit/push. This revision records that accepted replacement and the removal of the temporary comparison. No additional tests were run for commit/push.
+- **Exact next step:** inspect any publication separately if requested; deferred driving/sightline/device checks require a new instruction permitting tests.
+
+### Temporary six-wreck refinement — 2026-10-14
+
+- Latest user scope: add a tilted flying saucer partly buried in sand and a shuttle tail with a huge fin and engine exhaust, and refine all comparison geometries. **Do not run tests.**
+- Added E **Buried saucer** at (-240, 155): closed lens-shaped disc, rolled equator, segmented rim, raised canopy and a broken stabilizer; the tilted lower edge intersects the actual terrain. Added F **Shuttle stern** at (255, 35): buried nose-down fuselage, tall swept fin and rudder, asymmetric stabilizers and three thick open exhaust bells. Moved F off a mound and buried it deeper after inspecting its first capture.
+- Refined A with an aft frame, internal rails and dorsal spine; B with a recessed throat and cooling vanes; C with longitudinal rails and a diagonal brace; D with a raised docking collar and recessed hatch. The gray texture-free hull palette and mesh-based collision remain. Expanded the temporary comparison picker to A–F.
+- Typecheck and production build passed. Inspected actual Chromium overview/close captures for all six under `artifacts/mars/wreck-comparison/`. No unit, browser, PWA, driving or WebKit test suites ran. Driving/collision acceptance and physical-device performance remain unverified; last full-suite release record is still 2026-10-11.
+- These are uncommitted development-only comparison models. Original hidden wreck, screening terrain and authored roads are unchanged. Local server: `http://127.0.0.1:5174/?area=mars&wrecks=1`.
+- **Exact next step:** user compares A–F and chooses a direction; apply the chosen design to the hidden discovery and remove temporary models only when requested. No deferred tests without a new instruction.
+
+### Temporary four-wreck comparison — 2026-10-13
+
+- Latest user scope: commit the accepted Northern Reach discovery, then create four temporary Mars wreck geometries near Habitat Seven for comparison. **Do not run tests.** Northern Reach is committed as `c74ca4a`; the Mars experiment is a separate, uncommitted change.
+- Added A **Wedge prow** at (-95, 165), B **Fractured drive** at (130, 150), C **Split cargo hull** at (-110, 275), and D **Toppled lander** at (130, 275). Each has a different silhouette, thick open skins and matching visible/collision geometry. Hulls use clean gray materials and vertex-color dust; only the temporary identification plaques use text textures.
+- The existing hidden wreck at (-653, 265), its screening sand, and all authored roads remain intact. The comparison models and their local scatter clearances are development-only. Production builds exclude the experiment. No new permanent region, route or reset destination was added.
+- Local review: `http://127.0.0.1:5174/?area=mars&wrecks=1`. Start driving, then use the A–D picker to jump between the four views. The picker uses a lower camera pitch only for this comparison URL. All models can also be approached from Habitat on the running development server.
+- Typecheck and production build passed. Inspected actual Chromium overview and close captures of all four concepts under `artifacts/mars/wreck-comparison/`; adjusted framing and the cargo sidewall mass after inspection. No unit, browser, PWA, route-driving or WebKit tests were run, as requested. Collision/driving acceptance and physical-iPad performance are unverified for these prototypes. The last full-suite release record remains 2026-10-11 below.
+- **Exact next step:** user compares A–D in game and selects a direction. Refine that geometry, then replace the original hidden-site hull and remove the temporary study layout/picker only when requested. Do not treat this comparison as release-ready or run deferred suites without a new instruction.
+
 ### Shared lower driving camera — 2026-10-12
 
 - Applied Mars's existing `-0.2` initial driving pitch to Northern Reach, Sunshine Valley, Iceland Highlands and Samurai Village. The separate home showcase framing is unchanged; yaw, boom distance and camera collision handling are unchanged.
