@@ -1,6 +1,6 @@
 # New location ideas
 
-Each location offers an open-ended drive with an easy route, an optional challenge, and landmarks that help players find their way without objectives or timers.
+These five locations are concepts for future additions. Each offers an open-ended drive, a continuous easy route in both directions, optional harder lines, and landmarks that help players find their way without objectives or timers. Each named region should have a safe starting and reset clearing. The loop order below describes geography, not a required journey.
 
 | Location | Driving features | Distinct landmarks |
 | --- | --- | --- |
@@ -9,11 +9,97 @@ Each location offers an open-ended drive with an easy route, an optional challen
 | **Dune Sea** | Soft dunes reward momentum, while a firm salt pan offers open, easy driving and a route home. | **Crescent Crown:** a tall curved dune. **White Pan:** the pale dry lake bed. **Stone Window:** a wind-carved opening on the desert edge. |
 | **Autumn Woods** | Gentle leaf-covered lanes wind through trees, with a shallow creek crossing and a narrower ridge path. | **Cathedral Grove:** a circle of towering golden trees. **Copper Falls:** a small cascade beside the ford. **Foxglove Bridge:** a covered wooden bridge on the return loop. |
 | **Island Tracks** | Compact headland loops offer grassy climbs, a sheltered shore road, and a fixed causeway to a second islet. | **Needle Lighthouse:** visible from most of the island. **Whale's Back:** a smooth rock ridge to drive over. **Tide Gate:** the stone causeway framed by tide pools. |
-| **Mars Outpost** | A broad dust road circles a shallow crater; an optional rocky ascent reaches a relay station. Small crests allow playful, gentle hops. | **Habitat Seven:** a cluster of glowing domes. **Keyhole Arch:** an eroded red-rock passage. **Dish Ridge:** a high lookout with an oversized communications dish. |
 
-**Suggested first addition:** Red Canyon. Its open wash supports relaxed exploration, while the shelf and rim trails give players more demanding routes. Mars Outpost would be a strong later addition with a more playful visual identity.
+**Suggested first addition:** Red Canyon. Its open wash supports relaxed exploration, while the shelf and rim trails give players more demanding routes. Mars Outpost is already available; its current design is documented in [MARS_BUILD_PLAN.md](MARS_BUILD_PLAN.md) and [artifacts/mars/DESIGN.md](artifacts/mars/DESIGN.md).
+
+## Red Canyon
+
+**Character:** Warm sandstone, sparse juniper, striped cliffs and long views through the washes. The easy line stays on broad, firm sand; narrow shelves and steeper rock are choices, not bottlenecks.
+
+| Region | Landmarks | Drive and connection |
+| --- | --- | --- |
+| **Juniper Wash** | A lone broad juniper beside a crescent of pale boulders marks the start. | A spacious wash and safe clearing lead east toward Split Spire Gate or west toward Fossil Bend. |
+| **Split Spire Gate** | Two unequal sandstone towers stand apart above the wash entrance. | The main track passes between their bases; a short side climb reaches a view back to Juniper Wash. |
+| **Painted Narrows** | Red, cream and violet bands stripe a winding cliff corridor. | A wide dry channel remains easy; an upper ledge rejoins it before Echo Arch. |
+| **Echo Arch** | A broad natural arch spans the route, with smaller alcoves in one buttress. | Drive beneath the arch on firm ground or circle its outside shoulder to the Terraced Steps. |
+| **Terraced Steps** | Three broad rock shelves descend beside a fan of fallen blocks. | Switchbacks make the climb gentle; a direct rock-crawling line is optional. |
+| **Ribbon Mesa** | A long, layered mesa ends in a flat lookout with a clear canyon panorama. | A graded rim trail crosses the high ground, then descends toward Sunset Amphitheater. |
+| **Sunset Amphitheater** | Curved cliff walls enclose a sandy bowl and a freestanding stone fin. | A broad arc through the bowl returns to lower terrain; a short overlook spur has room to turn around. |
+| **Fossil Bend** | Petrified log shapes lie partly buried at a wide wash bend. | The lower wash closes the loop at Juniper Wash; a cross-wash shortcut reaches Painted Narrows. |
+
+**Route shape:** Juniper Wash → Split Spire Gate → Painted Narrows → Echo Arch → Terraced Steps → Ribbon Mesa → Sunset Amphitheater → Fossil Bend → Juniper Wash. The low wash and high rim offer distinct ways across the map. Solid cliff faces and broad, reachable overlooks form the boundary without a uniform wall.
+
+## Old Quarry
+
+**Character:** Weathered limestone, blue-gray mineral seams, retired machinery and broad gravel benches. The working site is long abandoned; industrial objects are scenery and landmarks, with clear space to drive around them.
+
+| Region | Landmarks | Drive and connection |
+| --- | --- | --- |
+| **Gate Yard** | A rusted weighbridge and stone office frame the safe starting yard. | Two wide exits reach the upper haul road and the lower gravel floor. |
+| **Spiral Cut** | Concentric terraces wrap the quarry's stepped central pit. | Wide switchbacks connect each level; short stepped rock cuts offer optional climbs. |
+| **Iron Giant** | A retired excavator rests on a level bench above the pit. | A broad haul road passes its bucket at a safe distance and leads to Blue Seam. |
+| **Blue Seam** | A vivid mineral band cuts across several pale quarry walls. | Follow the seam along a firm bench or take a stony descent to the lower gallery. |
+| **Stone Gallery** | Rows of abandoned cut blocks and a tall, unfinished slab create a maze of open lanes. | Multiple spacious paths reconnect at Sump Basin; tight block gaps are optional. |
+| **Sump Basin** | A shallow rain pool reflects the quarry walls below a worn pump house. | A dry perimeter lane is always available; a gently sloped ford offers a second crossing. |
+| **Conveyor Ridge** | A skeletal conveyor crosses high above a gravel saddle. | The main road stays on solid ground beside its supports; an optional upper shelf looks across the pit. |
+| **Overburden Heights** | Pale spoil mounds end at a jagged crest of discarded stone. | A graded return road descends to Gate Yard, with rougher mound trails alongside it. |
+
+**Route shape:** Gate Yard → Spiral Cut → Iron Giant → Blue Seam → Stone Gallery → Sump Basin → Conveyor Ridge → Overburden Heights → Gate Yard. Cross-bench links let a driver change elevation without completing the circuit. Berms and intact quarry walls close the outer edge; every upper route has a gentle way down.
+
+## Dune Sea
+
+**Character:** Sweeping orange dunes, dark gravel islands and bright salt flats. The layout gives drivers room to build momentum while keeping a firm route visible from the softer sand.
+
+| Region | Landmarks | Drive and connection |
+| --- | --- | --- |
+| **Windbreak Camp** | A low stone shelter and a ring of wind-polished posts mark the safe start. | Firm ground leads toward White Pan and Tamarisk Well. |
+| **White Pan** | A broad pale lake bed has cracked salt patterns and a dark central stone. | Open, level driving offers a dependable return line and several exits into the dunes. |
+| **Crescent Crown** | One high crescent wraps a sheltered hollow around exposed bedrock. | The base track stays firm; the crest and slip face are optional momentum challenges. |
+| **Singing Ridges** | Parallel, wind-shaped sand ridges make a recognizable wave pattern. | A winding trough road remains gentle; shorter crossings climb the low saddles. |
+| **Stone Window** | A wind-carved opening frames the distant salt pan. | A broad rock pass goes through the opening, with a higher lookout spur above it. |
+| **Black Gravel** | Dark volcanic pebbles and two low basalt fins interrupt the orange sand. | Firmer traction makes this a useful cross-desert link between Stone Window and Mirror Flats. |
+| **Mirror Flats** | A thin reflective salt crust catches the sky beside a line of isolated mesas. | A broad, mostly level track skirts the fragile-looking surface; a smooth crossing reconnects near Tamarisk Well. |
+| **Tamarisk Well** | A small spring supports a few green shrubs below a shaded rock lip. | An easy sandy lane returns to Windbreak Camp; a dune-side shortcut reaches Crescent Crown. |
+
+**Route shape:** Windbreak Camp → White Pan → Crescent Crown → Singing Ridges → Stone Window → Black Gravel → Mirror Flats → Tamarisk Well → Windbreak Camp. The pan and gravel provide reliable anchors between dune excursions. High outer dunes and rock escarpments make a varied natural edge; no route depends on a long soft-sand climb.
+
+## Autumn Woods
+
+**Character:** Golden canopy, copper leaves, mossy stone and small pockets of open sky. Tree density changes by region so the drive alternates between intimate lanes and useful views.
+
+| Region | Landmarks | Drive and connection |
+| --- | --- | --- |
+| **Orchard Gate** | An old split-rail gate opens onto a clearing of red and gold fruit trees. | A broad lane starts the loop in either direction and provides a safe reset. |
+| **Cathedral Grove** | Giant golden trees form a high circular canopy around a mossy boulder. | The easy lane arcs around the trunks; a narrow inner loop winds between roots without blocking the main way. |
+| **Fern Hollow** | A steep-sided green hollow shelters fallen logs and a clear spring. | A gentle contour path reaches Copper Falls; a rooty descent offers a slower alternative. |
+| **Copper Falls** | A short amber-tinted cascade drops beside a shallow gravel ford. | The ford has firm approaches, while a dry bank path stays available in both directions. |
+| **Amber Ridge** | A long leaf-covered crest has a gap in the canopy overlooking the valley. | Wide ridge turns lead to Mirror Pond; a shorter, bumpier spur reaches the view. |
+| **Mirror Pond** | Still water reflects a ring of birches and a small stone island. | A shore lane avoids deep water and connects to the Old Mill. |
+| **Old Mill** | A moss-covered waterwheel and low stone mill sit beside a narrow stream. | The main road skirts the building; a shallow side crossing rejoins near Foxglove Bridge. |
+| **Foxglove Bridge** | A covered wooden bridge spans the stream amid purple flowers. | Drive through the bridge to close the loop at Orchard Gate, or take the nearby gravel ford. |
+
+**Route shape:** Orchard Gate → Cathedral Grove → Fern Hollow → Copper Falls → Amber Ridge → Mirror Pond → Old Mill → Foxglove Bridge → Orchard Gate. The creek ties the middle regions together; crossings and ridge links form smaller loops. Thicker woodland, rising hills and stream-cut banks define the edge, while openings keep the next landmark legible.
+
+## Island Tracks
+
+**Character:** Windy grass, basalt headlands, sheltered coves and ocean views. The land is compact but folded into distinct coastal and upland drives. Water and solid cliffs make the outer limit clear.
+
+| Region | Landmarks | Drive and connection |
+| --- | --- | --- |
+| **Harbor Meadow** | A weathered boathouse and beached fishing skiff sit above a protected cove. | The broad meadow is the safe start, with coast and upland exits. |
+| **Needle Lighthouse** | A slender lighthouse stands on a rocky point visible across both islands. | A graded headland lane circles the tower; a short spur reaches a sheltered viewing pad. |
+| **Seabird Cliffs** | White-streaked basalt columns rise beside a noisy nesting ledge. | A wide inland shelf stays away from the drop; a slower overlook spur ends at a turn-around. |
+| **Whale's Back** | A smooth, whale-shaped rock ridge crests above the sea. | The easy track skirts its base; an optional rounded climb crosses the back. |
+| **Tide Gate** | Two stone arches frame a fixed, raised causeway over shallow tide pools. | The causeway is always passable and wide enough for a comfortable crossing to the second islet. |
+| **Saltgrass Islet** | Low saltgrass fields surround a split driftwood trunk and a ring of tide pools. | A relaxed islet loop returns to Tide Gate; a sandy inner path gives a shorter circuit. |
+| **Weather Station** | A tiny wind station and tall vane sit on the islet's highest knoll. | A gentle climb offers a view back to the lighthouse; a grassy descent closes the islet loop. |
+| **Pebble Cove** | Bands of dark and pale pebbles fill a sheltered pocket beneath the main island ridge. | A shore road returns from Tide Gate to Harbor Meadow; a steeper grass shortcut climbs toward Whale's Back. |
+
+**Route shape:** Harbor Meadow → Needle Lighthouse → Seabird Cliffs → Whale's Back → Tide Gate → Saltgrass Islet → Weather Station → Tide Gate → Pebble Cove → Harbor Meadow. The causeway is the single link between islands, so its approaches remain easy and the second islet has its own complete loop. Overlook spurs end on level turn-around pads rather than exposed cliff tips.
 
 ## Mars Outpost — expanded concept
+
+The following was the early proposal that led to the built Mars Outpost. Its planned scale, some landmark details and vehicle availability were superseded during development. Use the current [build plan](MARS_BUILD_PLAN.md), [design record](artifacts/mars/DESIGN.md) and game for the released layout.
 
 **Scale and feel:** Mars would span **768 × 768 world metres**, half Northern Reach's length and width (and one quarter of its area). It would be a compact, continuous place to explore rather than a single crater scene. The tone is playful science fiction: recognizable Martian geology, a small human outpost, and a few oversized, friendly pieces of exploration hardware. The sky, lighting, and terrain provide the drama; there are no survival meters, damage, or required missions.
 
