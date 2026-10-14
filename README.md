@@ -311,8 +311,8 @@ appear in development; the public `RAPIER.init()` API is used.
 
 The unmarked Delta / Dunes wreck has focused geometry, terrain sightline and
 real-Scout checks in `tests/mars-wreck.test.ts`, plus the short dual-engine
-`tests/browser/mars-wreck.spec.ts` scenario (rounded entrance, sandy interior,
-side-breach driving both ways, and rendered views). See `artifacts/mars/DESIGN.md` for its location and sightline limitations;
+`tests/browser/mars-wreck.spec.ts` scenario (buried shuttle,
+exterior approach driving both ways, and rendered views). See `artifacts/mars/DESIGN.md` for its location and sightline limitations;
 it has no in-game marker or approach trail.
 
 Choose tests by the change while working. A recent local run took about four

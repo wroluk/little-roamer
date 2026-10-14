@@ -4,6 +4,15 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Focused shuttle verification — 2026-10-14
+
+- User authorized the proposed focused wreck unit tests and Chromium scenario after accepting/pushing `8f9ae20`.
+- Initial unit run: 3/4 passed; the geometry check caught dust vertex colors slightly above 1. Clamped the red component to 1 without changing geometry, collision, terrain or assertions. Rerun: **4/4 passed**, including closed structure, deterministic texture-free finish, sampled track concealment and real Scout exterior approach in both directions.
+- Focused Chromium scenario: **1/1 passed** (44.5 s), including rendered views and real two-way approach driving. Inspected the reveal and forward-drive captures. This browser run preceded the color-only clamp; the final unit rerun and production build include it.
+- Production build (including TypeScript checking) passed after the fix. No full regression, WebKit or PWA suites ran. Last full-suite record remains 2026-10-11; physical-device acceptance remains unverified.
+- User requested commit/push of the color clamp and verification record. No checks were repeated for this documentation and commit step.
+- **Exact next step:** no further focused fixes are pending; WebKit and physical-device acceptance remain optional follow-up work.
+
 ### Selected shuttle installed; comparison removed — 2026-10-14
 
 - User chose study F and requested replacing the existing hidden wreck and removing all temporary wreck functionality. The buried shuttle is now the sole wreck at (-653, 265), with its tall swept fin, rudder, asymmetric stabilizers and three open exhaust bells. It sits 3 m deeper than the study version to meet the sand at the hidden site.

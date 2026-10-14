@@ -110,7 +110,7 @@ export function addWreckDecor(cx: number, cz: number, emit: Emit) {
     for (let i = 0; i < positions.count; i++) {
       const dust = 1 - THREE.MathUtils.smoothstep(positions.getY(i) - marsSurfaceHeight(positions.getX(i), positions.getZ(i)), 0, 3);
       const shade = 0.94 + 0.035 * Math.sin(positions.getX(i) * 0.09 + positions.getZ(i) * 0.07);
-      colors.set([shade + dust * 0.03, shade - dust * 0.035, shade - dust * 0.075], i * 3);
+      colors.set([Math.min(1, shade + dust * 0.03), shade - dust * 0.035, shade - dust * 0.075], i * 3);
     }
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     const batch = parts.get(skin) ?? []; batch.push(g); parts.set(skin, batch);
