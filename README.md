@@ -271,6 +271,7 @@ acceptance.**
 | Reset upright at the nearest regional start | Reset car | R |
 | Pause | Pause button | Escape |
 | Resume | Keep roaming | Focus the button and press Enter |
+| Enter photo mode | — | P |
 
 Steering and throttle can be held simultaneously with independent thumbs.
 The steering pad springs to center on release, including release outside the
@@ -278,6 +279,14 @@ pad. Changing direction brakes first; releasing both pedals coasts to a stop.
 Control input clears on cancellation, focus loss, rotation/resize, or
 backgrounding. Returning from another tab leaves the game paused until
 **Keep roaming** is pressed, preventing unintended movement.
+
+Photo mode freezes the car for screenshots. Drag the scene or use the arrow keys
+to turn and tilt the camera, W/A/S/D to move along the ground, Q/E to lower or
+raise it, and +/− to zoom. Hold Shift to move faster. H hides the car, U hides all interface,
+and C copies the exact camera and car position to share with a screenshot.
+Press P or Escape to return to driving.
+Switching tabs keeps the photo setup in place; returning to regular driving still
+uses the normal automatic pause.
 
 If the car gets wedged or rolls over, **Reset car** clears its motion and
 returns it to the nearest established regional start in Northern Reach or Mars, including
@@ -664,8 +673,18 @@ braking. Marks are pooled (256 segments, 18-second lifetime); wakes are pooled
 separately. Reset and travel clear both. Reduced graphics keep sparser marks
 and fewer particles. These effects never deform
 the ground.
-Saved parking positions, a journal and accumulated dirt on the car are
-left for a later update.
+Saved parking positions and accumulated dirt on the car are left for a later update.
+
+## Postcard journal
+
+Northern Reach and Mars Outpost have a postcard journal on their home and pause
+screens. Each named region has a card, plus an unnamed silhouette for the hidden
+discovery in each world. Drive near a place to unlock its car-free scene, short
+field note and first-visit date. The journal saves visits in this browser and
+shows cards for the current world only. Sunshine Valley and the other smaller
+locations have no journal. Secret discoveries use a distinct card until found;
+click an unlocked photo for a larger view. A picture notice appears briefly when
+a new postcard unlocks. Postcard images are included in the offline cache.
 
 Manual acceptance for this update: on an actual iPad, drive both route choices,
 check that the rocky branch rewards careful wheel placement and the ridge

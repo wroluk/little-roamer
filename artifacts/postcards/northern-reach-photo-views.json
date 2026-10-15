@@ -1,0 +1,87 @@
+{
+  "pine-hollows": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -22.419, "y": 12.993, "z": 501.557 }, "rotation": [0.021, 0.359, 0.006, 0.933] },
+    "camera": { "position": { "x": -24.339, "y": 20.34, "z": 513.055 }, "target": { "x": -33.489, "y": 18.993, "z": 503.57 }, "fov": 48 }
+  },
+  "river-valley": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -22.419, "y": 12.993, "z": 501.557 }, "rotation": [0.021, 0.359, 0.006, 0.933] },
+    "camera": { "position": { "x": -189.928, "y": 21.519, "z": 209.384 }, "target": { "x": -202.54, "y": 17.865, "z": 211.144 }, "fov": 48 }
+  },
+  "willow-marsh": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -22.419, "y": 12.993, "z": 501.557 }, "rotation": [0.021, 0.359, 0.006, 0.933] },
+    "camera": { "position": { "x": -241.741, "y": 20.718, "z": -13.421 }, "target": { "x": -252.842, "y": 17.865, "z": -20.066 }, "fov": 48 }
+  },
+  "stonegate-basin": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -22.419, "y": 12.993, "z": 501.557 }, "rotation": [0.021, 0.359, 0.006, 0.933] },
+    "camera": { "position": { "x": -281.289, "y": 35.502, "z": -343.151 }, "target": { "x": -284.583, "y": 35.901, "z": -355.977 }, "fov": 48 }
+  },
+  "windstone-ridge": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -22.419, "y": 12.993, "z": 501.557 }, "rotation": [0.021, 0.359, 0.006, 0.933] },
+    "camera": { "position": { "x": -33.686, "y": 48.215, "z": -418.374 }, "target": { "x": -36.266, "y": 48.837, "z": -431.353 }, "fov": 48 }
+  },
+  "high-pass": {
+    "area": "northern-reach",
+    "car": { "position": { "x": 553.108, "y": 128.887, "z": -486.957 }, "rotation": [0.064, -0.149, 0.009, 0.987] },
+    "camera": { "position": { "x": 583.526, "y": 126.892, "z": -498.61 }, "target": { "x": 575.802, "y": 131.911, "z": -508.588 }, "fov": 48 }
+  },
+  "alder-river": {
+    "area": "northern-reach",
+    "car": { "position": { "x": 69.61, "y": 11.77, "z": -94.696 }, "rotation": [-0.066, 0.327, 0.072, 0.94] },
+    "camera": { "position": { "x": 109.444, "y": 15.516, "z": -85.045 }, "target": { "x": 118.81, "y": 12.97, "z": -93.693 }, "fov": 48 }
+  },
+  "ochre-terraces": {
+    "area": "northern-reach",
+    "car": { "position": { "x": 313.768, "y": 12.674, "z": 53.645 }, "rotation": [0.003, -0.98, -0.032, -0.199] },
+    "camera": { "position": { "x": 410.95, "y": 50.415, "z": 58.509 }, "target": { "x": 421.218, "y": 48.518, "z": 67.05 }, "fov": 48 }
+  },
+  "ember-basin": {
+    "area": "northern-reach",
+    "car": { "position": { "x": 540, "y": 93.727, "z": 420.003 }, "rotation": [0.001, 0, 0, 1] },
+    "camera": { "position": { "x": 614.888, "y": 85.813, "z": 435.477 }, "target": { "x": 611.571, "y": 84.007, "z": 448.167 }, "fov": 48 }
+  },
+  "great-lake": {
+    "area": "northern-reach",
+    "car": { "position": { "x": 136.573, "y": 11.427, "z": 245.647 }, "rotation": [0.001, 0, 0, 1] },
+    "camera": { "position": { "x": -24.316, "y": 17.736, "z": 317.026 }, "target": { "x": -26.902, "y": 14.511, "z": 304.448 }, "fov": 48 }
+  },
+  "timber-run": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -333.669, "y": 12.727, "z": 459.906 }, "rotation": [0.001, -0.218, 0, 0.976] },
+    "camera": { "position": { "x": -344.963, "y": 13.698, "z": 450.793 }, "target": { "x": -331.793, "y": 15.943, "z": 452.955 }, "fov": 48 }
+  },
+  "river-mouth": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -450, "y": 3.727, "z": 105.002 }, "rotation": [0.001, 0, 0, 1] },
+    "camera": { "position": { "x": -507.258, "y": 6.71, "z": 131.673 }, "target": { "x": -497.77, "y": 4.927, "z": 140.49 }, "fov": 48 }
+  },
+  "driftwood-strand": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -649.58, "y": 3.727, "z": 575.003 }, "rotation": [0.001, 0, 0, 1] },
+    "camera": { "position": { "x": -659.651, "y": 6.006, "z": 496.712 }, "target": { "x": -661.56, "y": 4.927, "z": 483.655 }, "fov": 48 }
+  },
+  "boulder-shoals": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -603.234, "y": 1.875, "z": -59.997 }, "rotation": [0.002, 0, 0, 1] },
+    "camera": { "position": { "x": -646.118, "y": 5.883, "z": -113.894 }, "target": { "x": -654.002, "y": 3.075, "z": -124.154 }, "fov": 48 }
+  },
+  "fjord-coast": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -608.458, "y": 8.329, "z": 383.403 }, "rotation": [0.019, 0.411, 0.114, 0.904] },
+    "camera": { "position": { "x": -660.346, "y": 12.308, "z": 407.646 }, "target": { "x": -650.102, "y": 9.529, "z": 394.986 }, "fov": 48 }
+  },
+  "outer-headlands": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -667.583, "y": 5.727, "z": -299.997 }, "rotation": [0.001, 0, 0, 1] },
+    "camera": { "position": { "x": -681.793, "y": 8.307, "z": -321.875 }, "target": { "x": -680.515, "y": 6.927, "z": -334.981 }, "fov": 48 }
+  },
+  "stone-circle": {
+    "area": "northern-reach",
+    "car": { "position": { "x": -161.704, "y": 21.201, "z": 679.468 }, "rotation": [-0.031, 0.583, 0.069, 0.809] },
+    "camera": { "position": { "x": -160.634, "y": 31.597, "z": 682.238 }, "target": { "x": -164.735, "y": 27.225, "z": 667.721 }, "fov": 48 }
+  }
+}

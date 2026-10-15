@@ -4,6 +4,60 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Northern Reach postcard views supplied by user — 2026-10-15
+
+- Saved the user's 17 Northern Reach photo-mode views in `artifacts/postcards/northern-reach-photo-views.json`. Pine Hollows was the one supplied view without an existing journal entry; added it as a discoverable card near the southern pine hollow. Northern Reach now has 16 ordinary cards plus the hidden stone circle.
+- Regenerated all 17 car-free JPEGs at 800 × 520 from the exact camera positions, targets and field of view. Inspected a contact sheet; every view rendered. The capture script now requires complete saved-view coverage in both supported locations.
+- Focused postcard unit tests passed **6/6**, including Pine Hollows discovery after driving; the journal browser scenario passed in Chromium and WebKit **2/2**. The production/PWA suite passed **13 tests with three existing WebKit offline scenarios skipped**, confirming the new image is precached. Typecheck and production build passed. No full unit or driving browser suites ran; physical iPad acceptance remains open.
+- User reviewed and accepted all Northern Reach postcard images. **Exact next step:** no recapture is pending; retain the saved views for any later revisions.
+
+### Mars postcard views supplied by user — 2026-10-15
+
+- Saved the user's ten photo-mode view records in `artifacts/postcards/mars-photo-views.json`, including car pose and exact camera position, target, and field of view. They cover all nine Mars regions plus the hidden shuttle; no Mars postcard view is missing.
+- The reproducible postcard capture script now uses those exact Mars camera views and streams detailed terrain around each view. Regenerated all ten car-free `public/postcards/mars/` JPEGs at 800 × 520 and inspected a contact sheet; each image rendered with its intended scene and no blank/missing terrain was observed. The user then supplied a replacement Crown Crater view at (-108.801, 31.365, -248.616); saved it and regenerated that JPEG. The full-size image shows the crater wall clearly.
+- Typecheck and production build passed. The focused Chromium postcard browser scenario passed (1/1), confirming an unlocked Mars postcard still displays its image and survives reload. No full suites or PWA suite ran for this visual capture pass; prior full-suite and physical-device gaps remain unchanged.
+- User reviewed and accepted all Mars postcard images, including the revised Crown Crater. **Exact next step:** no recapture is pending; retain the saved views for any later revisions.
+
+### In-game photo mode for postcard framing — 2026-10-14
+
+- Added a photo mode available while driving in every location. P freezes the car; dragging the scene or using arrow keys adjusts yaw and pitch, WASD moves the camera horizontally, Q/E changes height, and +/− zooms. Shift accelerates movement. H hides the car, U hides the interface, and C copies the area, car pose, and exact camera view for sharing with screenshots. P or Escape returns to driving. The top-bar button was removed to keep the driving interface clear.
+- Streaming follows the camera while composing a shot. On exit, the game restores terrain and collision around the parked car before physics resumes.
+- Postcard JPEGs now live in `public/postcards/northern-reach/` and `public/postcards/mars/`; the journal, capture script, and offline-cache checks use those paths.
+- Backgrounding the browser now preserves photo mode, including its framing and hidden-car/UI choices. Held camera keys and an active drag clear on focus loss. Ordinary driving still opens the pause screen when backgrounded. Focused background-event browser checks passed in Chromium and WebKit (2/2); typecheck and production build passed.
+- Typecheck and production build passed. Focused Mars photo-mode browser scenarios passed in Chromium and WebKit (2/2), including scene dragging and return to driving; Chromium captures from the clean starting view and after dragging were inspected. The PWA suite passed **13 tests, with three existing WebKit offline scenarios skipped**, confirming the relocated images are precached and an unlocked image opens offline in Chromium. No full unit or driving browser suites ran. Last full-suite record remains 2026-10-11.
+- **Exact next step:** user captures and shares preferred landmark screenshots and, if possible, the copied view for each; recapture weak postcard images to match those references and inspect visible landmarks.
+
+### Postcard camera-angle pass — 2026-10-14
+
+- User set a general rule that the landmark must be clearly visible and the postcard camera should usually look a little more from above. Stone Circle needed a modest zoom and more sky; Keyhole Badlands was accepted as-is.
+- Re-captured 25 car-free game images with a modestly higher view for ordinary scenes, individual upward framing for tall Dish Ridge and shuttle landmarks, and a tighter Stone Circle frame that keeps the whole circle visible beneath the sky. The Keyhole image was preserved byte-for-byte. Updated the reproducible capture script with output-directory and skip controls.
+- Inspected representative full-size captures and the 26-image contact sheet. Some regional landmarks still need a better camera position; the higher angle alone does not solve those images. Awaiting the user's reference screenshots before their individual reshoots.
+- Build/typecheck passed; the focused Chromium postcard browser scenario passed. Focused PWA cache/offline checks **3 passed, one existing WebKit offline scenario skipped**. No long suites ran for this image-only pass.
+- **Exact next step:** use the user's landmark screenshots to choose positions and headings for the weak regional images, recapture them, and inspect each against the visible-landmark rule.
+
+### Lava Tubes postcard trigger correction — 2026-10-14
+
+- User reported driving through the tubes without receiving the postcard. The card was anchored at the southern regional start (-455, -275), so a drive through the covered passages from the Crown side could miss its 76 m radius.
+- Moved the main unlock point to the passage centre (-430, -456), covering both tubes, and added a second 76 m zone at the surface lookout for the bypass route. The card still requires eight metres of actual post-spawn/reset/travel driving.
+- Focused postcard unit tests **5/5 passed**, including both passages, bypass, and no early unlock at the southern start. A real Scout drive in the western tube unlocked the card in **Chromium and WebKit (2/2 passed)**. Typecheck and production build passed. No unrelated suites ran.
+- **Exact next step:** user checks the trigger on their route and sends landmark framing references; refine postcard images from those references before committing.
+
+### Postcard presentation follow-up — 2026-10-14
+
+- User feedback: make secret cards more distinctive, replace “Unknown place,” enlarge unlocked images, make discovery notices easier to see, and turn the journal entry button into a photo-stack tile.
+- Locked secrets now use a purple/gold card with a star and “Secret discovery.” Home and pause journal tiles show a layered photo preview and progress. Unlocked photos open a large dialog with the original game image, note and visit date; Escape and the close button return to the journal. The discovery notice uses that image, stronger contrast, and animated entrance/exit.
+- Focused Chromium/WebKit journal browser scenarios **4/4 passed**. Typecheck and production build passed. A focused Chromium PWA scenario opened an enlarged postcard while offline; WebKit's automated offline scenario remains skipped pending physical iPad Safari review. No full unit/browser suites ran for this presentation follow-up.
+- **Exact next step:** review the revised journal and discovery notice in game; refine only the visual details the user identifies before committing.
+
+### Postcard journal for Northern Reach and Mars — 2026-10-14
+
+- Added a fresh journal on the home and pause screens for these two worlds. It contains 15 Northern regions plus the hidden stone circle, and nine Mars regions plus the hidden shuttle. Locked secret cards conceal their names. Unlocked cards show car-free game captures, authored notes and the first visit date; records persist in local storage.
+- A driving pass near each place unlocks its card at any speed after eight metres of post-spawn, post-reset or post-travel movement. Segment checks cover motion between frames; teleports and other world visits cannot unlock a card. A short notice appears during play without interrupting driving.
+- Generated and inspected 26 current-game JPEG captures (800 × 520, about 377 KiB total), including the stone circle, dish and buried shuttle. The capture script is in `artifacts/postcards/`.
+- Focused postcard unit tests **4/4 passed**. Journal browser scenarios **4/4 passed** across Chromium and WebKit, including actual driving and reload persistence. Typecheck and production build passed. PWA suite **12 passed, 2 existing WebKit offline scenarios skipped**; new postcard images were confirmed in the offline cache in both engines.
+- No full unit/browser suites ran for this scoped journal UI and persistence addition. Last full-suite record remains 2026-10-11. Physical iPad Safari review, including offline reload, remains open.
+- **Exact next step:** review the journal and its 26 images in game, then adjust any framing or copy the user identifies before committing.
+
 ### Focused shuttle verification — 2026-10-14
 
 - User authorized the proposed focused wreck unit tests and Chromium scenario after accepting/pushing `8f9ae20`.

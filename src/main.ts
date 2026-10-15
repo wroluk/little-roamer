@@ -20,6 +20,7 @@ import { TerrainEffects } from './game/terrain-effects';
 import { Controls, element } from './ui/controls';
 import { registerOfflinePlay } from './pwa';
 import { navigationReading } from './game/navigation';
+import { POSTCARDS, POSTCARD_STORAGE_KEY, PostcardTracker, readPostcardRecords, type Postcard } from './game/postcards';
 
 type Mode = 'loading' | 'ready' | 'playing' | 'paused' | 'error';
 let mode: Mode = 'loading';
@@ -29,6 +30,8 @@ const hasFailed = () => mode === 'error';
 function showError(error: unknown) {
   mode = 'error';
   controls?.setEnabled(false);
+  document.body.classList.remove('photo-mode', 'photo-clean');
+  element('photo-panel').hidden = true;
   element('welcome').hidden = true;
   element('paused').hidden = true;
   element('travelling').hidden = true;
@@ -169,6 +172,12 @@ async function boot() {
     return;
   }
   let { scene, world, vehicle, follow, terrainEffects, runtime } = initial;
+  let postcardRecords: ReturnType<typeof readPostcardRecords> = [];
+  try { postcardRecords = readPostcardRecords(window.localStorage); } catch { /* Storage is optional. */ }
+  const foundPostcards = new Set(postcardRecords.map(record => record.id));
+  const postcardTracker = new PostcardTracker(foundPostcards, vehicle.position.x, vehicle.position.z);
+  let postcardNoticeTimer = 0;
+  let postcardNoticeHideTimer = 0;
   const areaPicker = element<HTMLFieldSetElement>('area-picker');
   const areaInputs = [...areaPicker.querySelectorAll<HTMLInputElement>('input[name="area"]')];
   const carPicker = element<HTMLFieldSetElement>('car-picker');
@@ -176,6 +185,7 @@ async function boot() {
   const setHomeControlsEnabled = (enabled: boolean) => {
     areaPicker.disabled = !enabled;
     carPicker.disabled = !enabled;
+    element<HTMLButtonElement>('open-journal').disabled = !enabled;
   };
   const syncCarPicker = () => {
     for (const input of carInputs) {
@@ -211,6 +221,12 @@ async function boot() {
     camera.fov = 48;
     camera.updateProjectionMatrix();
     document.body.dataset.area = area.id;
+    const journalAvailable = area.id === 'northern-reach' || area.id === 'mars';
+    element('open-journal').hidden = !journalAvailable;
+    element('pause-journal').hidden = !journalAvailable;
+    if (journalAvailable) for (const id of ['home-journal-preview', 'pause-journal-preview']) {
+      element<HTMLImageElement>(id).src = `./locations/${area.id}.jpg`;
+    }
     syncAreaPicker();
     element('welcome-description').textContent = area.description;
     element('welcome-eyebrow').textContent = area.welcomeEyebrow;
@@ -223,6 +239,95 @@ async function boot() {
       ? 'Return to the nearest regional start (R)' : `Return to the ${area.name} starting area (R)`;
   }
   presentArea();
+  const journal = element('journal');
+  const journalGrid = element('journal-grid');
+  const postcardDetail = element('postcard-detail');
+  let detailReturnFocus: HTMLButtonElement | null = null;
+  let journalReturn: 'ready' | 'paused' = 'ready';
+  const openPostcardDetail = (card: Postcard, record: { discoveredAt: string }, source: HTMLButtonElement) => {
+    detailReturnFocus = source;
+    element<HTMLImageElement>('postcard-detail-image').src = card.image;
+    element<HTMLImageElement>('postcard-detail-image').alt = `View of ${card.name}`;
+    element('postcard-detail-title').textContent = card.name;
+    element('postcard-detail-note').textContent = card.note;
+    element('postcard-detail-date').textContent = `FIRST VISITED · ${new Date(record.discoveredAt).toLocaleDateString()}`;
+    journal.hidden = true;
+    postcardDetail.hidden = false;
+    element('close-postcard-detail').focus();
+  };
+  const closePostcardDetail = () => {
+    if (postcardDetail.hidden) return;
+    postcardDetail.hidden = true;
+    journal.hidden = false;
+    detailReturnFocus?.focus();
+  };
+  const renderJournal = () => {
+    const cards = POSTCARDS.filter(card => card.area === area.id);
+    journalGrid.replaceChildren(...cards.map(card => {
+      const record = postcardRecords.find(item => item.id === card.id);
+      const article = document.createElement('article'); article.className = `journal-card${card.secret ? ' secret' : ''}${record ? '' : ' locked'}`;
+      const picture = document.createElement(record ? 'button' : 'div'); picture.className = `journal-picture${record ? ' journal-photo-button' : ''}`;
+      if (record) {
+        const button = picture as HTMLButtonElement; button.type = 'button';
+        button.setAttribute('aria-label', `Enlarge ${card.name} postcard`);
+        button.addEventListener('click', () => openPostcardDetail(card, record, button));
+        const img = document.createElement('img'); img.src = card.image; img.alt = `View of ${card.name}`;
+        img.loading = 'lazy'; picture.append(img);
+      } else {
+        const mark = document.createElement('span'); mark.textContent = card.secret ? '✦' : '?'; mark.setAttribute('aria-hidden', 'true'); picture.append(mark);
+      }
+      const heading = document.createElement('h3'); heading.textContent = record ? card.name : card.secret ? 'Secret discovery' : card.name;
+      const note = document.createElement('p'); note.textContent = record ? card.note : card.secret ? 'Something hidden is waiting to be found.' : 'A place still waiting to be visited.';
+      const date = document.createElement('small'); date.textContent = record
+        ? `FIRST VISITED · ${new Date(record.discoveredAt).toLocaleDateString()}` : card.secret ? 'A LITTLE MYSTERY' : 'UNDISCOVERED';
+      article.append(picture, heading, note, date); return article;
+    }));
+    const collected = cards.filter(card => foundPostcards.has(card.id)).length;
+    element('journal-title').textContent = `${area.name} · Postcards`;
+    element('journal-count').textContent = `${collected} of ${cards.length} places visited`;
+    element('home-journal-count').textContent = `${collected}/${cards.length}`;
+    element('pause-journal-count').textContent = `${collected}/${cards.length}`;
+  };
+  const openJournal = () => {
+    if ((mode !== 'ready' && mode !== 'paused') || (area.id !== 'northern-reach' && area.id !== 'mars')) return;
+    journalReturn = mode; renderJournal();
+    element('welcome').hidden = true; element('paused').hidden = true; journal.hidden = false;
+    element('close-journal').focus();
+  };
+  const closeJournal = () => {
+    if (journal.hidden) return;
+    journal.hidden = true;
+    element(journalReturn === 'ready' ? 'welcome' : 'paused').hidden = false;
+    element(journalReturn === 'ready' ? 'open-journal' : 'pause-journal').focus();
+  };
+  element('open-journal').addEventListener('click', openJournal);
+  element('pause-journal').addEventListener('click', openJournal);
+  element('close-journal').addEventListener('click', closeJournal);
+  element('close-postcard-detail').addEventListener('click', closePostcardDetail);
+  window.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    if (!postcardDetail.hidden) { event.preventDefault(); closePostcardDetail(); }
+    else if (!journal.hidden) { event.preventDefault(); closeJournal(); }
+  }, true);
+  const rememberPostcard = (card: Postcard) => {
+    postcardRecords.push({ id: card.id, discoveredAt: new Date().toISOString() });
+    try { window.localStorage.setItem(POSTCARD_STORAGE_KEY, JSON.stringify(postcardRecords)); } catch { /* Storage is optional. */ }
+    renderJournal();
+    const notice = element('postcard-notice');
+    element('postcard-notice-name').textContent = card.name;
+    element<HTMLImageElement>('postcard-notice-image').src = card.image;
+    window.clearTimeout(postcardNoticeTimer);
+    window.clearTimeout(postcardNoticeHideTimer);
+    notice.classList.remove('visible');
+    notice.hidden = false;
+    void notice.offsetWidth;
+    notice.classList.add('visible');
+    postcardNoticeTimer = window.setTimeout(() => {
+      notice.classList.remove('visible');
+      postcardNoticeHideTimer = window.setTimeout(() => { notice.hidden = true; }, 450);
+    }, 5000);
+  };
+  renderJournal();
   const clock = new FixedClock();
   let lastTime = performance.now();
   let toastTimer = 0;
@@ -286,12 +391,154 @@ async function boot() {
     canvas.classList.remove('camera-dragging');
     if (canvas.hasPointerCapture(pointer)) canvas.releasePointerCapture(pointer);
   };
+  type PhotoState = { target: THREE.Vector3; yaw: number; pitch: number; distance: number; carWasVisible: boolean };
+  let photoState: PhotoState | null = null;
+  const photoKeys = new Set<string>();
+  const photoHoldCodes = new Set([
+    'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+    'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE',
+    'Equal', 'Minus', 'NumpadAdd', 'NumpadSubtract', 'ShiftLeft', 'ShiftRight',
+  ]);
+  const enterPhotoMode = () => {
+    if (mode !== 'playing' || photoState) return;
+    clearCameraDrag();
+    controls?.setEnabled(false);
+    clock.reset();
+    const target = vehicle.model.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+    const offset = camera.position.clone().sub(target);
+    photoState = {
+      target,
+      yaw: Math.atan2(offset.x, offset.z),
+      pitch: Math.atan2(offset.y, Math.hypot(offset.x, offset.z)),
+      distance: offset.length(),
+      carWasVisible: vehicle.model.visible,
+    };
+    photoKeys.clear();
+    document.body.classList.add('photo-mode');
+    element('photo-panel').hidden = false;
+    element('photo-copy-status').textContent = '';
+    element<HTMLButtonElement>('photo-car').textContent = 'Hide car';
+    element<HTMLButtonElement>('photo-ui').textContent = 'Hide UI';
+    element('photo-exit').focus();
+  };
+  const leavePhotoMode = (pauseAfter = false) => {
+    if (!photoState) return;
+    clearCameraDrag();
+    vehicle.model.visible = photoState.carWasVisible;
+    photoState = null;
+    photoKeys.clear();
+    document.body.classList.remove('photo-mode', 'photo-clean');
+    element('photo-panel').hidden = true;
+    clock.reset();
+    follow.reset();
+    if (!runtime) {
+      controls?.setEnabled(mode === 'playing');
+      if (pauseAfter || document.hidden) pause();
+      else (document.activeElement as HTMLElement | null)?.blur();
+      return;
+    }
+    mode = 'loading';
+    element('travelling').hidden = false;
+    element('travel-status').textContent = 'Returning to the car...';
+    void runtime.ensureReady(vehicle.position.x, vehicle.position.z).then(() => {
+      if (hasFailed()) return;
+      world.step();
+      mode = 'playing';
+      element('travelling').hidden = true;
+      controls?.setEnabled(true);
+      clock.reset();
+      lastTime = performance.now();
+      follow.reset();
+      if (pauseAfter || document.hidden) pause();
+      else (document.activeElement as HTMLElement | null)?.blur();
+    }).catch(showError);
+  };
+  const togglePhotoCar = () => {
+    if (!photoState) return;
+    vehicle.model.visible = !vehicle.model.visible;
+    element<HTMLButtonElement>('photo-car').textContent = vehicle.model.visible ? 'Hide car' : 'Show car';
+  };
+  const togglePhotoUi = () => {
+    if (!photoState) return;
+    const hidden = document.body.classList.toggle('photo-clean');
+    element<HTMLButtonElement>('photo-ui').textContent = hidden ? 'Show UI' : 'Hide UI';
+  };
+  const copyPhotoView = async () => {
+    if (!photoState) return;
+    const rounded = (value: number) => Number(value.toFixed(3));
+    const point = (value: THREE.Vector3) => ({ x: rounded(value.x), y: rounded(value.y), z: rounded(value.z) });
+    const view = JSON.stringify({
+      area: area.id,
+      car: { position: point(vehicle.model.position), rotation: vehicle.model.quaternion.toArray().map(rounded) },
+      camera: { position: point(camera.position), target: point(photoState.target), fov: camera.fov },
+    }, null, 2);
+    try {
+      await navigator.clipboard.writeText(view);
+      element('photo-copy-status').textContent = 'View copied. Paste it with your screenshot.';
+    } catch {
+      element('photo-copy-status').textContent = 'Clipboard unavailable. Use the browser screenshot.';
+    }
+  };
+  window.addEventListener('keydown', event => {
+    if (!photoState && event.code === 'KeyP' && mode === 'playing') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!event.repeat) enterPhotoMode();
+      return;
+    }
+    if (!photoState) return;
+    if (event.code === 'KeyP' || event.code === 'Escape' || event.code === 'KeyH'
+      || event.code === 'KeyU' || event.code === 'KeyC' || photoHoldCodes.has(event.code)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (event.repeat) return;
+      if (event.code === 'KeyP' || event.code === 'Escape') leavePhotoMode();
+      else if (event.code === 'KeyH') togglePhotoCar();
+      else if (event.code === 'KeyU') togglePhotoUi();
+      else if (event.code === 'KeyC') void copyPhotoView();
+      else photoKeys.add(event.code);
+    }
+  }, true);
+  window.addEventListener('keyup', event => {
+    if (!photoState || !photoHoldCodes.has(event.code)) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    photoKeys.delete(event.code);
+  }, true);
+  element('photo-exit').addEventListener('click', () => leavePhotoMode());
+  element('photo-car').addEventListener('click', togglePhotoCar);
+  element('photo-ui').addEventListener('click', togglePhotoUi);
+  element('photo-copy').addEventListener('click', () => { void copyPhotoView(); });
+  const updatePhotoCamera = (elapsed: number) => {
+    if (!photoState) return;
+    const pressed = (code: string) => Number(photoKeys.has(code));
+    const turnSpeed = 1.2 * elapsed;
+    photoState.yaw += (pressed('ArrowRight') - pressed('ArrowLeft')) * turnSpeed;
+    photoState.pitch = THREE.MathUtils.clamp(photoState.pitch
+      + (pressed('ArrowUp') - pressed('ArrowDown')) * turnSpeed, -0.65, 1.45);
+    const zoom = pressed('Minus') + pressed('NumpadSubtract') - pressed('Equal') - pressed('NumpadAdd');
+    photoState.distance = THREE.MathUtils.clamp(photoState.distance * Math.exp(zoom * 1.5 * elapsed), 2, 100);
+    const move = (photoKeys.has('ShiftLeft') || photoKeys.has('ShiftRight') ? 36 : 12) * elapsed;
+    const forward = (pressed('KeyW') - pressed('KeyS')) * move;
+    const right = (pressed('KeyD') - pressed('KeyA')) * move;
+    photoState.target.x += -Math.sin(photoState.yaw) * forward + Math.cos(photoState.yaw) * right;
+    photoState.target.z += -Math.cos(photoState.yaw) * forward - Math.sin(photoState.yaw) * right;
+    photoState.target.y += (pressed('KeyE') - pressed('KeyQ')) * move;
+    const horizontal = photoState.distance * Math.cos(photoState.pitch);
+    camera.position.set(
+      photoState.target.x + horizontal * Math.sin(photoState.yaw),
+      photoState.target.y + photoState.distance * Math.sin(photoState.pitch),
+      photoState.target.z + horizontal * Math.cos(photoState.yaw),
+    );
+    camera.lookAt(photoState.target);
+  };
   const pause = () => {
     if (mode === 'loading' && resetInProgress) {
       pauseAfterReset = true;
       return;
     }
     if (mode !== 'playing') return;
+    if (photoState) { leavePhotoMode(true); return; }
     mode = 'paused';
     clearCameraDrag();
     controls?.setEnabled(false);
@@ -358,6 +605,7 @@ async function boot() {
       vehicle.capture();
     }
     vehicle.syncVisuals(1);
+    postcardTracker.reset(vehicle.position.x, vehicle.position.z);
     terrainEffects.clear();
     clock.reset();
     follow.reset();
@@ -395,7 +643,7 @@ async function boot() {
     );
     cameraHorizontalDirection = horizontalDragDirection(
       terrainHit?.timeOfImpact ?? null,
-      camera.position.distanceTo(vehicle.model.position),
+      camera.position.distanceTo(photoState?.target ?? vehicle.model.position),
     );
     cameraPointer = event.pointerId;
     cameraPointerX = event.clientX;
@@ -408,10 +656,12 @@ async function boot() {
     event.preventDefault();
     const width = Math.max(1, canvas.clientWidth);
     const height = Math.max(1, canvas.clientHeight);
-    follow.orbit(
-      cameraHorizontalDirection * (event.clientX - cameraPointerX) / width * Math.PI * 2,
-      (event.clientY - cameraPointerY) / height * Math.PI,
-    );
+    const yaw = cameraHorizontalDirection * (event.clientX - cameraPointerX) / width * Math.PI * 2;
+    const pitch = (event.clientY - cameraPointerY) / height * Math.PI;
+    if (photoState) {
+      photoState.yaw += yaw;
+      photoState.pitch = THREE.MathUtils.clamp(photoState.pitch + pitch, -0.65, 1.45);
+    } else follow.orbit(yaw, pitch);
     cameraPointerX = event.clientX;
     cameraPointerY = event.clientY;
   });
@@ -479,10 +729,12 @@ async function boot() {
     world.free();
     disposeScene(scene);
     ({ scene, world, vehicle, follow, terrainEffects, runtime } = next);
+    postcardTracker.reset(vehicle.position.x, vehicle.position.z);
     terrainEffects.setReduced(graphicsReduced);
     area = AREAS[id];
     syncCarPicker();
     presentArea();
+    renderJournal();
     renderer.renderLists.dispose();
     playingTime = 0;
     slowFrames = 0;
@@ -511,13 +763,21 @@ async function boot() {
     }
     void travel(id).catch(showError);
   });
-  window.addEventListener('blur', pause);
+  const suspendForBackground = () => {
+    if (photoState) {
+      photoKeys.clear();
+      clearCameraDrag();
+      return;
+    }
+    pause();
+  };
+  window.addEventListener('blur', suspendForBackground);
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) pause();
+    if (document.hidden) suspendForBackground();
     clock.reset();
     lastTime = performance.now();
   });
-  window.addEventListener('pagehide', pause);
+  window.addEventListener('pagehide', suspendForBackground);
 
   const resize = () => {
     const { width, height } = canvas.getBoundingClientRect();
@@ -585,6 +845,7 @@ async function boot() {
           vehicle.previousPosition.copy(vehicle.position);
           vehicle.previousRotation.copy(vehicle.rotation);
           vehicle.syncVisuals(1);
+          postcardTracker.reset(vehicle.position.x, vehicle.position.z);
           vehicle.model.visible = true;
           clock.reset();
           follow.reset();
@@ -592,6 +853,22 @@ async function boot() {
           if (previousMode === 'playing') controls?.setEnabled(true);
         },
         waitForStreamingIdle: () => runtime?.waitForIdle() ?? Promise.resolve(),
+        setPhotoView: async (view: { position: { x: number; y: number; z: number };
+          target: { x: number; y: number; z: number }; fov: number }) => {
+          if (mode !== 'playing') throw new Error('Start driving before setting a photo view.');
+          enterPhotoMode();
+          if (!photoState) throw new Error('Photo mode did not start.');
+          photoState.target.set(view.target.x, view.target.y, view.target.z);
+          const offset = new THREE.Vector3(view.position.x, view.position.y, view.position.z).sub(photoState.target);
+          photoState.yaw = Math.atan2(offset.x, offset.z);
+          photoState.pitch = Math.atan2(offset.y, Math.hypot(offset.x, offset.z));
+          photoState.distance = offset.length();
+          camera.fov = view.fov;
+          camera.updateProjectionMatrix();
+          vehicle.model.visible = false;
+          updatePhotoCamera(0);
+          await runtime?.ensureReady(view.target.x, view.target.z);
+        },
         get vehicle() { return vehicle; },
         get world() { return world; },
         get follow() { return follow; },
@@ -607,6 +884,14 @@ async function boot() {
     const elapsed = Math.max(0, (now - lastTime) / 1000);
     lastTime = now;
     if (document.hidden || mode === 'paused' || mode === 'loading') return;
+    if (photoState) {
+      updatePhotoCamera(Math.min(elapsed, 0.05));
+      runtime?.update(photoState.target.x, photoState.target.z);
+      sun.target.position.copy(photoState.target);
+      sun.position.copy(photoState.target).add(sunOffset);
+      renderer.render(scene, camera);
+      return;
+    }
     if (mode === 'playing') {
       runtime?.update(vehicle.position.x, vehicle.position.z);
       const alpha = clock.advance(elapsed, dt => {
@@ -622,6 +907,7 @@ async function boot() {
         vehicle.capture();
       });
       vehicle.syncVisuals(alpha);
+      for (const card of postcardTracker.update(area.id, vehicle.position.x, vehicle.position.z)) rememberPostcard(card);
       updateNavigation();
       terrainEffects.update(Math.min(elapsed, 0.05), vehicle, controls!.state.value);
       const surface = vehicle.currentSurface;

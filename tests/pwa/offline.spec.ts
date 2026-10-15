@@ -39,6 +39,30 @@ test('production exposes Mars and Scout and precaches their assets', async ({ pa
   for (const area of ['northern-reach', 'valley', 'highlands', 'samurai-village', 'mars']) {
     expect(cached.some(url => url.includes(`/locations/${area}.jpg`))).toBe(true);
   }
+  for (const [area, postcard] of [
+    ['northern-reach', 'pine-hollows'], ['northern-reach', 'river-valley'], ['northern-reach', 'stone-circle'],
+    ['mars', 'habitat-seven'], ['mars', 'shuttle-wreck'],
+  ]) {
+    expect(cached.some(url => url.includes(`/postcards/${area}/${postcard}.jpg`))).toBe(true);
+  }
+});
+
+test('an unlocked postcard opens at full size while offline', async ({ page, context, browserName }) => {
+  test.skip(browserName === 'webkit', 'Playwright WebKit offline navigation remains unreliable; keep iPad Safari offline review.');
+  await page.addInitScript(() => localStorage.setItem('little-roamer-postcards-v1',
+    JSON.stringify([{ id: 'habitat-seven', discoveredAt: '2026-10-14T12:00:00.000Z' }])));
+  await page.goto('/?area=mars');
+  await expect(page.locator('#offline-status')).toHaveText('Ready to play offline');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  await context.setOffline(true);
+  try {
+    await page.locator('#open-journal').click();
+    await page.locator('#journal-grid .journal-photo-button').first().click();
+    await expect(page.locator('#postcard-detail-image')).toHaveJSProperty('naturalWidth', 800);
+    await expect(page.locator('#postcard-detail')).toBeVisible();
+  } finally { await context.setOffline(false); }
 });
 
 test('production home picker restricts cars by world and remembers the Earth car', async ({ page }) => {

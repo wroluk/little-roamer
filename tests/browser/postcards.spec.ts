@@ -1,0 +1,77 @@
+import { expect, test } from '@playwright/test';
+import { LAVA_TUBES, tubePoint } from '../../src/game/mars-tubes-layout';
+
+test('journal appears only on supported home and pause screens and shows this world only', async ({ page }) => {
+  await page.goto('/?area=valley');
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('#open-journal')).toBeHidden();
+  await page.locator('input[name="area"][value="northern-reach"]').check();
+  await expect(page.locator('#open-journal')).toBeVisible();
+  await page.locator('#open-journal').click();
+  await expect(page.locator('#journal-grid .journal-card')).toHaveCount(17);
+  await expect(page.locator('#journal-grid')).toContainText('Secret discovery');
+  await expect(page.locator('#journal-grid .journal-card.secret.locked')).toHaveCount(1);
+  await expect(page.locator('#journal-grid')).not.toContainText('Stone Circle');
+  await expect(page.locator('#journal-grid')).not.toContainText('Buried Shuttle');
+  await page.locator('#close-journal').click();
+  await page.locator('input[name="area"][value="mars"]').check();
+  await page.locator('#open-journal').click();
+  await expect(page.locator('#journal-grid .journal-card')).toHaveCount(10);
+  await expect(page.locator('#journal-grid .journal-card.secret.locked')).toHaveCount(1);
+  await expect(page.locator('#journal-grid')).not.toContainText('River Valley');
+  await page.locator('#close-journal').click();
+  await page.locator('#start').click();
+  await expect(page.locator('#open-journal')).toBeHidden();
+  await expect(page.locator('#journal')).toBeHidden();
+  await page.locator('#pause').click();
+  await expect(page.locator('#pause-journal')).toBeVisible();
+  await page.locator('#pause-journal').click();
+  await expect(page.locator('#journal')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#paused')).toBeVisible();
+});
+
+test('a short real drive unlocks a postcard and the entry survives reload', async ({ page }) => {
+  await page.goto('/?area=mars');
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('#start').click();
+  await expect(page.locator('#postcard-notice')).toBeHidden();
+  await page.keyboard.down('KeyW');
+  await expect(page.locator('#postcard-notice-name')).toHaveText('Habitat Seven', { timeout: 15_000 });
+  await page.keyboard.up('KeyW');
+  await expect(page.locator('#postcard-notice')).toBeVisible();
+  await expect(page.locator('#postcard-notice')).toHaveClass(/visible/);
+  await expect(page.locator('#postcard-notice-image')).toHaveJSProperty('naturalWidth', 800);
+  await page.locator('#pause').click();
+  await page.locator('#pause-journal').click();
+  await expect(page.locator('#journal-count')).toHaveText('1 of 10 places visited');
+  await expect(page.locator('#journal-grid .journal-card').first().locator('img')).toBeVisible();
+  await expect(page.locator('#journal-grid .journal-card').first()).toContainText('FIRST VISITED');
+  await page.locator('#journal-grid .journal-photo-button').first().click();
+  await expect(page.locator('#postcard-detail')).toBeVisible();
+  await expect(page.locator('#postcard-detail-image')).toHaveJSProperty('naturalWidth', 800);
+  await expect(page.locator('#postcard-detail-title')).toHaveText('Habitat Seven');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#journal')).toBeVisible();
+  await page.reload();
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('#open-journal').click();
+  await expect(page.locator('#journal-count')).toHaveText('1 of 10 places visited');
+});
+
+test('driving the western Lava Tube unlocks its postcard away from the regional start', async ({ page }) => {
+  await page.goto('/?area=mars&start=lava-tubes');
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('#start').click();
+  const entry = tubePoint(LAVA_TUBES[1], -510);
+  await page.evaluate(async point => {
+    await (window as unknown as { __ROAMER__: { placeVehicle(x: number, z: number, heading: number): Promise<void> } })
+      .__ROAMER__.placeVehicle(point.x, point.z, Math.PI);
+  }, entry);
+  await page.keyboard.down('KeyW');
+  try { await expect(page.locator('#postcard-notice-name')).toHaveText('Lava Tubes', { timeout: 20_000 }); }
+  finally { await page.keyboard.up('KeyW'); }
+  await page.locator('#pause').click();
+  await page.locator('#pause-journal').click();
+  await expect(page.locator('#journal-grid .journal-card').filter({ hasText: 'Lava Tubes' })).toContainText('FIRST VISITED');
+});
