@@ -643,7 +643,7 @@ export class NorthernStreamingRuntime {
   private readonly colliderRadius: number;
   private readonly activationBudgetPerUpdate: number;
   private readonly propPools: InstancedPropPool[][];
-  private readonly terrainMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, flatShading: true });
+  private readonly terrainMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92 });
   private readonly waterMaterial = new THREE.MeshStandardMaterial({
     vertexColors: true, roughness: 0.35, metalness: 0.05, transparent: true, opacity: 0.88,
   });

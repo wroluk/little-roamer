@@ -47,8 +47,11 @@ test('Mars pilot presents the Scout, habitat and crater views; regional reset an
   await page.waitForTimeout(500);
   await page.screenshot({ path: info.outputPath('scout-front.png') });
   await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.follow.orbit(-2.4, -0.12));
+  await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.follow.orbit(0, 0.28));
   await page.evaluate(p => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(p.x, p.z, Math.PI), CROWN_LOOKOUT);
   await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+  await expect.poll(async () => (await state(page)).streaming.queued).toBe(0);
+  await page.waitForTimeout(1000);
   expect((await state(page)).cameraObstructed).toBe(false);
   await page.screenshot({ path: info.outputPath('crown-overlook.png') });
   await page.locator('#reset').click(); await expect(page.locator('#toast')).toHaveText('Back at Crown Crater');

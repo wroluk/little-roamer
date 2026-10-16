@@ -46,7 +46,7 @@ export class MarsStreamingRuntime {
   private physics = new Set<string>();
   private disposed = false;
   private lastActivationMs = 0;
-  private material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true });
+  private material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 });
   private horizon: THREE.Mesh;
   private horizonTiles = new Map<string, { start: number; count: number; visible: boolean }>();
   private horizonSourceIndices: Uint32Array;

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { LAVA_TUBES, tubePoint } from '../../src/game/mars-tubes-layout';
+import { POSTCARD_STORAGE_KEY } from '../../src/game/postcards';
+import { inletCenterX } from '../../src/game/northern-watershed';
 
 test('journal appears only on supported home and pause screens and shows this world only', async ({ page }) => {
   await page.goto('/?area=valley');
@@ -31,7 +33,7 @@ test('journal appears only on supported home and pause screens and shows this wo
   await expect(page.locator('#paused')).toBeVisible();
 });
 
-test('a short real drive unlocks a postcard and the entry survives reload', async ({ page }) => {
+test('a short real drive unlocks a clickable postcard notice and the entry survives reload', async ({ page }) => {
   await page.goto('/?area=mars');
   await expect(page.locator('#start')).toBeEnabled();
   await page.locator('#start').click();
@@ -42,6 +44,12 @@ test('a short real drive unlocks a postcard and the entry survives reload', asyn
   await expect(page.locator('#postcard-notice')).toBeVisible();
   await expect(page.locator('#postcard-notice')).toHaveClass(/visible/);
   await expect(page.locator('#postcard-notice-image')).toHaveJSProperty('naturalWidth', 800);
+  await page.locator('#postcard-notice').click();
+  await expect(page.locator('#journal')).toBeVisible();
+  await expect(page.locator('#journal-grid .journal-photo-button').first()).toBeFocused();
+  await page.locator('#close-journal').click();
+  await expect(page.locator('#journal')).toBeHidden();
+  await expect(page.locator('#pause')).toBeEnabled();
   await page.locator('#pause').click();
   await page.locator('#pause-journal').click();
   await expect(page.locator('#journal-count')).toHaveText('1 of 10 places visited');
@@ -59,6 +67,25 @@ test('a short real drive unlocks a postcard and the entry survives reload', asyn
   await expect(page.locator('#journal-count')).toHaveText('1 of 10 places visited');
 });
 
+test('an unlocked secret postcard has a distinct journal card and detail view', async ({ page }, info) => {
+  await page.addInitScript(key => localStorage.setItem(key, JSON.stringify([
+    { id: 'shuttle-wreck', discoveredAt: '2026-10-16T12:00:00.000Z' },
+  ])), POSTCARD_STORAGE_KEY);
+  await page.goto('/?area=mars');
+  await expect(page.locator('#open-journal')).toBeEnabled();
+  await page.locator('#open-journal').click();
+  const secret = page.locator('#journal-grid .journal-card.secret:not(.locked)');
+  await expect(secret).toHaveCount(1);
+  await expect(secret.locator('.journal-secret-badge')).toHaveText('✦ SECRET DISCOVERY');
+  await expect(secret).toHaveCSS('background-image', /gradient/);
+  await secret.scrollIntoViewIfNeeded();
+  await secret.screenshot({ path: info.outputPath('unlocked-secret-card.png') });
+  await secret.locator('.journal-photo-button').click();
+  await expect(page.locator('#postcard-detail .postcard-detail')).toHaveClass(/secret/);
+  await expect(page.locator('#postcard-detail-title')).toHaveText('Buried Shuttle');
+  await page.locator('#postcard-detail .postcard-detail').screenshot({ path: info.outputPath('unlocked-secret-detail.png') });
+});
+
 test('driving the western Lava Tube unlocks its postcard away from the regional start', async ({ page }) => {
   await page.goto('/?area=mars&start=lava-tubes');
   await expect(page.locator('#start')).toBeEnabled();
@@ -74,4 +101,19 @@ test('driving the western Lava Tube unlocks its postcard away from the regional 
   await page.locator('#pause').click();
   await page.locator('#pause-journal').click();
   await expect(page.locator('#journal-grid .journal-card').filter({ hasText: 'Lava Tubes' })).toContainText('FIRST VISITED');
+});
+
+test('a short drive on the far Alder River bank unlocks its postcard', async ({ page }) => {
+  await page.goto('/?area=northern-reach&start=alder-river');
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('#start').click();
+  await page.evaluate(point => (window as unknown as {
+    __ROAMER__: { placeVehicle(x: number, z: number, heading: number): Promise<void> };
+  }).__ROAMER__.placeVehicle(point.x, point.z, 0), { x: inletCenterX(-470) + 42, z: -470 });
+  await expect(page.locator('#postcard-notice')).toBeHidden();
+  await page.keyboard.down('KeyW');
+  try { await expect(page.locator('#postcard-notice-name')).toHaveText('Alder River', { timeout: 15_000 }); }
+  finally { await page.keyboard.up('KeyW'); }
+  const records = await page.evaluate(key => JSON.parse(localStorage.getItem(key) ?? '[]') as { id: string }[], POSTCARD_STORAGE_KEY);
+  expect(records.some(record => record.id === 'alder-river')).toBe(true);
 });

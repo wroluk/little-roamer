@@ -4,6 +4,40 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Northern Reach postcard route audit and journal presentation — 2026-10-16
+
+- Audited every authored Northern Reach trail in both directions against the postcard tracker. Several far-side trails missed their start-centred circle, including Gravel Ford and the long Alder bank, the River Mouth south spit, and separate mountain/forest spurs. Added visit zones on those ordinary routes. Alder River now has discovery points at both fords and along five upstream bank stretches, including the far end, so a drive along the river need not pass one fixed spot. Stone Circle retains its small secret visit circle.
+- Tracker tests cover all authored trails in both directions and four independent Alder bank stretches in both directions. All ten focused postcard unit tests passed. Focused real-driving far-upstream Alder and journal presentation scenarios passed in Chromium and WebKit (6/6).
+- Recaptured all 27 Mars and Northern Reach postcard JPEGs from the saved photo views after the terrain lighting change. Inspected contact sheets for both worlds; all scenes and landmarks rendered. Unlocked secret postcard cards and details now use a dark background, gold border, and clear discovery badge. The discovery notice opens the journal focused on its card and returns to driving when closed. Inspected full Chromium captures of the secret card and detail.
+- Typecheck and production build passed. The six focused Chromium/WebKit browser checks passed; the secret card capture scenario passed again in Chromium after adding full card/detail screenshots. No full browser/unit or PWA suite ran per the user's instruction to avoid long tests. Last full-suite run remains 2026-10-11; existing WebKit touch/offline automation gaps and physical iPad review remain open.
+- **Exact next step:** commit and push these accepted lighting, postcard image, presentation, and discovery-route changes. If a particular Northern off-road path still misses, record its car coordinates and add a local visit zone.
+
+### Fossil Delta and Rust Dunes postcard routes — 2026-10-16
+
+- User reported that the ordinary cards sometimes appeared only on a second approach. Their single 76 m start-centred circles missed alternate branches and arrivals from the far end. Added visit zones on the Delta northern/southern channels, sediment shelf, and western junction, and on the Dunes bedrock perimeter, crescent crest, and island loop. Cards still require at least 8 m of actual driving after spawn/reset/teleport; no route, collision, landmark or image changed.
+- Focused tracker tests cover each of the six through routes in both directions and passed (8 postcard tests total). Focused real-Scout feature drives in Chromium and WebKit verified first-pass saved discoveries for both regions (4/4 passed). Typecheck and production build passed.
+- The PWA suite started before the user instructed us to stop long tests. It was interrupted immediately on that instruction: eight Chromium cases had passed; one WebKit case was interrupted and seven did not run. **The PWA suite is not counted as passed.** Last complete PWA result remains the earlier 13 passed / three skipped run; last full unit/browser suite remains 2026-10-11.
+- **Exact next step:** user checks a first drive through Delta and Dunes in the live preview. If a specific track still misses, record its path and add a route zone at that track. Do not resume long suites until the user asks.
+
+### Buried Shuttle discovery coverage — 2026-10-16
+
+- User reported driving past the visible shuttle without a discovery. The secret postcard's only visit circle was 41 m around the buried hull centre; the clear west-side approach enters it only near its final point. Added three 42 m visit zones along that unmarked exterior approach, retaining the central circle. The ordinary Delta/Dunes route stays more than 100 m from these zones; no marker, route or scenery changed.
+- A focused tracker test proves a west-flank drive unlocks the card while a connector pass does not. The existing real-Scout shuttle browser scenario now verifies that the forward exterior drive saves the discovery; it passed in Chromium and WebKit (2/2). Postcard unit tests passed (7/7), typecheck and production build passed. PWA suite: 13 passed, with the three existing WebKit offline cases skipped. No full unit/browser suites ran; last full-suite record remains 2026-10-11.
+- **Exact next step:** revisit the shuttle in the live preview along its west side and confirm the notice appears; if a different visible drive-by still misses, use the car position from Photo mode to adjust only that accessible flank.
+
+### Smooth terrain lighting across locations — 2026-10-16
+
+- At the user's request, switched only the basic terrain materials in Sunshine Valley, Iceland Highlands, and Northern Reach to interpolated vertex normals. Mars terrain was already switched in the prior pass; Samurai Village terrain already used smooth normals. Rocks, buildings, roads/ramps, and other authored props retain their existing materials. Render vertices and collision geometry did not change.
+- Inspected fresh Chromium game captures at `artifacts/valley-smooth-terrain.png`, `artifacts/highlands-smooth-terrain.png`, and `artifacts/northern-reach-smooth-terrain.png`. Focused drive/lifecycle scenarios for all three affected locations passed in Chromium and WebKit (6/6). Typecheck and production build passed. No full suites ran; last full-suite record remains 2026-10-11.
+- **Exact next step:** user compares the live views across locations; address any specific visible chunk seam or terrain surface that needs local normal refinement.
+
+### Crown Crater terrain lighting — 2026-10-16
+
+- User reviewed the live Crown and Lava Tubes views and found the lighting somewhat better; remaining angular cliffs and a jumping Scout are the new concern. Iceland Highlands also uses a 2.4 m terrain lattice and formerly shared Mars's flat terrain shading, but has gentler terrain profiles. Lava Tubes additionally has steep terraced terrain, separate collidable roof skins and rocks, and the shared rock surface's visual/camera bump effect. A screenshot alone does not isolate which of these causes a particular jump.
+- **Exact next step after visual review:** reproduce one jump at a recorded car position and route, log wheel contacts/body motion against the visible terrain and solid props, then smooth only the offending terrain/roof/rubble geometry or tune the rock bump effect as indicated. Keep render and collision geometry aligned, and run the affected real-driving unit/browser scenarios in both engines.
+- Switched the Mars terrain material to interpolated vertex normals. This removes much of the visible triangle-by-triangle lighting on Crown's bowl without changing terrain vertices, collider triangles, routes, or handling. Landmarks keep their authored flat shading. The remaining angular edges in the crater wall come from the 2.4 m terrain lattice and sharp height profile.
+- The focused pilot presentation/reset scenario passed in Chromium and WebKit (1/1 each); its Crown capture now waits for streaming and uses the normal raised camera angle. Inspected both actual game captures and saved the WebKit view at `artifacts/mars/crown-smooth-lighting.png`. Typecheck and production build passed. No full suites ran; the last full-suite record remains 2026-10-11, and physical iPad acceptance remains open.
+
 ### Northern Reach postcard views supplied by user — 2026-10-15
 
 - Saved the user's 17 Northern Reach photo-mode views in `artifacts/postcards/northern-reach-photo-views.json`. Pine Hollows was the one supplied view without an existing journal entry; added it as a discoverable card near the southern pine hollow. Northern Reach now has 16 ordinary cards plus the hidden stone circle.

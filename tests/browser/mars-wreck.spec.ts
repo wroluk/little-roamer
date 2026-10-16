@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { WRECK_PASSAGE, wreckPoint } from '../../src/game/mars-wreck-layout';
 import { marsSurfaceHeight } from '../../src/game/mars-terrain';
 import { driveMarsRoute } from './mars-driving';
+import { POSTCARD_STORAGE_KEY } from '../../src/game/postcards';
 
 test.use({ deviceScaleFactor: 1 });
 test('buried shuttle views and real Scout exterior approach both ways', async ({ page }, info) => {
@@ -40,6 +41,11 @@ test('buried shuttle views and real Scout exterior approach both ways', async ({
     await page.evaluate(async ({ p, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(p.x, p.z, heading),
       { p: path[0], heading: reverse ? Math.PI - 0.24 : -0.24 });
     await driveMarsRoute(page, path, 35_000);
+    if (!reverse) {
+      const discovered = await page.evaluate(key => JSON.parse(localStorage.getItem(key) ?? '[]')
+        .some((record: { id: string }) => record.id === 'shuttle-wreck'), POSTCARD_STORAGE_KEY);
+      expect(discovered).toBe(true);
+    }
     await page.screenshot({ path: info.outputPath(`approach-${reverse ? 'reverse' : 'forward'}.png`) });
   }
   expect(errors).toEqual([]);

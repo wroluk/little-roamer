@@ -2,11 +2,20 @@ import type { AreaId } from './areas';
 import { NORTHERN_STARTS } from './regional-starts';
 import { MARS_STARTS } from './mars-terrain';
 import { STONE_CIRCLE } from './northern-discovery-layout';
-import { WRECK_SITE } from './mars-wreck-layout';
+import { WRECK_PASSAGE, WRECK_SITE } from './mars-wreck-layout';
 import { DISH_SITE } from './mars-dish-layout';
 import { GLASSFALL_SCAR } from './mars-glassfall-layout';
 import { KEYHOLE_ARCH } from './mars-keyhole-layout';
 import { TUBES_CENTRE, TUBES_LOOKOUT } from './mars-tubes-layout';
+import { DELTA_ROUTES } from './mars-delta-layout';
+import { DUNES_ROUTES } from './mars-dunes-layout';
+import { VALLEY_FORDS } from './northern-valley';
+import { inletCenterX, INLET_FORDS } from './northern-watershed';
+import { ADVENTURE_REGIONS } from './northern-adventures';
+import { PASS_LOOKOUT, PASS_BOWL } from './northern-pass';
+import { EMBER_LOOKOUT } from './northern-ember';
+import { MARSH_LOOKOUT } from './northern-marsh';
+import { FOREST_TRAILS } from './northern-forest';
 
 export type PostcardArea = Extract<AreaId, 'northern-reach' | 'mars'>;
 export type Postcard = {
@@ -52,15 +61,47 @@ const marsLandmarks: Record<string, { x: number; z: number }> = {
   'keyhole-badlands': KEYHOLE_ARCH,
   'lava-tubes': TUBES_CENTRE,
 };
+const visitZone = (point: { x: number; z: number }, radius = 76) => ({ x: point.x, z: point.z, radius });
+const northernTrail = (id: string, name: string) => ADVENTURE_REGIONS.find(region => region.id === id)!
+  .trails.find(trail => trail.name === name)!.points;
+// A regional start is only one point on a loop or a long bank. Keep discoveries
+// available on the other ordinary approaches without widening the whole region.
+const northernVisitZones: Record<string, readonly { x: number; z: number; radius: number }[]> = {
+  'pine-hollows': [visitZone(FOREST_TRAILS[2].points[1], 52)],
+  'river-valley': [visitZone(VALLEY_FORDS[1], 52)],
+  'high-pass': [visitZone(PASS_LOOKOUT, 52), visitZone(PASS_BOWL, 46)],
+  'ember-basin': [visitZone(EMBER_LOOKOUT, 52)],
+  'willow-marsh': [visitZone(MARSH_LOOKOUT, 52)],
+  'timber-run': [visitZone(northernTrail('timber-run', 'Coast Road connection')[2], 52)],
+  'stonegate-basin': [visitZone(northernTrail('stonegate-basin', 'North crown')[1], 52)],
+  'windstone-ridge': [visitZone(northernTrail('windstone-ridge', 'Windstone lookout')[0], 52)],
+  'ochre-terraces': [visitZone(northernTrail('ochre-terraces', 'Rock ramp traverse')[1], 52)],
+  'alder-river': [
+    visitZone({ x: INLET_FORDS[0].x + 42, z: INLET_FORDS[0].z }, 52),
+    visitZone(INLET_FORDS[1], 52),
+    ...[-180, -280, -380, -480, -550].map(z => visitZone({ x: inletCenterX(z) + 42, z }, 58)),
+  ],
+  'river-mouth': [visitZone(northernTrail('river-mouth', 'Estuary south spit')[2], 52)],
+};
+// Ordinary regional cards should unlock on the travelled routes, including arrivals
+// from the far end. The regional start alone is insufficient for branching regions.
+const marsVisitZones: Record<string, readonly { x: number; z: number; radius: number }[]> = {
+  'fossil-delta': [DELTA_ROUTES[1].points[3], DELTA_ROUTES[2].points[2],
+    DELTA_ROUTES[3].points[5], DELTA_ROUTES[4].points[0]].map(point => visitZone(point, 68)),
+  'rust-dunes': [DUNES_ROUTES[1].points[3], DUNES_ROUTES[2].points[4],
+    DUNES_ROUTES[3].points[3]].map(point => visitZone(point, 72)),
+  'lava-tubes': [visitZone(TUBES_LOOKOUT)],
+};
 const image = (area: PostcardArea, id: string) => `./postcards/${area}/${id}.jpg`;
 export const POSTCARDS: readonly Postcard[] = [
   { id: 'pine-hollows', area: 'northern-reach', name: 'Pine Hollows',
     note: northernNotes['pine-hollows'], x: -33, z: 503, radius: 72,
+    visitZones: northernVisitZones['pine-hollows'],
     image: image('northern-reach', 'pine-hollows') },
   ...NORTHERN_STARTS.filter(start => start.id !== 'northern-reach').map(start => ({
     id: start.id, area: 'northern-reach' as const, name: start.name,
     note: northernNotes[start.id], x: start.position.x, z: start.position.z,
-    radius: 72, image: image('northern-reach', start.id),
+    radius: 72, visitZones: northernVisitZones[start.id], image: image('northern-reach', start.id),
   })),
   { id: 'stone-circle', area: 'northern-reach', name: 'Stone Circle',
     note: 'Old stones stand quietly inside a hidden hollow.',
@@ -70,13 +111,14 @@ export const POSTCARDS: readonly Postcard[] = [
     return { id: start.id, area: 'mars' as const, name: start.name,
       note: marsNotes[start.id], x: point.x, z: point.z,
       radius: start.id === 'keyhole-badlands' ? 82 : 76,
-      visitZones: start.id === 'lava-tubes'
-        ? [{ x: TUBES_LOOKOUT.x, z: TUBES_LOOKOUT.z, radius: 76 }] : undefined,
+      visitZones: marsVisitZones[start.id],
       image: image('mars', start.id) };
   }),
   { id: 'shuttle-wreck', area: 'mars', name: 'Buried Shuttle',
     note: 'A broken tail and three open engines rise from the sand.',
-    x: WRECK_SITE.x, z: WRECK_SITE.z, radius: 41, secret: true, image: image('mars', 'shuttle-wreck') },
+    x: WRECK_SITE.x, z: WRECK_SITE.z, radius: 41,
+    visitZones: WRECK_PASSAGE.slice(1).map(point => ({ ...point, radius: 42 })),
+    secret: true, image: image('mars', 'shuttle-wreck') },
 ];
 
 export function readPostcardRecords(storage: Pick<Storage, 'getItem'>): PostcardRecord[] {

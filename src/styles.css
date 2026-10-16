@@ -225,7 +225,7 @@ h2 { font-family: Georgia, serif; font-size: 34px; letter-spacing: -1px; font-we
 /* Postcard journal: a quiet collection viewed from home or pause. */
 .journal-button { display: flex; align-items: center; gap: 15px; width: min(314px, 100%); min-height: 72px; margin: 10px 0 0; padding: 9px 12px; border: 1px solid #adc3ae; border-radius: 14px; background: #fffbf0e8; color: #31534a; text-align: left; box-shadow: 0 3px 0 #ced8c5; cursor: pointer; }
 .journal-button:hover { background: #fffdf6; border-color: #668e73; }
-.journal-button:focus-visible, .journal-photo-button:focus-visible, .journal-close:focus-visible { outline: 3px solid #ec7951; outline-offset: 3px; }
+.journal-button:focus-visible, .journal-photo-button:focus-visible, .journal-close:focus-visible, .postcard-notice:focus-visible { outline: 3px solid #ec7951; outline-offset: 3px; }
 .journal-stack { position: relative; flex: 0 0 64px; height: 48px; }
 .journal-stack::before, .journal-stack::after { content: ''; position: absolute; width: 54px; height: 40px; border: 2px solid #fffaf0; border-radius: 4px; background: #a3bbb4; box-shadow: 0 1px 4px #253c3840; }
 .journal-stack::before { left: 0; top: 5px; transform: rotate(-11deg); }
@@ -257,7 +257,12 @@ body[data-area="mars"] .journal-picture { background: linear-gradient(145deg, #b
 .journal-card.secret.locked .journal-picture span { color: #f8dfaa; font-size: 62px; }
 .journal-card.secret.locked h3 { color: #594a6a; }
 .journal-card.secret.locked small { color: #876d95; }
-.journal-card.secret:not(.locked) { border-color: #bca98a; box-shadow: 0 0 0 2px #e9dbc0 inset; }
+.journal-card.secret:not(.locked) { position: relative; border: 2px solid #d8ae69; background: linear-gradient(150deg, #33413e, #1d2f30); box-shadow: 0 7px 19px #172b2b38, 0 0 0 2px #e6d5ab inset; }
+.journal-card.secret:not(.locked) .journal-picture { border: 2px solid #e6c688; }
+.journal-card.secret:not(.locked) h3 { color: #fff1ce; }
+.journal-card.secret:not(.locked) p { color: #d3dfd5; }
+.journal-card.secret:not(.locked) small { color: #e8c788; }
+.journal-secret-badge { position: absolute; z-index: 1; top: 17px; left: 17px; padding: 5px 7px; border: 1px solid #f4db9d9c; border-radius: 5px; background: #253737eb; color: #ffe2a0; font-size: 8px; font-weight: 900; letter-spacing: 1px; }
 .journal-photo-button { display: block; padding: 0; border: 0; cursor: zoom-in; }
 .journal-photo-button:hover img { transform: scale(1.04); }
 .journal-photo-button img { transition: transform .25s ease; }
@@ -268,9 +273,17 @@ body[data-area="mars"] .journal-picture { background: linear-gradient(145deg, #b
 .postcard-detail-copy h2 { margin: 4px 0 7px; }
 .postcard-detail-copy p { margin: 0 0 9px; color: #607468; font-size: 13px; }
 .postcard-detail-copy small { color: #a4785e; font-size: 9px; font-weight: 800; letter-spacing: 1px; }
+.postcard-detail-overlay:has(.postcard-detail.secret) { background: #142728f2; }
+.postcard-detail.secret { border-color: #d9b675; background: #243734; }
+.postcard-detail.secret h2 { color: #fff0ca; }
+.postcard-detail.secret p { color: #d7e0d6; }
+.postcard-detail.secret small { color: #eac989; }
 .postcard-detail-close { position: absolute; z-index: 1; top: 12px; right: 12px; box-shadow: 0 2px 8px #18272466; }
-.postcard-notice { position: absolute; z-index: 7; top: max(95px, calc(env(safe-area-inset-top) + 66px)); right: max(24px, env(safe-area-inset-right)); display: flex; align-items: center; gap: 11px; width: min(285px, calc(100vw - 40px)); padding: 9px; border: 2px solid #f5d7a9; border-radius: 14px; background: #fff9e9f5; color: #31534a; box-shadow: 0 9px 27px #263c3855; pointer-events: none; opacity: 0; transform: translateY(-16px) scale(.93); transition: opacity .3s ease, transform .45s cubic-bezier(.2,1.4,.4,1); }
+.postcard-notice { position: absolute; z-index: 7; top: max(95px, calc(env(safe-area-inset-top) + 66px)); right: max(24px, env(safe-area-inset-right)); display: flex; align-items: center; gap: 11px; width: min(285px, calc(100vw - 40px)); padding: 9px; border: 2px solid #f5d7a9; border-radius: 14px; background: #fff9e9f5; color: #31534a; box-shadow: 0 9px 27px #263c3855; text-align: left; font: inherit; cursor: pointer; opacity: 0; transform: translateY(-16px) scale(.93); transition: opacity .3s ease, transform .45s cubic-bezier(.2,1.4,.4,1); }
 .postcard-notice.visible { opacity: 1; transform: translateY(0) scale(1); }
+.postcard-notice:hover { border-color: #e78a59; box-shadow: 0 11px 30px #263c3870; }
+.postcard-notice.secret { border-color: #e7c37b; background: #263b38f5; color: #fff1d4; }
+.postcard-notice.secret small, .postcard-notice.secret em { color: #efc985; }
 .postcard-notice img { width: 76px; height: 62px; flex: 0 0 76px; object-fit: cover; border: 3px solid #fff; border-radius: 5px; box-shadow: 0 2px 5px #2f443940; transform: rotate(-4deg); }
 .postcard-notice-copy { display: grid; gap: 3px; min-width: 0; }
 .postcard-notice small { color: #a87651; font-size: 9px; font-weight: 900; letter-spacing: 1.2px; }

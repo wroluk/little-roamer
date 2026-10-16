@@ -136,7 +136,7 @@ export function buildHighlands(scene: THREE.Scene, world: RAPIER.World) {
   terrainGeometry.setAttribute('color', new THREE.BufferAttribute(terrainColors(vertices), 3));
   terrainGeometry.computeVertexNormals();
   const terrain = new THREE.Mesh(terrainGeometry,
-    new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.93, flatShading: true }));
+    new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.93 }));
   terrain.name = 'Highlands · shared render and collision terrain';
   terrain.receiveShadow = true;
   scene.add(terrain);

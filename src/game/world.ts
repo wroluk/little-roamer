@@ -33,7 +33,7 @@ export function buildWorld(scene: THREE.Scene, world: RAPIER.World) {
   const random = seededRandom(73);
   const material = (color: THREE.ColorRepresentation) =>
     new THREE.MeshStandardMaterial({ color, roughness: 1, flatShading: true });
-  const grass = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true });
+  const grass = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 });
   const sand = material('#d9b783');
   const coral = material('#d68a58');
   const rockMaterial = material('#829489');

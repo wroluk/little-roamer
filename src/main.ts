@@ -243,9 +243,11 @@ async function boot() {
   const journalGrid = element('journal-grid');
   const postcardDetail = element('postcard-detail');
   let detailReturnFocus: HTMLButtonElement | null = null;
-  let journalReturn: 'ready' | 'paused' = 'ready';
+  let journalReturn: 'ready' | 'paused' | 'playing' = 'ready';
+  let noticedPostcardId: string | null = null;
   const openPostcardDetail = (card: Postcard, record: { discoveredAt: string }, source: HTMLButtonElement) => {
     detailReturnFocus = source;
+    postcardDetail.querySelector('.postcard-detail')!.classList.toggle('secret', !!card.secret);
     element<HTMLImageElement>('postcard-detail-image').src = card.image;
     element<HTMLImageElement>('postcard-detail-image').alt = `View of ${card.name}`;
     element('postcard-detail-title').textContent = card.name;
@@ -266,6 +268,7 @@ async function boot() {
     journalGrid.replaceChildren(...cards.map(card => {
       const record = postcardRecords.find(item => item.id === card.id);
       const article = document.createElement('article'); article.className = `journal-card${card.secret ? ' secret' : ''}${record ? '' : ' locked'}`;
+      article.dataset.postcardId = card.id;
       const picture = document.createElement(record ? 'button' : 'div'); picture.className = `journal-picture${record ? ' journal-photo-button' : ''}`;
       if (record) {
         const button = picture as HTMLButtonElement; button.type = 'button';
@@ -280,6 +283,10 @@ async function boot() {
       const note = document.createElement('p'); note.textContent = record ? card.note : card.secret ? 'Something hidden is waiting to be found.' : 'A place still waiting to be visited.';
       const date = document.createElement('small'); date.textContent = record
         ? `FIRST VISITED · ${new Date(record.discoveredAt).toLocaleDateString()}` : card.secret ? 'A LITTLE MYSTERY' : 'UNDISCOVERED';
+      if (card.secret && record) {
+        const badge = document.createElement('span'); badge.className = 'journal-secret-badge';
+        badge.textContent = '✦ SECRET DISCOVERY'; article.append(badge);
+      }
       article.append(picture, heading, note, date); return article;
     }));
     const collected = cards.filter(card => foundPostcards.has(card.id)).length;
@@ -288,20 +295,27 @@ async function boot() {
     element('home-journal-count').textContent = `${collected}/${cards.length}`;
     element('pause-journal-count').textContent = `${collected}/${cards.length}`;
   };
-  const openJournal = () => {
-    if ((mode !== 'ready' && mode !== 'paused') || (area.id !== 'northern-reach' && area.id !== 'mars')) return;
-    journalReturn = mode; renderJournal();
+  const openJournal = (focusCardId?: string) => {
+    if (area.id !== 'northern-reach' && area.id !== 'mars') return;
+    const fromPlaying = mode === 'playing';
+    if (fromPlaying) pause();
+    if (mode !== 'ready' && mode !== 'paused') return;
+    journalReturn = fromPlaying ? 'playing' : mode; renderJournal();
     element('welcome').hidden = true; element('paused').hidden = true; journal.hidden = false;
-    element('close-journal').focus();
+    const selected = [...journalGrid.children].find(child =>
+      (child as HTMLElement).dataset.postcardId === focusCardId)?.querySelector<HTMLButtonElement>('button');
+    if (selected) { selected.scrollIntoView({ block: 'nearest' }); selected.focus(); }
+    else element('close-journal').focus();
   };
   const closeJournal = () => {
     if (journal.hidden) return;
     journal.hidden = true;
+    if (journalReturn === 'playing') { resume(); return; }
     element(journalReturn === 'ready' ? 'welcome' : 'paused').hidden = false;
     element(journalReturn === 'ready' ? 'open-journal' : 'pause-journal').focus();
   };
-  element('open-journal').addEventListener('click', openJournal);
-  element('pause-journal').addEventListener('click', openJournal);
+  element('open-journal').addEventListener('click', () => openJournal());
+  element('pause-journal').addEventListener('click', () => openJournal());
   element('close-journal').addEventListener('click', closeJournal);
   element('close-postcard-detail').addEventListener('click', closePostcardDetail);
   window.addEventListener('keydown', event => {
@@ -314,6 +328,9 @@ async function boot() {
     try { window.localStorage.setItem(POSTCARD_STORAGE_KEY, JSON.stringify(postcardRecords)); } catch { /* Storage is optional. */ }
     renderJournal();
     const notice = element('postcard-notice');
+    noticedPostcardId = card.id;
+    notice.classList.toggle('secret', !!card.secret);
+    element('postcard-notice-kind').textContent = card.secret ? '✦ SECRET DISCOVERY' : 'NEW POSTCARD';
     element('postcard-notice-name').textContent = card.name;
     element<HTMLImageElement>('postcard-notice-image').src = card.image;
     window.clearTimeout(postcardNoticeTimer);
@@ -327,6 +344,13 @@ async function boot() {
       postcardNoticeHideTimer = window.setTimeout(() => { notice.hidden = true; }, 450);
     }, 5000);
   };
+  element<HTMLButtonElement>('postcard-notice').addEventListener('click', () => {
+    const notice = element('postcard-notice');
+    if (notice.hidden || mode !== 'playing') return;
+    window.clearTimeout(postcardNoticeTimer); window.clearTimeout(postcardNoticeHideTimer);
+    notice.classList.remove('visible'); notice.hidden = true;
+    openJournal(noticedPostcardId ?? undefined);
+  });
   renderJournal();
   const clock = new FixedClock();
   let lastTime = performance.now();

@@ -3,6 +3,7 @@ import { driveMarsRoute } from './mars-driving';
 import { DELTA_ROUTES, DELTA_LOOKOUT } from '../../src/game/mars-delta-layout';
 import { DUNES_ROUTES, DUNES_LOOKOUT } from '../../src/game/mars-dunes-layout';
 import { TUBES_LOOKOUT, LAVA_TUBES, tubePoint } from '../../src/game/mars-tubes-layout';
+import { POSTCARD_STORAGE_KEY } from '../../src/game/postcards';
 
 test.use({ deviceScaleFactor: 1 });
 type Game = { placeVehicle(x: number, z: number, heading: number): Promise<void>;
@@ -32,6 +33,11 @@ for (const region of regions) test(`${region.title} views, reset and regional fe
     const heading = Math.atan2(-(b.x - a.x), -(b.z - a.z));
     await page.evaluate(({ a, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(a.x, a.z, heading), { a, heading });
     await driveMarsRoute(page, path);
+    if (!reverse && region.id !== 'lava-tubes') {
+      const discovered = await page.evaluate(({ key, id }) => JSON.parse(localStorage.getItem(key) ?? '[]')
+        .some((record: { id: string }) => record.id === id), { key: POSTCARD_STORAGE_KEY, id: region.id });
+      expect(discovered).toBe(true);
+    }
   }
   await page.locator('#reset').click(); await expect(page.locator('#toast')).toHaveText(`Back at ${region.title}`);
   expect(errors).toEqual([]);
