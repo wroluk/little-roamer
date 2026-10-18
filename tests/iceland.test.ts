@@ -12,7 +12,24 @@ import { buildSkogafossWater, FALL } from '../src/game/iceland-waterfall';
 import { disposeScene } from '../src/game/dispose';
 import { SOLHEIMASANDUR_APPROACH, SOLHEIMASANDUR_WRECK, solheimasandurApproachDistance } from '../src/game/iceland-sandur';
 import { addSolheimasandurWreck } from '../src/game/iceland-wreck';
+import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from '../src/game/iceland-starts';
 before(async () => { await RAPIER.init(); });
+
+test('Iceland regional starts are unique, dry, level and select the nearest reset', () => {
+  assert.deepEqual(ICELAND_STARTS.map(start => start.id), ['skogafoss', 'solheimasandur']);
+  assert.equal(new Set(ICELAND_STARTS.map(start => start.id)).size, ICELAND_STARTS.length);
+  for (const start of ICELAND_STARTS) {
+    const { x, z } = start.position, spawn = icelandStartSpawn(start);
+    assert.equal(icelandWaterHeight(x, z), null);
+    assert.ok(spawn.y > icelandSurfaceHeight(x, z) + 1);
+    assert.ok(Number.isFinite(start.heading));
+    assert.equal(nearestIcelandStart(x, z), start);
+    for (const [dx, dz] of [[-2, 0], [2, 0], [0, -2], [0, 2]])
+      assert.ok(Math.abs(icelandSurfaceHeight(x + dx, z + dz) - icelandSurfaceHeight(x, z)) < 0.7);
+  }
+  assert.equal(nearestIcelandStart(-365, 635).id, 'solheimasandur');
+  assert.equal(nearestIcelandStart(-535, 480).id, 'skogafoss');
+});
 
 test('Skógafoss drops vertically with a bounded moving spray plume that respects reduced motion', () => {
   const scene = new THREE.Scene(), effect = buildSkogafossWater(scene);

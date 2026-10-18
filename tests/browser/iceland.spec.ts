@@ -109,6 +109,23 @@ test('Sólheimasandur sandur and wreck are visible and the approach drives both 
   expect((await drive(page, [...SOLHEIMASANDUR_APPROACH].reverse())).depth).toBe(0);
   expect(errors).toEqual([]);
 });
+test('Iceland regional start URLs open the chosen region and reset returns to the nearest start', async ({ page }) => {
+  await page.goto('/?area=iceland&start=solheimasandur');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await expect(page.locator('#welcome-title')).toHaveText('Across the black sand.');
+  await page.locator('#start').click();
+  await expect.poll(async () => (await state(page)).position.x).toBeCloseTo(-388, 0);
+  await expect.poll(async () => (await state(page)).position.z).toBeCloseTo(603, 0);
+  await page.evaluate(async () => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(-377, 637, 0));
+  await page.locator('#reset').click();
+  await expect.poll(async () => (await state(page)).position.x).toBeCloseTo(-388, 0);
+  await expect.poll(async () => (await state(page)).position.z).toBeCloseTo(603, 0);
+  await page.goto('/?area=iceland&start=skogafoss');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  await expect.poll(async () => (await state(page)).position.x).toBeCloseTo(-489, 0);
+  await expect.poll(async () => (await state(page)).position.z).toBeCloseTo(518, 0);
+});
 test('coastal turnout and low western Ring Road render with clean verges', async ({ page }, info) => {
   test.setTimeout(90000); await boot(page);
   for (const [name, position, target] of [

@@ -1,5 +1,23 @@
 # Iceland implementation progress
 
+## Iceland regional start shortcuts — 2026-10-18
+
+- Added `?area=iceland&start=skogafoss` and
+  `?area=iceland&start=solheimasandur`, with safe positions, headings and
+  region-specific welcome text. Reset now returns to the nearest completed
+  Iceland regional start. The original `?area=iceland` entry still starts at
+  Skógafoss.
+- Recorded the shared URL/start/reset convention in `WORLD_BUILD_GUIDE.md` so
+  future completed Iceland regions receive the same entry and browser check.
+- Verification: focused regional-start unit check passed; the direct URL and
+  nearest-reset browser scenario passed in Chromium and WebKit (2/2).
+  `npm run typecheck` and `npm run build` passed. The existing Rollup
+  large-chunk warning remains. No full or PWA suite was run for this local
+  entry-point change.
+
+**Next:** continue the Reynisfjara connector as recorded below, and add its
+regional start when its safe entry and return route are complete.
+
 ## Sólheimasandur south-coast connector — 2026-10-18
 
 - Committed the preceding Skógafoss pilot as `d2c80d1`, then extended its

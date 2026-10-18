@@ -9,6 +9,7 @@ import { FollowCamera, horizontalDragDirection } from './game/camera';
 import { FixedClock } from './game/driving';
 import { NORTHERN_STARTS, nearestNorthernStart, regionalSpawn } from './game/regional-starts';
 import { MARS_STARTS, nearestMarsStart, marsSpawn } from './game/mars-terrain';
+import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from './game/iceland-starts';
 import { marshWeight } from './game/northern-marsh';
 import { shoalsWaterRegion } from './game/northern-adventures';
 import { lakeShoreDistance, inletDistance, inletWidth } from './game/northern-watershed';
@@ -161,6 +162,13 @@ async function boot() {
       hint: 'Two buried tubes meet beneath a collapsed roof. Follow the light through fallen basalt, or roam above. Something waits in the eastern alcove.' } : {}),
     ...(marsStart.id === 'glassfall-plain' ? { welcomeTitle: 'Where the ground turned to glass.',
       hint: 'Follow the firm loop around the pale fan, or leave the road to explore the dark glass flows.' } : {}) };
+  const icelandStart = ICELAND_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
+  if (area.id === 'iceland' && icelandStart) area = {
+    ...area, spawn: icelandStartSpawn(icelandStart), spawnHeading: icelandStart.heading,
+    welcomeEyebrow: `ICELAND / ${icelandStart.name.toLocaleUpperCase()}`,
+    welcomeTitle: icelandStart.welcomeTitle, description: icelandStart.description,
+    hint: icelandStart.hint, readyMessage: icelandStart.readyMessage,
+  };
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
     ? 'Preparing the road ahead...'
@@ -237,7 +245,7 @@ async function boot() {
     element('surface-label').textContent = surfaceLabel();
     element('surface-trait').textContent = vehicle.currentSurface.trait;
     element('loading-status').textContent = area.readyMessage;
-    element<HTMLButtonElement>('reset').title = area.id === 'northern-reach' || area.id === 'mars'
+    element<HTMLButtonElement>('reset').title = area.id === 'northern-reach' || area.id === 'mars' || area.id === 'iceland'
       ? 'Return to the nearest regional start (R)' : `Return to the ${area.name} starting area (R)`;
   }
   presentArea();
@@ -605,7 +613,9 @@ async function boot() {
     controls?.clear();
     const start = area.id === 'northern-reach' ? nearestNorthernStart(vehicle.position.x, vehicle.position.z)
       : area.id === 'mars' ? nearestMarsStart(vehicle.position.x, vehicle.position.z) : null;
-    const destination = start ? (area.id === 'mars' ? marsSpawn(start.position) : regionalSpawn(start)) : area.spawn;
+    const icelandResetStart = area.id === 'iceland' ? nearestIcelandStart(vehicle.position.x, vehicle.position.z) : null;
+    const destination = icelandResetStart ? icelandStartSpawn(icelandResetStart)
+      : start ? (area.id === 'mars' ? marsSpawn(start.position) : regionalSpawn(start)) : area.spawn;
     if (runtime) {
       mode = 'loading';
       resetInProgress = true;
@@ -625,8 +635,9 @@ async function boot() {
       world.step();
     }
     vehicle.reset(destination);
-    if (area.spawnHeading !== undefined) vehicle.body.setRotation(
-      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), area.spawnHeading), true);
+    const resetHeading = icelandResetStart?.heading ?? area.spawnHeading;
+    if (resetHeading !== undefined) vehicle.body.setRotation(
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), resetHeading), true);
     for (let i = 0; i < 30; i++) {
       vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
       world.step();

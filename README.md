@@ -318,9 +318,14 @@ appear in development; the public `RAPIER.init()` API is used.
 
 ## Checks
 
-The new Iceland world has an internal Skógafoss slice at `/?area=iceland` when
-running `npm run dev`. It is separate from Iceland Highlands and stays out of
-the production picker/direct links until the coastal pilot is ready. See
+The new Iceland world has an internal south-coast slice at `/?area=iceland` when
+running `npm run dev`. Start at Skógafoss with
+`http://127.0.0.1:5173/?area=iceland&start=skogafoss`, or at the
+Sólheimasandur wreck approach with
+`http://127.0.0.1:5173/?area=iceland&start=solheimasandur`.
+Reset returns to the nearest completed Iceland regional start. Iceland is
+separate from Iceland Highlands and stays out of the production picker/direct
+links until the coastal pilot is ready. See
 [Iceland progress](ICELAND_PROGRESS.md) and [build plan](ICELAND_BUILD_PLAN.md).
 Focused coverage: `node --import tsx --test tests/iceland.test.ts tests/vehicle-selection.test.ts`
 and `./node_modules/.bin/playwright test tests/browser/iceland.spec.ts`.
