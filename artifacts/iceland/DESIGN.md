@@ -120,7 +120,7 @@ Sources checked for this extension:
 | Garðar BA 64 | -500, -520 | Nearby Patreksfjörður shore, not on Rauðasandur itself. |
 | Skógafoss start | -520, 475 | Southwest interior/coast transition. |
 | Skógá ford | -535, 585 | Shallow downstream crossing between Skógafoss and the sea, on an optional gravel track south of the road bridge. |
-| Sólheimasandur wreck | -385, 565 | Open black outwash between waterfall and Reynisfjara. |
+| Sólheimasandur wreck | -365, 635 | Open black outwash south of Route 1, between the waterfall and Reynisfjara. A faint game trail reaches the wreck from the road. |
 | Reynisfjara / Reynisdrangar | -250, 610 | Southern black coast, columns on shore and sea stacks offshore. |
 | Lakagígar fissure and sandur | -150, 210 | Southwest of the ice cap, inland from south coast. |
 | Askja / Askja's Víti | 120, -230 | North of Vatnajökull; large caldera and smaller crater. |
@@ -140,6 +140,10 @@ Some fjord inlets penetrate farther, giving real coast turns and overlooks.
 Keep the southwest-to-southeast coast road inland of the beach shelf, with
 short optional descents to black sand. The Westfjords red sand is the deliberate
 exception to the mostly black perimeter.
+
+The Sólheimasandur wreck sits on a [black volcanic outwash plain](https://www.south.is/en/destinations/nature/nature/solheimasandur).
+The short drivable access in this compressed game world is fictional; visitors
+reach the real wreck on foot, and vehicle access is prohibited there.
 
 ## Route graph
 

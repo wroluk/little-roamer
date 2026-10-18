@@ -2,22 +2,26 @@ import * as THREE from 'three';
 import { icelandHash, icelandNoise } from './iceland-noise';
 import { icelandSurfaceHeight, icelandWaterHeight, trailDistance } from './iceland-terrain';
 import { ringRoadAt } from './iceland-road';
+import { solheimasandurApproachDistance, solheimasandurWeight, solheimasandurWreckClearance } from './iceland-sandur';
 
 type Detail = { x: number; y: number; z: number; scale: number; seed: number; variant: number };
 /** Clustered ground forms with low, matching solid shapes and clear driving lines. */
 export function buildIcelandGroundDetail(group: THREE.Scene) {
   const stones: Detail[] = [], shrubs: Detail[] = [];
-  for (let iz = 20; iz < 170; iz++) for (let ix = -163; ix < -97; ix++) {
+  for (let iz = 20; iz < 170; iz++) for (let ix = -163; ix < -67; ix++) {
+    if (ix >= -97 && iz < 130) continue;
     const seed = icelandHash(ix, iz), x = ix * 4 + 3.5 * seed, z = iz * 4 + 3.5 * icelandHash(ix + 913, iz);
-    if (ringRoadAt(x, z).distance < 8 || trailDistance(x, z) < 7 || icelandWaterHeight(x, z) !== null) continue;
+    if (ringRoadAt(x, z).distance < 8 || trailDistance(x, z) < 7 || icelandWaterHeight(x, z) !== null
+      || solheimasandurWreckClearance(x, z) || solheimasandurApproachDistance(x, z) < 6) continue;
     const y = icelandSurfaceHeight(x, z);
     if (y < 0.6 || Math.max(Math.abs(icelandSurfaceHeight(x + 1, z) - y), Math.abs(icelandSurfaceHeight(x, z + 1) - y)) > 0.65) continue;
     const patch = icelandNoise(x / 23 + 17, z / 23 - 9);
-    const sand = z > 615;
+    const sand = z > 615 || solheimasandurWeight(x, z) > 0.65;
     const variant = Math.min(2, Math.floor(icelandHash(ix + 141, iz - 53) * 3));
     if (seed < (sand ? 0.19 : 0.38) * Math.max(0, (patch - 0.25) * 2)) {
       stones.push({ x, y, z, scale: 0.22 + icelandHash(ix, iz + 71) * 0.65, seed, variant });
-      if (seed < 0.08 && icelandWaterHeight(x + 0.9, z + 0.4) === null && trailDistance(x + 0.9, z + 0.4) >= 7)
+      if (seed < 0.08 && icelandWaterHeight(x + 0.9, z + 0.4) === null && trailDistance(x + 0.9, z + 0.4) >= 7
+        && !solheimasandurWreckClearance(x + 0.9, z + 0.4) && solheimasandurApproachDistance(x + 0.9, z + 0.4) >= 6)
         stones.push({ x: x + 0.9, y: icelandSurfaceHeight(x + 0.9, z + 0.4), z: z + 0.4, scale: 0.17, seed: 0.65, variant: 1 });
     }
     if (!sand && patch > 0.48 && icelandHash(ix - 31, iz + 19) < 0.37 && icelandWaterHeight(x - 0.5, z) === null

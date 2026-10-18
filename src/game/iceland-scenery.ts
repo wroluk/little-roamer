@@ -7,6 +7,7 @@ import { buildSkogafossWater } from './iceland-waterfall';
 import { buildIcelandRoadScenery } from './iceland-road-scenery';
 import { disposeScene } from './dispose';
 import { COASTAL_TURNOUT, icelandSurfaceHeight } from './iceland-terrain';
+import { addSolheimasandurWreck } from './iceland-wreck';
 
 /** A conforming feathered circle avoids a polygonal terrain-colour boundary. */
 function buildCoastalTurnout(group: THREE.Scene) {
@@ -42,7 +43,7 @@ function buildCoastalTurnout(group: THREE.Scene) {
 
 /** Small fixed pilot landmarks. Terrain remains streamed; all owned resources dispose together. */
 export function buildIcelandScenery(world: RAPIER.World) {
-  const group = new THREE.Scene(); group.name = 'Iceland · Skógafoss pilot';
+  const group = new THREE.Scene(); group.name = 'Iceland · south coast pilot';
   const solids: RAPIER.Collider[] = [];
   const material = (color: string, roughness = 0.9) => new THREE.MeshStandardMaterial({ color, roughness });
   const water = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.04, side: THREE.DoubleSide, transparent: true, depthWrite: false });
@@ -66,6 +67,7 @@ export function buildIcelandScenery(world: RAPIER.World) {
   const waterfall = buildSkogafossWater(group);
   buildIcelandRoadScenery(group);
   buildCoastalTurnout(group);
+  addSolheimasandurWreck((geometry, material, name) => mesh(geometry, material, name, true));
   const detail = buildIcelandGroundDetail(group);
   solids.push(world.createCollider(RAPIER.ColliderDesc.trimesh(detail.collider.vertices, detail.collider.indices).setFriction(0.9)));
   // The cliff is the terrain itself. Only the road bridge adds structural geometry.

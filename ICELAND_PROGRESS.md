@@ -1,5 +1,32 @@
 # Iceland implementation progress
 
+## Sólheimasandur south-coast connector — 2026-10-18
+
+- Committed the preceding Skógafoss pilot as `d2c80d1`, then extended its
+  eastern black-sand shelf into a varied Sólheimasandur outwash plain. A faint
+  dry spur leaves Route 1 and reaches a level wreck site south of the road.
+  The route stays clear of instanced stones and shrubs; new detail sampling is
+  limited to the built south-coast strip.
+- Added a hollow, broken aircraft shell with actual cockpit/side openings,
+  short uneven wing roots, a torn tail and matching static collision meshes.
+  Updated the design anchor to `(-365, 635)` and noted that the real wreck is
+  reached on foot; the game's short drivable approach is fictional.
+- Both Modern and Classic drove the spur out and back in the real wheel
+  simulation. Six change-focused unit checks passed for the wreck, driving,
+  chunk seams, Ring Road grading and ground detail. `npm run build` passed
+  (including typecheck); Rollup still reports its existing large-chunk warning.
+- The affected browser scenario passed in Chromium and WebKit: the wreck and
+  sandur render, and the route drives both ways without water contact or page
+  errors. Inspected and saved final captures in `artifacts/iceland/solheimasandur/`.
+  An intermediate Chromium rerun was interrupted by Vite hot reload during an
+  edit; the settled rerun passed. No full project or PWA suite was run for this
+  local region slice.
+
+**Next:** connect the east side of the Sólheimasandur shelf to Reynisfjara.
+Build the shore's basalt columns and Reynisdrangar stacks, refine the joining
+cliff/shoreline, and verify the Ring Road and optional beach descent in both
+engines. Continue toward the south sandur and Jökulsárlón pilot gate afterward.
+
 ## Skógá-to-Skógafoss brink refinement — 2026-10-18
 
 - User capture showed the broad pale upstream river meeting a narrower bright

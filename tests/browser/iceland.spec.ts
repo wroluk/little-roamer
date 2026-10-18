@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { FORD_PATH, BRIDGE_PATH, ICELAND_LOOP, type IcelandPoint } from '../../src/game/iceland-terrain';
 import { ICELAND_RING_ROAD } from '../../src/game/iceland-road';
+import { SOLHEIMASANDUR_APPROACH, SOLHEIMASANDUR_WRECK } from '../../src/game/iceland-sandur';
 test.use({ deviceScaleFactor: 1 });
 type State = { area: string; car: string; mode: string; position: { x: number; y: number; z: number }; rotation: { x: number; y: number; z: number; w: number }; speed: number;
   contacts: number; waterDepth: number; streaming: { activeRender: number; activePhysics: number; queued: number }; cameraObstructed: boolean };
@@ -84,6 +85,29 @@ test('Iceland ford and road bridge drive in both directions in the real browser'
     expect((await drive(page, reversed ? [...BRIDGE_PATH].reverse() : BRIDGE_PATH)).depth).toBe(0);
   }
   await page.screenshot({ path: info.outputPath('ford-return.png') });
+});
+test('Sólheimasandur sandur and wreck are visible and the approach drives both ways', async ({ page }, info) => {
+  test.setTimeout(210000); const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message)); await boot(page);
+  const features = await page.evaluate(() => {
+    const scene = (window as unknown as { __ROAMER__: { vehicle: { model: import('three').Group } } }).__ROAMER__.vehicle.model.parent!;
+    const names: string[] = [];
+    scene.traverse(child => { if (child.name.startsWith('Sólheimasandur · plane wreck')) names.push(child.name); });
+    return names;
+  });
+  expect(features.length).toBeGreaterThanOrEqual(7);
+  await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), {
+    position: { x: -385, y: 18, z: 616 },
+    target: { x: SOLHEIMASANDUR_WRECK.x, y: 5.5, z: SOLHEIMASANDUR_WRECK.z }, fov: 55,
+  });
+  await page.locator('#photo-ui').click(); await page.waitForTimeout(400);
+  await page.screenshot({ path: info.outputPath('solheimasandur-wreck.png') });
+  await page.keyboard.press('KeyU'); await page.locator('#photo-exit').click();
+  await expect.poll(async () => (await state(page)).mode).toBe('playing');
+  expect((await drive(page, SOLHEIMASANDUR_APPROACH)).depth).toBe(0);
+  await page.screenshot({ path: info.outputPath('solheimasandur-arrival.png') });
+  expect((await drive(page, [...SOLHEIMASANDUR_APPROACH].reverse())).depth).toBe(0);
+  expect(errors).toEqual([]);
 });
 test('coastal turnout and low western Ring Road render with clean verges', async ({ page }, info) => {
   test.setTimeout(90000); await boot(page);

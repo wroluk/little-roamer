@@ -10,6 +10,8 @@ import { buildIcelandRoadGeometry } from '../src/game/iceland-road-scenery';
 import { Vehicle } from '../src/game/vehicle';
 import { buildSkogafossWater, FALL } from '../src/game/iceland-waterfall';
 import { disposeScene } from '../src/game/dispose';
+import { SOLHEIMASANDUR_APPROACH, SOLHEIMASANDUR_WRECK, solheimasandurApproachDistance } from '../src/game/iceland-sandur';
+import { addSolheimasandurWreck } from '../src/game/iceland-wreck';
 before(async () => { await RAPIER.init(); });
 
 test('Skógafoss drops vertically with a bounded moving spray plume that respects reduced motion', () => {
@@ -116,6 +118,37 @@ for (const model of ['modern', 'classic'] as const) {
       assert.ok(await drive(ford, model) > 0.1);
       assert.equal(await drive(reverse ? [...BRIDGE_PATH].reverse() : BRIDGE_PATH, model), 0);
     }
+  });
+}
+test('Sólheimasandur wreck sits on dry sand off Route 1 and has finite open shell geometry', () => {
+  const { x, y, z } = SOLHEIMASANDUR_WRECK;
+  assert.ok(ringRoadAt(x, z).distance > 55);
+  assert.equal(icelandSurfaceAt(x, z), 'sand');
+  assert.equal(icelandWaterHeight(x, z), null);
+  assert.ok(Math.abs(icelandSurfaceHeight(x, z) - y) < 0.1);
+  for (const point of SOLHEIMASANDUR_APPROACH) {
+    assert.equal(icelandWaterHeight(point.x, point.z), null);
+    assert.ok(solheimasandurApproachDistance(point.x, point.z) < 0.001);
+  }
+  const scene = new THREE.Scene();
+  addSolheimasandurWreck((geometry, material, name) => {
+    const mesh = new THREE.Mesh(geometry, material); mesh.name = name; scene.add(mesh);
+  });
+  assert.ok(scene.children.length >= 7);
+  const bounds = new THREE.Box3().setFromObject(scene);
+  assert.ok(bounds.min.y >= y && bounds.max.y < y + 6);
+  assert.ok(bounds.max.x - bounds.min.x > 12 && bounds.max.z - bounds.min.z > 16);
+  for (const child of scene.children) {
+    const positions = (child as THREE.Mesh).geometry.attributes.position;
+    assert.ok(positions.count > 0);
+    for (let i = 0; i < positions.count; i++) assert.ok(Number.isFinite(positions.getX(i) + positions.getY(i) + positions.getZ(i)));
+  }
+  disposeScene(scene);
+});
+for (const model of ['modern', 'classic'] as const) {
+  test(`${model} drives from Route 1 to the Sólheimasandur wreck and returns`, async () => {
+    assert.equal(await drive(SOLHEIMASANDUR_APPROACH, model), 0);
+    assert.equal(await drive([...SOLHEIMASANDUR_APPROACH].reverse(), model), 0);
   });
 }
 test('real Modern completes the river loop and Classic completes its reverse', async () => {
@@ -300,7 +333,7 @@ test('ground detail stays sparse, deterministic and clear of the paved driving s
   const { buildIcelandGroundDetail } = await import('../src/game/iceland-detail');
   const a = new THREE.Scene(), b = new THREE.Scene();
   const count = buildIcelandGroundDetail(a); assert.deepEqual(buildIcelandGroundDetail(b), count);
-  assert.ok(count.stones > 300 && count.stones < 1800);
+  assert.ok(count.stones > 300 && count.stones < 2000);
   assert.ok(count.shrubs > 200 && count.shrubs < 1300);
   assert.equal(count.collider.vertices.length / 3, 7 * (count.stones + count.shrubs));
   for (let j = 0; j < a.children.length; j++) {
