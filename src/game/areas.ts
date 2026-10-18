@@ -72,7 +72,7 @@ export const AREAS: Record<AreaId, Area> = {
     spawn: icelandSpawn(), spawnHeading: Math.atan2(46, 43), half: ICELAND_HALF, climbingPower: 1.45,
     sky: '#acbec3', fogNear: 110, fogFar: 430,
     surfaceHeight: icelandDrivingHeight, waterHeight: icelandWaterHeight, surfaceAt: icelandSurfaceAt,
-    particleColors: { dirt: () => '#7c796b' },
+    particleColors: { dirt: () => '#7c796b', sand: '#4a4d4a' },
     build: (scene, world, onError) => new IcelandStreamingRuntime(scene, world, new IcelandWorkerTransport(), onError),
   },
   mars: {

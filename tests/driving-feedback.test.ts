@@ -40,6 +40,19 @@ test('Mars emits dark basalt in the tubes and retains rusty rock particles elsew
   }
 });
 
+test('Iceland black sand keeps sand handling but emits dark particles', () => {
+  const scene = new THREE.Scene();
+  const effects = new TerrainEffects(scene, () => null, () => 0, AREAS.iceland.particleColors);
+  const car = vehicle();
+  car.terrainWheels.forEach(wheel => { wheel.surface = SURFACES.sand; });
+  for (let i = 0; i < 5; i++) effects.update(0.1, car);
+  assert.ok(effects.count > 0);
+  const mesh = scene.getObjectByName('terrain-particles') as THREE.InstancedMesh;
+  const color = new THREE.Color(); mesh.getColorAt(0, color);
+  assert.equal(color.getHexString(), '4a4d4a');
+  effects.dispose();
+});
+
 test('ground marks require contact and movement, stay bounded, expire, and dispose', () => {
   const scene=new THREE.Scene(), marks=new GroundEffects(scene,()=>0,()=>0.2), car=vehicle();
   for(let i=0;i<600;i++) { car.terrainWheels.forEach(w=>{w.position.z+=0.4;}); marks.update(1/60,car); }

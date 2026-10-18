@@ -109,6 +109,22 @@ test('Sólheimasandur sandur and wreck are visible and the approach drives both 
   expect((await drive(page, [...SOLHEIMASANDUR_APPROACH].reverse())).depth).toBe(0);
   expect(errors).toEqual([]);
 });
+test('Sólheimasandur wreck sits in the sand with an attached rear stabilizer', async ({ page }, info) => {
+  await page.goto('/?area=iceland&start=solheimasandur');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), {
+    position: { x: -382, y: 8, z: 628 }, target: { x: -368, y: 5.5, z: 630 }, fov: 48,
+  });
+  await page.locator('#photo-ui').click();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: info.outputPath('solheimasandur-wreck-rear-low.png') });
+  await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), {
+    position: { x: -385, y: 18, z: 616 }, target: { x: -365, y: 5.5, z: 635 }, fov: 55,
+  });
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: info.outputPath('solheimasandur-wreck-overhead.png') });
+});
 test('Iceland regional start URLs open the chosen region and reset returns to the nearest start', async ({ page }) => {
   await page.goto('/?area=iceland&start=solheimasandur');
   await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
@@ -230,10 +246,15 @@ test('Ring Road drives across southern, eastern, northern and western chunk boun
 });
 
 
-test('Iceland road HUD distinguishes asphalt, gravel and the river', async ({ page }) => {
+test('Iceland HUD distinguishes asphalt, gravel, river, sea and dark sand', async ({ page }) => {
   await boot(page);
-  for (const [x, z, label] of [[-531, 530, 'Asphalt'], [-490, 555, 'Packed dirt'], [-535, 585, 'Glacial river']] as const) {
+  for (const [x, z, label] of [[-531, 530, 'Asphalt'], [-490, 555, 'Packed dirt'], [-535, 585, 'Glacial river'],
+    [-450, 740, 'Deep sea'],
+    [-388, 603, 'Coastal sand']] as const) {
     await page.evaluate(async ({ x, z }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, 0), { x, z });
     await expect(page.locator('#surface-label')).toHaveText(label);
+    if (label === 'Asphalt')
+      expect(await page.locator('#surface i').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(114, 119, 117)');
   }
+  expect(await page.locator('#surface i').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(74, 77, 74)');
 });

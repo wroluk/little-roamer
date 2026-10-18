@@ -44,6 +44,7 @@ body:not(.playing) .navigation-instrument { opacity: 0; }
 .surface-indicator i { width: 9px; height: 9px; border-radius: 50%; background: #d7ae72; box-shadow: inset 0 0 0 1px #ffffff55; }
 .surface-indicator b { padding-left: 7px; border-left: 1px solid #ffffff55; color: #fff9e9c9; font-size: 7px; font-weight: 600; letter-spacing: .8px; }
 .surface-indicator.changed { transform: translateX(-50%) scale(1.12); }
+.surface-indicator[data-surface="asphalt"] i { background: #727775; }
 .surface-indicator[data-surface="grass"] i { background: #84a75e; }
 .surface-indicator[data-surface="ash"] i { background: #47545a; }
 .surface-indicator[data-surface="lava"] i { background: #252f33; }
@@ -55,6 +56,7 @@ body:not(.playing) .navigation-instrument { opacity: 0; }
 .surface-indicator[data-surface="mud"] i { background: #665744; }
 .surface-indicator[data-surface="rock"] i { background: #7b8582; }
 .surface-indicator[data-surface="sand"] i { background: #bca77e; }
+body[data-area="iceland"] .surface-indicator[data-surface="sand"] i { background: #4a4d4a; }
 body:not(.playing) .surface-indicator { opacity: 0; }
 .controls { position: absolute; left: max(32px, env(safe-area-inset-left)); right: max(32px, env(safe-area-inset-right)); bottom: max(30px, env(safe-area-inset-bottom)); display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none; }
 .steering-cluster, .pedal-cluster { pointer-events: auto; }

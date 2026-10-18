@@ -5,6 +5,7 @@ import { SOLHEIMASANDUR_WRECK } from './iceland-sandur';
 type Emit = (geometry: THREE.BufferGeometry, material: THREE.Material, name: string) => void;
 type Skin = 'outer' | 'inner' | 'edge' | 'wing';
 type Ring = { outer: THREE.Vector3[]; inner: THREE.Vector3[] };
+export const SOLHEIMASANDUR_BURIAL = 0.52;
 
 /** A thin closed wall volume, including real openings and capped torn edges. */
 function shell(rows: Ring[], present: (row: number, side: number) => boolean, add: (g: THREE.BufferGeometry, skin: Skin) => void) {
@@ -62,7 +63,8 @@ export function addSolheimasandurWreck(emit: Emit) {
     const g = geometry.index ? geometry.toNonIndexed() : geometry.clone(); geometry.dispose();
     g.deleteAttribute('uv');
     if (!g.hasAttribute('normal')) g.computeVertexNormals();
-    g.rotateY(SOLHEIMASANDUR_WRECK.turn).translate(SOLHEIMASANDUR_WRECK.x, SOLHEIMASANDUR_WRECK.y, SOLHEIMASANDUR_WRECK.z);
+    g.rotateY(SOLHEIMASANDUR_WRECK.turn).translate(SOLHEIMASANDUR_WRECK.x,
+      SOLHEIMASANDUR_WRECK.y - SOLHEIMASANDUR_BURIAL, SOLHEIMASANDUR_WRECK.z);
     const p = g.getAttribute('position'), colors = new Float32Array(p.count * 3);
     for (let i = 0; i < p.count; i++) {
       const weather = 0.78 + 0.17 * Math.sin(p.getX(i) * 1.17 + p.getZ(i) * 0.83) ** 2;
@@ -97,6 +99,10 @@ export function addSolheimasandurWreck(emit: Emit) {
   // A low ragged tail stump and one surviving stabiliser make the profile legible.
   add(plate([[-0.16, 2.2, -7.6], [0.16, 2.2, -7.6], [-0.12, 2.5, -9.1], [0.12, 2.5, -9.1],
     [-0.1, 4.05, -9.2], [0.1, 4.05, -9.2], [-0.08, 3.55, -7.95], [0.08, 3.55, -7.95]]), 'wing', 'torn tail');
-  add(plate([[-1.1, 1.95, -7.6], [-1.1, 2.1, -7.6], [-5.0, 1.8, -9.0], [-5.0, 1.95, -9.0],
-    [-4.4, 1.8, -9.7], [-4.4, 1.95, -9.7]]), 'wing', 'tailplane fragment');
+  // A short trapezoid joins the intact aft shell behind the lower side tear.
+  // Both inboard corners sit within the fuselage, well clear of that opening.
+  add(plate([[-0.55, 1.8, -7.6], [-0.55, 2.04, -7.6],
+    [-0.55, 1.78, -9.2], [-0.55, 2.02, -9.2],
+    [-3.8, 1.64, -7.98], [-3.8, 1.88, -7.98],
+    [-3.8, 1.62, -8.82], [-3.8, 1.86, -8.82]]), 'wing', 'tailplane fragment');
 }

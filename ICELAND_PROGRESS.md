@@ -1,5 +1,26 @@
 # Iceland implementation progress
 
+## Sólheimasandur wreck and surface-cue refinement — 2026-10-18
+
+- Lowered the wreck shell 0.52 m into its prepared sand footprint so the lower
+  fuselage is buried. Rebuilt the rear stabilizer as a short trapezoid rooted
+  behind the lower side opening. The initial broader repair overlapped that
+  opening and looked like an arrow sign; the user's close-up exposed it.
+- Iceland sand retains its sand driving profile, with dark gray particles and
+  HUD dot. Asphalt's dot now matches its gray pavement/particles. Sea-level
+  Iceland water shows **Deep sea**, while the Skógá still shows **Glacial river**;
+  the HUD can update the name when both use the same water handling profile.
+- Focused wreck and particle unit tests passed. The Sólheimasandur drive and
+  black-sand HUD checks passed in Chromium and WebKit (4/4). Final low and
+  overhead wreck captures passed in both engines (2/2), as did the final HUD
+  check including asphalt and sea (2/2). `npm run build` passed. No full/PWA
+  suite was run for these local visual and label changes.
+- Updated captures in `artifacts/iceland/solheimasandur/` and recorded the
+  large-prop grounding lesson in `WORLD_BUILD_GUIDE.md`.
+
+**Next:** continue east from Sólheimasandur to Reynisfjara, including the
+joining shoreline/cliff and distinct basalt-column beach silhouette.
+
 ## Iceland regional start shortcuts — 2026-10-18
 
 - Added `?area=iceland&start=skogafoss` and

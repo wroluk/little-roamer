@@ -10,6 +10,7 @@ import { FixedClock } from './game/driving';
 import { NORTHERN_STARTS, nearestNorthernStart, regionalSpawn } from './game/regional-starts';
 import { MARS_STARTS, nearestMarsStart, marsSpawn } from './game/mars-terrain';
 import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from './game/iceland-starts';
+import { icelandWaterHeight } from './game/iceland-terrain';
 import { marshWeight } from './game/northern-marsh';
 import { shoalsWaterRegion } from './game/northern-adventures';
 import { lakeShoreDistance, inletDistance, inletWidth } from './game/northern-watershed';
@@ -215,6 +216,7 @@ async function boot() {
     if (area.id === 'mars' && surface.id === 'rock') return 'Martian rock';
     if (surface.id === 'water') {
       if (area.id === 'samurai-village') return 'Shallow lake';
+      if (area.id === 'iceland' && icelandWaterHeight(vehicle.position.x, vehicle.position.z) === 0) return 'Deep sea';
       if (area.id === 'northern-reach' && shoalsWaterRegion(vehicle.position.x, vehicle.position.z)) return 'Coastal shallows';
       if (area.id === 'northern-reach' && marshWeight(vehicle.position.x, vehicle.position.z) > 0.2) return 'Marsh water';
       if (area.id === 'northern-reach' && lakeShoreDistance(vehicle.position.x, vehicle.position.z) < 0) return 'Great Lake';
@@ -971,6 +973,10 @@ async function boot() {
           surfaceCueTimer = window.setTimeout(() => surfaceHud.classList.remove('changed'), 750);
         }
       }
+      // Regional water names can change while the underlying handling surface
+      // stays "water" (for example, Skógá flowing into the Iceland sea).
+      const currentLabel = surfaceLabel();
+      if (element('surface-label').textContent !== currentLabel) element('surface-label').textContent = currentLabel;
       playingTime += Math.min(elapsed, 0.1);
       const fallFloor = Math.min(-12, area.surfaceHeight(vehicle.position.x, vehicle.position.z) - 15);
       if (vehicle.position.y < fallFloor) void reset().catch(showError);

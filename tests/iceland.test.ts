@@ -11,7 +11,7 @@ import { Vehicle } from '../src/game/vehicle';
 import { buildSkogafossWater, FALL } from '../src/game/iceland-waterfall';
 import { disposeScene } from '../src/game/dispose';
 import { SOLHEIMASANDUR_APPROACH, SOLHEIMASANDUR_WRECK, solheimasandurApproachDistance } from '../src/game/iceland-sandur';
-import { addSolheimasandurWreck } from '../src/game/iceland-wreck';
+import { addSolheimasandurWreck, SOLHEIMASANDUR_BURIAL } from '../src/game/iceland-wreck';
 import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from '../src/game/iceland-starts';
 before(async () => { await RAPIER.init(); });
 
@@ -153,8 +153,23 @@ test('Sólheimasandur wreck sits on dry sand off Route 1 and has finite open she
   });
   assert.ok(scene.children.length >= 7);
   const bounds = new THREE.Box3().setFromObject(scene);
-  assert.ok(bounds.min.y >= y && bounds.max.y < y + 6);
-  assert.ok(bounds.max.x - bounds.min.x > 12 && bounds.max.z - bounds.min.z > 16);
+  assert.ok(bounds.min.y < y - 0.3 && bounds.min.y > y - 0.8, 'lower fuselage is embedded in sand');
+  assert.ok(bounds.max.y < y + 6);
+  assert.ok(bounds.max.x - bounds.min.x > 11 && bounds.max.z - bounds.min.z > 16);
+  assert.ok(SOLHEIMASANDUR_BURIAL > 0.4);
+  const tailplane = scene.children.find(child => child.name.endsWith('tailplane fragment')) as THREE.Mesh;
+  assert.ok(tailplane);
+  const local = tailplane.geometry.attributes.position;
+  const rootZ: number[] = [];
+  const unrotate = new THREE.Matrix4().makeRotationY(-SOLHEIMASANDUR_WRECK.turn);
+  for (let i = 0; i < local.count; i++) {
+    const p = new THREE.Vector3(local.getX(i) - x, local.getY(i) - y + SOLHEIMASANDUR_BURIAL,
+      local.getZ(i) - z).applyMatrix4(unrotate);
+    if (p.x > -0.8 && p.x < 0 && p.z < -7.5 && p.z > -9.3) rootZ.push(p.z);
+  }
+  assert.ok(Math.max(...rootZ) - Math.min(...rootZ) > 1.5,
+    'rear stabilizer must join the fuselage along a broad root');
+  assert.ok(Math.max(...rootZ) < -7.5, 'stabilizer root stays aft of the lower side opening');
   for (const child of scene.children) {
     const positions = (child as THREE.Mesh).geometry.attributes.position;
     assert.ok(positions.count > 0);
