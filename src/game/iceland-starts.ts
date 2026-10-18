@@ -1,5 +1,6 @@
 import { ICELAND_START, icelandSpawn } from './iceland-terrain';
 import { SOLHEIMASANDUR_APPROACH } from './iceland-sandur';
+import { REYNIS_BEACH_PATH, REYNIS_START } from './iceland-reynisfjara';
 
 export type IcelandStart = {
   id: string;
@@ -30,6 +31,14 @@ export const ICELAND_STARTS: readonly IcelandStart[] = [
     description: 'A quiet outwash plain stretches south of Route 1. Follow the faint spur to the aircraft wreck, then return to the coast road.',
     hint: 'The wreck is a short drive to the southeast. Route 1 is behind you to the north.',
     readyMessage: 'Sólheimasandur is ready. Follow the faint track toward the sea.',
+  },
+  {
+    id: 'reynisfjara', name: 'Reynisfjara', position: REYNIS_START,
+    heading: Math.atan2(REYNIS_BEACH_PATH[2].x - REYNIS_START.x, REYNIS_BEACH_PATH[2].z - REYNIS_START.z),
+    welcomeTitle: 'Where basalt meets the sea.',
+    description: 'Follow the beach track toward the column wall and the Reynisdrangar sea stacks.',
+    hint: 'The beach track leads south. Route 1 is behind you to the north.',
+    readyMessage: 'Reynisfjara is ready. Follow the beach track toward the columns.',
   },
 ];
 

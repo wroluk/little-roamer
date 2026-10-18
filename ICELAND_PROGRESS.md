@@ -1,5 +1,27 @@
 # Iceland implementation progress
 
+## Reynisfjara coast and sea-label correction — 2026-10-18
+
+- Added a dry spur south of Route 1 to the Reynisfjara black beach, a low basalt
+  headland with varied hexagonal columns, and three irregular Reynisdrangar
+  stacks in the sea. The columns and stacks have static colliders. Sparse basalt
+  ground detail extends along this coast, clear of the driving line.
+- Added `?area=iceland&start=reynisfjara`, with a safe beach entry and nearest
+  reset. Modern and Classic drove the spur out and back in real-wheel unit
+  checks. The visible route and start also passed in Chromium and WebKit.
+- Fixed the sea HUD label at the Skógá mouth. River water reaches sea level
+  before the river mesh ends, so water height alone identified some ocean as
+  **Glacial river**. The label now uses the rendered river corridor boundary;
+  a sea point beside the mouth reads **Deep sea** in both engines.
+- `npm run typecheck` and `npm run build` passed. The local region and HUD
+  browser checks passed in both engines (4/4), followed by a final narrowed
+  column and beach-view pass in both engines (2/2). Inspected and saved the
+  final captures in `artifacts/iceland/reynisfjara/`. No full project or PWA
+  suite was run for this local section.
+
+**Next:** continue east through the sandur toward Jökulsárlón, shaping the
+joining shore and Ring Road before adding the lagoon, glacier front and bridge.
+
 ## Sólheimasandur wreck and surface-cue refinement — 2026-10-18
 
 - Lowered the wreck shell 0.52 m into its prepared sand footprint so the lower

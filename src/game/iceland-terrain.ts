@@ -3,6 +3,7 @@ import type { SurfaceId } from './surfaces';
 import { FALL, SKOGA_BRIDGE, onSkogaBridge } from './iceland-layout';
 import { ringRoadAt, RING_HALF_WIDTH } from './iceland-road';
 import { SOLHEIMASANDUR_WRECK, solheimasandurApproachDistance, solheimasandurWeight } from './iceland-sandur';
+import { reynisBeachPathDistance, reynisBeachWeight, reynisfjallRise } from './iceland-reynisfjara';
 
 export const ICELAND_HALF = 768;
 export const ICELAND_CHUNK = 96;
@@ -72,8 +73,11 @@ export function icelandHeight(x: number, z: number) {
   const sandur = solheimasandurWeight(x, z);
   h += sandur * (0.55 * (icelandNoise(x / 28 + 19, z / 24 - 7) - 0.5)
     + 0.24 * (icelandNoise(x / 8 - 11, z / 9 + 31) - 0.5));
+  h += reynisfjallRise(x, z);
   const wreckApproach = 1 - smooth((solheimasandurApproachDistance(x, z) - 3.5) / 10);
   h += (shelf - h) * wreckApproach * sandur * 0.7;
+  const beachApproach = 1 - smooth((reynisBeachPathDistance(x, z) - 4.5) / 10);
+  h += (shelf - h) * beachApproach * 0.82;
   // Smooth shoulders along the driving loop, with the river carved afterwards.
   h += (shelf - h) * (1 - smooth((trailDistance(x, z) - 5.5) / 9));
   const road = ringRoadAt(x, z);
@@ -152,6 +156,8 @@ export function icelandSurfaceAt(x: number, z: number): SurfaceId {
   if (roadDistance <= RING_HALF_WIDTH) return 'asphalt';
   if (roadDistance < 7) return 'dirt';
   if (trailDistance(x, z) < 5.5) return 'dirt';
+  if (reynisfjallRise(x, z) > 5) return 'rock';
+  if (reynisBeachWeight(x, z) > 0.65) return 'sand';
   if (solheimasandurWeight(x, z) > 0.65) return 'sand';
   if (z > 605) return 'ash';
   if (z > 465 && z < 484) return 'rock';
@@ -161,7 +167,8 @@ const linear = (v: number) => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) *
 function terrainColor(x: number, z: number) {
   const rock = z > 465 && z < 483;
   const sandur = solheimasandurWeight(x, z);
-  const sand = Math.max(smooth((z - 595) / 38), sandur * 0.98);
+  const reynisBeach = reynisBeachWeight(x, z);
+  const sand = Math.max(smooth((z - 595) / 38), sandur * 0.98, reynisBeach);
   const bankDistance = z <= FALL.terrainLipZ ? upperRiverDistance(x, z) : Math.abs(x - riverX(z));
   const gravel = (1 - smooth((bankDistance - 7) / 15)) * smooth((z - SKOGA_WATER_START) / 24);
   const wet = gravel > 0.7;
@@ -177,6 +184,10 @@ function terrainColor(x: number, z: number) {
   const wreckTrack = (1 - smooth((solheimasandurApproachDistance(x, z) - 2.5) / 5)) * sandur;
   base = base.map((v, i) => v * (1 - wreckTrack * 0.28) + [0.30, 0.30, 0.28][i] * wreckTrack * 0.28
     + sandur * (icelandNoise(x / 14 + 47, z / 11 - 21) - 0.5) * 0.035);
+  const basalt = smooth((reynisfjallRise(x, z) - 2) / 12);
+  base = base.map((v, i) => v * (1 - basalt) + [0.16, 0.18, 0.18][i] * basalt);
+  const beachTrack = (1 - smooth((reynisBeachPathDistance(x, z) - 2.2) / 5)) * reynisBeach;
+  base = base.map((v, i) => v * (1 - beachTrack * 0.26) + [0.33, 0.33, 0.31][i] * beachTrack * 0.26);
   // The continuous road mesh owns its asphalt colour. Painting sampled terrain
   // beneath it made dark triangular teeth protrude from curved verges.
   return base.map(linear);

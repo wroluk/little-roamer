@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { FORD_PATH, BRIDGE_PATH, ICELAND_LOOP, type IcelandPoint } from '../../src/game/iceland-terrain';
 import { ICELAND_RING_ROAD } from '../../src/game/iceland-road';
 import { SOLHEIMASANDUR_APPROACH, SOLHEIMASANDUR_WRECK } from '../../src/game/iceland-sandur';
+import { REYNIS_BEACH_PATH } from '../../src/game/iceland-reynisfjara';
 test.use({ deviceScaleFactor: 1 });
 type State = { area: string; car: string; mode: string; position: { x: number; y: number; z: number }; rotation: { x: number; y: number; z: number; w: number }; speed: number;
   contacts: number; waterDepth: number; streaming: { activeRender: number; activePhysics: number; queued: number }; cameraObstructed: boolean };
@@ -249,7 +250,7 @@ test('Ring Road drives across southern, eastern, northern and western chunk boun
 test('Iceland HUD distinguishes asphalt, gravel, river, sea and dark sand', async ({ page }) => {
   await boot(page);
   for (const [x, z, label] of [[-531, 530, 'Asphalt'], [-490, 555, 'Packed dirt'], [-535, 585, 'Glacial river'],
-    [-450, 740, 'Deep sea'],
+    [-450, 740, 'Deep sea'], [-535, 680, 'Deep sea'],
     [-388, 603, 'Coastal sand']] as const) {
     await page.evaluate(async ({ x, z }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, 0), { x, z });
     await expect(page.locator('#surface-label')).toHaveText(label);
@@ -257,4 +258,31 @@ test('Iceland HUD distinguishes asphalt, gravel, river, sea and dark sand', asyn
       expect(await page.locator('#surface i').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(114, 119, 117)');
   }
   expect(await page.locator('#surface i').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(74, 77, 74)');
+});
+
+test('Reynisfjara columns and sea stacks render beside a drivable beach approach', async ({ page }, info) => {
+  test.setTimeout(210000); await page.goto('/?area=iceland&start=reynisfjara');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await expect(page.locator('body')).toContainText('Reynisfjara');
+  await page.locator('#start').click();
+  expect((await state(page)).position.x).toBeCloseTo(REYNIS_BEACH_PATH[1].x, 0);
+  const features = await page.evaluate(() => {
+    const scene = (window as unknown as { __ROAMER__: { vehicle: { model: import('three').Group } } }).__ROAMER__.vehicle.model.parent!;
+    return { wall: !!scene.getObjectByName('Reynisfjara · basalt column wall'),
+      stacks: [1, 2, 3].map(i => !!scene.getObjectByName(`Reynisdrangar · sea stack ${i}`)) };
+  });
+  expect(features).toEqual({ wall: true, stacks: [true, true, true] });
+  await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), {
+    position: { x: -291, y: 20, z: 687 }, target: { x: -185, y: 12, z: 679 }, fov: 62,
+  });
+  await page.locator('#photo-ui').click(); await page.waitForTimeout(400);
+  await page.screenshot({ path: info.outputPath('reynisfjara-beach.png') });
+  await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), {
+    position: { x: -263, y: 76, z: 691 }, target: { x: -166, y: 3, z: 690 }, fov: 55,
+  });
+  await page.waitForTimeout(400); await page.screenshot({ path: info.outputPath('reynisfjara-overhead.png') });
+  await page.keyboard.press('KeyU'); await page.locator('#photo-exit').click();
+  await expect.poll(async () => (await state(page)).mode).toBe('playing');
+  expect((await drive(page, REYNIS_BEACH_PATH)).depth).toBe(0);
+  expect((await drive(page, [...REYNIS_BEACH_PATH].reverse())).depth).toBe(0);
 });

@@ -10,7 +10,8 @@ import { FixedClock } from './game/driving';
 import { NORTHERN_STARTS, nearestNorthernStart, regionalSpawn } from './game/regional-starts';
 import { MARS_STARTS, nearestMarsStart, marsSpawn } from './game/mars-terrain';
 import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from './game/iceland-starts';
-import { icelandWaterHeight } from './game/iceland-terrain';
+import { SKOGA_WATER_START } from './game/iceland-terrain';
+import { SKOGA_MOUTH_Z, SKOGA_WATER_MAX_X, SKOGA_WATER_MIN_X } from './game/iceland-river';
 import { marshWeight } from './game/northern-marsh';
 import { shoalsWaterRegion } from './game/northern-adventures';
 import { lakeShoreDistance, inletDistance, inletWidth } from './game/northern-watershed';
@@ -216,7 +217,12 @@ async function boot() {
     if (area.id === 'mars' && surface.id === 'rock') return 'Martian rock';
     if (surface.id === 'water') {
       if (area.id === 'samurai-village') return 'Shallow lake';
-      if (area.id === 'iceland' && icelandWaterHeight(vehicle.position.x, vehicle.position.z) === 0) return 'Deep sea';
+      // The sea owns the water outside the river mesh's clipped corridor.
+      // River level also reaches zero before the mouth, so height alone
+      // cannot distinguish the two surfaces.
+      if (area.id === 'iceland' && (vehicle.position.x < SKOGA_WATER_MIN_X
+        || vehicle.position.x > SKOGA_WATER_MAX_X || vehicle.position.z < SKOGA_WATER_START
+        || vehicle.position.z >= SKOGA_MOUTH_Z)) return 'Deep sea';
       if (area.id === 'northern-reach' && shoalsWaterRegion(vehicle.position.x, vehicle.position.z)) return 'Coastal shallows';
       if (area.id === 'northern-reach' && marshWeight(vehicle.position.x, vehicle.position.z) > 0.2) return 'Marsh water';
       if (area.id === 'northern-reach' && lakeShoreDistance(vehicle.position.x, vehicle.position.z) < 0) return 'Great Lake';

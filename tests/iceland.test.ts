@@ -13,10 +13,12 @@ import { disposeScene } from '../src/game/dispose';
 import { SOLHEIMASANDUR_APPROACH, SOLHEIMASANDUR_WRECK, solheimasandurApproachDistance } from '../src/game/iceland-sandur';
 import { addSolheimasandurWreck, SOLHEIMASANDUR_BURIAL } from '../src/game/iceland-wreck';
 import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from '../src/game/iceland-starts';
+import { REYNIS_BEACH_PATH, REYNIS_STACKS, reynisBeachPathDistance } from '../src/game/iceland-reynisfjara';
+import { addReynisfjaraScenery } from '../src/game/iceland-reynisfjara-scenery';
 before(async () => { await RAPIER.init(); });
 
 test('Iceland regional starts are unique, dry, level and select the nearest reset', () => {
-  assert.deepEqual(ICELAND_STARTS.map(start => start.id), ['skogafoss', 'solheimasandur']);
+  assert.deepEqual(ICELAND_STARTS.map(start => start.id), ['skogafoss', 'solheimasandur', 'reynisfjara']);
   assert.equal(new Set(ICELAND_STARTS.map(start => start.id)).size, ICELAND_STARTS.length);
   for (const start of ICELAND_STARTS) {
     const { x, z } = start.position, spawn = icelandStartSpawn(start);
@@ -29,6 +31,27 @@ test('Iceland regional starts are unique, dry, level and select the nearest rese
   }
   assert.equal(nearestIcelandStart(-365, 635).id, 'solheimasandur');
   assert.equal(nearestIcelandStart(-535, 480).id, 'skogafoss');
+  assert.equal(nearestIcelandStart(-263, 595).id, 'reynisfjara');
+});
+
+test('Reynisfjara beach spur stays dry and its basalt forms sit on terrain or offshore', () => {
+  for (const p of REYNIS_BEACH_PATH) {
+    assert.equal(icelandWaterHeight(p.x, p.z), null);
+    assert.ok(reynisBeachPathDistance(p.x, p.z) < 0.001);
+    assert.ok(icelandSurfaceHeight(p.x, p.z) > 0);
+  }
+  const seen: THREE.Mesh[] = [];
+  addReynisfjaraScenery((geometry, material, name) => {
+    const mesh = new THREE.Mesh(geometry, material); mesh.name = name; seen.push(mesh); return mesh;
+  });
+  assert.equal(seen.length, 1 + REYNIS_STACKS.length);
+  for (const mesh of seen) {
+    const position = mesh.geometry.getAttribute('position');
+    for (let i = 0; i < position.count; i++)
+      assert.ok(Number.isFinite(position.getX(i) + position.getY(i) + position.getZ(i)));
+    mesh.geometry.dispose(); (mesh.material as THREE.Material).dispose();
+  }
+  for (const stack of REYNIS_STACKS) assert.equal(icelandWaterHeight(stack.x, stack.z), 0);
 });
 
 test('Skógafoss drops vertically with a bounded moving spray plume that respects reduced motion', () => {
@@ -129,6 +152,10 @@ async function drive(path: IcelandPoint[], model: 'modern' | 'classic', road = f
   }
 }
 for (const model of ['modern', 'classic'] as const) {
+  test(`${model} drives the Reynisfjara beach spur to the columns and returns`, async () => {
+    assert.equal(await drive(REYNIS_BEACH_PATH, model), 0);
+    assert.equal(await drive([...REYNIS_BEACH_PATH].reverse(), model), 0);
+  });
   test(`${model} drives the Skógá ford and bridge in both directions with actual wheels`, async () => {
     for (const reverse of [false, true]) {
       const ford = reverse ? [...FORD_PATH].reverse() : FORD_PATH;

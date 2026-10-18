@@ -121,7 +121,7 @@ Sources checked for this extension:
 | Skógafoss start | -520, 475 | Southwest interior/coast transition. |
 | Skógá ford | -535, 585 | Shallow downstream crossing between Skógafoss and the sea, on an optional gravel track south of the road bridge. |
 | Sólheimasandur wreck | -365, 635 | Open black outwash south of Route 1, between the waterfall and Reynisfjara. A faint game trail reaches the wreck from the road. |
-| Reynisfjara / Reynisdrangar | -250, 610 | Southern black coast, columns on shore and sea stacks offshore. |
+| Reynisfjara / Reynisdrangar | beach approach -263, 595; columns -222, 641; stacks -177 to -111, 716 to 732 | Route 1 beach spur, basalt headland and column wall, with three collidable offshore stacks. |
 | Lakagígar fissure and sandur | -150, 210 | Southwest of the ice cap, inland from south coast. |
 | Askja / Askja's Víti | 120, -230 | North of Vatnajökull; large caldera and smaller crater. |
 | Herðubreið | 250, -345 | Isolated table mountain northeast of Askja. |

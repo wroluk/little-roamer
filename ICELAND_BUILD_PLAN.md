@@ -1,6 +1,6 @@
 # Iceland build plan
 
-Status: **first Skógafoss driving slice implemented; south-coast pilot incomplete** (2026-10-17).
+Status: **Skógafoss, Sólheimasandur and Reynisfjara driveable; sandur and lagoon still to build** (2026-10-18).
 See [implementation progress](ICELAND_PROGRESS.md) for checks and the next chunk.
 This is a new, full-size **Iceland** location alongside the existing 480 × 480 m
 Iceland Highlands. Do not replace that location during development. The new

@@ -3,15 +3,17 @@ import { icelandHash, icelandNoise } from './iceland-noise';
 import { icelandSurfaceHeight, icelandWaterHeight, trailDistance } from './iceland-terrain';
 import { ringRoadAt } from './iceland-road';
 import { solheimasandurApproachDistance, solheimasandurWeight, solheimasandurWreckClearance } from './iceland-sandur';
+import { reynisBeachPathDistance } from './iceland-reynisfjara';
 
 type Detail = { x: number; y: number; z: number; scale: number; seed: number; variant: number };
 /** Clustered ground forms with low, matching solid shapes and clear driving lines. */
 export function buildIcelandGroundDetail(group: THREE.Scene) {
   const stones: Detail[] = [], shrubs: Detail[] = [];
-  for (let iz = 20; iz < 170; iz++) for (let ix = -163; ix < -67; ix++) {
+  for (let iz = 20; iz < 180; iz++) for (let ix = -163; ix < -37; ix++) {
     if (ix >= -97 && iz < 130) continue;
     const seed = icelandHash(ix, iz), x = ix * 4 + 3.5 * seed, z = iz * 4 + 3.5 * icelandHash(ix + 913, iz);
-    if (ringRoadAt(x, z).distance < 8 || trailDistance(x, z) < 7 || icelandWaterHeight(x, z) !== null
+    if (ringRoadAt(x, z).distance < 8 || trailDistance(x, z) < 7 || reynisBeachPathDistance(x, z) < 7
+      || icelandWaterHeight(x, z) !== null
       || solheimasandurWreckClearance(x, z) || solheimasandurApproachDistance(x, z) < 6) continue;
     const y = icelandSurfaceHeight(x, z);
     if (y < 0.6 || Math.max(Math.abs(icelandSurfaceHeight(x + 1, z) - y), Math.abs(icelandSurfaceHeight(x, z + 1) - y)) > 0.65) continue;
