@@ -110,6 +110,8 @@ async function boot() {
         (x, z) => runtime?.shrubBumpAt(x, z) ?? 0,
         selectedModel,
       );
+      if (area.spawnHeading !== undefined) vehicle.body.setRotation(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), area.spawnHeading), true);
       const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight,
         { pitch: -0.2, yaw: 0 });
       // Populate scene queries and settle all four wheels before handing over control.
@@ -623,6 +625,8 @@ async function boot() {
       world.step();
     }
     vehicle.reset(destination);
+    if (area.spawnHeading !== undefined) vehicle.body.setRotation(
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), area.spawnHeading), true);
     for (let i = 0; i < 30; i++) {
       vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
       world.step();
@@ -918,10 +922,11 @@ async function boot() {
     }
     if (mode === 'playing') {
       runtime?.update(vehicle.position.x, vehicle.position.z);
+      runtime?.animate?.(Math.min(elapsed, 0.05), reducedMotion.matches);
       const alpha = clock.advance(elapsed, dt => {
-        // Hold at an unready Mars chunk until collision arrives, including the next
+        // Hold at an unready Mars/Iceland chunk until collision arrives, including the next
         // short movement interval. A delayed worker must not let the car fall through.
-        if (area.id === 'mars' && runtime) {
+        if ((area.id === 'mars' || area.id === 'iceland') && runtime) {
           const v = vehicle.body.linvel();
           if (!runtime.isCollisionReadyAt(vehicle.position.x, vehicle.position.z)
             || !runtime.isCollisionReadyAt(vehicle.position.x + v.x * 0.15, vehicle.position.z + v.z * 0.15)) return;

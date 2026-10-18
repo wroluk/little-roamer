@@ -1,0 +1,282 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1040" role="img" aria-labelledby="title desc">
+  <title id="title">Iceland, draft exploration map</title>
+  <desc id="desc">Top-down concept map for a 1,536 by 1,536 metre driving world. North is up. Landmannalaugar, Langjökull and Kerlingarfjöll form a western highland loop. Kverkfjöll sits on northern Vatnajökull and Lómagnúpur guards its southern approach. Route 1 circles the main island with a separate Westfjords branch. Ódáðahraun spans the Askja-to-Mývatn highland route, and the Skógá runs through Skógafoss to an optional downstream ford and the south sea. The Westfjords are northwest, Surtshellir west-central, Stuðlagil east, Vatnajökull southeast, and the black-sand south coast leads east to Jökulsárlón.</desc>
+  <defs>
+    <linearGradient id="sea" x2="0" y2="1">
+      <stop stop-color="#0d3140"/>
+      <stop offset="1" stop-color="#092431"/>
+    </linearGradient>
+    <linearGradient id="ice" x2=".55" y2="1">
+      <stop stop-color="#f2fcfb"/>
+      <stop offset=".5" stop-color="#b7dce1"/>
+      <stop offset="1" stop-color="#7eb4c1"/>
+    </linearGradient>
+    <linearGradient id="land" x2=".15" y2="1">
+      <stop stop-color="#758373"/>
+      <stop offset=".52" stop-color="#8f8a70"/>
+      <stop offset="1" stop-color="#a1967b"/>
+    </linearGradient>
+    <clipPath id="island-clip">
+      <path id="island" d="M110 392 Q95 348 104 297 L130 264 L148 216 L175 226 L192 198 L208 233 L241 216 L253 252 L281 243 Q307 272 338 271 Q398 195 485 180 Q581 174 672 190 Q774 224 810 268 L846 328 L840 396 L816 453 L847 538 L833 624 L854 716 L831 777 L814 851 L790 905 Q755 933 702 918 L612 906 L530 917 L420 911 L324 923 L238 910 L160 884 Q133 856 137 804 L122 715 L100 614 L121 533 L143 470 Q124 430 110 392 Z"/>
+    </clipPath>
+    <pattern id="sea-lines" width="65" height="48" patternUnits="userSpaceOnUse">
+      <path d="M8 17q14-7 27 0 M32 35q13-7 26 0" fill="none" stroke="#b9d9d8" stroke-opacity=".12" stroke-width="1.5"/>
+    </pattern>
+    <pattern id="sand-grain" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="5" r="1.3" fill="#d0c6a8" opacity=".28"/>
+      <circle cx="18" cy="15" r="1" fill="#3f3835" opacity=".27"/>
+    </pattern>
+  </defs>
+  <style>
+    text{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .title{fill:#f1eee1;font-size:31px;font-weight:760;letter-spacing:.025em}
+    .subtitle{fill:#aec5c6;font-size:15px;letter-spacing:.045em}
+    .map-note{fill:#c4d7d8;font-size:14px;letter-spacing:.08em}
+    .region{fill:#213235;font-size:15px;font-weight:740;paint-order:stroke;stroke:#e8e7d2;stroke-width:3.5;stroke-linejoin:round}
+    .minor{fill:#253436;font-size:12px;font-weight:680;paint-order:stroke;stroke:#e7e8d6;stroke-width:3;stroke-linejoin:round}
+    .ice-label{fill:#174352;font-size:17px;font-weight:760;paint-order:stroke;stroke:#e4f5f5;stroke-width:4;stroke-linejoin:round}
+    .sea-label{fill:#8eb3bc;font-size:18px;letter-spacing:.15em}
+    .route{fill:none;stroke:#fff1c1;stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 2px #30403b)}
+    .highland{fill:none;stroke:#ecaa68;stroke-width:4.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:12 8;filter:drop-shadow(0 1px 2px #3a3930)}
+    .spur{fill:none;stroke:#f7df9a;stroke-width:3;stroke-linecap:round;stroke-dasharray:3 7}
+    .region-dot{fill:#172e36;stroke:#fff2c7;stroke-width:2.3}
+    .region-number{fill:#fff4d7;font-size:12px;font-weight:800;text-anchor:middle;dominant-baseline:central}
+    .panel-title{fill:#edf0e5;font-size:18px;font-weight:760}
+    .panel-body{fill:#b7c8c4;font-size:13px}
+    .legend-name{fill:#e6e8dc;font-size:14px;font-weight:650}
+    .legend-small{fill:#aebdb9;font-size:11px}
+  </style>
+
+  <rect width="1280" height="1040" fill="#102a34"/>
+  <text x="62" y="55" class="title">ICELAND <tspan fill="#91c7d0">/</tspan> DRAFT EXPLORATION MAP</text>
+  <text x="62" y="83" class="subtitle">1,536 × 1,536 M  ·  GEOGRAPHY COMPRESSED FOR DRIVING  ·  NORTH UP</text>
+  <rect x="61" y="112" width="829" height="829" rx="9" fill="url(#sea)" stroke="#7cabb0" stroke-width="2"/>
+  <rect x="62" y="113" width="827" height="827" rx="8" fill="url(#sea-lines)"/>
+
+  <!-- Nearshore shallows and the black-sand perimeter -->
+  <use href="#island" fill="none" stroke="#407a83" stroke-width="29" opacity=".57"/>
+  <use href="#island" fill="url(#land)" stroke="#302f30" stroke-width="11" stroke-linejoin="round"/>
+  <use href="#island" fill="none" stroke="#b6a991" stroke-width="2.5" opacity=".7"/>
+
+  <g clip-path="url(#island-clip)">
+    <!-- Broad landform zones -->
+    <path d="M96 194 Q250 180 307 270 Q297 380 200 437 L112 438 Z" fill="#566a5e"/>
+    <path d="M98 351 Q260 363 302 462 Q265 600 122 662 Z" fill="#5c6558" opacity=".72"/>
+    <path d="M215 376 Q342 365 382 425 Q420 530 333 589 L221 549 Z" fill="#485246"/>
+    <path d="M273 579 Q370 566 484 630 L481 748 Q350 746 282 684 Z" fill="#5f624e"/>
+    <path d="M298 728 Q485 714 528 800 L514 943 L255 943 Z" fill="#55534a"/>
+    <path d="M132 758 Q327 768 458 816 L538 922 L138 937 Z" fill="#3c3939"/>
+    <path d="M456 307 Q608 275 670 347 L676 502 L525 547 L465 460 Z" fill="#8b7b6c"/>
+    <path d="M502 347 Q558 302 615 344 L637 418 Q590 477 519 429 Z" fill="#58514b"/>
+    <path d="M472 273 Q546 256 639 281 L646 342 Q618 384 550 381 L486 356 Z" fill="#424b45"/>
+    <path d="M478 303 Q522 290 562 301 Q599 310 638 297 M492 330 Q548 314 583 329 Q613 344 632 325 M502 351 Q553 342 607 357" fill="none" stroke="#252f2c" stroke-width="10" stroke-linecap="round" opacity=".8"/>
+    <path d="M500 291 Q545 281 580 291 M531 349 Q577 334 618 346" fill="none" stroke="#819275" stroke-width="3" stroke-dasharray="3 9" opacity=".7"/>
+    <path d="M590 202 Q732 195 792 249 L799 352 L666 369 L607 311 Z" fill="#738e6c"/>
+    <path d="M711 330 Q840 332 859 424 L859 636 L745 606 L728 496 Z" fill="#5f746d"/>
+    <path d="M550 572 Q580 551 634 551 Q776 532 808 602 L804 783 Q774 813 700 805 L595 815 L501 756 Z" fill="url(#ice)" stroke="#cae8e8" stroke-width="5"/>
+    <path d="M509 568 Q635 543 759 588 M494 624 Q626 590 797 658 M514 691 Q662 656 790 720 M565 760 Q682 727 777 763" fill="none" stroke="#eff9f5" stroke-opacity=".64" stroke-width="5"/>
+    <path d="M486 746 Q560 757 613 817 L600 871 L476 864 L444 809 Z" fill="#706d62" opacity=".8"/>
+    <path d="M131 757 Q315 785 453 818 Q549 832 641 840 L697 905 L104 953 Z" fill="url(#sand-grain)" opacity=".9"/>
+
+    <!-- Westfjords layered fjords and red beach -->
+    <path d="M104 290 Q146 303 201 274 M115 328 Q155 345 225 318 M110 377 Q171 391 241 366" fill="none" stroke="#152f39" stroke-width="19" stroke-linecap="round"/>
+    <path d="M110 290 Q147 303 197 276 M115 328 Q159 344 221 320 M113 377 Q169 390 237 368" fill="none" stroke="#88a5a0" stroke-width="3" opacity=".7"/>
+    <path d="M113 397 Q163 381 208 401 L204 431 Q156 443 121 423 Z" fill="#bc7255" stroke="#dcab77" stroke-width="2"/>
+
+    <!-- Hallmundarhraun and Surtshellir -->
+    <g transform="translate(294 471) scale(.7) translate(-294 -471)">
+    <path d="M261 421 Q325 399 374 439 Q402 489 367 530 Q317 554 264 514 Z" fill="#333b36" stroke="#7c956c" stroke-width="9" stroke-dasharray="13 9"/>
+    <path d="M283 488 Q310 458 348 444 M295 510 Q324 481 356 468" fill="none" stroke="#161f21" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="313" cy="477" r="6" fill="#789289"/><circle cx="340" cy="456" r="5" fill="#789289"/>
+
+    </g>
+    <!-- Lakagígar crater row -->
+    <path d="M344 705 Q359 677 378 650 Q399 623 431 599" fill="none" stroke="#282b27" stroke-width="18" stroke-linecap="round"/>
+    <path d="M342 710 Q369 674 390 643 Q412 616 431 599" fill="none" stroke="#72906b" stroke-width="5" stroke-dasharray="3 10"/>
+    <g fill="#222728" stroke="#a0a57d" stroke-width="2">
+      <ellipse cx="350" cy="692" rx="13" ry="9"/><ellipse cx="374" cy="660" rx="12" ry="9"/>
+      <ellipse cx="399" cy="630" rx="14" ry="10"/><ellipse cx="424" cy="608" rx="13" ry="9"/>
+    </g>
+
+    <!-- Askja, Víti, and Herðubreið -->
+    <ellipse cx="542" cy="421" rx="68" ry="56" fill="#393b3b" stroke="#c6a789" stroke-width="7"/>
+    <ellipse cx="545" cy="425" rx="41" ry="33" fill="#688e91" stroke="#2e4142" stroke-width="5"/>
+    <circle cx="574" cy="448" r="14" fill="#7cc6bf" stroke="#3c4240" stroke-width="5"/>
+    <path d="M598 375 L613 339 L651 330 L667 377 Z" fill="#3c3f3d" stroke="#978f7d" stroke-width="5"/>
+    <path d="M614 340 L647 337" stroke="#b4ad9b" stroke-width="4"/>
+
+    <!-- Mývatn and northern volcanic cluster -->
+    <path d="M613 253 Q623 230 653 232 Q676 228 686 252 L674 291 Q655 312 624 295 Q607 282 613 253 Z" fill="#367d83" stroke="#c3d0ae" stroke-width="4"/>
+    <g fill="#7ea27b"><circle cx="638" cy="255" r="8"/><circle cx="662" cy="275" r="5"/><circle cx="634" cy="285" r="4"/></g>
+    <g fill="none" stroke="#455345" stroke-width="4"><circle cx="625" cy="305" r="7"/><circle cx="642" cy="313" r="8"/><circle cx="659" cy="306" r="7"/></g>
+    <ellipse cx="708" cy="283" rx="25" ry="21" fill="#353631" stroke="#9f9982" stroke-width="6"/>
+    <ellipse cx="766" cy="254" rx="24" ry="19" fill="#5b5a4d" stroke="#b9a082" stroke-width="6"/>
+    <circle cx="748" cy="302" r="16" fill="#c9a267" opacity=".8"/>
+    <g fill="none" stroke="#e6d9bb" stroke-width="3" stroke-linecap="round" opacity=".8">
+      <path d="M740 290 q-9-14 1-23 M750 293 q-3-16 6-24 M759 299 q3-12 8-17"/>
+    </g>
+
+    <!-- Stuðlagil columns and Jökla river -->
+    <path d="M812 333 Q780 376 797 420 Q776 453 797 490 Q771 538 795 588" fill="none" stroke="#1c383c" stroke-width="38"/>
+    <path d="M812 333 Q780 376 797 420 Q776 453 797 490 Q771 538 795 588" fill="none" stroke="#68b9b8" stroke-width="18"/>
+    <path d="M763 395 l-11 11 12 9 -10 11 13 9 -8 12 12 9 M823 396 l12 8 -12 11 14 11 -14 11 12 10 -11 13" fill="none" stroke="#343d3c" stroke-width="8" stroke-linejoin="round"/>
+
+    <!-- Glacier's Grímsvötn rock and western cave -->
+    <path d="M627 639 Q650 612 686 632 L707 656 Q687 677 656 673 Z" fill="#353d42" stroke="#ebf7f3" stroke-width="4"/>
+    <path d="M640 638 Q663 624 685 646" fill="none" stroke="#8d9a9a" stroke-width="5"/>
+    <path d="M510 691 Q533 667 556 689 L555 715 L514 719 Z" fill="#244e5d" stroke="#d7eef2" stroke-width="6"/>
+    <path d="M513 718 Q540 699 554 714" fill="none" stroke="#0e3444" stroke-width="7"/>
+
+    <!-- Lagoon, glacier cliff, icebergs, and sea outflow -->
+    <path d="M680 780 Q732 755 798 778 L815 835 Q798 885 754 892 L691 865 Q665 831 680 780 Z" fill="#286e7b" stroke="#d6eceb" stroke-width="5"/>
+    <path d="M680 785 Q712 762 756 770 L774 791 Q743 806 706 803 L682 817 Z" fill="#daf6f4" stroke="#84bdc6" stroke-width="5"/>
+    <path d="M685 813 Q715 797 745 796 L767 803" fill="none" stroke="#295c6b" stroke-width="5"/>
+    <g fill="#e0f7f4" stroke="#80b7be" stroke-width="2"><path d="M740 835l10-7 12 5-5 11-15 2z"/><path d="M700 848l9-9 13 3 3 8-13 6z"/><path d="M775 854l8-7 11 4-4 11-11 1z"/></g>
+    <path d="M750 886 Q746 905 760 939" fill="none" stroke="#75c1c6" stroke-width="22"/>
+
+    <!-- Coast sand, plane, sea stacks, shipwreck -->
+    <path d="M160 878 Q357 925 562 908 Q650 915 696 891" fill="none" stroke="#171f22" stroke-width="10" opacity=".9"/>
+    <path d="M345 909 l-7 26 m24-23 5 22 m-8-33 2 25" stroke="#282a2d" stroke-width="8" stroke-linecap="round"/>
+    <path d="M267 871 l17-3 m-7-8 3 19 m-11-5 20-7" stroke="#d3d0bd" stroke-width="4" stroke-linecap="round"/>
+    <path d="M190 347 q11-6 19 2 l-4 7 -12 2 z" fill="#8b513e" stroke="#e1a581" stroke-width="2"/>
+
+    <!-- Skógá from its upper reach over Skógafoss to the south sea -->
+    <path d="M210 716 Q210 748 199 768 Q193 781 187 798" fill="none" stroke="#1c5261" stroke-width="14" stroke-linecap="round"/>
+    <path d="M187 798 Q184 836 181 860 Q178 889 178 929" fill="none" stroke="#237282" stroke-width="15" stroke-linecap="round"/>
+    <path d="M198 759 Q191 778 187 798" fill="none" stroke="#a0d7d8" stroke-width="5" stroke-linecap="round"/>
+    <path d="M182 790 Q189 798 181 808" fill="none" stroke="#f0f8ee" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="185" cy="810" rx="14" ry="8" fill="#86c0c2" opacity=".75"/>
+    <path d="M163 859 Q183 854 204 864" fill="none" stroke="#b6a17d" stroke-width="10" stroke-linecap="round" opacity=".75"/>
+
+    <!-- Added western highlands: three distinct regions -->
+    <path d="M232 637 L255 609 L282 624 L305 612 L335 647 L339 683 L306 708 L257 696 L228 669Z" fill="#b78d61" stroke="#d0b584" stroke-width="3"/>
+    <path d="M237 652 L262 625 L282 661 L307 630 L331 662 L311 687 L280 674 L259 688Z" fill="#c4ac79"/>
+    <path d="M241 655 L264 640 L282 669 M290 664 L309 646 L323 663" fill="none" stroke="#a35e4f" stroke-width="8"/>
+    <path d="M251 672 L272 655 L286 679 L309 665" fill="none" stroke="#7f9870" stroke-width="5"/>
+    <path d="M281 647 L294 636 L308 651 L302 669 L290 681 L280 667Z" fill="#222d31" stroke="#60747b" stroke-width="3"/>
+    <path d="M285 650 L298 648 L291 665 L300 659" fill="none" stroke="#9dadab" stroke-width="2"/>
+    <ellipse cx="314" cy="588" rx="19" ry="13" fill="#934d43" stroke="#d79e75" stroke-width="5"/>
+    <ellipse cx="314" cy="588" rx="12" ry="7" fill="#3e8999"/>
+    <path d="M359 413 Q395 405 413 434 L416 482 Q412 519 389 534 L354 518 Q336 489 341 451Z" fill="url(#ice)" stroke="#d2efed" stroke-width="3"/>
+    <path d="M352 449 Q377 436 405 452 M345 477 Q377 460 412 479 M355 501 Q382 487 404 504" fill="none" stroke="#edf9f6" stroke-width="4"/>
+    <path d="M438 530 L454 495 L474 510 L491 493 L515 529 L509 557 L475 565 L450 552Z" fill="#b39872" stroke="#d4bc93" stroke-width="3"/>
+    <path d="M444 530 L457 510 L465 527 M480 524 L492 507 L505 532" fill="none" stroke="#e0eae4" stroke-width="7"/>
+    <path d="M459 546 Q455 534 460 525 M480 552 Q472 537 482 528 M495 544 Q488 532 497 520" fill="none" stroke="#e2e6d6" stroke-width="4" opacity=".85"/>
+    <!-- Kverkfjöll shares the glacier; Lómagnúpur marks the south approach -->
+    <path d="M606 558 L618 531 L633 539 L644 520 L667 553 L651 570Z" fill="#55564e" stroke="#d9e9e2" stroke-width="3"/>
+    <path d="M626 553 L636 535 L643 555" fill="none" stroke="#d7eeee" stroke-width="5"/>
+    <path d="M652 539 q-8-14 1-22 M663 543 q-5-13 2-20" fill="none" stroke="#e6e9d9" stroke-width="3"/>
+    <path d="M448 792 L451 755 L479 742 L499 760 L495 798Z" fill="#48534c" stroke="#829071" stroke-width="3"/>
+    <path d="M452 766 L493 772 M451 777 L495 784" fill="none" stroke="#9b9b7b" stroke-width="3"/>
+
+    <!-- Roads, on top of terrain -->
+    <path class="route" d="M164 829 Q180 829 211 829 Q258 845 314 850 Q389 859 475 850 Q581 879 705 884 Q727 895 751 890 Q780 885 801 850 Q824 818 812 755 Q824 735 822 693 Q817 605 822 526 Q828 411 788 316 Q746 245 628 222 Q517 204 410 224 Q320 258 261 345 Q198 425 155 470 Q144 550 146 647 Q138 741 151 809 Q154 829 164 829Z"/>
+    <path class="highland" d="M261 345 Q237 295 237 266 Q180 283 168 317 Q182 425 165 492 Q153 574 146 647"/>
+
+    <path class="highland" d="M180 330 Q227 381 289 468 Q340 543 389 648 Q420 700 378 749 Q290 780 186 800 M294 474 Q373 482 417 558 Q422 607 389 648 M389 648 Q445 664 520 697 Q599 725 663 696 Q720 729 739 823 M520 697 Q512 580 542 421 Q570 354 635 274"/>
+    <path class="highland" d="M211 842 Q214 745 268 683 Q249 619 294 567 Q324 545 357 506 Q398 504 436 543 Q484 579 533 511 Q571 486 609 531 Q651 584 658 688 M294 471 Q319 487 357 506 M268 683 Q331 702 388 649"/>
+    <path class="spur" d="M285 633 Q291 601 314 588"/>
+    <path class="spur" d="M220 826 Q215 847 205 863 L160 863 Q155 833 174 807 M211 829 Q242 862 277 869 M707 281 Q735 280 763 265 M793 441 Q759 456 743 472 M642 662 Q672 637 684 648"/>
+    <path d="M170 829 L198 829" stroke="#f5e2b1" stroke-width="8"/>
+    <path d="M727 895 L771 886" stroke="#f5e2b1" stroke-width="8" stroke-linecap="round"/>
+    <path d="M727 895 L771 886" stroke="#303d3b" stroke-width="2" stroke-dasharray="4 5"/>
+  </g>
+
+  <path d="M178 875 Q174 899 173 925" fill="none" stroke="#73bac0" stroke-width="9" stroke-linecap="round" opacity=".9"/>
+
+  <!-- Map labels and landmarks -->
+  <text x="69" y="162" class="sea-label">NORTH ATLANTIC</text>
+  <text x="418" y="931" class="map-note">BLACK-SAND SOUTH COAST</text>
+  <text x="312" y="771" class="minor">SANDUR</text>
+  <text x="174" y="551" class="minor">HALLMUNDARHRAUN</text>
+  <text x="459" y="492" class="minor">PUMICE DESERT</text>
+  <text x="452" y="311" class="minor">ÓDÁÐAHRAUN</text>
+  <text x="576" y="602" class="ice-label">VATNAJÖKULL</text>
+  <text x="635" y="643" class="minor">GRÍMSVÖTN</text>
+  <text x="489" y="739" class="minor">WEST ICE CAVE</text>
+  <text x="130" y="417" class="minor">RAUÐASANDUR</text>
+  <text x="115" y="343" class="minor">GARÐAR BA 64</text>
+  <text x="215" y="858" class="minor">SÓLHEIMASANDUR</text>
+  <text x="91" y="855" class="minor">SKÓGÁ FORD</text>
+  <text x="253" y="889" class="minor">PLANE WRECK</text>
+  <text x="311" y="901" class="minor">REYNISFJARA</text>
+  <text x="696" y="809" class="minor">BREIÐAMERKURJÖKULL</text>
+  <text x="749" y="918" class="minor">BRIDGE</text>
+  <text x="666" y="878" class="minor">JÖKULSÁRLÓN</text>
+  <text x="618" y="328" class="minor">PSEUDOCRATERS</text>
+  <text x="701" y="238" class="minor">KRAFLA / STÓRA-VÍTI</text>
+  <text x="728" y="324" class="minor">HVERIR</text>
+  <text x="681" y="311" class="minor">HVERFJALL</text>
+  <text x="790" y="481" class="minor">JÖKLA</text>
+  <text x="550" y="470" class="minor">VÍTI</text>
+
+  <text x="222" y="727" class="region">Landmannalaugar</text>
+  <text x="211" y="746" class="minor">BRENNISTEINSALDA</text>
+  <text x="230" y="763" class="minor">LAUGAHRAUN · OBSIDIAN</text>
+  <text x="244" y="575" class="minor">LJÓTIPOLLUR</text>
+  <text x="337" y="434" class="minor">LANGJÖKULL</text>
+  <text x="414" y="590" class="region">Kerlingarfjöll</text>
+  <text x="600" y="516" class="minor">KVERKFJÖLL</text>
+  <text x="435" y="821" class="minor">LÓMAGNÚPUR</text>
+  <g><circle class="region-dot" cx="253" cy="653" r="15"/><text class="region-number" x="253" y="653">12</text></g>
+  <g><circle class="region-dot" cx="374" cy="477" r="15"/><text class="region-number" x="374" y="477">13</text></g>
+  <g><circle class="region-dot" cx="477" cy="540" r="15"/><text class="region-number" x="477" y="540">14</text></g>
+  <g fill="#fff1c1" stroke="#354a4d" stroke-width="2"><rect x="533" y="844" width="22" height="24" rx="4"/><rect x="808" y="592" width="22" height="24" rx="4"/><rect x="401" y="215" width="22" height="24" rx="4"/></g>
+  <g fill="#253b40" font-size="16" font-weight="800" text-anchor="middle"><text x="544" y="862">1</text><text x="819" y="610">1</text><text x="412" y="233">1</text></g>
+
+  <!-- Numbered region anchors -->
+  <g><circle class="region-dot" cx="176" cy="296" r="15"/><text class="region-number" x="176" y="296">1</text><text class="region" x="199" y="302">Westfjords</text></g>
+  <g><circle class="region-dot" cx="294" cy="471" r="15"/><text class="region-number" x="294" y="471">2</text><text class="region" x="166" y="465">Surtshellir</text></g>
+  <g><circle class="region-dot" cx="187" cy="800" r="15"/><text class="region-number" x="187" y="800">3</text><text class="region" x="210" y="805">Skógafoss</text></g>
+  <g><circle class="region-dot" cx="388" cy="649" r="15"/><text class="region-number" x="388" y="649">4</text><text class="region" x="402" y="640">Lakagígar</text></g>
+  <g><circle class="region-dot" cx="539" cy="420" r="15"/><text class="region-number" x="539" y="420">5</text><text class="region" x="474" y="374">Askja</text></g>
+  <g><circle class="region-dot" cx="570" cy="333" r="15"/><text class="region-number" x="570" y="333">6</text></g>
+  <g><circle class="region-dot" cx="643" cy="263" r="15"/><text class="region-number" x="643" y="263">7</text><text class="region" x="569" y="222">Mývatn</text></g>
+  <g><circle class="region-dot" cx="784" cy="449" r="15"/><text class="region-number" x="784" y="449">8</text><text class="region" x="695" y="395">Stuðlagil</text></g>
+  <g><circle class="region-dot" cx="658" cy="688" r="15"/><text class="region-number" x="658" y="688">9</text></g>
+  <g><circle class="region-dot" cx="525" cy="701" r="15"/><text class="region-number" x="525" y="701">10</text></g>
+  <g><circle class="region-dot" cx="737" cy="841" r="15"/><text class="region-number" x="737" y="841">11</text></g>
+  <text class="minor" x="596" y="350">HERÐUBREIÐ</text>
+
+  <!-- Compass and scale -->
+  <g transform="translate(829 172)"><circle r="32" fill="#163a45" stroke="#a7c4c5" stroke-width="1.5"/><path d="M0-24L7 5 0 0-7 5Z" fill="#f0e9cf"/><path d="M0 24L7-5 0 0-7-5Z" fill="#81aeb4"/><text x="0" y="-39" fill="#eaf0e8" text-anchor="middle" font-size="15" font-weight="750">N</text></g>
+  <path d="M82 922h108m-108-5v10m54-10v10m54-10v10" stroke="#e9e8d5" stroke-width="2"/>
+  <text x="83" y="911" fill="#e3e9df" font-size="11">0</text><text x="167" y="911" fill="#e3e9df" font-size="11">200 m</text>
+
+  <!-- Legend panel -->
+  <rect x="911" y="112" width="307" height="829" rx="12" fill="#19343b" stroke="#55747b" stroke-width="1.5"/>
+  <text x="938" y="152" class="panel-title">REGIONS</text>
+  <text x="938" y="177" class="panel-body">One island · fourteen driving areas</text>
+  <g class="legend-name">
+    <text x="938" y="207">01  Westfjords</text>
+    <text x="938" y="231">02  Surtshellir</text>
+    <text x="938" y="255">03  South Coast</text>
+    <text x="938" y="279">04  Lakagígar &amp; Sandur</text>
+    <text x="938" y="303">05  Askja Highlands</text>
+    <text x="938" y="327">06  Ódáðahraun</text>
+    <text x="938" y="351">07  Mývatn Volcanoes</text>
+    <text x="938" y="375">08  Stuðlagil &amp; Jökla</text>
+    <text x="938" y="399">09  Vatnajökull + Kverkfjöll</text>
+    <text x="938" y="423">10  Western Ice Margin</text>
+    <text x="938" y="447">11  Jökulsárlón</text>
+    <text x="938" y="471">12  Landmannalaugar</text>
+    <text x="938" y="495">13  Langjökull</text>
+    <text x="938" y="519">14  Kerlingarfjöll</text>
+  </g>
+  <path d="M938 549H1191" stroke="#4d6970"/>
+  <text x="938" y="582" class="panel-title">DRIVING LINES</text>
+  <path d="M940 610h61" class="route"/><text x="1015" y="615" class="panel-body">Ring Road / Route 1</text>
+  <path d="M940 646h61" class="highland"/><text x="1015" y="651" class="panel-body">Branches / highlands</text>
+  <path d="M940 682h61" class="spur"/><text x="1015" y="687" class="panel-body">Optional spur</text>
+  <path d="M938 708H1191" stroke="#4d6970"/>
+  <text x="938" y="740" class="panel-title">DESIGN NOTES</text>
+  <text x="938" y="770" class="panel-body">• Deep sea on every edge</text>
+  <text x="938" y="796" class="panel-body">• Mostly black-sand coast</text>
+  <text x="938" y="822" class="panel-body">• Red sand at Rauðasandur</text>
+  <text x="938" y="848" class="panel-body">• Glacier plateau is driveable</text>
+  <text x="938" y="874" class="panel-body">• Cave and tube are stylised</text>
+  <text x="938" y="900" class="panel-body">• Skógá bridge + gravel ford</text>
+  <text x="938" y="927" class="legend-small">Concept layout · subject to driving review</text>
+  <text x="62" y="992" class="subtitle">DRAFT / 2026-10-17 · REVISION 2</text>
+  <text x="890" y="992" class="subtitle" text-anchor="end">MAP IS SCHEMATIC, NOT A REAL-WORLD ROAD MAP</text>
+</svg>

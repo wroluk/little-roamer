@@ -28,6 +28,7 @@ export class TerrainEffects {
   private readonly dummy = new THREE.Object3D();
   private readonly color = new THREE.Color();
   private readonly colors = {
+    asphalt: new THREE.Color('#727775'),
     dirt: new THREE.Color('#d7ae72'), grass: new THREE.Color('#91ad67'),
     ash: new THREE.Color('#3f4849'), lava: new THREE.Color('#242c2d'),
     moss: new THREE.Color('#7f995d'), ice: new THREE.Color('#c5edf2'),

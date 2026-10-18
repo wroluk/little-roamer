@@ -15,10 +15,13 @@ import { MARS_HALF, HABITAT_PAD, marsSpawn, marsSurfaceAt, marsSurfaceHeight } f
 import { MarsStreamingRuntime, MarsWorkerTransport } from './mars-streaming';
 import { tubesWeight } from './mars-tubes-layout';
 import type { ParticleColors } from './terrain-effects';
+import { ICELAND_HALF, icelandSpawn, icelandDrivingHeight, icelandSurfaceAt, icelandWaterHeight } from './iceland-terrain';
+import { IcelandStreamingRuntime, IcelandWorkerTransport } from './iceland-streaming';
 
-export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars';
+export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars' | 'iceland';
 export type AreaRuntime = {
   update: (x: number, z: number) => void;
+  animate?: (dt: number, reducedMotion: boolean) => void;
   ensureReady: (x: number, z: number) => Promise<void>;
   isCollisionReadyAt: (x: number, z: number) => boolean;
   shrubBumpAt: (x: number, z: number) => number;
@@ -38,6 +41,7 @@ export type Area = {
   readyMessage: string;
   ambientLight: string;
   spawn: { x: number; y: number; z: number };
+  spawnHeading?: number;
   half: number;
   climbingPower: number;
   sky: string;
@@ -57,6 +61,20 @@ export type Area = {
 };
 
 export const AREAS: Record<AreaId, Area> = {
+  iceland: {
+    id: 'iceland', name: 'Iceland', label: '06 / SOUTH COAST PILOT',
+    tagline: 'Where the river meets the sea.',
+    description: 'A first drive beneath Skógafoss. Follow the Skógá to its shallow ford, cross the road bridge, or take the Ring Road around Iceland.',
+    hint: 'The paved road crosses the bridge. Amber posts mark the optional gravel ford. Deep water slows the car: use Reset to return.',
+    welcomeEyebrow: 'ICELAND / SKÓGAFOSS PILOT', welcomeTitle: 'Beneath the falls.',
+    readyMessage: 'Skógafoss is ready. The ford and Ring Road lie south.',
+    ambientLight: '#dfeef0', groundLight: '#576550', sunlight: '#fff5de',
+    spawn: icelandSpawn(), spawnHeading: Math.atan2(46, 43), half: ICELAND_HALF, climbingPower: 1.45,
+    sky: '#acbec3', fogNear: 110, fogFar: 430,
+    surfaceHeight: icelandDrivingHeight, waterHeight: icelandWaterHeight, surfaceAt: icelandSurfaceAt,
+    particleColors: { dirt: () => '#7c796b' },
+    build: (scene, world, onError) => new IcelandStreamingRuntime(scene, world, new IcelandWorkerTransport(), onError),
+  },
   mars: {
     id: 'mars', name: 'Mars Outpost', label: '05 / A LITTLE FARTHER FROM HOME',
     tagline: 'Small wheels. Another world.', description: 'Nine places to discover, from ivory habitat domes and black glass flows to stone arches, rust dunes and open lava tubes.',
@@ -126,5 +144,6 @@ export const AREAS: Record<AreaId, Area> = {
 };
 
 export function isAreaId(value: string | null): value is AreaId {
+  if (value === 'iceland') return import.meta.env?.DEV === true;
   return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village' || value === 'mars';
 }

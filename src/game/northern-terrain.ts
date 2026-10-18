@@ -485,6 +485,7 @@ export function northernSurfaceAt(x: number, z: number): SurfaceId {
 }
 
 const SURFACE_BASE_COLOR: Record<SurfaceId, [number, number, number]> = {
+  asphalt: [0.22, 0.24, 0.24],
   grass: [0.42, 0.56, 0.32],
   dirt: [0.56, 0.44, 0.29],
   water: [0.24, 0.42, 0.55],

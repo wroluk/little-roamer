@@ -318,6 +318,13 @@ appear in development; the public `RAPIER.init()` API is used.
 
 ## Checks
 
+The new Iceland world has an internal Skógafoss slice at `/?area=iceland` when
+running `npm run dev`. It is separate from Iceland Highlands and stays out of
+the production picker/direct links until the coastal pilot is ready. See
+[Iceland progress](ICELAND_PROGRESS.md) and [build plan](ICELAND_BUILD_PLAN.md).
+Focused coverage: `node --import tsx --test tests/iceland.test.ts tests/vehicle-selection.test.ts`
+and `./node_modules/.bin/playwright test tests/browser/iceland.spec.ts`.
+
 The unmarked Delta / Dunes wreck has focused geometry, terrain sightline and
 real-Scout checks in `tests/mars-wreck.test.ts`, plus the short dual-engine
 `tests/browser/mars-wreck.spec.ts` scenario (buried shuttle,
@@ -397,6 +404,10 @@ rollover; and check sustained frame rate during several minutes of driving.
 The goal is 60 FPS, with a minimum of 30 FPS on the agreed iPad.
 
 ## Implementation
+
+Before world work, read the [shared world-building lessons](WORLD_BUILD_GUIDE.md).
+It links proven implementations, known failures and the handoff requirements in
+[AGENTS.md](AGENTS.md).
 
 | File | Responsibility |
 | --- | --- |

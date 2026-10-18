@@ -1,3 +1,29 @@
+# Carry forward world-building experience
+
+Before adding or refining any location, read [WORLD_BUILD_GUIDE.md](WORLD_BUILD_GUIDE.md)
+and the current world's plan, design and latest progress entry. The guide links
+proven Northern Reach, Iceland Highlands and Mars implementations and records
+failed approaches that must not be repeated without a specific reason.
+
+- Before implementing a feature, inspect its closest existing implementation and
+  relevant tests. Record which reference you used and any necessary adaptation.
+- Carry forward the whole technique: terrain/render/collision agreement, fitted
+  water, grounded and varied details, route clearance, streaming and disposal.
+- Compare actual game captures from driving height and the reported problem angle;
+  passing tests or an overhead map alone do not establish visual quality.
+- Add transferable lessons to `WORLD_BUILD_GUIDE.md` and current results/remaining
+  work to the world's progress file before ending a session. Preserve user images.
+- Follow the user's latest scope and authorization. Existing preferences persist;
+  do not add a new approval step just because this guide is required reading.
+
+## Continuing Iceland work
+
+Read `ICELAND_BUILD_PLAN.md`, `ICELAND_PROGRESS.md`, and
+`artifacts/iceland/DESIGN.md` alongside the shared guide. Skógafoss includes the
+cliff top, upstream river, plunge pool and downstream Skógá through the bridge,
+ford and sea outlet. Do not treat only the waterfall effect as the completed slice.
+The world remains an internal development entry until its agreed release gate.
+
 # Test strategy for future sessions
 
 Use the [Checks](README.md#checks) section of the README for commands and test coverage.
