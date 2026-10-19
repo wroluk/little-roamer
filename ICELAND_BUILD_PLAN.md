@@ -57,7 +57,10 @@ remain internal development terrain.
   and collision rings, deterministic generation, and a coarse distant layer.
   Share only area-neutral streaming code; keep Iceland geology separate.
 - Let the river flow visually from Jökulsárlón to the southern sea under a
-  broad, collidable bridge. The glacier front is a sheer **Breiðamerkurjökull**
+  broad, collidable bridge across the **short Jökulsá outlet river**, south of
+  the lagoon basin. Route 1 skirts the lagoon on dry land; no bridge or road
+  crosses the open lagoon. Leave visible river both upstream and downstream
+  of the bridge before it reaches the sea. The glacier front is a sheer **Breiðamerkurjökull**
   outlet above the lagoon, with a clearly separate safe approach to Vatnajökull.
   Icebergs stay inside the lagoon and do not obstruct the bridge or safe route.
 - Give Skógafoss and Reynisfjara distinct silhouettes. The plane wreck is an

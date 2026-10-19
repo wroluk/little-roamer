@@ -264,3 +264,14 @@ water surface under the riverbed. The paved Ring Road is classified as Asphalt.
 Edit `concept-map.svg`, then run `node artifacts/iceland/render-map.mjs` from
 the repository root to regenerate `concept-map.png`. The map is a geographic
 concept, not a screenshot of currently completed terrain.
+
+### Jökulsárlón outlet correction — 2026-10-19
+
+The concept map now places Route 1's bridge south of the lagoon across the
+short Jökulsá outlet river. Keep the lagoon basin open, with the glacier front
+on its inland side, and a visible river reach on each side of the bridge before
+the sea. The bridge must connect dry banks; it must not span the lagoon.
+
+User references for bridge placement and proportions:
+- [Outlet bridge and Diamond Beach](https://localguide.is/wp-content/uploads/2025/06/bridge-at-Diamond-Beach-and-Jokulsarlon-Glacier-Lagoon-Iceland-1024x683.jpg)
+- [View along the outlet toward the lagoon and glacier](https://www.holdurcarrental.is/static/files/_blob/j6s0ztcqgnm7hcvz62xuku.png)

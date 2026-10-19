@@ -170,7 +170,7 @@
     <path d="M452 766 L493 772 M451 777 L495 784" fill="none" stroke="#9b9b7b" stroke-width="3"/>
 
     <!-- Roads, on top of terrain -->
-    <path class="route" d="M164 829 Q180 829 211 829 Q258 845 314 850 Q389 859 475 850 Q581 879 705 884 Q727 895 751 890 Q780 885 801 850 Q824 818 812 755 Q824 735 822 693 Q817 605 822 526 Q828 411 788 316 Q746 245 628 222 Q517 204 410 224 Q320 258 261 345 Q198 425 155 470 Q144 550 146 647 Q138 741 151 809 Q154 829 164 829Z"/>
+    <path class="route" d="M164 829 Q180 829 211 829 Q258 845 314 850 Q389 859 475 850 Q581 879 691 884 Q708 908 727 909 L775 909 Q798 896 810 850 Q824 818 812 755 Q824 735 822 693 Q817 605 822 526 Q828 411 788 316 Q746 245 628 222 Q517 204 410 224 Q320 258 261 345 Q198 425 155 470 Q144 550 146 647 Q138 741 151 809 Q154 829 164 829Z"/>
     <path class="highland" d="M261 345 Q237 295 237 266 Q180 283 168 317 Q182 425 165 492 Q153 574 146 647"/>
 
     <path class="highland" d="M180 330 Q227 381 289 468 Q340 543 389 648 Q420 700 378 749 Q290 780 186 800 M294 474 Q373 482 417 558 Q422 607 389 648 M389 648 Q445 664 520 697 Q599 725 663 696 Q720 729 739 823 M520 697 Q512 580 542 421 Q570 354 635 274"/>
@@ -178,8 +178,8 @@
     <path class="spur" d="M285 633 Q291 601 314 588"/>
     <path class="spur" d="M220 826 Q215 847 205 863 L160 863 Q155 833 174 807 M211 829 Q242 862 277 869 M707 281 Q735 280 763 265 M793 441 Q759 456 743 472 M642 662 Q672 637 684 648"/>
     <path d="M170 829 L198 829" stroke="#f5e2b1" stroke-width="8"/>
-    <path d="M727 895 L771 886" stroke="#f5e2b1" stroke-width="8" stroke-linecap="round"/>
-    <path d="M727 895 L771 886" stroke="#303d3b" stroke-width="2" stroke-dasharray="4 5"/>
+    <path d="M727 909 L775 909" stroke="#f5e2b1" stroke-width="8" stroke-linecap="round"/>
+    <path d="M727 909 L775 909" stroke="#303d3b" stroke-width="2" stroke-dasharray="4 5"/>
   </g>
 
   <path d="M178 875 Q174 899 173 925" fill="none" stroke="#73bac0" stroke-width="9" stroke-linecap="round" opacity=".9"/>
@@ -201,7 +201,8 @@
   <text x="253" y="889" class="minor">PLANE WRECK</text>
   <text x="311" y="901" class="minor">REYNISFJARA</text>
   <text x="696" y="809" class="minor">BREIÐAMERKURJÖKULL</text>
-  <text x="749" y="918" class="minor">BRIDGE</text>
+  <text x="783" y="949" class="minor">OUTLET BRIDGE</text>
+  <path d="M793 935 L768 913" fill="none" stroke="#c4d7d8" stroke-width="1.5"/>
   <text x="666" y="878" class="minor">JÖKULSÁRLÓN</text>
   <text x="618" y="328" class="minor">PSEUDOCRATERS</text>
   <text x="701" y="238" class="minor">KRAFLA / STÓRA-VÍTI</text>
@@ -277,6 +278,6 @@
   <text x="938" y="874" class="panel-body">• Cave and tube are stylised</text>
   <text x="938" y="900" class="panel-body">• Skógá bridge + gravel ford</text>
   <text x="938" y="927" class="legend-small">Concept layout · subject to driving review</text>
-  <text x="62" y="992" class="subtitle">DRAFT / 2026-10-17 · REVISION 2</text>
+  <text x="62" y="992" class="subtitle">DRAFT / 2026-10-19 · REVISION 3</text>
   <text x="890" y="992" class="subtitle" text-anchor="end">MAP IS SCHEMATIC, NOT A REAL-WORLD ROAD MAP</text>
 </svg>

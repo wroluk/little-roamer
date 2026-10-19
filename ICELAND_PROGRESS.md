@@ -21,7 +21,11 @@
   and eastern shore viewpoints; saved them in
   `artifacts/iceland/reynisfjara/refinement/`.
 
-**Next:** review these revised coastal forms, then continue east through the sandur
+Accepted by the user and committed as `e737e19`. Before lagoon work, corrected
+the concept map and build plan: the bridge crosses the short outlet river south
+of Jökulsárlón, with dry-bank approaches and open water throughout the lagoon.
+
+**Next:** continue east through the sandur
 and Lómagnúpur toward Jökulsárlón. Full project/PWA suites were not run for this
 local geometry change; physical iPad review remains open.
 
