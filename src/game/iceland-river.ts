@@ -1,3 +1,4 @@
+import { LAGOON_WATER_BOUNDS } from './iceland-lagoon';
 import * as THREE from 'three';
 import { FALL } from './iceland-layout';
 import { ICELAND_CELL, SKOGA_WATER_START, icelandGridZ, icelandSurfaceHeight, riverLevel } from './iceland-terrain';
@@ -12,11 +13,21 @@ export const SKOGA_MOUTH_Z = 635;
 export const REYNIS_SHALLOW_BOUNDS = { x0: -312, x1: -36, z0: 660, z1: 770.4 };
 type Vertex = { x: number; y: number; z: number; depth: number };
 
+/** Shared coastal palette: pale tidal shallows fade into opaque deep Atlantic water. */
+export function icelandSeaTint(x: number, z: number) {
+  // The submerged streaming apron is not a second shoreline.
+  if (Math.max(Math.abs(x), Math.abs(z)) >= 768) return { color: new THREE.Color('#194451'), alpha: 1 };
+  const depth = Math.max(0, -icelandSurfaceHeight(x, z));
+  const blend = THREE.MathUtils.smoothstep(depth, 0, 8);
+  const color = new THREE.Color('#75a9ab').lerp(new THREE.Color('#194451'), blend);
+  return { color, alpha: 0.48 + 0.52 * THREE.MathUtils.smoothstep(depth, 0, 2.4) };
+}
+
 /** Clip water to the actual terrain triangles, as in Northern Reach. */
 export function buildIcelandRiverGeometry() {
   const positions: number[] = [], depths: number[] = [], colors: number[] = [];
   const shallow = new THREE.Color('#8bc7be'), deep = new THREE.Color('#397f88');
-  const sea = new THREE.Color('#194451'), crestWater = new THREE.Color('#e8f2ef');
+  const crestWater = new THREE.Color('#e8f2ef');
   const emit = (triangle: Vertex[]) => {
     const polygon: Vertex[] = [];
     for (let i = 0; i < 3; i++) {
@@ -36,11 +47,11 @@ export function buildIcelandRiverGeometry() {
       const wet = Math.max(0, Math.min(1, v.depth / 0.25));
       const crest = v.y > 40 ? approach * approach * (3 - 2 * approach) * wet * wet * (3 - 2 * wet) : 0;
       const color = shallow.clone().lerp(deep, Math.min(1, v.depth / 2))
-        .lerp(crestWater, crest * 0.85).lerp(sea, join);
+        .lerp(crestWater, crest * 0.85).lerp(icelandSeaTint(v.x, v.z).color, join);
       const shallowOpacity = Math.max(0, Math.min(1, v.depth / 0.35));
       const easedOpacity = shallowOpacity * shallowOpacity * (3 - 2 * shallowOpacity);
       const riverOpacity = 0.56 * easedOpacity + (0.92 - 0.56 * easedOpacity) * crest;
-      colors.push(color.r, color.g, color.b, riverOpacity * (1 - join) + join);
+      colors.push(color.r, color.g, color.b, riverOpacity * (1 - join) + icelandSeaTint(v.x, v.z).alpha * join);
     }
   };
   for (const [start, end, upper] of [[SKOGA_WATER_START, FALL.lipZ, true], [FALL.lipZ, SKOGA_MOUTH_Z, false]] as const) {
@@ -72,20 +83,58 @@ export function buildIcelandRiverGeometry() {
 
 /** Ocean takes over only after the river has reached sea level. */
 export function buildIcelandSeaGeometry() {
-  const vertices: number[] = [];
+  const vertices: number[] = [], colors: number[] = [];
+  const tintCache = new Map<string, ReturnType<typeof icelandSeaTint>>();
+  const cuts = (a: number, b: number) => {
+    const result = [a];
+    if (a < -840 && b > -840) result.push(-840);
+    for (let v = Math.ceil(Math.max(a, -840) / 4.8) * 4.8; v < Math.min(b, 840); v += 4.8)
+      if (v > a + 0.001) result.push(v);
+    if (a < 840 && b > 840) result.push(840);
+    result.push(b); return result;
+  };
   const rectangle = (x0: number, x1: number, z0: number, z1: number) => {
-    vertices.push(x0, SKOGA_SEA_Y, z0, x0, SKOGA_SEA_Y, z1, x1, SKOGA_SEA_Y, z0,
-      x1, SKOGA_SEA_Y, z0, x0, SKOGA_SEA_Y, z1, x1, SKOGA_SEA_Y, z1);
+    const xs = cuts(x0, x1), zs = cuts(z0, z1);
+    const tintAt = (x: number, z: number) => {
+      const key = `${x},${z}`;
+      let tint = tintCache.get(key);
+      if (!tint) {
+        tint = Math.abs(x) >= 840 || Math.abs(z) >= 840
+          ? { color: new THREE.Color('#194451'), alpha: 1 } : icelandSeaTint(x, z);
+        tintCache.set(key, tint);
+      }
+      return tint;
+    };
+    const emit = (x: number, z: number) => {
+      const tint = tintAt(x, z);
+      vertices.push(x, SKOGA_SEA_Y, z); colors.push(tint.color.r, tint.color.g, tint.color.b, tint.alpha);
+    };
+    const same = (a: ReturnType<typeof tintAt>, b: ReturnType<typeof tintAt>) => a.alpha === b.alpha && a.color.equals(b.color);
+    // Merge uniform deep-water/hidden inland cells. Retain fine cells only where
+    // depth changes the coastal tint; identical flat water needs no dense grid.
+    for (let j = 1; j < zs.length; j++) for (let i = 1; i < xs.length;) {
+      const start = i - 1, tint = tintAt(xs[start], zs[j - 1]);
+      const uniform = (k: number) => same(tint, tintAt(xs[k], zs[j - 1])) && same(tint, tintAt(xs[k], zs[j]));
+      if (uniform(start) && uniform(i)) while (i + 1 < xs.length && uniform(i + 1)) i++;
+      emit(xs[start], zs[j - 1]); emit(xs[start], zs[j]); emit(xs[i], zs[j - 1]);
+      emit(xs[i], zs[j - 1]); emit(xs[start], zs[j]); emit(xs[i], zs[j]);
+      i++;
+    }
+
   };
   rectangle(-5000, SKOGA_WATER_MIN_X, -5000, 5000);
   rectangle(SKOGA_WATER_MAX_X, REYNIS_SHALLOW_BOUNDS.x0, -5000, 5000);
   rectangle(REYNIS_SHALLOW_BOUNDS.x0, REYNIS_SHALLOW_BOUNDS.x1, -5000, REYNIS_SHALLOW_BOUNDS.z0);
   rectangle(REYNIS_SHALLOW_BOUNDS.x0, REYNIS_SHALLOW_BOUNDS.x1, REYNIS_SHALLOW_BOUNDS.z1, 5000);
-  rectangle(REYNIS_SHALLOW_BOUNDS.x1, 5000, -5000, 5000);
+  rectangle(REYNIS_SHALLOW_BOUNDS.x1, LAGOON_WATER_BOUNDS.x0, -5000, 5000);
+  rectangle(LAGOON_WATER_BOUNDS.x0, LAGOON_WATER_BOUNDS.x1, -5000, LAGOON_WATER_BOUNDS.z0);
+  rectangle(LAGOON_WATER_BOUNDS.x0, LAGOON_WATER_BOUNDS.x1, LAGOON_WATER_BOUNDS.z1, 5000);
+  rectangle(LAGOON_WATER_BOUNDS.x1, 5000, -5000, 5000);
   rectangle(SKOGA_WATER_MIN_X, SKOGA_WATER_MAX_X, -5000, SKOGA_WATER_START);
   rectangle(SKOGA_WATER_MIN_X, SKOGA_WATER_MAX_X, SKOGA_MOUTH_Z, 5000);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 4));
   geometry.computeVertexNormals();
   return geometry;
 }
@@ -114,9 +163,11 @@ export function buildReynisShallowGeometry() {
       const depth = smooth(v.depth / 3.5);
       const edge = 1 - reynisCoastWeight(v.x);
       const towardOpenSea = smooth((v.z - z1 + 22) / 22);
-      const blend = Math.max(depth, edge, towardOpenSea);
-      const color = shallow.clone().lerp(deep, blend);
-      const opacity = Math.max(0.34 + 0.6 * smooth(v.depth / 1.5), edge, towardOpenSea);
+
+      const shared = icelandSeaTint(v.x, v.z);
+      const color = shallow.clone().lerp(deep, depth).lerp(shared.color, Math.max(edge, towardOpenSea));
+      const boundary = Math.max(edge, towardOpenSea);
+      const opacity = (0.34 + 0.6 * smooth(v.depth / 1.5)) * (1 - boundary) + shared.alpha * boundary;
       colors.push(color.r, color.g, color.b, opacity);
     }
   };

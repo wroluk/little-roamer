@@ -1,3 +1,4 @@
+import { lagoonWaterRegion, lagoonRadius } from './game/iceland-lagoon';
 import './styles.css';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
@@ -217,6 +218,8 @@ async function boot() {
     const surface = vehicle.currentSurface;
     if (area.id === 'mars' && surface.id === 'rock') return 'Martian rock';
     if (surface.id === 'water') {
+      if (area.id === 'iceland' && lagoonWaterRegion(vehicle.position.x, vehicle.position.z))
+        return lagoonRadius(vehicle.position.x, vehicle.position.z) < 1.1 ? 'Glacial lagoon' : 'Glacial river';
       if (area.id === 'samurai-village') return 'Shallow lake';
       if (area.id === 'iceland' && reynisShallowWaterAt(vehicle.position.x, vehicle.position.z, vehicle.waterDepth))
         return 'Coastal shallows';

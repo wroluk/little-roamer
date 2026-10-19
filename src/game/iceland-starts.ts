@@ -1,3 +1,5 @@
+import { LAGOON_VIEW_ROUTE } from './iceland-lagoon';
+import { LOMAGNUPUR_START } from './iceland-skeidararsandur';
 import { ICELAND_START, icelandSpawn } from './iceland-terrain';
 import { SOLHEIMASANDUR_APPROACH } from './iceland-sandur';
 import { REYNIS_BEACH_PATH, REYNIS_START } from './iceland-reynisfjara';
@@ -39,6 +41,22 @@ export const ICELAND_STARTS: readonly IcelandStart[] = [
     description: 'Follow the beach track toward the column wall and the Reynisdrangar sea stacks.',
     hint: 'The beach track leads south. Route 1 is behind you to the north.',
     readyMessage: 'Reynisfjara is ready. Follow the beach track toward the columns.',
+  },
+  {
+    id: 'lomagnupur', name: 'Lómagnúpur', position: LOMAGNUPUR_START,
+    heading: Math.atan2(-25, 22),
+    welcomeTitle: 'At the edge of the sandur.',
+    description: 'Follow the gravel track below Lómagnúpur, then rejoin Route 1 across the dark outwash plain.',
+    hint: 'The cliff track returns to the paved road at both ends.',
+    readyMessage: 'Lómagnúpur is ready. The sandur opens to the east.',
+  },
+  {
+    id: 'jokulsarlon', name: 'Jökulsárlón', position: LAGOON_VIEW_ROUTE[1],
+    heading: Math.atan2(21, 27),
+    welcomeTitle: 'Where the glacier meets the water.',
+    description: 'Follow the gravel shore to the glacier viewpoint, or take Route 1 across the short outlet river toward the eastern coast.',
+    hint: 'The lagoon is deep. The bridge crosses its outlet south of the shore track.',
+    readyMessage: 'Jökulsárlón is ready. Icebergs lie beyond the gravel shore.',
   },
 ];
 

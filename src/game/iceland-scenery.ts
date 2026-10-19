@@ -1,3 +1,4 @@
+import { addLagoonScenery } from './iceland-lagoon-scenery';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { SKOGA_BRIDGE } from './iceland-layout';
@@ -62,17 +63,19 @@ export function buildIcelandScenery(world: RAPIER.World) {
   const box = (x: number, y: number, z: number, sx: number, sy: number, sz: number, m: THREE.Material, name: string) =>
     mesh(new THREE.BoxGeometry(sx, sy, sz).translate(x, y, z), m, name, true);
   const sea = buildIcelandSeaGeometry();
-  mesh(sea, new THREE.MeshStandardMaterial({ color: '#194451', roughness: 0.35, metalness: 0.04 }), 'Iceland · deep sea');
+  mesh(sea, new THREE.MeshStandardMaterial({ vertexColors: true, transparent: true, depthWrite: false, roughness: 0.35, metalness: 0.04 }), 'Iceland · deep sea').renderOrder = 1;
   mesh(buildReynisShallowGeometry(), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35,
     metalness: 0.04, side: THREE.DoubleSide, transparent: true, depthWrite: false }),
   'Reynisfjara · coastal shallows').renderOrder = 1;
   const river = buildIcelandRiverGeometry();
   mesh(river, water, 'Skógá · continuous river').renderOrder = 1;
   const waterfall = buildSkogafossWater(group);
-  buildIcelandRoadScenery(group);
+  const roadside = buildIcelandRoadScenery(group);
+  solids.push(world.createCollider(RAPIER.ColliderDesc.trimesh(roadside.collider.vertices, roadside.collider.indices).setFriction(0.9)));
   buildCoastalTurnout(group);
   addSolheimasandurWreck((geometry, material, name) => mesh(geometry, material, name, true));
   addReynisfjaraScenery((geometry, material, name) => mesh(geometry, material, name, true));
+  addLagoonScenery(mesh);
   const detail = buildIcelandGroundDetail(group);
   solids.push(world.createCollider(RAPIER.ColliderDesc.trimesh(detail.collider.vertices, detail.collider.indices).setFriction(0.9)));
   // The cliff is the terrain itself. Only the road bridge adds structural geometry.

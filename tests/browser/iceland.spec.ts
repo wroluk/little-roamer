@@ -1,3 +1,6 @@
+import { LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE, JOKULSA_CROSSING, JOKULSA_BRIDGE } from '../../src/game/iceland-lagoon';
+import { SKOGA_BRIDGE } from '../../src/game/iceland-layout';
+import { LOMAGNUPUR_ROUTE, LOMAGNUPUR_START } from '../../src/game/iceland-skeidararsandur';
 import { test, expect, type Page } from '@playwright/test';
 import { FORD_PATH, BRIDGE_PATH, ICELAND_LOOP, type IcelandPoint } from '../../src/game/iceland-terrain';
 import { ICELAND_RING_ROAD } from '../../src/game/iceland-road';
@@ -5,30 +8,38 @@ import { SOLHEIMASANDUR_APPROACH, SOLHEIMASANDUR_WRECK } from '../../src/game/ic
 import { REYNIS_BEACH_PATH, REYNIS_CAVE, REYNIS_SHORE_ROUTE } from '../../src/game/iceland-reynisfjara';
 test.use({ deviceScaleFactor: 1 });
 type State = { area: string; car: string; mode: string; position: { x: number; y: number; z: number }; rotation: { x: number; y: number; z: number; w: number }; speed: number;
-  contacts: number; waterDepth: number; streaming: { activeRender: number; activePhysics: number; queued: number }; cameraObstructed: boolean };
+  contacts: number; waterDepth: number; streaming: { activeRender: number; activePhysics: number; queued: number }; cameraObstructed: boolean;
+  velocity: { x: number; y: number; z: number }; suspension: (number | null)[] };
 type Game = { snapshot(): State; placeVehicle(x: number, z: number, heading: number): Promise<void>;
   setPhotoView(view: { position: { x: number; y: number; z: number }; target: { x: number; y: number; z: number }; fov: number }): Promise<void> };
 const state = (page: Page) => page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
 async function boot(page: Page) { await page.goto('/?area=iceland'); await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 }); await page.locator('#start').click(); }
-async function drive(page: Page, points: IcelandPoint[]) {
+async function drive(page: Page, points: IcelandPoint[], budgetMs = 150000) {
   await page.evaluate(async path => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(path[0].x, path[0].z, Math.atan2(path[0].x - path[1].x, path[0].z - path[1].z)), points);
-  const result = await page.evaluate(async path => {
+  const result = await page.evaluate(async ({ path, budgetMs }) => {
     const game = (window as unknown as { __ROAMER__: Game }).__ROAMER__;
-    let next = 1, depth = 0; const deadline = performance.now() + 150000, keys = new Set<string>();
+    let next = 1, depth = 0, verticalSpeed = 0, minimumSuspension = Infinity, maximumSuspension = -Infinity;
+    const deadline = performance.now() + budgetMs, keys = new Set<string>();
     const key = (code: string, active: boolean) => { if (keys.has(code) === active) return; if (active) keys.add(code); else keys.delete(code); window.dispatchEvent(new KeyboardEvent(active ? 'keydown' : 'keyup', { code, bubbles: true })); };
     try {
       while (next < path.length && performance.now() < deadline) {
         const s = game.snapshot(), dx = path[next].x - s.position.x, dz = path[next].z - s.position.z;
         depth = Math.max(depth, s.waterDepth);
+        if (s.contacts >= 2 && Math.abs(s.speed) > 1) {
+          verticalSpeed = Math.max(verticalSpeed, Math.abs(s.velocity.y));
+          for (const length of s.suspension) if (length !== null) {
+            minimumSuspension = Math.min(minimumSuspension, length); maximumSuspension = Math.max(maximumSuspension, length);
+          }
+        }
         if (Math.hypot(dx, dz) < 3) { next++; continue; }
         const q = s.rotation, fx = -2 * (q.x * q.z + q.y * q.w), fz = -(1 - 2 * (q.x * q.x + q.y * q.y));
         const a = Math.atan2(dx, -dz) - Math.atan2(fx, -fz), e = Math.atan2(Math.sin(a), Math.cos(a));
         key('KeyD', e > 0.045); key('KeyA', e < -0.045); key('KeyW', Math.abs(s.speed) < (Math.abs(e) > 0.5 ? 3 : 5));
         await new Promise(requestAnimationFrame);
       }
-      return { next, depth, state: game.snapshot() };
+      return { next, depth, verticalSpeed, suspensionRange: maximumSuspension - minimumSuspension, state: game.snapshot() };
     } finally { for (const code of [...keys]) key(code, false); }
-  }, points);
+  }, { path: points, budgetMs });
   expect(result.next, JSON.stringify(result.state)).toBe(points.length);
   expect(result.state.streaming.activeRender).toBeLessThanOrEqual(25);
   expect(result.state.streaming.activePhysics).toBeLessThanOrEqual(9);
@@ -323,4 +334,236 @@ test('Reynisfjara has a dry driveable beach and shallow transparent shore water'
   await expect.poll(async () => (await state(page)).waterDepth).toBeGreaterThan(0.1);
   expect((await state(page)).waterDepth).toBeLessThan(0.7);
   await expect(page.locator('#surface-label')).toHaveText('Coastal shallows');
+});
+
+
+test('Lómagnúpur cliff and sandur have a connected gravel route and regional reset', async ({ page }, info) => {
+  test.setTimeout(600000);
+  await page.goto('/?area=iceland&start=lomagnupur');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await expect(page.locator('#welcome-title')).toHaveText('At the edge of the sandur.');
+  await page.locator('#start').click();
+  for (const view of [
+    { name: 'lomagnupur-arrival', position: { x: -115, y: 10, z: 640 }, target: { x: -5, y: 58, z: 480 } },
+    { name: 'lomagnupur-prow', position: { x: 91, y: 10, z: 620 }, target: { x: -5, y: 55, z: 480 } },
+    { name: 'sandur-east', position: { x: 42, y: 18, z: 558 }, target: { x: 194, y: 5, z: 584 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({ position: view.position, target: { x: view.position.x + (view.target.x - view.position.x) * 0.05, y: view.position.y + (view.target.y - view.position.y) * 0.05, z: view.position.z + (view.target.z - view.position.z) * 0.05 }, fov: 55 }), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+  await page.keyboard.press('KeyU');
+  await page.locator('#photo-exit').click();
+  await expect.poll(async () => (await state(page)).mode).toBe('playing');
+  expect((await drive(page, LOMAGNUPUR_ROUTE, 210000)).depth).toBe(0);
+  expect((await drive(page, [...LOMAGNUPUR_ROUTE].reverse(), 210000)).depth).toBe(0);
+  const road = ICELAND_RING_ROAD.filter(p => p.x >= -160 && p.x <= 340 && p.z > 580);
+  for (let i = 0; i < road.length - 1; i += 18)
+    expect((await drive(page, road.slice(i, i + 19))).depth).toBe(0);
+  await page.evaluate(async () => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(100, 578, 0));
+  await page.locator('#reset').click();
+  await expect.poll(async () => (await state(page)).position.x).toBeCloseTo(LOMAGNUPUR_START.x, 0);
+  await expect.poll(async () => (await state(page)).position.z).toBeCloseTo(LOMAGNUPUR_START.z, 0);
+});
+
+
+test('Jökulsárlón renders its calving front, outlet bridge and Lómagnúpur gateway', async ({ page }, info) => {
+  test.setTimeout(180000);
+  await page.goto('/?area=iceland&start=jokulsarlon');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  for (const view of [
+    { name: 'ring-road-detail', position: { x: 187, y: 8, z: 614 }, target: { x: 270, y: 5, z: 612 } },
+    { name: 'north-coast-shallows', position: { x: 0, y: 60, z: -710 }, target: { x: 80, y: 0, z: -711 } },
+    { name: 'west-coast-shallows', position: { x: -682, y: 30, z: 280 }, target: { x: -680, y: 0, z: 360 } },
+    { name: 'east-coast-shallows', position: { x: 706, y: 45, z: 200 }, target: { x: 710, y: 0, z: 280 } },
+    { name: 'lomagnupur-front', position: { x: -5, y: 12, z: 610 }, target: { x: -5, y: 60, z: 480 } },
+    { name: 'beach-ice', position: { x: 454, y: 3, z: 674 }, target: { x: 463, y: 0.6, z: 679 } },
+    { name: 'lagoon-arrival', position: { x: 410, y: 10, z: 623 }, target: { x: 485, y: 15, z: 530 } },
+    { name: 'outlet-bridge', position: { x: 451, y: 13, z: 685 }, target: { x: 500, y: 6, z: 650 } },
+    { name: 'calving-front', position: { x: 393, y: 12, z: 540 }, target: { x: 479, y: 23, z: 483 } },
+    { name: 'gateway-glacier', position: { x: 108, y: 10, z: 563 }, target: { x: 158, y: 30, z: 493 } },
+    { name: 'lomagnupur-ridge', position: { x: 88, y: 12, z: 605 }, target: { x: -10, y: 60, z: 460 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({
+      position: view.position, target: { x: view.position.x + (view.target.x - view.position.x) * 0.05,
+        y: view.position.y + (view.target.y - view.position.y) * 0.05, z: view.position.z + (view.target.z - view.position.z) * 0.05 }, fov: 55,
+    }), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500); await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+  await page.keyboard.press('KeyU'); await page.locator('#photo-exit').click();
+  await expect.poll(async () => (await state(page)).mode).toBe('playing');
+ });
+
+test('Jökulsárlón outlet bridge and shores drive both directions and reset from deep water', async ({ page }) => {
+  test.setTimeout(480000);
+  await page.goto('/?area=iceland&start=jokulsarlon');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  for (const path of [JOKULSA_CROSSING, LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE]) {
+    expect((await drive(page, path)).depth).toBe(0);
+    expect((await drive(page, [...path].reverse())).depth).toBe(0);
+  }
+  await page.evaluate(async () => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(485, 560, 0));
+  await expect.poll(async () => (await state(page)).waterDepth).toBeGreaterThan(1);
+  await expect(page.locator('#surface-label')).toHaveText('Glacial lagoon');
+  await page.locator('#reset').click();
+  await expect.poll(async () => (await state(page)).position.x).toBeCloseTo(411, 0);
+  await expect.poll(async () => (await state(page)).waterDepth).toBe(0);
+});
+
+test('Iceland road shoulders blend into sandur and heath at driving and raised views', async ({ page }, info) => {
+  test.setTimeout(180000);
+  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+  await boot(page);
+  expect(await page.evaluate(() => {
+    const scene = (window as unknown as { __ROAMER__: { vehicle: { model: import('three').Group } } }).__ROAMER__.vehicle.model.parent!;
+    const shoulders = scene.getObjectByName('Iceland · gravel shoulders') as import('three').Mesh;
+    const material = shoulders.material as import('three').MeshStandardMaterial;
+    return { transparent: material.transparent, depthWrite: material.depthWrite, rgba: shoulders.geometry.attributes.color.itemSize };
+  })).toEqual({ transparent: true, depthWrite: false, rgba: 4 });
+  for (const view of [
+    { name: 'road-sandur-driving', position: { x: 187, y: 6, z: 610 }, target: { x: 270, y: 5, z: 613 } },
+    { name: 'road-sandur-raised', position: { x: 180, y: 27, z: 607 }, target: { x: 270, y: 4, z: 614 } },
+    { name: 'road-sandur-reverse', position: { x: 330, y: 22, z: 616 }, target: { x: 240, y: 4, z: 612 } },
+    { name: 'road-heath-driving', position: { x: -610, y: 8.5, z: 520 }, target: { x: -577, y: 6.3, z: 530 } },
+    { name: 'road-heath-raised', position: { x: -616, y: 28, z: 518 }, target: { x: -577, y: 6.3, z: 530 } },
+    { name: 'bridge-east-cable-clearance', position: { x: 581, y: 25, z: 675 }, target: { x: 525, y: 5, z: 650 } },
+    { name: 'bridge-east-road-height', position: { x: 577, y: 6.5, z: 650 }, target: { x: 500, y: 4.8, z: 650 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({
+      position: view.position, target: { x: view.position.x + (view.target.x - view.position.x) * 0.05,
+        y: view.position.y + (view.target.y - view.position.y) * 0.05, z: view.position.z + (view.target.z - view.position.z) * 0.05 }, fov: 55,
+    }), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500); await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Iceland road edges and bridge thresholds move the suspension and roadside markers are solid', async ({ page }, info) => {
+  test.setTimeout(600000); await boot(page);
+  const crossings = [
+    [{ x: 180, z: 597 }, { x: 180, z: 623 }],
+    ...[SKOGA_BRIDGE, JOKULSA_BRIDGE].flatMap(bridge => [-1, 1].map(side => {
+      const x = bridge.x + side * bridge.length / 2;
+      return [{ x: x - 6, z: bridge.z }, { x: x + 6, z: bridge.z }];
+    })),
+  ];
+  for (const path of crossings)
+    for (const reverse of [false, true]) {
+      const result = await drive(page, reverse ? [...path].reverse() : path);
+      expect(result.depth).toBe(0);
+      expect(result.suspensionRange).toBeGreaterThan(0.05);
+      expect(result.verticalSpeed).toBeGreaterThan(0.2);
+    }
+  await page.screenshot({ path: info.outputPath('bridge-threshold-return.png') });
+  const marker = await page.evaluate(async () => {
+    const game = (window as unknown as { __ROAMER__: Game & { vehicle: import('../../src/game/vehicle').Vehicle } }).__ROAMER__;
+    const markers = game.vehicle.model.parent!.getObjectByName('Iceland · yellow road markers') as import('three').InstancedMesh;
+    const matrix = markers.matrix.clone();
+    let selected = -1, distance = Infinity;
+    for (let i = 0; i < markers.count; i++) {
+      markers.getMatrixAt(i, matrix);
+      const d = Math.hypot(matrix.elements[12] - 180, matrix.elements[14] - 618);
+      if (d < distance) { distance = d; selected = i; }
+    }
+    if (selected < 0) throw new Error('No roadside marker found');
+    markers.getMatrixAt(selected, matrix);
+    const x = matrix.elements[12], y = matrix.elements[13], z = matrix.elements[14];
+    await game.placeVehicle(x - 5, z, -Math.PI / 2);
+    return { x, y, z };
+  });
+  await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+  const contact = await page.evaluate(async marker => {
+    const car = (window as unknown as { __ROAMER__: { vehicle: import('../../src/game/vehicle').Vehicle } }).__ROAMER__.vehicle;
+    const ray = {
+      origin: { x: marker.x - 1, y: marker.y, z: marker.z }, dir: { x: 1, y: 0, z: 0 },
+      pointAt(t: number) { return { x: this.origin.x + t, y: this.origin.y, z: this.origin.z }; },
+    };
+    const hit = car.world.castRay(ray, 2, true, undefined, undefined, undefined, car.body);
+    if (!hit || hit.timeOfImpact < 0.9 || hit.timeOfImpact >= 1) throw new Error('No solid collider at the visible marker');
+    let contacted = false;
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW', bubbles: true }));
+    try {
+      const deadline = performance.now() + 30000;
+      while (!contacted && performance.now() < deadline) {
+        const position = car.body.translation();
+        if (Math.hypot(position.x - marker.x, position.z - marker.z) < 2) {
+          car.world.contactPairsWith(car.body.collider(0), other => {
+            if (other.handle !== hit.collider.handle) return;
+            car.world.contactPair(car.body.collider(0), other, manifold => {
+              if (manifold.numContacts() > 0) contacted = true;
+            });
+          });
+        }
+        await new Promise(requestAnimationFrame);
+      }
+      return contacted;
+    } finally { window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyW', bubbles: true })); }
+  }, marker);
+  expect(contact, 'the chassis contacts a solid roadside marker rather than passing through it').toBe(true);
+  await page.screenshot({ path: info.outputPath('road-marker-contact.png') });
+});
+
+test('Jökulsárlón lagoon and beach have visible translucent ice among opaque pieces', async ({ page }, info) => {
+  test.setTimeout(120000);
+  await page.goto('/?area=iceland&start=jokulsarlon');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 }); await page.locator('#start').click();
+  const groups = await page.evaluate(() => {
+    const scene = (window as unknown as { __ROAMER__: { vehicle: import('../../src/game/vehicle').Vehicle } }).__ROAMER__.vehicle.model.parent!;
+    return ['Jökulsárlón · iceberg ', 'Jökulsárlón · beach ice '].map(prefix => {
+      let clear = 0, opaque = 0;
+      scene.traverse(object => {
+        if (!object.name.startsWith(prefix)) return;
+        const mesh = object as import('three').Mesh, material = mesh.material as import('three').MeshPhysicalMaterial;
+        const shore = prefix.includes('beach ice');
+        const opticalRange = shore
+          ? material.opacity >= 0.88 && material.opacity <= 0.95 && material.transmission >= 0.35 && material.transmission <= 0.55
+          : material.opacity <= 0.75 && material.transmission > 0.6;
+        if (material.transparent && opticalRange && mesh.renderOrder === 2) clear++;
+        else opaque++;
+      });
+      return { clear, opaque };
+    });
+  });
+  for (const group of groups) { expect(group.clear).toBeGreaterThanOrEqual(2); expect(group.opaque).toBeGreaterThan(0); }
+  for (const view of [
+    { name: 'lagoon-translucent-ice', position: { x: 445, y: 3, z: 592 }, target: { x: 485, y: 1, z: 551 } },
+    { name: 'lagoon-large-varied-ice', position: { x: 510, y: 4, z: 607 }, target: { x: 491, y: 1, z: 574 } },
+    { name: 'beach-translucent-ice', position: { x: 454, y: 2.5, z: 674 }, target: { x: 463, y: 0.6, z: 679 } },
+    { name: 'beach-large-varied-ice', position: { x: 541, y: 4, z: 690 }, target: { x: 534, y: 1, z: 681.6 } },
+    { name: 'beach-ice-raised', position: { x: 541, y: 13, z: 686 }, target: { x: 534, y: 1, z: 681.6 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({
+      position: view.position, target: { x: view.position.x + (view.target.x - view.position.x) * 0.05,
+        y: view.position.y + (view.target.y - view.position.y) * 0.05, z: view.position.z + (view.target.z - view.position.z) * 0.05 }, fov: 55,
+    }), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500); await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+});
+
+test('Iceland final outlet shape and road bridge approaches', async ({ page }, info) => {
+  test.setTimeout(240000);
+  await page.goto('/?area=iceland&start=jokulsarlon');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  for (const view of [
+    { name: 'outlet-mouth', position: { x: 533, y: 12, z: 678 }, target: { x: 500, y: 0, z: 706 } },
+    { name: 'outlet-overhead', position: { x: 500, y: 75, z: 694 }, target: { x: 500, y: 0, z: 697 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({
+      position: view.position, target: { x: view.position.x + (view.target.x - view.position.x) * 0.05,
+        y: view.position.y + (view.target.y - view.position.y) * 0.05, z: view.position.z + (view.target.z - view.position.z) * 0.05 }, fov: 55,
+    }), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500); await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+  await page.keyboard.press('KeyU'); await page.locator('#photo-exit').click();
+  await expect.poll(async () => (await state(page)).mode).toBe('playing');
+  expect((await drive(page, JOKULSA_CROSSING)).depth).toBe(0);
+  expect((await drive(page, [...JOKULSA_CROSSING].reverse())).depth).toBe(0);
 });

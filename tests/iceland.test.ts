@@ -1,3 +1,8 @@
+import { lagoonCarve } from '../src/game/iceland-lagoon';
+import { icelandSeaTint } from '../src/game/iceland-river';
+import { LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE, JOKULSA_CROSSING, JOKULSA_BRIDGE, lagoonRadius, southernGlacier, LAGOON_WATER_BOUNDS } from '../src/game/iceland-lagoon';
+import { buildLagoonWater, addLagoonScenery } from '../src/game/iceland-lagoon-scenery';
+import { LOMAGNUPUR_ROUTE, LOMAGNUPUR, lomagnupurRouteDistance } from '../src/game/iceland-skeidararsandur';
 import assert from 'node:assert/strict';
 import { before, test } from 'node:test';
 import * as THREE from 'three';
@@ -20,7 +25,7 @@ import { REYNIS_SHALLOW_BOUNDS, buildReynisShallowGeometry } from '../src/game/i
 before(async () => { await RAPIER.init(); });
 
 test('Iceland regional starts are unique, dry, level and select the nearest reset', () => {
-  assert.deepEqual(ICELAND_STARTS.map(start => start.id), ['skogafoss', 'solheimasandur', 'reynisfjara']);
+  assert.deepEqual(ICELAND_STARTS.map(start => start.id), ['skogafoss', 'solheimasandur', 'reynisfjara', 'lomagnupur', 'jokulsarlon']);
   assert.equal(new Set(ICELAND_STARTS.map(start => start.id)).size, ICELAND_STARTS.length);
   for (const start of ICELAND_STARTS) {
     const { x, z } = start.position, spawn = icelandStartSpawn(start);
@@ -98,8 +103,9 @@ test('Reynisfjara has a level dry beach before a clipped shallow sea band', () =
     assert.ok(icelandSurfaceHeight(positions.getX(i), positions.getZ(i)) < 0.02,
       'shore mesh must stop at the sampled beach bank');
     if (Math.abs(positions.getX(i) - REYNIS_SHALLOW_BOUNDS.x1) < 0.01) {
-      assert.equal(colors.getW(i), 1, 'eastern water handoff must be fully opaque');
-      const sea = new THREE.Color('#194451');
+      const shared = icelandSeaTint(positions.getX(i), positions.getZ(i));
+      assert.ok(Math.abs(colors.getW(i) - shared.alpha) < 1e-5, 'eastern handoff matches the shared shallow sea opacity');
+      const sea = shared.color;
       assert.ok(Math.abs(colors.getX(i) - sea.r) < 1e-6);
       assert.ok(Math.abs(colors.getY(i) - sea.g) < 1e-6);
       assert.ok(Math.abs(colors.getZ(i) - sea.b) < 1e-6);
@@ -180,7 +186,7 @@ test('ford has a shallow broad bed, other river sections are deep, sea is deep',
   assert.ok(icelandSurfaceHeight(-450, 740) < -10);
 });
 
-async function drive(path: IcelandPoint[], model: 'modern' | 'classic', road = false) {
+async function drive(path: IcelandPoint[], model: 'modern' | 'classic', road = false, observe?: (car: Vehicle) => void) {
   const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
   const runtime = new IcelandStreamingRuntime(scene, world, new LocalIcelandTransport());
   let vehicleColliders = 0;
@@ -198,7 +204,7 @@ async function drive(path: IcelandPoint[], model: 'modern' | 'classic', road = f
       const f = new THREE.Vector3(0, 0, -1).applyQuaternion(car.body.rotation());
       const angle = Math.atan2(dx, -dz) - Math.atan2(f.x, -f.z), error = Math.atan2(Math.sin(angle), Math.cos(angle));
       car.beforeStep({ steer: Math.max(-1, Math.min(1, error * 2)), forward: tick > 90 && Math.abs(car.speed) < (Math.abs(error) > 0.5 ? 3 : road ? 8 : 5), reverse: false }, 1 / 60);
-      world.step(); car.capture(); depth = Math.max(depth, car.waterDepth);
+      world.step(); car.capture(); depth = Math.max(depth, car.waterDepth); observe?.(car);
       assert.ok(car.position.y > icelandSurfaceHeight(car.position.x, car.position.z) - 1);
     }
     assert.equal(next, path.length, `${model}: stopped at ${JSON.stringify(car.position)}`);
@@ -207,6 +213,79 @@ async function drive(path: IcelandPoint[], model: 'modern' | 'classic', road = f
     runtime.dispose(); assert.equal(world.colliders.len(), vehicleColliders); world.free(); disposeScene(scene);
   }
 }
+test('road verges sit below the asphalt and both bridges have real raised thresholds', () => {
+  for (const side of [-1, 1]) {
+    const center = icelandDrivingHeight(180, 610);
+    const shoulder = icelandDrivingHeight(180, 610 + side * 7);
+    assert.ok(center - shoulder > 0.24 && center - shoulder < 0.4, 'sampled verge has a noticeable, driveable drop');
+  }
+  for (const bridge of [{ x: -531, z: 530, y: 6.3, length: 64 }, JOKULSA_BRIDGE])
+    for (const side of [-1, 1]) {
+      const edge = bridge.x + side * bridge.length / 2;
+      const approach = icelandDrivingHeight(edge + side * 0.1, bridge.z);
+      const deck = icelandDrivingHeight(edge - side * 0.1, bridge.z);
+      assert.ok(deck - approach > 0.2 && deck - approach < 0.4, 'solid deck is higher than its settled approach');
+      assert.equal(deck, bridge.y);
+    }
+});
+
+for (const model of ['modern', 'classic'] as const) {
+  test(`${model} suspension physically responds when crossing road verges and bridge thresholds both ways`, async () => {
+    const crossings = [
+      [{ x: 180, z: 597 }, { x: 180, z: 623 }],
+      BRIDGE_PATH, JOKULSA_CROSSING,
+    ];
+    for (const path of crossings) for (const reverse of [false, true]) {
+      let minimum = Infinity, maximum = -Infinity, verticalSpeed = 0;
+      assert.equal(await drive(reverse ? [...path].reverse() : path, model, false, car => {
+        const { x, z } = car.position;
+        const atVerge = Math.abs(x - 180) < 2 && ringRoadAt(x, z).distance > 3 && ringRoadAt(x, z).distance < 8;
+        const atBridge = [{ x: -531, z: 530, length: 64 }, JOKULSA_BRIDGE].some(bridge =>
+          Math.abs(z - bridge.z) < 3 && Math.abs(Math.abs(x - bridge.x) - bridge.length / 2) < 4);
+        if (!atVerge && !atBridge) return;
+        for (let wheel = 0; wheel < 4; wheel++) {
+          const length = car.controller.wheelSuspensionLength(wheel);
+          if (length !== null) { minimum = Math.min(minimum, length); maximum = Math.max(maximum, length); }
+        }
+        verticalSpeed = Math.max(verticalSpeed, Math.abs(car.body.linvel().y));
+      }), 0);
+      assert.ok(maximum - minimum > 0.05, `suspension must react to the physical transition: ${maximum - minimum}`);
+      assert.ok(verticalSpeed > 0.2, `the chassis must actually move vertically: ${verticalSpeed}`);
+    }
+  });
+}
+
+test('road markers match their solid geometry and stop ghosting through the actual car', async () => {
+  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  const runtime = new IcelandStreamingRuntime(scene, world, new LocalIcelandTransport());
+  try {
+    const markers = scene.getObjectByName('Iceland · yellow road markers') as THREE.InstancedMesh;
+    const matrix = new THREE.Matrix4(), center = new THREE.Vector3();
+    let selected = -1, distance = Infinity;
+    for (let i = 0; i < markers.count; i++) {
+      markers.getMatrixAt(i, matrix); center.setFromMatrixPosition(matrix);
+      const d = Math.hypot(center.x - 180, center.z - 618);
+      if (d < distance) { distance = d; selected = i; }
+    }
+    assert.ok(selected >= 0);
+    markers.getMatrixAt(selected, matrix); center.setFromMatrixPosition(matrix);
+    await runtime.ensureReady(center.x, center.z); world.step();
+    const hit = world.castRay(new RAPIER.Ray({ x: center.x - 1, y: center.y, z: center.z }, { x: 1, y: 0, z: 0 }), 2, true);
+    assert.ok(hit && hit.timeOfImpact > 0.9 && hit.timeOfImpact < 1, 'horizontal ray hits the visible narrow post, not a wide invisible blocker');
+    const car = new Vehicle(scene, world, icelandSpawn({ x: center.x - 5, z: center.z }), 1.45, icelandSurfaceAt, icelandWaterHeight);
+    car.body.setRotation(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2), true);
+    let contacted = false;
+    for (let tick = 0; tick < 600 && !contacted; tick++) {
+      car.beforeStep({ steer: 0, forward: tick > 90 && car.speed < 3, reverse: false }, 1 / 60);
+      world.step(); car.capture();
+      world.contactPair(car.body.collider(0), hit.collider, manifold => { if (manifold.numContacts() > 0) contacted = true; });
+    }
+    assert.ok(contacted, 'the real chassis must physically contact the marker');
+  } finally {
+    runtime.dispose(); world.free(); disposeScene(scene);
+  }
+});
+
 for (const model of ['modern', 'classic'] as const) {
   test(`${model} drives the Reynisfjara beach spur to the columns and returns`, async () => {
     assert.equal(await drive(REYNIS_BEACH_PATH, model), 0);
@@ -332,15 +411,62 @@ test('Modern drives the full Ring Road clockwise and Classic returns countercloc
 });
 
 test('road pavement is one closed ribbon with no unshared segment ends or turn gaps', () => {
-  const { pavement, markings, rows } = buildIcelandRoadGeometry();
+  const { pavement, markings, gravel } = buildIcelandRoadGeometry();
   const edges = new Map<string, number>(), ids = pavement.index!.array;
   for (let i = 0; i < ids.length; i += 3) for (let j = 0; j < 3; j++) {
     const a = ids[i + j], b = ids[i + (j + 1) % 3], key = a < b ? `${a},${b}` : `${b},${a}`;
     edges.set(key, (edges.get(key) ?? 0) + 1);
   }
-  assert.equal([...edges.values()].filter(n => n === 1).length, rows * 2, 'only the two road verges may have open edges');
+  const p = pavement.attributes.position;
+  for (const [key, count] of edges) if (count === 1) {
+    const [a, b] = key.split(',').map(Number);
+    const x = (p.getX(a) + p.getX(b)) / 2, z = (p.getZ(a) + p.getZ(b)) / 2;
+    if (Math.hypot(p.getX(a) - p.getX(b), p.getZ(a) - p.getZ(b)) < 0.0002) continue;
+    // A mitered outer corner can extend beyond the nominal five-metre offset.
+    const atVerge = ringRoadAt(x, z).distance >= 5 - 0.06;
+    const atDeck = [{ x: -531, z: 530, length: 64 }, JOKULSA_BRIDGE].some(bridge =>
+      Math.abs(z - bridge.z) <= 6.001 && Math.abs(Math.abs(x - bridge.x) - bridge.length / 2) < 0.001
+      || Math.abs(x - bridge.x) <= bridge.length / 2 + 0.001 && Math.abs(Math.abs(z - bridge.z) - 6) < 0.001);
+    assert.ok(atVerge || atDeck, `only verges and raised deck seams may have open edges: ${x},${z}`);
+  }
   assert.ok([...edges.values()].every(n => n === 1 || n === 2));
-  pavement.dispose(); markings.dispose();
+  pavement.dispose(); markings.dispose(); gravel.dispose();
+});
+test('Ring Road shoulders use cool dark gravel with a solid inner edge and feathered terrain join', () => {
+  const { pavement, markings, gravel } = buildIcelandRoadGeometry();
+  const p = gravel.attributes.position, color = gravel.attributes.color;
+  assert.equal(color.itemSize, 4, 'standard RGBA colours blend with the ground beneath the shoulder');
+  assert.ok(p.count > 0);
+  let partial = 0, solid = 0, faded = 0;
+  for (let i = 0; i < p.count; i++) {
+    assert.ok(color.getX(i) < color.getY(i) && color.getY(i) < color.getZ(i), 'gravel stays cool gray, never brown');
+    assert.ok(color.getZ(i) < 0.065, 'gravel stays dark');
+    const alpha = color.getW(i);
+    assert.ok(alpha >= 0 && alpha <= 1);
+    if (alpha > 0 && alpha < 1) partial++;
+    if (alpha === 1) solid++;
+    if (alpha === 0) faded++;
+    assert.ok(Math.abs(p.getY(i) - icelandDrivingHeight(p.getX(i), p.getZ(i)) - 0.018) < 0.001, 'shoulder stays fitted to the driving terrain');
+  }
+  assert.ok(solid > 100, 'inner edge is solid gravel beside the asphalt');
+  assert.ok(faded > 100, 'outer edge reveals the unmodified local terrain');
+  assert.ok(partial > p.count / 2, 'the transition occupies several bands, not just a thin fringe');
+  pavement.dispose(); markings.dispose(); gravel.dispose();
+});
+test('asphalt, paint and gravel triangle interiors stay above the real terrain and bridge decks', () => {
+  const { pavement, markings, gravel } = buildIcelandRoadGeometry();
+  for (const [geometry, lift] of [[pavement, 0.035], [markings, 0.055], [gravel, 0.018]] as const) {
+    const p = geometry.attributes.position, ids = geometry.index!.array;
+    for (let i = 0; i < ids.length; i += 3) {
+      const [a, b, c] = Array.from(ids.slice(i, i + 3));
+      const x = (p.getX(a) + p.getX(b) + p.getX(c)) / 3;
+      const y = (p.getY(a) + p.getY(b) + p.getY(c)) / 3;
+      const z = (p.getZ(a) + p.getZ(b) + p.getZ(c)) / 3;
+      assert.ok(Math.abs(y - icelandDrivingHeight(x, z) - lift) < 0.002,
+        `overlay triangle cuts through or floats above the collision surface at ${x},${z}`);
+    }
+    geometry.dispose();
+  }
 });
 test('waterfall brink rests on the river bed and has unobstructed vertical clearance to the pool', () => {
   for (let x = FALL.x - 7; x <= FALL.x + 7; x += 1) {
@@ -452,8 +578,9 @@ test('ground detail stays sparse, deterministic and clear of the paved driving s
   const { buildIcelandGroundDetail } = await import('../src/game/iceland-detail');
   const a = new THREE.Scene(), b = new THREE.Scene();
   const count = buildIcelandGroundDetail(a); assert.deepEqual(buildIcelandGroundDetail(b), count);
-  assert.ok(count.stones > 300 && count.stones < 2000);
-  assert.ok(count.shrubs > 200 && count.shrubs < 1300);
+  // Expanded coast through the sandur; retain a bounded density for the larger footprint.
+  assert.ok(count.stones > 300 && count.stones < 3500);
+  assert.ok(count.shrubs > 200 && count.shrubs < 1600);
   assert.equal(count.collider.vertices.length / 3, 7 * (count.stones + count.shrubs));
   for (let j = 0; j < a.children.length; j++) {
     const mesh = a.children[j] as THREE.InstancedMesh;
@@ -468,4 +595,155 @@ test('ground detail stays sparse, deterministic and clear of the paved driving s
     }
   }
   disposeScene(a); disposeScene(b);
+});
+
+
+test('Lómagnúpur has a steep prow above a dry graded return route', () => {
+  assert.ok(icelandSurfaceHeight(LOMAGNUPUR.x, 480) > 80);
+  assert.ok(icelandSurfaceHeight(LOMAGNUPUR.x, 540) < 20);
+  assert.ok(icelandSurfaceHeight(-25, 300) > 100, 'ridge continues into the highlands');
+  const upperGrade = (icelandSurfaceHeight(-5, 492) - icelandSurfaceHeight(-5, 503)) / 11;
+  const lowerGrade = (icelandSurfaceHeight(-5, 511) - icelandSurfaceHeight(-5, 535)) / 24;
+  assert.ok(upperGrade > lowerGrade * 2, 'rock face is steeper than its gravel apron');
+  for (let i = 1; i < LOMAGNUPUR_ROUTE.length; i++) {
+    const a = LOMAGNUPUR_ROUTE[i - 1], b = LOMAGNUPUR_ROUTE[i];
+    for (let step = 0; step <= 30; step++) {
+      const t = step / 30, x = a.x + (b.x - a.x) * t, z = a.z + (b.z - a.z) * t;
+      assert.equal(icelandWaterHeight(x, z), null);
+      assert.ok(lomagnupurRouteDistance(x, z) < 0.01);
+      assert.ok(Math.abs(icelandSurfaceHeight(x + 1, z) - icelandSurfaceHeight(x, z)) < 0.25);
+      assert.ok(Math.abs(icelandSurfaceHeight(x, z + 1) - icelandSurfaceHeight(x, z)) < 0.25);
+    }
+  }
+});
+for (const model of ['modern', 'classic'] as const) {
+  test(`${model} drives the Lómagnúpur cliff route both ways`, async () => {
+    assert.equal(await drive(LOMAGNUPUR_ROUTE, model), 0);
+    assert.equal(await drive([...LOMAGNUPUR_ROUTE].reverse(), model), 0);
+  });
+}
+
+
+test('Jökulsárlón bridge crosses the outlet with open lagoon and glacier front upstream', () => {
+  assert.ok(lagoonRadius(JOKULSA_BRIDGE.x, JOKULSA_BRIDGE.z) > 1.3);
+  for (const z of [550, 600, 625, 650, 670, 690]) {
+    assert.equal(icelandWaterHeight(500, z), 0);
+    assert.ok(icelandSurfaceHeight(500, z) < -1, `continuous outlet at ${z}`);
+  }
+  assert.equal(icelandSurfaceAt(500, 650), 'asphalt');
+  assert.equal(icelandDrivingHeight(500, 650), JOKULSA_BRIDGE.y);
+  assert.ok(icelandSurfaceHeight(480, 480) > 25, 'glacier ends above the lagoon');
+  assert.ok(southernGlacier(154, 500).weight > 0.8, 'a tongue lies beyond Lómagnúpur');
+  for (const p of [...LAGOON_VIEW_ROUTE, ...GLACIER_VIEW_ROUTE]) assert.equal(icelandWaterHeight(p.x, p.z), null);
+  const mesh = buildLagoonWater(), positions = mesh.getAttribute('position'), colors = mesh.getAttribute('color');
+  assert.ok(positions.count > 1000);
+  for (let i = 0; i < positions.count; i++) {
+    assert.ok(icelandSurfaceHeight(positions.getX(i), positions.getZ(i)) < 0.025);
+    if (icelandSurfaceHeight(positions.getX(i), positions.getZ(i)) < -2.5) assert.ok(colors.getW(i) > 0.99, 'deep lagoon hides submerged ice');
+    if (positions.getZ(i) > LAGOON_WATER_BOUNDS.z1 - 0.01) assert.equal(colors.getW(i), 1);
+  }
+  mesh.dispose();
+  const scene = new THREE.Scene();
+  addLagoonScenery((g, m, name) => { const mesh = new THREE.Mesh(g, m); mesh.name = name; scene.add(mesh); return mesh; });
+  const bergs = scene.children.filter(p => p.name.includes('iceberg')) as THREE.Mesh[];
+  assert.ok(bergs.length >= 10);
+  assert.equal(scene.children.filter(p => p.name.includes('outer stay cable')).length, 4);
+  assert.ok(scene.children.filter(p => p.name.includes('beach ice')).length >= 4, 'stranded ice on beach');
+  for (const berg of bergs) {
+    berg.geometry.computeBoundingBox(); const centre = berg.geometry.boundingBox!.getCenter(new THREE.Vector3());
+    assert.ok(lagoonRadius(centre.x, centre.z) < 0.9);
+    assert.ok(icelandSurfaceHeight(centre.x, centre.z) < -4);
+  }
+  disposeScene(scene);
+});
+test('Jökulsá approaches stay straight beyond the anchors and every outer cable clears the road', () => {
+  for (let x = 420; x <= 575; x += 1)
+    assert.ok(ringRoadAt(x, 650).distance < 1e-6, 'the straight corridor extends past both cable anchorages');
+  const scene = new THREE.Scene();
+  addLagoonScenery((g, m, name) => { const mesh = new THREE.Mesh(g, m); mesh.name = name; scene.add(mesh); return mesh; });
+  const stays = scene.children.filter(object => object.name.includes('outer stay cable')) as THREE.Mesh[];
+  const anchors = scene.children.filter(object => object.name.includes('cable anchorage')) as THREE.Mesh[];
+  assert.equal(stays.length, 4); assert.equal(anchors.length, 4);
+  for (const object of [...stays, ...anchors]) {
+    const p = object.geometry.attributes.position;
+    for (let i = 0; i < p.count; i++)
+      assert.ok(ringRoadAt(p.getX(i), p.getZ(i)).distance > 5.2, `${object.name} must stay outside the asphalt and car clearance`);
+  }
+  for (const point of JOKULSA_CROSSING) {
+    assert.ok(ringRoadAt(point.x, point.z).distance < 1.8, 'the drive test follows the realigned eastern road');
+    assert.ok(icelandDrivingHeight(point.x, point.z) > 0);
+  }
+  disposeScene(scene);
+});
+test('Jökulsárlón mixes translucent and opaque ice in both lagoon and beach groups', () => {
+  const scene = new THREE.Scene();
+  addLagoonScenery((g, m, name) => { const mesh = new THREE.Mesh(g, m); mesh.name = name; scene.add(mesh); return mesh; });
+  for (const group of ['Jökulsárlón · iceberg ', 'Jökulsárlón · beach ice ']) {
+    const meshes = scene.children.filter(object => object.name.startsWith(group)) as THREE.Mesh[];
+    const clear = meshes.filter(mesh => (mesh.material as THREE.Material).transparent);
+    assert.ok(clear.length >= 2 && clear.length < meshes.length, 'both clear and opaque ice remain visible');
+    assert.ok(new Set(meshes.map(mesh => mesh.geometry.userData.iceProfile)).size >= 3, 'each group mixes distinct ice landforms');
+    assert.ok(new Set(meshes.map(mesh => mesh.geometry.attributes.position.count)).size >= 3, 'ice does not repeat one facet layout');
+    assert.ok(new Set(clear.map(mesh => (mesh.material as THREE.MeshPhysicalMaterial).opacity)).size >= 2, 'transparency varies independently per piece');
+    assert.ok(new Set(clear.map(mesh => (mesh.material as THREE.MeshPhysicalMaterial).roughness)).size >= 2, 'clear and frosted faces are not repeated uniformly');
+    const sizes = meshes.map(mesh => {
+      mesh.geometry.computeBoundingBox();
+      return mesh.geometry.boundingBox!.getSize(new THREE.Vector3());
+    });
+    const large = sizes.filter(size => size.x > (group.includes('iceberg') ? 20 : 4));
+    assert.ok(large.length >= 1 && large.length < meshes.length / 2, 'a few pieces are substantially larger, not the whole field');
+    if (group.includes('iceberg')) assert.ok(large.some(size => size.y > 5), 'large lagoon slabs also rise higher above the water');
+    for (const mesh of clear) {
+      const material = mesh.material as THREE.MeshPhysicalMaterial;
+      assert.ok(material.isMeshPhysicalMaterial && !material.depthWrite);
+      if (group.includes('beach ice')) {
+        assert.ok(material.opacity >= 0.88 && material.opacity <= 0.95, 'shore ice retains its solid body over dark sand');
+        assert.ok(material.transmission >= 0.35 && material.transmission <= 0.55);
+        assert.ok(material.roughness >= 0.25 && material.roughness <= 0.4, 'shore ice has a frosted surface');
+      } else {
+        assert.ok(material.transmission > 0.6);
+        assert.ok(material.opacity >= 0.48 && material.opacity <= 0.75);
+      }
+      assert.ok(material.thickness > 0 && material.ior === 1.31);
+      assert.equal(mesh.renderOrder, 2, 'translucent ice renders after the transparent water');
+    }
+  }
+  disposeScene(scene);
+});
+for (const model of ['modern', 'classic'] as const) {
+  test(`${model} drives Jökulsárlón outlet bridge and both glacier viewpoints`, async () => {
+    for (const path of [JOKULSA_CROSSING, LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE]) {
+      assert.equal(await drive(path, model), 0);
+      assert.equal(await drive([...path].reverse(), model), 0);
+    }
+  });
+}
+
+test('all Iceland coasts use light shallows without colouring the submerged outer apron', () => {
+  const deep = new THREE.Color('#194451');
+  for (const point of [(d: number) => [0, -d], (d: number) => [d, 200], (d: number) => [-d, 280], (d: number) => [200, d]]) {
+    let light = false;
+    for (let d = 640; d < 755; d += 0.5) {
+      const [x, z] = point(d), depth = -icelandSurfaceHeight(x, z);
+      if (depth > 0.15 && depth < 1) {
+        const tint = icelandSeaTint(x, z);
+        assert.ok(tint.color.g > deep.g + 0.1, 'shore must be lighter than the deep sea');
+        light = true;
+      }
+    }
+    assert.ok(light, 'each coast has a shallow colour transition');
+  }
+  for (const [x, z] of [[0, -830], [830, 200], [-830, 280], [200, 830]]) {
+    const tint = icelandSeaTint(x, z);
+    assert.equal(tint.alpha, 1);
+    assert.ok(tint.color.equals(deep), 'outer apron must not form a pale offshore band');
+  }
+});
+
+ test('Jökulsá outlet never raises the seabed into a rectangular shallow shelf', () => {
+  for (const x of [480, 490, 500, 510, 520]) for (const z of [680, 690, 700, 709])
+    assert.equal(lagoonCarve(x, z, -12), -12, 'channel must preserve deeper sea');
+  assert.ok(icelandSurfaceHeight(500, 705) < -10, 'outlet reaches deep sea before its generator boundary');
+  assert.ok(Math.abs(icelandSurfaceHeight(500, 709) - icelandSurfaceHeight(500, 711)) < 1,
+    'no seabed step at the old rectangular end');
 });

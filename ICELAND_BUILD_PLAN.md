@@ -1,6 +1,6 @@
 # Iceland build plan
 
-Status: **Skógafoss, Sólheimasandur and Reynisfjara driveable; sandur and lagoon still to build** (2026-10-18).
+Status: **Skógafoss, Sólheimasandur and Reynisfjara accepted; Lómagnúpur corrected; glacier gateway and Jökulsárlón built and verified; awaiting visual review** (2026-10-19).
 See [implementation progress](ICELAND_PROGRESS.md) for checks and the next chunk.
 This is a new, full-size **Iceland** location alongside the existing 480 × 480 m
 Iceland Highlands. Do not replace that location during development. The new
@@ -155,6 +155,6 @@ date, skipped cases and exact next step in a dedicated `ICELAND_PROGRESS.md` onc
 implementation starts. Physical iPad Safari driving, touch and offline reload
 remain explicit manual acceptance until covered by automation.
 
-**Next step:** continue the development-only south-coast pilot east from
-Skógafoss toward Sólheimasandur. Preserve the implemented Ring Road corridor
+**Next step:** review the ridge/glacier/lagoon layout, then expand Vatnajökull
+and its western ice-cave route. Preserve the implemented Ring Road corridor
 as regional terrain is authored; road access alone does not complete a region.

@@ -16,7 +16,10 @@ latest instructions. Historical screenshots are not proof of the current code.
    including its placement, collision, cleanup and validation constraints. Do not
    copy only the visible material while discarding the terrain/water contract.
    Avoid broad shared-system refactors just to create reuse during a local fix.
-4. Inspect actual game captures early, including at driving height. A passing
+4. Inspect actual game captures early, including at driving height. When using
+   photo-mode captures, keep the look-at target close to the intended camera
+   position along its viewing direction: orbit distance is capped at 100 m, so
+   aiming directly at a distant landmark can silently move the camera forward. A passing
    geometry test or an overhead view is insufficient evidence of visual quality.
 5. When feedback reveals a general lesson, update this guide and the world's
    progress record. Include the failure, correction, evidence and remaining limits.
@@ -118,6 +121,56 @@ progress file.
 - Smooth basic-terrain lighting was adopted across worlds on 2026-10-16; retain
   interpolated normals for ground. Flat facets can suit stones and landmarks.
   Smooth normals do not fix a jagged silhouette or a poorly shaped height profile.
+- Gravel shoulders need a local geological palette and a transition, not an opaque
+  fixed-width strip. Iceland's brown/olive ribbons looked pasted onto the ground.
+  Keep a narrow solid dark-gray edge beside the asphalt, then use several
+  terrain-fitted RGBA fade bands with independently varied widths on each side.
+  The zero-alpha outer edge reveals the actual local ground rather than guessing
+  its colour. Use the standard material path with depth writes disabled; inspect
+  both black sand and green heath from driving height and raised road-facing
+  angles. See [road geometry](src/game/iceland-road-scenery.ts) and
+  [current captures](artifacts/iceland/road-shoulders/).
+- Road lips and structure thresholds must be physical geometry, not camera-only
+  feedback. Keep ramps/depressions in shared terrain/collision and decks solid;
+  verify both cars' actual suspension motion in both crossing directions.
+  A broad road overlay sampled only at its corners can cut through terrain when
+  a verge profile changes. Split asphalt, paint and gravel along the underlying
+  terrain grid **and its diagonals**, with separate faces at deck boundaries.
+  Check triangle interiors, not just vertices, and inspect reverse/oblique views.
+  Derive roadside-post colliders from the same instance geometry/transforms and
+  dispose them with their scenery; instancing alone does not make markers solid.
+- When clipping a road overlay to terrain triangles, let that clipping supply
+  interior tessellation. Redundant closely spaced collinear ribbon rows create
+  many thin triangles and hurt headless/mobile driving, especially when physical
+  transmission adds another render pass. Retain all authored turn joins, reduce
+  intermediate surface rows, and keep paint/dash sampling independent. Recheck
+  triangle interiors and saved approach views after reducing the mesh.
+- Preserve a landmark's surrounding landform, not just its isolated outline.
+  Lómagnúpur needed a continuous inland ridge and a broad lower gravel apron
+  below the steep rock face. A standalone steep mound lost both its real shape
+  and its role as the gateway to the glacier. Use reference photographs to check
+  slope sections and connections before adding surface detail.
+- Glacier tongues need their own lower terminal profiles, broken calving edges and
+  irregularly spaced crevasses in the shared terrain/collision geometry. Keep
+  fractures clear of established viewpoint routes. Icebergs need broad broken
+  slabs and unequal ridges; stretched spheres and narrow cone peaks were rejected.
+  Use depth-based lagoon opacity to hide submerged glacier walls while keeping
+  the immediate shallows clear. Small stranded beach ice can use transmission.
+- Ice variety needs different topology as well as size: mix broad tabular roofs,
+  split ridges, tilted slabs and fractured blocks, with unequal rim counts and
+  triangulation. A repeated roof fan made the same facets appear transparent on
+  every piece. Seed shape, clear/frosted selection, optical properties and colour
+  independently; enlarge only selected pieces and keep broad silhouettes and
+  matching collision. Check transparent ice after the water pass from low views.
+  Do not reuse lagoon optics unchanged on black-sand shore ice: combined low
+  alpha and high transmission can make stranded slabs look ghost-like. Give
+  shore pieces higher opacity, lower transmission and a rougher frosted surface;
+  inspect the sand showing through from raised as well as low cameras.
+- Suspension-bridge approaches must stay straight beyond the outer cable anchors,
+  not merely through the deck. Jökulsá's original immediate east turn put a stay
+  and anchorage in the road. Reserve the full asphalt/shoulder envelope through
+  the anchor zone, check every stay/anchor vertex against it, and inspect the
+  departure from above and from driving height before accepting the alignment.
 - Natural rocks, arches and caves must have irregular, asymmetric geometry:
   unequal shoulders, broken outlines, variable thickness and depth, and buried
   connections to surrounding rock. Perfect primitives, symmetric gates and repeated
@@ -139,8 +192,24 @@ progress file.
   flattened crowns, multiple deterministic variants, low solid forms, and no
   dense repeated shadow pattern over the ground.
 
+### Iceland coastal palette preference
+
+The user approved pale blue-green shallow sea water at the shore (2026-10-19)
+and requested it around the whole Iceland coast. Preserve this depth-based fade
+into dark deep sea when extending regions. Sea, river mouths and lagoon handoffs
+must share colour/opacity at their ownership boundaries; do not add overlapping
+water sheets. Ignore the submerged outer streaming apron when colouring shallows:
+its raised terrain is not another coastline. River carving must only lower land
+at an ocean outlet: forcing deeper seabed back up to a fixed river depth creates
+an artificial rectangular shallow shelf even when the water mesh joins correctly.
+
 ## Roads, collision and landmarks
 
+- Iceland Route 1 should have dark gravel shoulders, small yellow markers with
+  reflectors, sparse shoulder grit and restrained nonperiodic asphalt variation.
+  Markers are flexible decorative posts clear of junctions and bridge decks.
+  Mild height variation must live in the shared road grading used by terrain and
+  driving; keep decks level and ease their approach transitions without steps.
 - Build a continuous road mesh with shared joins at bends. Separate rectangles
   caused gaps and overlapping markings in Iceland. Check the mesh topology and
   inspect an overhead bend as well as a normal driving approach.

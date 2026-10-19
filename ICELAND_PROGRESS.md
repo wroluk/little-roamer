@@ -1,5 +1,245 @@
 # Iceland implementation progress
 
+## Frosted shore ice correction — 2026-10-19
+
+- The user found the large stranded ice too transparent against black sand.
+  Adapted the existing varied ice material specifically for shore pieces:
+  opacity is now 0.88–0.95, transmission 0.35–0.55 and roughness 0.25–0.40.
+  This retains translucent variation without the ghost-like background bleed.
+  Lagoon materials, all shapes, sizes and collision remain unchanged.
+- Preserved the supplied image as `artifacts/iceland/feedback/shore-ice-too-transparent.png`.
+  Added a raised shore camera matching the problem angle. Inspected this and
+  the low beach view in Chromium/WebKit; the stranded slab now has a visibly
+  stronger frosted body. Updated captures in `artifacts/iceland/ice-refinement/`.
+- Typecheck, focused ice-material unit check, production build and both-engine
+  ice visual scenarios passed. No full, driving or PWA suites for this local
+  material correction; physical iPad acceptance remains open.
+- Next: user review of the shore ice and the outstanding Iceland refinements.
+  Changes remain uncommitted.
+
+## Jökulsá eastern approach and varied translucent ice — 2026-10-19
+
+- Extended the straight bridge corridor through `x = 575, z = 650`, past the
+  east cable anchor at `x = 561`. Moved the eastern bend inland, preserving a
+  smooth departure and the dry eastern connection. Straightened the matching
+  west approach too. Updated `JOKULSA_CROSSING` to drive the actual revised road
+  through the eastern turn, not cut diagonally beneath a stay.
+- Checked every vertex of all four outer stays and anchor blocks against the
+  full asphalt corridor: all stay outside its width and clearance margin.
+  Preserved the user image in `artifacts/iceland/feedback/bridge-east-cables-road.png`.
+- Expanded the existing fractured-ice technique in `iceland-lagoon-scenery.ts`:
+  four distinct roof/topology families (tabular, split-ridge, tilted-slab and
+  fractured-block), six to nine unequal rim sides, variable taper and shear,
+  different roof triangulations, and seeded face colour variation.
+- Clear/frosted selection is independent of shape, with per-piece opacity,
+  transmission, roughness and thickness, mixed among opaque ice in both lagoon
+  and beach groups. Transparent ice draws after the water without writing depth.
+  This replaces the first repeated facet layout and uniform transparency.
+- Enlarged selected lagoon slabs to about 20–25 m wide, with taller pieces,
+  while retaining the smaller field. Enlarged selected beach pieces too,
+  including a roughly 7 m stranded slab, still partially buried in the beach.
+  All visible ice retains matching solid geometry.
+- Focused cable-clearance, lagoon geometry and mixed-ice geometry/material/size
+  checks passed, as did typecheck and production build. Both cars completed the
+  realigned full Ring Road and both bridge/road-edge crossing directions in unit
+  simulation. The final road-fit topology and full triangle-interior checks also
+  passed. Browser runs interrupted by subsequent feedback are not counted as passes.
+- Final road/bridge and varied-ice visual scenarios passed in both engines.
+  Inspected the bridge approach from raised and driving cameras: stays and
+  anchor blocks now flank the road. Inspected lagoon and beach ice, including
+  the larger stranded slab. Preserved final views in `artifacts/iceland/road-shoulders/`
+  and `artifacts/iceland/ice-refinement/`.
+- Final focused physical scenarios passed in Chromium and WebKit: crossing both
+  road verges and each of the four bridge thresholds in both directions, with
+  measured suspension travel and vertical chassis motion, followed by real
+  chassis contact with a narrow marker collider. Captures are preserved with
+  the road views. Both visual scenarios also passed in both engines: six final
+  scenario/engine combinations, with the physical checks rerun separately.
+- Chromium's earlier combined long approach round trip exhausted its path
+  deadline while moving normally with four contacts; extending the deadline
+  did not reliably cover the return either. Those attempts are not passes.
+  Isolated each threshold in the new focused scenario instead, asserting motion
+  at every individual entrance/exit rather than aggregating it across a long
+  trip. The full realigned Ring Road still passed both directions in real-wheel
+  unit simulation; a final full-region browser drive remains outside this local
+  gate. No game-physics or arrival/motion assertions were weakened.
+  The seven-camera capture needed three minutes rather than two.
+- Removed redundant collinear ribbon rows while retaining every authored turn
+  and fine paint/dash sampling. Terrain clipping still fits every triangle
+  exactly. Asphalt dropped from roughly 189,000 to 91,420 triangles; final
+  markings use 60,124 and gravel 204,008. Node generation measured about 4.6 s
+  instead of 8.7 s. Physical iPad performance still needs acceptance.
+- Physical iPad, full-project and PWA gates remain open.
+- Next: user review of bridge approaches, road feel and ice variety in the
+  running world, then the outstanding ridge/glacier review before summit and
+  ice-cave work. Changes remain uncommitted.
+
+## Physical road edges, bridge thresholds and solid markers — 2026-10-19
+
+- Darkened the accepted cool-gray gravel and grit another step.
+- Settled the gravel verges by up to 0.34 m in the shared terrain/collision
+  profile. Crossing either side of Route 1 now moves the actual wheels and
+  suspension. Added short 0.30 m approach depressions at both ends of the Skógá
+  and Jökulsá bridges, leaving their solid decks level and creating a real
+  raised entry/exit threshold. Vehicle physics and camera feedback are unchanged.
+- Yellow roadside posts now have one combined static collision mesh derived
+  directly from the instanced post geometry and transforms, following the
+  combined-collider approach in `iceland-detail.ts`. Small grit remains decorative.
+  The roadside collider belongs to the existing scenery disposal lifecycle.
+- The initial verge edit exposed terrain through the road: sampling ribbon
+  corners did not keep its broad transverse triangles above the new cross-section.
+  Corrected the root cause by splitting asphalt, markings and shoulder overlays
+  at terrain grid edges, terrain diagonals and bridge rectangle edges. Every
+  resulting face follows the sampled collision plane; bridge boundaries retain
+  their actual height step rather than an asphalt ramp across it.
+  Transferred the terrain-triangle fitting principle from `iceland-river.ts`,
+  retaining the shared mitered road outline. Preserved the user's regression image
+  in `artifacts/iceland/feedback/road-terrain-breakthrough.png`.
+- Ten focused unit checks passed for the physical terrain revision: both cars
+  crossed road edges and both bridges in both directions with measured suspension
+  movement and vertical chassis velocity; real chassis contact with a marker;
+  the full Ring Road both ways; Skógá ford/bridge regressions; and terrain seams.
+  After the overlay repair, all three focused topology, gravel and complete
+  triangle-interior clearance checks passed, plus typecheck and production build.
+- Inspected repaired captures from road height and raised forward/reverse views:
+  no terrain breakthrough. Final dual-engine visual and focused driving/contact
+  scenarios passed as recorded in the latest entry above. Earlier interrupted
+  runs and long-trip deadline failures are not passes.
+- Next: user review of road feel and the outstanding ridge/glacier/lagoon refinements.
+  Full/PWA suites and physical iPad acceptance remain open; no commits made.
+
+## Ring Road shoulder colour and terrain blending — 2026-10-19
+
+- Replaced the brown/olive gravel and grit with dark, cool volcanic gray.
+  Kept a narrow solid gravel edge beside the asphalt, then faded five
+  cross-road bands into the actual underlying terrain. Independent left/right
+  width variation and fine positional noise break up the outer transition.
+- References: retained the existing mitered Ring Road joins and sampled driving
+  heights in `iceland-road-scenery.ts`; transferred the standard RGBA vertex-colour
+  fade from `iceland-river.ts`, adapted to a dry gravel overlay with depth writes
+  disabled. No terrain, collision, handling, bridge or road-marking changes.
+  Visual reference: [Ring Road photograph](https://maycausewanderlust.com/wp-content/uploads/2023/02/Iceland-Ring-Road-May-Cause-Wanderlust.jpg).
+- Preserved the user's before image in
+  `artifacts/iceland/feedback/road-shoulders-before.png`. Inspected actual sandur
+  and heath captures at driving height and from raised road-facing angles,
+  including both Chromium and WebKit. Current captures are in
+  `artifacts/iceland/road-shoulders/`; the hard brown outer ribbon is gone.
+- Typecheck, production build, two focused road geometry checks and the new
+  dual-engine shoulder browser scenario passed. Geometry checks enforce cool
+  dark colours, a fully opaque inner edge, intermediate fade bands, zero-alpha
+  outer edges and terrain fitting. No full, driving or PWA suites were rerun
+  for this material/visual-only refinement; physical iPad review remains open.
+- Next: review the road shoulders in the running Iceland world, then resume
+  the outstanding ridge/glacier/lagoon review before summit and ice-cave work.
+  All existing work remains uncommitted.
+
+## Lagoon and glacier feedback refinement — 2026-10-19
+
+- Rounded Lómagnúpur’s prow and shoulders while retaining its inland ridge,
+  steep upper face, lower gravel apron and existing route.
+- Lowered the western glacier tongue beside Lómagnúpur; cut irregular crevasses
+  into shared terrain/collision and broke up both terminal outlines.
+- Replaced round icebergs and rejected narrow spikes with broader fractured
+  slabs/ridges, including larger pieces. Added partially buried beach ice,
+  with selected pieces using physical light transmission.
+- Deep lagoon water now becomes opaque, hiding submerged glacier geometry.
+  Added all four outer bridge stays and grounded anchors beside the road.
+- Build/typecheck and six focused geometry/real-driving unit checks passed;
+  both cars completed the cliff route, bridge and glacier viewpoints both ways.
+  Extended geometry assertions for deep-water opacity, beach ice and stays passed.
+- Initial glacier Chromium/WebKit visual captures passed. The final combined
+  coast/road/glacier Chromium captures passed; remaining browser gates are running.
+- Final Iceland unit run: 34/35 passed. The sole failure was the previous assertion
+  requiring an opaque dark sea at the Reynisfjara boundary. Updated it to require
+  identical shared depth colour/opacity instead, then reran it with the river-mouth
+  and lagoon geometry checks: 3/3 passed. New four-coast/apron regression passed.
+  All real-driving scenarios, including the full Ring Road both ways, passed.
+- Fixed the rectangular Jökulsá mouth shelf: carving now only lowers land and
+  never raises deeper ocean floor to river depth. Focused water/coast geometry
+  checks passed 5/5; the overhead capture shows the river fading into open sea.
+- No full project/PWA run for these local edits.
+- Extended the approved light coastal shallows around the island with a shared
+  depth palette at sea/river/lagoon joins. Excluded the submerged streaming apron
+  after captures exposed an unwanted distant pale band.
+- Added gravel shoulder ribbons, sparse grit, instanced yellow roadside markers,
+  subtle asphalt variation and small terrain-aligned road undulations with level
+  bridge decks and eased approaches. Collision remains the shared terrain.
+- The extended browser run was interrupted to incorporate new coastline/road
+  requests and then correct the apron band; interrupted runs are not passes.
+- Next: review these refinements before extending the summit and ice-cave stage.
+  Changes remain uncommitted; physical iPad acceptance remains open.
+
+## Highland ridge, glacier gateway and Jökulsárlón — 2026-10-19
+
+- Corrected Lómagnúpur from an isolated massif to a continuous northern ridge.
+  The upper face is steep rock; the lower section is a broad gentler gravel
+  apron, following the user photograph. Kept the existing dry gravel route.
+- Added a connected southern ice field with a tongue immediately east of the
+  gateway and a separate dry viewpoint spur. This is the coastal glacier
+  approach, not completion of Vatnajökull/Grímsvötn or its highland routes.
+- Built Jökulsárlón with a calving front, irregular fixed icebergs, west-bank
+  gravel viewpoint and a continuous outlet to the sea. Route 1 skirts the
+  lagoon and crosses the short Jökulsá outlet on a solid suspension bridge.
+- Water uses the proven terrain-triangle clipping and exclusive sea ownership.
+  The ocean handoff matches colour, opacity and level. Bridge deck, rails and
+  towers are solid; icebergs are fixed solids in deep water. Motion is deferred
+  until the static layout is accepted, keeping visible ice and collision aligned.
+- Added `?area=iceland&start=jokulsarlon`, regional reset, Glacial lagoon/river
+  labels, and a revised SVG/PNG map showing the western glacier tongue.
+- All 35 Iceland unit checks passed: both cars on every new route in both
+  directions, full Ring Road, existing coast regressions and water/bridge geometry.
+  Actual views passed in Chromium and WebKit and are saved in
+  `artifacts/iceland/jokulsarlon/`. Production build/typecheck passed; the final
+  iceberg-size geometry regression passed separately. Chromium's full outlet,
+  shore-route and deep-water-reset scenario passed (5.5 min), as did WebKit
+  (2.3 min). Both visual and driving gates passed in both engines (4/4).
+- The first visual iteration exposed grass at the calving face and oversized
+  icebergs. Extended ice colour down the terminal face, gave the lagoon gravel
+  banks, and reduced iceberg sizes/count. The initial browser drive was stopped
+  for that refinement; it is not counted as passed.
+- Full project and PWA suites were not run for these local terrain additions.
+  Physical iPad Safari performance and long-session acceptance remain manual.
+
+**Next:** review the ridge, glacier fronts and lagoon; address feedback before
+  the Vatnajökull summit, Grímsvötn and western ice-cave stage. Public release,
+  full-world acceptance and physical iPad testing remain open.
+
+
+## Lómagnúpur and Skeiðarársandur — 2026-10-19
+
+- Added the tall southern cliff prow at the reserved western sandur gateway,
+  with unequal shoulders, erosion terraces and a buried talus foot. Visible
+  terrain and collision use the same triangles; nearby distant chunks keep
+  full detail so the cliff silhouette does not change with streaming.
+- Added shallow dry distributary channels, gravel bars, varied black outwash
+  ground and sparse low stones. Extended the existing detail system, including
+  route clearance, deterministic variants, low colliders and no small-prop shadows.
+- Added a graded gravel detour below the cliff that rejoins Route 1 at both ends,
+  and `/?area=iceland&start=lomagnupur` with nearest-region reset.
+- References transferred: Mars irregular rim shoulders/terraces, existing Iceland
+  road grading, Northern-style low shrubs and existing regional start checks.
+  No new water overlay is used for the dry sandur channels.
+- Focused unit checks passed: both cars drive the cliff route both ways, dry
+  grades and spawn/reset placement, deterministic detail and route clearance.
+  Full Ring Road driving, mesh continuity and the existing river/waterfall/shore
+  regressions passed too: 15 focused unit checks total. Typecheck and production
+  build passed (existing bundle-size advisory only). The complete gravel/road/reset
+  scenario passed in Chromium (7.5 min) and WebKit (3.4 min). Chromium required
+  a longer driving deadline: the initial reverse run timed out four metres before
+  arrival while moving normally with four wheel contacts. Its isolated rerun
+  passed with arrival assertions unchanged. Earlier interrupted development runs
+  are not counted as passes.
+- Actual arrival, cliff and plain captures are saved in `artifacts/iceland/lomagnupur/`.
+  Updated the capture guidance after finding photo mode clamps distant look-at
+  targets to a 100 m orbit; captures now retain their intended camera position.
+- No full-project/PWA suites were run for this terrain-only chunk. Physical iPad
+  performance and visual acceptance remain manual.
+
+**Next:** user review of the gateway, then Jökulsárlón, Breiðamerkurjökull
+  glacier front, icebergs, shore viewpoint and the short Jökulsá outlet bridge.
+  Lagoon terrain is not implemented by this chunk.
+
+
 ## Reynisfjara feedback refinement — 2026-10-19
 
 - Replaced the two-row basalt wall with ten tiers following the sampled hillside.

@@ -127,6 +127,9 @@
     <path d="M510 691 Q533 667 556 689 L555 715 L514 719 Z" fill="#244e5d" stroke="#d7eef2" stroke-width="6"/>
     <path d="M513 718 Q540 699 554 714" fill="none" stroke="#0e3444" stroke-width="7"/>
 
+    <!-- Southern glacier tongue revealed beyond the Lómagnúpur gateway -->
+    <path d="M553 729 Q574 744 583 771 L562 826 Q548 840 526 834 L512 820 Q531 790 528 763 Z" fill="url(#ice)" stroke="#7eb4c1" stroke-width="4"/>
+    <path d="M547 761 Q558 784 536 819 M566 773 L548 827" fill="none" stroke="#e0f4f1" stroke-width="3"/>
     <!-- Lagoon, glacier cliff, icebergs, and sea outflow -->
     <path d="M680 780 Q732 755 798 778 L815 835 Q798 885 754 892 L691 865 Q665 831 680 780 Z" fill="#286e7b" stroke="#d6eceb" stroke-width="5"/>
     <path d="M680 785 Q712 762 756 770 L774 791 Q743 806 706 803 L682 817 Z" fill="#daf6f4" stroke="#84bdc6" stroke-width="5"/>
@@ -219,6 +222,7 @@
   <text x="414" y="590" class="region">Kerlingarfjöll</text>
   <text x="600" y="516" class="minor">KVERKFJÖLL</text>
   <text x="435" y="821" class="minor">LÓMAGNÚPUR</text>
+  <text x="518" y="846" class="minor">GLACIER TONGUE</text>
   <g><circle class="region-dot" cx="253" cy="653" r="15"/><text class="region-number" x="253" y="653">12</text></g>
   <g><circle class="region-dot" cx="374" cy="477" r="15"/><text class="region-number" x="374" y="477">13</text></g>
   <g><circle class="region-dot" cx="477" cy="540" r="15"/><text class="region-number" x="477" y="540">14</text></g>
@@ -278,6 +282,6 @@
   <text x="938" y="874" class="panel-body">• Cave and tube are stylised</text>
   <text x="938" y="900" class="panel-body">• Skógá bridge + gravel ford</text>
   <text x="938" y="927" class="legend-small">Concept layout · subject to driving review</text>
-  <text x="62" y="992" class="subtitle">DRAFT / 2026-10-19 · REVISION 3</text>
+  <text x="62" y="992" class="subtitle">DRAFT / 2026-10-19 · REVISION 4</text>
   <text x="890" y="992" class="subtitle" text-anchor="end">MAP IS SCHEMATIC, NOT A REAL-WORLD ROAD MAP</text>
 </svg>

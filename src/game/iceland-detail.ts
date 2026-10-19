@@ -1,3 +1,5 @@
+import { lagoonRouteDistance, southernGlacier } from './iceland-lagoon';
+import { lomagnupurRouteDistance, skeidararsandurWeight } from './iceland-skeidararsandur';
 import * as THREE from 'three';
 import { icelandHash, icelandNoise } from './iceland-noise';
 import { icelandSurfaceHeight, icelandWaterHeight, trailDistance } from './iceland-terrain';
@@ -9,26 +11,29 @@ type Detail = { x: number; y: number; z: number; scale: number; seed: number; va
 /** Clustered ground forms with low, matching solid shapes and clear driving lines. */
 export function buildIcelandGroundDetail(group: THREE.Scene) {
   const stones: Detail[] = [], shrubs: Detail[] = [];
-  for (let iz = 20; iz < 180; iz++) for (let ix = -163; ix < -37; ix++) {
-    if (ix >= -97 && iz < 130) continue;
+  for (let iz = 20; iz < 180; iz++) for (let ix = -163; ix < 154; ix++) {
+    if (ix >= -97 && ix < -37 && iz < 130) continue;
+    if (ix >= -37 && iz < 122) continue;
     const seed = icelandHash(ix, iz), x = ix * 4 + 3.5 * seed, z = iz * 4 + 3.5 * icelandHash(ix + 913, iz);
     if (ringRoadAt(x, z).distance < 8 || trailDistance(x, z) < 7 || reynisBeachPathDistance(x, z) < 7
-      || reynisShoreRouteDistance(x, z) < 7
+      || reynisShoreRouteDistance(x, z) < 7 || lomagnupurRouteDistance(x, z) < 7
+      || lagoonRouteDistance(x, z) < 7 || southernGlacier(x, z).weight > 0.2
       || icelandWaterHeight(x, z) !== null
       || solheimasandurWreckClearance(x, z) || solheimasandurApproachDistance(x, z) < 6) continue;
     const y = icelandSurfaceHeight(x, z);
     if (y < 0.6 || Math.max(Math.abs(icelandSurfaceHeight(x + 1, z) - y), Math.abs(icelandSurfaceHeight(x, z + 1) - y)) > 0.65) continue;
     const patch = icelandNoise(x / 23 + 17, z / 23 - 9);
-    const sand = z > 615 || solheimasandurWeight(x, z) > 0.65;
+    const sand = x > 330 || z > 615 || skeidararsandurWeight(x, z) > 0.5 || solheimasandurWeight(x, z) > 0.65;
     const variant = Math.min(2, Math.floor(icelandHash(ix + 141, iz - 53) * 3));
     if (seed < (sand ? 0.19 : 0.38) * Math.max(0, (patch - 0.25) * 2)) {
       stones.push({ x, y, z, scale: 0.22 + icelandHash(ix, iz + 71) * 0.65, seed, variant });
       if (seed < 0.08 && icelandWaterHeight(x + 0.9, z + 0.4) === null && trailDistance(x + 0.9, z + 0.4) >= 7
+        && lagoonRouteDistance(x + 0.9, z + 0.4) >= 7 && lomagnupurRouteDistance(x + 0.9, z + 0.4) >= 7
         && !solheimasandurWreckClearance(x + 0.9, z + 0.4) && solheimasandurApproachDistance(x + 0.9, z + 0.4) >= 6)
         stones.push({ x: x + 0.9, y: icelandSurfaceHeight(x + 0.9, z + 0.4), z: z + 0.4, scale: 0.17, seed: 0.65, variant: 1 });
     }
     if (!sand && patch > 0.48 && icelandHash(ix - 31, iz + 19) < 0.37 && icelandWaterHeight(x - 0.5, z) === null
-      && trailDistance(x - 0.5, z) >= 7 && ringRoadAt(x - 0.5, z).distance >= 8)
+      && lagoonRouteDistance(x - 0.5, z) >= 7 && lomagnupurRouteDistance(x - 0.5, z) >= 7 && trailDistance(x - 0.5, z) >= 7 && ringRoadAt(x - 0.5, z).distance >= 8)
       shrubs.push({ x: x - 0.5, y: icelandSurfaceHeight(x - 0.5, z), z, scale: 0.3 + seed * 0.45, seed, variant });
   }
   const vertices: number[] = [], indices: number[] = [];

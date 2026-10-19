@@ -173,12 +173,18 @@ The dramatic forms are not all mandatory obstacles. Every cliff, pool, caldera,
 water edge, or narrow cave has a discernible wide bypass and reset clearing.
 Geothermal pools and active steam are visual hazards outside driving lines.
 
+The Jökulsá bridge approaches now hold a straight east-west road at `z = 650`
+from `x = 420` through `x = 575`, beyond the outer cable anchors at `x = 439/561`.
+The eastern turn then eases toward `(595, 650)`, `(620, 610)` and `(635, 530)`.
+Keep the full road width and its shoulders clear of all four stays and anchor
+blocks; checking the centreline or bridge deck alone misses approach conflicts.
+
 ## Region design cards
 
 | Region | Approach silhouette and palette | Easy line / harder choice / connection |
 | --- | --- | --- |
 | **South Coast** | Green escarpment and wide white Skógafoss above the Skógá plunge pool; black Sólheimasandur; Reynisfjara's vertical basalt and Reynisdrangar sea stacks. | Inland coast road and lagoon bridge; marked shallow Skógá ford downstream of the falls plus beach/outwash driving to the plane wreck; exits to sandur, Westfjords and Lakagígar. |
-| **Jökulsárlón** | Blue lagoon, scattered white/black ice, sheer striated Breiðamerkurjökull front, black beach beyond the short river. | Broad shore loop and bridge; optional iceberg viewpoint; exits west along coast and uphill toward ice cap. |
+| **Jökulsárlón** | Blue lagoon, scattered white/black ice, sheer striated Breiðamerkurjökull front, black beach beyond the short river. Ice mixes tabular slabs, split ridges, tilted slabs and fractured blocks, with independently varied clear/frosted pieces and a few substantially larger lagoon and beach forms. | Broad shore loop and bridge with straight approaches beyond its cable anchors; optional iceberg viewpoint; exits west along coast and uphill toward ice cap. |
 | **Vatnajökull** | Largest white mass, gently domed and fairly flat on top; dark Grímsvötn rocky caldera rim interrupts the summit. | Graded western ascent and eastern descent; optional plateau traverse near the rim, never over a blind cliff; visible link to lagoon and Askja. |
 | **Western Ice Margin** | Layered blue ice portal cut into the western ice-cap edge. | Wide, long drive-through cave with daylight at both ends; optional ice-roof viewpoint; exits to Lakagígar, plateau and Askja approach. |
 | **Lakagígar and Sandur** | Long row of dark cones with green moss on rock, then open grey/black braided outwash. | Firm corridor alongside fissure and broad dry sandur channels; optional rough pumice/lava lines; exits to south coast and ice margin. |
@@ -275,3 +281,30 @@ the sea. The bridge must connect dry banks; it must not span the lagoon.
 User references for bridge placement and proportions:
 - [Outlet bridge and Diamond Beach](https://localguide.is/wp-content/uploads/2025/06/bridge-at-Diamond-Beach-and-Jokulsarlon-Glacier-Lagoon-Iceland-1024x683.jpg)
 - [View along the outlet toward the lagoon and glacier](https://www.holdurcarrental.is/static/files/_blob/j6s0ztcqgnm7hcvz62xuku.png)
+
+### Lómagnúpur / sandur implementation — 2026-10-19
+
+The reserved cliff anchor is now authored terrain. A gravel detour runs from
+(-90, 595) past the southern cliff foot to Route 1 at (130, 608). The adjacent
+Skeiðarársandur has low dry branching channels and sparse gravel; the road
+continues east toward the reserved lagoon region. Start: `?area=iceland&start=lomagnupur`.
+
+Geographic reference: [Katla Geopark, Lómagnúpur](https://www.katlageopark.com/geosites/geology-culture/lomagnupur/).
+The cliff is compressed to game scale and shares its terrain collision.
+
+### Ridge, glacier gateway and Jökulsárlón — 2026-10-19
+
+Lómagnúpur now continues north into a broad highland ridge, rather than closing
+as an isolated mountain. Its steep upper rock face sits over a long gentler
+gravel apron, following the [user's reference](https://dalshofdi.is/wp-content/uploads/2018/01/4693763095_f1501378c4_b.jpg).
+A southern ice-field tongue reaches (154, 518), just east of the gateway, with
+a separate dry approach ending at (146, 540). It connects to the developing
+southern Vatnajökull ice field; the summit/Grímsvötn routes remain future work.
+
+Jökulsárlón is centred at (485, 553), with a terrain-based calving front near
+z=493, an irregular tidal lagoon and a continuous short outlet to the sea.
+Route 1 crosses only that outlet at (500, 650), on a suspension bridge with
+solid deck, rails and towers. The west-bank gravel viewpoint returns to Route 1.
+Icebergs are irregular fixed solids in deep water; bob/drift is deferred so
+rendering and collision remain consistent during this static terrain gate.
+Start: `?area=iceland&start=jokulsarlon`.

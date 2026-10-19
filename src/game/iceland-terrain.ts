@@ -1,3 +1,5 @@
+import { glacierFracture, southernGlacier, lagoonCarve, lagoonRouteDistance, onJokulsaBridge, JOKULSA_BRIDGE } from './iceland-lagoon';
+import { lomagnupurRise, lomagnupurTalus, lomagnupurRouteDistance, skeidararsandurWeight, sandurChannel } from './iceland-skeidararsandur';
 import { icelandNoise } from './iceland-noise';
 import type { SurfaceId } from './surfaces';
 import { FALL, SKOGA_BRIDGE, onSkogaBridge } from './iceland-layout';
@@ -82,6 +84,19 @@ export function icelandHeight(x: number, z: number) {
   h += sandur * (0.55 * (icelandNoise(x / 28 + 19, z / 24 - 7) - 0.5)
     + 0.24 * (icelandNoise(x / 8 - 11, z / 9 + 31) - 0.5));
   h += reynisfjallRise(x, z);
+  const outwash = skeidararsandurWeight(x, z);
+  const rill = sandurChannel(x, z);
+  const plain = shelf + 1.1 * (icelandNoise(x / 37 + 31, z / 28) - 0.5)
+    + 0.28 * (icelandNoise(x / 9, z / 13 + 8) - 0.5) - rill * 0.85;
+  h += (plain - h) * outwash;
+  h += lomagnupurRise(x, z);
+  const cliffTrack = 1 - smooth((lomagnupurRouteDistance(x, z) - 4.5) / 10);
+  h += (shelf - h) * cliffTrack;
+
+  const glacier = southernGlacier(x, z);
+  h += (glacier.height - h) * glacier.weight;
+  const lagoonTrack = 1 - smooth((lagoonRouteDistance(x, z) - 4.5) / 10);
+  h += (shelf - h) * lagoonTrack;
   const wreckApproach = 1 - smooth((solheimasandurApproachDistance(x, z) - 3.5) / 10);
   h += (shelf - h) * wreckApproach * sandur * 0.7;
   const beachApproach = 1 - smooth((reynisBeachPathDistance(x, z) - 4.5) / 10);
@@ -90,9 +105,17 @@ export function icelandHeight(x: number, z: number) {
   h += (shelf - h) * (1 - smooth((trailDistance(x, z) - 5.5) / 9));
   const road = ringRoadAt(x, z);
   if (road.distance < 32) h += (road.height - h) * (1 - smooth((road.distance - 9) / 23));
+  // A settled gravel verge gives the shared terrain/collider a physical road lip.
+  h -= 0.34 * smooth((road.distance - 3.7) / 2.2) * (1 - smooth((road.distance - 8) / 5));
   const bridgeApproach = (1 - smooth((Math.abs(z - SKOGA_BRIDGE.z) - 7) / 8))
     * (1 - smooth((Math.abs(x - SKOGA_BRIDGE.x) - 34) / 17));
   h += (SKOGA_BRIDGE.y - h) * bridgeApproach;
+  // Settled approaches meet the solid, level decks at a small raised threshold.
+  for (const bridge of [SKOGA_BRIDGE, JOKULSA_BRIDGE]) {
+    const endDistance = Math.abs(Math.abs(x - bridge.x) - bridge.length / 2);
+    const across = 1 - smooth((Math.abs(z - bridge.z) - 5) / 3);
+    h -= 0.3 * (1 - smooth(endDistance / 4.8)) * across;
+  }
   const dx = Math.abs(x - riverX(z));
   const fallWidth = 3 * (1 - smooth(Math.abs(z - 470) / 25));
   const ford = 1 - smooth((Math.abs(z - 585) - 9) / 12);
@@ -131,6 +154,7 @@ export function icelandHeight(x: number, z: number) {
   const reynisCoast = reynisCoastWeight(x) * smooth((z - reynisWaterlineZ(x) + 40) / 12);
   h += (reynisCoastHeight(x, z) - h) * reynisCoast;
   h += (REYNIS_CAVE.floorY - h) * reynisCaveCut(x, z);
+  h = lagoonCarve(x, z, h);
   // The outer apron stays submerged; deep water stalls the car before its edge.
   h += 15 * smooth((Math.max(Math.abs(x), Math.abs(z)) - 785) / 43);
   return h;
@@ -151,7 +175,7 @@ export function icelandSurfaceHeight(x: number, z: number) {
   return u + v <= 1 ? h(0, 0) + u * (a - h(0, 0)) + v * (b - h(0, 0))
     : h(1, 1) + (1 - u) * (b - h(1, 1)) + (1 - v) * (a - h(1, 1));
 }
-export const icelandDrivingHeight = (x: number, z: number) => onSkogaBridge(x, z) ? Math.max(SKOGA_BRIDGE.y, icelandSurfaceHeight(x, z)) : icelandSurfaceHeight(x, z);
+export const icelandDrivingHeight = (x: number, z: number) => onJokulsaBridge(x, z) ? Math.max(JOKULSA_BRIDGE.y, icelandSurfaceHeight(x, z)) : onSkogaBridge(x, z) ? Math.max(SKOGA_BRIDGE.y, icelandSurfaceHeight(x, z)) : icelandSurfaceHeight(x, z);
 export const icelandSpawn = (p = ICELAND_START) => ({ ...p, y: icelandDrivingHeight(p.x, p.z) + 1.25 });
 export function icelandWaterHeight(x: number, z: number): number | null {
   if (z >= SKOGA_WATER_START && z <= 700 && (z <= FALL.terrainLipZ ? upperRiverDistance(x, z) < 30 : Math.abs(x - riverX(z)) < 35)) {
@@ -161,12 +185,16 @@ export function icelandWaterHeight(x: number, z: number): number | null {
   return icelandSurfaceHeight(x, z) < 0 ? 0 : null;
 }
 export function icelandSurfaceAt(x: number, z: number): SurfaceId {
-  if (onSkogaBridge(x, z)) return 'asphalt';
+  if (onSkogaBridge(x, z) || onJokulsaBridge(x, z)) return 'asphalt';
   if (icelandWaterHeight(x, z) !== null) return 'water';
   const roadDistance = ringRoadAt(x, z).distance;
   if (roadDistance <= RING_HALF_WIDTH) return 'asphalt';
   if (roadDistance < 7) return 'dirt';
-  if (trailDistance(x, z) < 5.5) return 'dirt';
+  if (trailDistance(x, z) < 5.5 || lomagnupurRouteDistance(x, z) < 4.5) return 'dirt';
+  if (lagoonRouteDistance(x, z) < 4.5) return 'dirt';
+  if (southernGlacier(x, z).weight > 0.65) return 'ice';
+  if (lomagnupurRise(x, z) > 8) return 'rock';
+  if (skeidararsandurWeight(x, z) > 0.5) return sandurChannel(x, z) > 0.5 ? 'dirt' : 'sand';
   if (reynisfjallRise(x, z) > 5) return 'rock';
   if (reynisBeachWeight(x, z) > 0.65) return 'sand';
   if (solheimasandurWeight(x, z) > 0.65) return 'sand';
@@ -199,6 +227,27 @@ function terrainColor(x: number, z: number) {
   base = base.map((v, i) => v * (1 - basalt) + [0.16, 0.18, 0.18][i] * basalt);
   const beachTrack = (1 - smooth((reynisBeachPathDistance(x, z) - 2.2) / 5)) * reynisBeach;
   base = base.map((v, i) => v * (1 - beachTrack * 0.26) + [0.33, 0.33, 0.31][i] * beachTrack * 0.26);
+  const moraineGround = smooth((x - 340) / 40) * (1 - smooth((x - 610) / 35))
+    * smooth((z - 425) / 45) * (1 - smooth((z - 680) / 35));
+  const outwash = Math.max(skeidararsandurWeight(x, z), moraineGround), channel = sandurChannel(x, z);
+  base = base.map((v, i) => v * (1 - outwash) + ([0.19, 0.21, 0.21][i]
+    + channel * 0.085 + (patch - 0.5) * 0.07) * outwash);
+  const mountain = smooth(lomagnupurRise(x, z) / 18);
+  if (mountain > 0) {
+    const height = icelandHeight(x, z);
+    const band = smooth((icelandNoise(height / 7, 18) - 0.3) / 0.5);
+    const stone = [0.27, 0.29, 0.27].map(v => v + band * 0.075 + grain);
+    base = base.map((v, i) => v * (1 - mountain) + stone[i] * mountain);
+  }
+  const talus = lomagnupurTalus(x, z) * (1 - smooth((lomagnupurRise(x, z) - 35) / 30));
+  base = base.map((v, i) => v * (1 - talus) + [0.43, 0.42, 0.36][i] * talus);
+  const glacier = southernGlacier(x, z);
+  const ice = smooth((Math.max(glacier.weight, southernGlacier(x, z - 9).weight) - 0.08) / 0.55);
+  const crevice = Math.min(1, glacierFracture(x, z) / 9) * 0.27;
+  const moraine = smooth((icelandNoise(x / 7 + 41, z / 39) - 0.58) / 0.23) * 0.55;
+  base = base.map((v, i) => v * (1 - ice) + ([0.78, 0.88, 0.87][i] - moraine - crevice + grain) * ice);
+  const cliffTrack = (1 - smooth((Math.min(lomagnupurRouteDistance(x, z), lagoonRouteDistance(x, z)) - 2.8) / 4.5));
+  base = base.map((v, i) => v * (1 - cliffTrack * 0.7) + [0.37, 0.36, 0.32][i] * cliffTrack * 0.7);
   // The continuous road mesh owns its asphalt colour. Painting sampled terrain
   // beneath it made dark triangular teeth protrude from curved verges.
   return base.map(linear);
@@ -207,6 +256,8 @@ export type IcelandChunk = { cx: number; cz: number; vertices: Float32Array; col
 export function generateIcelandChunk(cx: number, cz: number, coarse = false): IcelandChunk {
   // Preserve the brink in the distant layer too; a coarse triangle must not span the fall.
   if (cz >= 0 && cz <= 7 && (cx === -6 || cx === -5)) coarse = false;
+  if (cx >= -2 && cx <= 0 && cz >= 2 && cz <= 5) coarse = false;
+  if (cx >= 3 && cx <= 6 && cz >= 4 && cz <= 7) coarse = false;
   if (!Number.isInteger(cx) || !Number.isInteger(cz) || cx < -9 || cx > 8 || cz < -9 || cz > 8) throw new Error('Iceland chunk outside apron');
   const vertices: number[] = [], colors: number[] = [], normals: number[] = [], indices: number[] = [];
   const lookup = new Map<string, number>();

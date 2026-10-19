@@ -322,7 +322,9 @@ The new Iceland world has an internal south-coast slice at `/?area=iceland` when
 running `npm run dev`. Start at Skógafoss with
 `http://127.0.0.1:5173/?area=iceland&start=skogafoss`, or at the
 Sólheimasandur wreck approach with
-`http://127.0.0.1:5173/?area=iceland&start=solheimasandur`.
+`http://127.0.0.1:5173/?area=iceland&start=solheimasandur`, or the Lómagnúpur
+sandur gateway with `http://127.0.0.1:5173/?area=iceland&start=lomagnupur`.
+The lagoon approach is `http://127.0.0.1:5173/?area=iceland&start=jokulsarlon`.
 Reset returns to the nearest completed Iceland regional start. Iceland is
 separate from Iceland Highlands and stays out of the production picker/direct
 links until the coastal pilot is ready. See
