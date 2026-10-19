@@ -12,6 +12,7 @@ import { MARS_STARTS, nearestMarsStart, marsSpawn } from './game/mars-terrain';
 import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from './game/iceland-starts';
 import { SKOGA_WATER_START } from './game/iceland-terrain';
 import { SKOGA_MOUTH_Z, SKOGA_WATER_MAX_X, SKOGA_WATER_MIN_X } from './game/iceland-river';
+import { reynisShallowWaterAt } from './game/iceland-reynisfjara';
 import { marshWeight } from './game/northern-marsh';
 import { shoalsWaterRegion } from './game/northern-adventures';
 import { lakeShoreDistance, inletDistance, inletWidth } from './game/northern-watershed';
@@ -217,6 +218,8 @@ async function boot() {
     if (area.id === 'mars' && surface.id === 'rock') return 'Martian rock';
     if (surface.id === 'water') {
       if (area.id === 'samurai-village') return 'Shallow lake';
+      if (area.id === 'iceland' && reynisShallowWaterAt(vehicle.position.x, vehicle.position.z, vehicle.waterDepth))
+        return 'Coastal shallows';
       // The sea owns the water outside the river mesh's clipped corridor.
       // River level also reaches zero before the mouth, so height alone
       // cannot distinguish the two surfaces.

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { SKOGA_BRIDGE } from './iceland-layout';
-import { buildIcelandRiverGeometry, buildIcelandSeaGeometry } from './iceland-river';
+import { buildIcelandRiverGeometry, buildIcelandSeaGeometry, buildReynisShallowGeometry } from './iceland-river';
 import { buildIcelandGroundDetail } from './iceland-detail';
 import { buildSkogafossWater } from './iceland-waterfall';
 import { buildIcelandRoadScenery } from './iceland-road-scenery';
@@ -63,6 +63,9 @@ export function buildIcelandScenery(world: RAPIER.World) {
     mesh(new THREE.BoxGeometry(sx, sy, sz).translate(x, y, z), m, name, true);
   const sea = buildIcelandSeaGeometry();
   mesh(sea, new THREE.MeshStandardMaterial({ color: '#194451', roughness: 0.35, metalness: 0.04 }), 'Iceland · deep sea');
+  mesh(buildReynisShallowGeometry(), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35,
+    metalness: 0.04, side: THREE.DoubleSide, transparent: true, depthWrite: false }),
+  'Reynisfjara · coastal shallows').renderOrder = 1;
   const river = buildIcelandRiverGeometry();
   mesh(river, water, 'Skógá · continuous river').renderOrder = 1;
   const waterfall = buildSkogafossWater(group);

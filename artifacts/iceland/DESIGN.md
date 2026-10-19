@@ -121,7 +121,7 @@ Sources checked for this extension:
 | Skógafoss start | -520, 475 | Southwest interior/coast transition. |
 | Skógá ford | -535, 585 | Shallow downstream crossing between Skógafoss and the sea, on an optional gravel track south of the road bridge. |
 | Sólheimasandur wreck | -365, 635 | Open black outwash south of Route 1, between the waterfall and Reynisfjara. A faint game trail reaches the wreck from the road. |
-| Reynisfjara / Reynisdrangar | beach approach -263, 595; columns -222, 641; stacks -177 to -111, 716 to 732 | Route 1 beach spur, basalt headland and column wall, with three collidable offshore stacks. |
+| Reynisfjara / Reynisdrangar | beach approach -263, 595; columns -222, 641; cave -174, 656; stacks -177 to -111, 716 to 732 | Route 1 beach spur, a broad dry driving shelf below the column-built cliff, shallow nearshore water, Hálsanefshellir-inspired cave and three collidable offshore stacks. |
 | Lakagígar fissure and sandur | -150, 210 | Southwest of the ice cap, inland from south coast. |
 | Askja / Askja's Víti | 120, -230 | North of Vatnajökull; large caldera and smaller crater. |
 | Herðubreið | 250, -345 | Isolated table mountain northeast of Askja. |
@@ -144,6 +144,12 @@ exception to the mostly black perimeter.
 The Sólheimasandur wreck sits on a [black volcanic outwash plain](https://www.south.is/en/destinations/nature/nature/solheimasandur).
 The short drivable access in this compressed game world is fictional; visitors
 reach the real wreck on foot, and vehicle access is prohibited there.
+
+Reynisfjara's basalt columns are part of the lower Reynisfjall cliff, beneath
+its irregular rock cap, with [Hálsanefshellir](https://www.south.is/en/destinations/nature/geopark/reynisfjara-reynisfjall-og-reynisdrangar)
+opening beside them. The [user's side-view reference](https://gti.images.tshiftcdn.com/6769863/x/0/czarna-plaza-reynisfjara-6.jpg?ixlib=php-3.3.0&w=883)
+shows this relationship. In the game, a level black-sand corridor lies between
+the cliff and a shallow, transparent coastal band before deep water.
 
 ## Route graph
 

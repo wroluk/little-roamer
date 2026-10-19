@@ -3,7 +3,8 @@ import type { SurfaceId } from './surfaces';
 import { FALL, SKOGA_BRIDGE, onSkogaBridge } from './iceland-layout';
 import { ringRoadAt, RING_HALF_WIDTH } from './iceland-road';
 import { SOLHEIMASANDUR_WRECK, solheimasandurApproachDistance, solheimasandurWeight } from './iceland-sandur';
-import { reynisBeachPathDistance, reynisBeachWeight, reynisfjallRise } from './iceland-reynisfjara';
+import { REYNIS_CAVE, reynisBeachPathDistance, reynisBeachWeight, reynisCaveCut,
+  reynisCoastHeight, reynisCoastWeight, reynisWaterlineZ, reynisfjallRise } from './iceland-reynisfjara';
 
 export const ICELAND_HALF = 768;
 export const ICELAND_CHUNK = 96;
@@ -65,11 +66,18 @@ export function icelandHeight(x: number, z: number) {
   const westernSea = smooth((-x - 652) / 52);
   const outerSea = smooth((Math.max(Math.abs(x), Math.abs(z)) - 675) / 55);
   let h = shelf + 1.1 * Math.sin(x * 0.031) * Math.sin(z * 0.021);
-  const cliffZ = 471 + 2.4 * Math.sin((x + 535) * 0.046);
-  const cliff = 1 - smooth((z - cliffZ) / 9);
+  // Preserve the authored waterfall brink; away from it, unequal shoulders
+  // and recesses replace the old periodic scallops (Mars rim lesson).
+  const irregular = smooth((Math.abs(x + 535) - 30) / 65);
+  const cliffZ = 471 + (1 - irregular) * 2.4 * Math.sin((x + 535) * 0.046)
+    + irregular * (26 * (icelandNoise(x / 83 + 17, 9) - 0.5)
+      + 9 * (icelandNoise(x / 29 - 3, 27) - 0.5));
+  const cliff = 1 - smooth((z - cliffZ) / (9 + irregular * 12 * icelandNoise(x / 43, 51)));
   // The western coastal shelf provides a way around the Skógafoss escarpment.
   const cliffFootprint = smooth((x + 640) / 35);
-  h += cliff * cliffFootprint * (42 + 4 * Math.sin(x * 0.018) ** 2);
+  h += cliff * cliffFootprint * (42 + (1 - irregular) * 4 * Math.sin(x * 0.018) ** 2
+    + irregular * (14 * (icelandNoise(x / 117, 23) - 0.35)
+      + 4 * (icelandNoise(x / 37, 62) - 0.5)));
   const sandur = solheimasandurWeight(x, z);
   h += sandur * (0.55 * (icelandNoise(x / 28 + 19, z / 24 - 7) - 0.5)
     + 0.24 * (icelandNoise(x / 8 - 11, z / 9 + 31) - 0.5));
@@ -120,6 +128,9 @@ export function icelandHeight(x: number, z: number) {
   const wreckRadius = Math.hypot(x - SOLHEIMASANDUR_WRECK.x, z - SOLHEIMASANDUR_WRECK.z);
   h += (SOLHEIMASANDUR_WRECK.y - h) * (1 - smooth((wreckRadius - 12) / 12));
   h += (-17 - h) * Math.max(sea, westernSea, outerSea);
+  const reynisCoast = reynisCoastWeight(x) * smooth((z - reynisWaterlineZ(x) + 40) / 12);
+  h += (reynisCoastHeight(x, z) - h) * reynisCoast;
+  h += (REYNIS_CAVE.floorY - h) * reynisCaveCut(x, z);
   // The outer apron stays submerged; deep water stalls the car before its edge.
   h += 15 * smooth((Math.max(Math.abs(x), Math.abs(z)) - 785) / 43);
   return h;

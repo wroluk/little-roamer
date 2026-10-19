@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { FORD_PATH, BRIDGE_PATH, ICELAND_LOOP, type IcelandPoint } from '../../src/game/iceland-terrain';
 import { ICELAND_RING_ROAD } from '../../src/game/iceland-road';
 import { SOLHEIMASANDUR_APPROACH, SOLHEIMASANDUR_WRECK } from '../../src/game/iceland-sandur';
-import { REYNIS_BEACH_PATH } from '../../src/game/iceland-reynisfjara';
+import { REYNIS_BEACH_PATH, REYNIS_CAVE, REYNIS_SHORE_ROUTE } from '../../src/game/iceland-reynisfjara';
 test.use({ deviceScaleFactor: 1 });
 type State = { area: string; car: string; mode: string; position: { x: number; y: number; z: number }; rotation: { x: number; y: number; z: number; w: number }; speed: number;
   contacts: number; waterDepth: number; streaming: { activeRender: number; activePhysics: number; queued: number }; cameraObstructed: boolean };
@@ -285,4 +285,42 @@ test('Reynisfjara columns and sea stacks render beside a drivable beach approach
   await expect.poll(async () => (await state(page)).mode).toBe('playing');
   expect((await drive(page, REYNIS_BEACH_PATH)).depth).toBe(0);
   expect((await drive(page, [...REYNIS_BEACH_PATH].reverse())).depth).toBe(0);
+});
+
+test('Reynisfjara has a dry driveable beach and shallow transparent shore water', async ({ page }, info) => {
+  test.setTimeout(210000); await boot(page);
+  await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), {
+    position: { x: -250, y: 10, z: 699 }, target: { x: -210, y: 12, z: 661 }, fov: 58,
+  });
+  await page.locator('#photo-ui').click(); await page.waitForTimeout(400);
+  await page.screenshot({ path: info.outputPath('reynisfjara-beach-shelf.png') });
+  await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), {
+    position: { x: -226, y: 13, z: 688 }, target: { x: -194, y: 1, z: 727 }, fov: 58,
+  });
+  await page.waitForTimeout(400); await page.screenshot({ path: info.outputPath('reynisfjara-shallows.png') });
+  await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), {
+    position: { x: -211, y: 11, z: 693 }, target: { x: REYNIS_CAVE.x, y: 10, z: 662 }, fov: 58,
+  });
+  await page.waitForTimeout(400); await page.screenshot({ path: info.outputPath('halsanefshellir-cave.png') });
+  for (const view of [
+    { name: 'cave-feedback', position: { x: -141.765, y: 4.19, z: 701.388 }, target: { x: -149.181, y: 4.225, z: 690.023 } },
+    { name: 'east-shallows-feedback', position: { x: -108.346, y: 7.267, z: 702.721 }, target: { x: -98.463, y: 1.909, z: 709.421 } },
+    { name: 'cliff-feedback', position: { x: -230, y: 8, z: 615 }, target: { x: -205, y: 29, z: 470 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({ ...view, fov: 48 }), view);
+    await page.waitForTimeout(400); await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+
+  await page.keyboard.press('KeyU'); await page.locator('#photo-exit').click();
+  await expect.poll(async () => (await state(page)).mode).toBe('playing');
+  expect((await drive(page, REYNIS_SHORE_ROUTE)).depth).toBe(0);
+  expect((await drive(page, [...REYNIS_SHORE_ROUTE].reverse())).depth).toBe(0);
+  const cavePath = [{ x: REYNIS_CAVE.x, z: 685 }, { x: REYNIS_CAVE.x, z: 671 },
+    { x: REYNIS_CAVE.x, z: 659 }, { x: REYNIS_CAVE.x, z: 652 }];
+  expect((await drive(page, cavePath)).depth).toBe(0);
+  expect((await drive(page, [...cavePath].reverse())).depth).toBe(0);
+  await page.evaluate(async () => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(-220, 719, 0));
+  await expect.poll(async () => (await state(page)).waterDepth).toBeGreaterThan(0.1);
+  expect((await state(page)).waterDepth).toBeLessThan(0.7);
+  await expect(page.locator('#surface-label')).toHaveText('Coastal shallows');
 });

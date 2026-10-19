@@ -1,5 +1,31 @@
 # Iceland implementation progress
 
+## Reynisfjara feedback refinement — 2026-10-19
+
+- Replaced the two-row basalt wall with ten tiers following the sampled hillside.
+  Low beach-side columns rise into the headland; the same mesh is solid.
+- Added a dry beach shelf and depth-tinted shallow coastal water with exclusive
+  ocean ownership. Added a driveable Hálsanefshellir cavity with unequal spring
+  points, changing cross-sections and a fractured rim, using the Keyhole lesson.
+- Replaced repeating escarpment waves away from Skógafoss with unequal shoulders
+  and recesses. The authored waterfall brink is preserved.
+- Added the explicit natural-geometry rule and Mars references to WORLD_BUILD_GUIDE.md.
+- The eastern shallow-water mesh now extends beyond the full terrain fade. Its
+  boundary is opaque and matches the ocean colour; a regression check enforces
+  that handoff. The original shallow shelf is preserved at the feedback camera.
+- Typecheck and production build passed (existing bundle-size advisory only).
+  All 29 Iceland unit checks passed, including both vehicles on the beach and
+  full Ring Road. The final water-boundary regression also passed separately.
+  Final beach/cave driving and waterfall regression checks passed in Chromium
+  and WebKit (4/4). Inspected actual game captures, including the supplied cave
+  and eastern shore viewpoints; saved them in
+  `artifacts/iceland/reynisfjara/refinement/`.
+
+**Next:** review these revised coastal forms, then continue east through the sandur
+and Lómagnúpur toward Jökulsárlón. Full project/PWA suites were not run for this
+local geometry change; physical iPad review remains open.
+
+
 ## Reynisfjara coast and sea-label correction — 2026-10-18
 
 - Added a dry spur south of Route 1 to the Reynisfjara black beach, a low basalt
