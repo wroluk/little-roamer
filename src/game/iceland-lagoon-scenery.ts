@@ -1,6 +1,6 @@
 import { icelandSeaTint } from './iceland-river';
 import * as THREE from 'three';
-import { ICELAND_CELL, icelandGridZ, icelandSurfaceHeight } from './iceland-terrain';
+import { ICELAND_CELL, icelandGridZ, icelandBedHeight, icelandSurfaceHeight } from './iceland-terrain';
 import { icelandHash } from './iceland-noise';
 import { JOKULSA_BRIDGE, LAGOON_WATER_BOUNDS, lagoonRadius } from './iceland-lagoon';
 
@@ -31,7 +31,9 @@ export function buildLagoonWater() {
       vertices.push(p.x, -0.015, p.z); colors.push(tint.r, tint.g, tint.b, alpha);
     }
   };
-  const vertex = (x: number, z: number): Vertex => ({ x, z, depth: -icelandSurfaceHeight(x, z) });
+  // Ice walls occupy the bay independently; water meets them, not a fictitious
+  // heightfield ramp between the glacier roof and the submerged bed.
+  const vertex = (x: number, z: number): Vertex => ({ x, z, depth: -icelandBedHeight(x, z) });
   for (let j = Math.round(z0 / ICELAND_CELL); j < Math.round(z1 / ICELAND_CELL); j++)
     for (let i = Math.round(x0 / ICELAND_CELL); i < Math.round(x1 / ICELAND_CELL); i++) {
       const x = i * ICELAND_CELL, z = icelandGridZ(j), nextZ = icelandGridZ(j + 1);

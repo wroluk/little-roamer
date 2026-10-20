@@ -1,5 +1,148 @@
 # Iceland implementation progress
 
+## Gentler Ring Road and bridge transitions — 2026-10-20
+
+- Reduced both existing nonperiodic road-height noise amplitudes by exactly
+  25% (1.5 to 1.125 and 0.65 to 0.4875). Reduced bridge approach settling by
+  30% (0.35 to 0.245) and the local threshold depression by 30% (0.30 to
+  0.21 m). Retained wavelengths, road alignment, level decks, verge drops,
+  vehicle physics and the shared render/collision height profile.
+- Reference: existing `iceland-road.ts` undulations and
+  `iceland-terrain.ts` threshold grading; adjusted amplitudes only.
+  Four focused unit scenarios passed: exact reduction ratios, measured
+  threshold heights and both cars' physical suspension response at road
+  edges/bridges in both directions. Production build/typecheck passed.
+  No browser, full-project or PWA run for this numeric tuning; driving-feel
+  acceptance remains with the user.
+- Next: user review of gentler road/bridge feel, then the outstanding
+  Iceland regional work. Changes remain uncommitted.
+
+## Buried land-margin closure, no basal band — 2026-10-20
+
+- User approved the separate ice shapes but identified a remaining uniform
+  vertical ice band along the western tongue's foot. The existing taper
+  deliberately stopped 2 m above the bed, and interpolation left its closing
+  wall exposed. Reused the separate glacier's sampled roof/bed technique:
+  the low-weight land margin now tapers 1 m into the bed before rising into
+  the retained ice shapes. No wall/material overlay or surrounding-hill change.
+  The calving-bay exemption still preserves full-height underwater ice walls.
+- Preserved feedback as `artifacts/iceland/feedback/glacier-basal-ice-band.png`.
+  Inspected WebKit low front/side and calving captures in
+  `artifacts/iceland/glacier-no-band/`: the uniform basal strip is gone and
+  the ice still meets the lagoon. The full eight-angle WebKit scenario passed,
+  as did real browser terminal approaches both ways. Chromium capture/driving
+  attempts failed with execution-context loss and then timeouts, including
+  destination loading; these are not passes. Assertions/timeouts are unchanged.
+- Added a regression measuring over 1,000 wall vertices across the western
+  land margin: every closing-wall vertex must be at least 0.5 m below the bed.
+  Existing ice-roof sampling and visible/Rapier calving-waterline checks passed.
+  Moved the lateral traction probe inward to the exposed ice, because the
+  outer geometric closure is now intentionally buried rather than driveable ice.
+- Four focused unit scenarios passed, including both cars driving the full
+  outlet and both viewpoint routes in both directions. Production build and
+  typecheck passed. No full-project or PWA suite for this local contact fix.
+- Next: visual review of the accepted ice with its corrected basal contact.
+  Chromium browser acceptance and physical iPad review remain open.
+  Changes remain uncommitted.
+
+## Separate glacier solids and restored calving contact — 2026-10-20
+
+- User rejected the exposed terrain skirt and lowering of the hills in the
+  previous iteration. Restored the higher rock sides framing both tongues.
+  The earlier hard-colour contour is superseded, not an accepted glacier design.
+- Added `iceland-glacier.ts`: one independent ice mesh for the connected cap
+  and both existing tongues, with clipped irregular roofs and walls buried
+  2 m into the sampled bed. The visible mesh is also its Rapier solid, owned
+  and disposed with the existing Iceland scenery. No transparent skirt or
+  depth-offset shell. Land-ending edges taper geometrically toward the bed,
+  while the calving bay retains steep full-height walls. Shared roof/wall
+  vertices soften the rim lighting; the ice no longer switches to earth colour.
+- Removed ice colour from the rock terrain. Excavation is restricted to the
+  footprint under the ice, leaving surrounding hills intact. The existing
+  global terrain lattice supplies the ice roof interpolation too; wheel
+  surfaces, spawning and water depth select the exposed bed or ice roof.
+  No new driving routes or summit/ice-cave completion are claimed.
+- Extended the lagoon's northern submerged bay against the central calving
+  face. Lagoon water clips to the rock bed, not an interpolated roof-to-bed
+  heightfield ramp, so the ice continues down through the waterline rather
+  than terminating above a dry bank.
+- References: the solid-geometry callback and cleanup used by the existing
+  lagoon icebergs and Reynisfjara scenery, terrain-triangle clipping from the
+  existing river, and the shared global-lattice sampling from Iceland terrain.
+  Adapted these for separate top/side geometry, not another coloured overlay.
+- Preserved both new images in `artifacts/iceland/feedback/` as
+  `glacier-calving-dark-skirt.png` and `glacier-painted-ground-contact.png`.
+  Final eight-angle Chromium/WebKit captures are in
+  `artifacts/iceland/glacier-solids-final/`; approach driving arrivals and the
+  preceding tapered iteration are in `artifacts/iceland/glacier-solids/`.
+  Inspected front/oblique water contact, both tongue margins, cap and original
+  problem camera. Physical iPad visual/performance acceptance remains open.
+- Eight focused unit scenarios passed: geometry/sampling and real Rapier
+  waterline raycasts at eight positions across the face, irregular profiles
+  and restored hills, chunk seams, lagoon water, both cars on both full
+  glacier viewpoint routes/outlet and the Lómagnúpur route in both directions.
+  Final roof-normal change reran the four focused geometry scenarios (4/4).
+  Production build/typecheck passed. Browser margin captures and terminal
+  approach drives passed in both engines (4/4); final normals/waterline
+  captures passed again in both engines (2/2).
+- No full-project/PWA suite for this local geometry change. The previously
+  reproduced long Chromium whole-region deadline and physical iPad checks
+  remain open; no test deadlines or driving assertions were weakened.
+- Next: user visual review of restored rock framing, rounded land contacts
+  and direct calving water contact before summit/Grímsvötn/ice-cave work.
+  Changes remain uncommitted.
+
+## Shape-aligned glacier margins — 2026-10-20
+
+- **Superseded by user feedback and the separate-solid correction above.**
+- Reviewed both existing southern tongues and the connected cap, including the
+  user's exact camera. Replaced the colour fade with a sharp, shape-derived
+  ice/ground contour. Split mixed terrain triangles and duplicate boundary
+  colours without lifting an overlay or changing the original triangle planes.
+  The same refined mesh remains the streamed Rapier solid; per-wheel ice
+  classification now samples that same contour instead of a different threshold.
+- Added coherent, unequal outline variation to both sides and terminal fronts,
+  with narrower lateral transitions. Preserved the existing lower western
+  profile, crevasses, routes, lagoon carving and scenery ownership/disposal.
+  Near and distant terrain retain identical glacier geometry and borders.
+- The first hard-border capture still showed a tall dark mound beside the
+  eastern ice: the inherited generic coast escarpment was higher than the lower
+  tongue. Recessed that bed into moraine valleys before applying the ice profile.
+  Both glaciers now stand above their surrounding ground rather than cutting
+  into a taller rock face. This is a local glacier correction, not completion
+  of Vatnajökull, Grímsvötn or the ice cave.
+- References: transferred the terrain-triangle clipping principle from
+  `iceland-river.ts` and the fitted road repair in `iceland-road-scenery.ts`.
+  Here the two materials share coplanar solid triangles, with duplicated seam
+  colours, rather than a water/road overlay. Reused `southernGlacier` as the
+  single shape field and the established sampled-terrain/LOD contract.
+- Preserved the original image at
+  `artifacts/iceland/feedback/glacier-straight-faded-edge.png`.
+  Before captures are in `artifacts/iceland/glacier-margins-before/`; final
+  Chromium/WebKit captures are in `artifacts/iceland/glacier-margins/`.
+  Inspected all six views, including both tongue sides/fronts, the cap margin
+  and the supplied camera, plus real driving arrivals in
+  `artifacts/iceland/glacier-margins-approaches/`.
+- Final typecheck and production build passed. Eight focused unit scenarios
+  passed: hard-seam geometry/area/interior height agreement, irregular lateral
+  profiles and traction, expanded glacier chunk/LOD seams, lagoon geometry,
+  and both cars driving the cliff route, outlet and both full viewpoint routes
+  in both directions. Command:
+  `node --import tsx --test --test-name-pattern='glacier margins|both glacier tongues|meshes are deterministic|drives Jökulsárlón|drives the Lómagnúpur|bridge crosses the outlet' tests/iceland.test.ts`.
+- Browser margin captures and terminal-approach driving passed in both engines
+  (four final scenario/engine combinations). The existing full outlet/shore/reset
+  scenario passed in WebKit. Chromium exhausted its unchanged 150 s path budget
+  while moving normally on the bridge with four contacts. Reproduced the same
+  deadline failure against unmodified `main`/HEAD source via a separate baseline
+  server, without switching branches or overwriting working files; it also
+  failed before reaching the glacier routes. Neither attempt is a pass.
+  Kept the long scenario and assertions unchanged; the new focused scenario
+  explicitly covers the final segment of each viewpoint route both ways.
+- No full-project or PWA suite for this local terrain refinement. Physical iPad
+  performance/touch and the long Chromium whole-region gate remain open.
+  Next: user review of the revised ice/terrain contacts before extending the
+  summit, Grímsvötn or western ice cave. No commits made.
+
 ## Frosted shore ice correction — 2026-10-19
 
 - The user found the large stranded ice too transparent against black sand.

@@ -301,10 +301,26 @@ A southern ice-field tongue reaches (154, 518), just east of the gateway, with
 a separate dry approach ending at (146, 540). It connects to the developing
 southern Vatnajökull ice field; the summit/Grímsvötn routes remain future work.
 
-Jökulsárlón is centred at (485, 553), with a terrain-based calving front near
+Jökulsárlón is centred at (485, 553), with a solid ice calving front near
 z=493, an irregular tidal lagoon and a continuous short outlet to the sea.
 Route 1 crosses only that outlet at (500, 650), on a suspension bridge with
 solid deck, rails and towers. The west-bank gravel viewpoint returns to Route 1.
 Icebergs are irregular fixed solids in deep water; bob/drift is deferred so
 rendering and collision remain consistent during this static terrain gate.
 Start: `?area=iceland&start=jokulsarlon`.
+
+### Glacier margin refinement — 2026-10-20
+
+Both southern tongues and the connected cap now use an irregular, sharp
+ice/ground boundary derived from their physical shape. The initial hard-colour
+terrain split was rejected: it exposed a dark basal skirt and lost most of the
+calving water contact. Ice is now a separate solid mesh with a sampled roof,
+land margins tapering onto the bed and ice walls buried into the ground.
+The lagoon bay reaches the full-height calving walls, which extend underwater.
+Preserve the taller hills framing both tongues; only excavate below the ice,
+not the surrounding valley sides. Keep unequal outlines and crevasses when
+extending the plateau or western ice cave. Current low-camera, calving waterline
+and supplied-angle views: `glacier-solids-final/`.
+The subsequent basal-band correction buries land-margin closing walls below
+the bed instead of leaving a uniform exposed ice lip. Current land-contact
+views: `glacier-no-band/`; the calving face remains full-height underwater.

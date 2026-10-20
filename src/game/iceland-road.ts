@@ -35,9 +35,9 @@ for (const p of ICELAND_RING_ROAD) {
   const jokulsa = Math.hypot(Math.max(0, Math.abs(p.x - 500) - 44), p.z - 650);
   const bridgeDistance = Math.min(skoga, jokulsa);
   const blend = smooth(bridgeDistance / 18);
-  const undulation = 1.5 * (icelandNoise(p.x / 26 + 71, p.z / 31) - 0.5)
-    + 0.65 * (icelandNoise(p.x / 8, p.z / 10 + 39) - 0.5);
-  p.y += undulation * blend - 0.35 * Math.exp(-(((bridgeDistance - 7) / 4) ** 2)) * blend;
+  const undulation = 1.125 * (icelandNoise(p.x / 26 + 71, p.z / 31) - 0.5)
+    + 0.4875 * (icelandNoise(p.x / 8, p.z / 10 + 39) - 0.5);
+  p.y += undulation * blend - 0.245 * Math.exp(-(((bridgeDistance - 7) / 4) ** 2)) * blend;
 }
 ICELAND_RING_ROAD.push({ ...ICELAND_RING_ROAD[0] });
 const buckets = new Map<string, number[]>();

@@ -21,9 +21,13 @@ export function onJokulsaBridge(x: number, z: number) {
 export function lagoonRadius(x: number, z: number) {
   return Math.hypot((x - 485 - 4 * (icelandNoise(z / 28, 13) - 0.5)) / 80, (z - 553) / 63);
 }
+export function calvingBay(x: number, z: number) {
+  return (1 - smooth((Math.abs(x - 481) - 49) / 18))
+    * smooth((z - 474) / 12) * (1 - smooth((z - 550) / 20));
+}
 export function lagoonCarve(x: number, z: number, height: number) {
   if (x < 365 || x > 610 || z < 470 || z > 710) return height;
-  const bowl = 1 - smooth((lagoonRadius(x, z) - 0.78) / 0.3);
+  const bowl = Math.max(1 - smooth((lagoonRadius(x, z) - 0.78) / 0.3), calvingBay(x, z));
   const outletX = 500 + 3 * (icelandNoise(z / 24, 71) - 0.5) * (1 - smooth(Math.abs(z - 650) / 20));
   const channel = (1 - smooth((Math.abs(x - outletX) - 10) / 15)) * smooth((z - 590) / 23);
   const basinHeight = -11 + 2 * icelandNoise(x / 23, z / 19);
@@ -32,7 +36,7 @@ export function lagoonCarve(x: number, z: number, height: number) {
   return height + (Math.min(height, -3.6) - height) * channel * (1 - bowl);
 }
 export function lagoonWaterRegion(x: number, z: number) {
-  return (lagoonRadius(x, z) < 1.1 || Math.abs(x - 500) < 30 && z > 600) && z < 687;
+  return (lagoonRadius(x, z) < 1.1 || calvingBay(x, z) > 0 || Math.abs(x - 500) < 30 && z > 600) && z < 687;
 }
 export function lagoonRouteDistance(x: number, z: number) {
   if (x < 120 || x > 450 || z < 510 || z > 675) return Infinity;
@@ -54,20 +58,23 @@ export function glacierFracture(x: number, z: number) {
   }
   return cut * smooth((z - 330) / 60);
 }
+export const GLACIER_MARGIN_WEIGHT = 0.12;
 /** Southern ice field and two outlet tongues; the summit regions are a later chunk. */
 export function southernGlacier(x: number, z: number) {
   if (x < 65 || x > 590 || z < 90 || z > 530) return { weight: 0, height: 0 };
-  const capRadius = Math.hypot((x - 315) / 205, (z - 265) / 165);
+  const margin = 13 * (icelandNoise(x / 43 + 8, z / 37) - 0.5)
+    + 6 * (icelandNoise(x / 13, z / 17 + 52) - 0.5);
+  const capRadius = Math.hypot((x - 315 + margin) / 205, (z - 265 + margin * 0.6) / 165);
   const cap = 1 - smooth((capRadius - 0.62) / 0.38);
   const progress = smooth((z - 300) / 215);
   const westX = 220 - progress * 66;
   const westWidth = 65 - progress * 23;
-  const westFront = 518 + 11 * (icelandNoise(x / 11, 31) - 0.5);
-  const west = (1 - smooth((Math.abs(x - westX) - westWidth + 12) / 22))
+  const westFront = 516 + 18 * (icelandNoise(x / 19, 31) - 0.5);
+  const west = (1 - smooth((Math.abs(x - westX) - westWidth + margin + 4) / 10))
     * smooth((z - 260) / 70) * (1 - smooth((z - westFront + 4) / 12));
   const eastX = 455 + 25 * smooth((z - 320) / 170);
-  const eastFront = 493 + 15 * (icelandNoise(x / 9, 42) - 0.5);
-  const east = (1 - smooth((Math.abs(x - eastX) - 64) / 18))
+  const eastFront = 493 + 20 * (icelandNoise(x / 16, 42) - 0.5);
+  const east = (1 - smooth((Math.abs(x - eastX) - 69 + margin) / 10))
     * smooth((z - 270) / 65) * (1 - smooth((z - eastFront) / 3));
   const weight = Math.max(cap, west, east);
   const surface = 110 - 78 * smooth((z - 295) / 220)

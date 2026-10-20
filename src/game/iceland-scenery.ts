@@ -1,4 +1,5 @@
 import { addLagoonScenery } from './iceland-lagoon-scenery';
+import { buildIcelandGlacierGeometry } from './iceland-glacier';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { SKOGA_BRIDGE } from './iceland-layout';
@@ -76,6 +77,8 @@ export function buildIcelandScenery(world: RAPIER.World) {
   addSolheimasandurWreck((geometry, material, name) => mesh(geometry, material, name, true));
   addReynisfjaraScenery((geometry, material, name) => mesh(geometry, material, name, true));
   addLagoonScenery(mesh);
+  mesh(buildIcelandGlacierGeometry(), new THREE.MeshStandardMaterial({ vertexColors: true,
+    roughness: 0.78 }), 'Iceland · solid southern glaciers', true);
   const detail = buildIcelandGroundDetail(group);
   solids.push(world.createCollider(RAPIER.ColliderDesc.trimesh(detail.collider.vertices, detail.collider.indices).setFriction(0.9)));
   // The cliff is the terrain itself. Only the road bridge adds structural geometry.

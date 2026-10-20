@@ -1,4 +1,4 @@
-import { glacierFracture, southernGlacier, lagoonCarve, lagoonRouteDistance, onJokulsaBridge, JOKULSA_BRIDGE } from './iceland-lagoon';
+import { southernGlacier, GLACIER_MARGIN_WEIGHT, calvingBay, lagoonCarve, lagoonRouteDistance, onJokulsaBridge, JOKULSA_BRIDGE } from './iceland-lagoon';
 import { lomagnupurRise, lomagnupurTalus, lomagnupurRouteDistance, skeidararsandurWeight, sandurChannel } from './iceland-skeidararsandur';
 import { icelandNoise } from './iceland-noise';
 import type { SurfaceId } from './surfaces';
@@ -94,7 +94,8 @@ export function icelandHeight(x: number, z: number) {
   h += (shelf - h) * cliffTrack;
 
   const glacier = southernGlacier(x, z);
-  h += (glacier.height - h) * glacier.weight;
+  // Excavate only beneath the ice, preserving the higher rock valley sides.
+  h += (Math.min(h, glacier.height - 8) - h) * smooth(glacier.weight / GLACIER_MARGIN_WEIGHT);
   const lagoonTrack = 1 - smooth((lagoonRouteDistance(x, z) - 4.5) / 10);
   h += (shelf - h) * lagoonTrack;
   const wreckApproach = 1 - smooth((solheimasandurApproachDistance(x, z) - 3.5) / 10);
@@ -114,7 +115,7 @@ export function icelandHeight(x: number, z: number) {
   for (const bridge of [SKOGA_BRIDGE, JOKULSA_BRIDGE]) {
     const endDistance = Math.abs(Math.abs(x - bridge.x) - bridge.length / 2);
     const across = 1 - smooth((Math.abs(z - bridge.z) - 5) / 3);
-    h -= 0.3 * (1 - smooth(endDistance / 4.8)) * across;
+    h -= 0.21 * (1 - smooth(endDistance / 4.8)) * across;
   }
   const dx = Math.abs(x - riverX(z));
   const fallWidth = 3 * (1 - smooth(Math.abs(z - 470) / 25));
@@ -165,16 +166,33 @@ export function icelandHeight(x: number, z: number) {
  */
 export const icelandGridZ = (row: number) => Math.fround(row === 196 ? 468.05 : row * ICELAND_CELL);
 /** Barycentric interpolation of the actual terrain triangle, including the brink row. */
-export function icelandSurfaceHeight(x: number, z: number) {
+function sampleIcelandTriangle(x: number, z: number, valueAt: (x: number, z: number) => number) {
   const gx = x / ICELAND_CELL, ix = Math.floor(gx), u = gx - ix;
   let iz = Math.floor(z / ICELAND_CELL);
   if (z >= icelandGridZ(196) && z < 470.4) iz = 196;
   const z0 = icelandGridZ(iz), z1 = icelandGridZ(iz + 1), v = (z - z0) / (z1 - z0);
-  const h = (dx: number, dz: number) => Math.fround(icelandHeight((ix + dx) * ICELAND_CELL, dz ? z1 : z0));
+  const h = (dx: number, dz: number) => valueAt((ix + dx) * ICELAND_CELL, dz ? z1 : z0);
   const a = h(1, 0), b = h(0, 1);
   return u + v <= 1 ? h(0, 0) + u * (a - h(0, 0)) + v * (b - h(0, 0))
     : h(1, 1) + (1 - u) * (b - h(1, 1)) + (1 - v) * (a - h(1, 1));
 }
+export const icelandBedHeight = (x: number, z: number) =>
+  sampleIcelandTriangle(x, z, (x, z) => Math.fround(icelandHeight(x, z)));
+export const icelandIceAt = (x: number, z: number) =>
+  sampleIcelandTriangle(x, z, (x, z) => southernGlacier(x, z).weight) >= GLACIER_MARGIN_WEIGHT
+    && icelandGlacierHeight(x, z) >= icelandBedHeight(x, z);
+export function icelandIceVertexHeight(x: number, z: number) {
+  const ice = southernGlacier(x, z), bed = icelandHeight(x, z);
+  const thickness = Math.max(0, ice.height - bed + 1);
+  const taper = smooth((ice.weight - 0.4) / 0.5);
+  // Bury the closure contour before the roof rises, avoiding an exposed vertical
+  // basal band. The calving face stays full-height.
+  return Math.fround(ice.height - thickness * (1 - taper) * (1 - calvingBay(x, z)));
+}
+export const icelandGlacierHeight = (x: number, z: number) =>
+  sampleIcelandTriangle(x, z, icelandIceVertexHeight);
+export const icelandSurfaceHeight = (x: number, z: number) =>
+  icelandIceAt(x, z) ? Math.max(icelandBedHeight(x, z), icelandGlacierHeight(x, z)) : icelandBedHeight(x, z);
 export const icelandDrivingHeight = (x: number, z: number) => onJokulsaBridge(x, z) ? Math.max(JOKULSA_BRIDGE.y, icelandSurfaceHeight(x, z)) : onSkogaBridge(x, z) ? Math.max(SKOGA_BRIDGE.y, icelandSurfaceHeight(x, z)) : icelandSurfaceHeight(x, z);
 export const icelandSpawn = (p = ICELAND_START) => ({ ...p, y: icelandDrivingHeight(p.x, p.z) + 1.25 });
 export function icelandWaterHeight(x: number, z: number): number | null {
@@ -192,7 +210,7 @@ export function icelandSurfaceAt(x: number, z: number): SurfaceId {
   if (roadDistance < 7) return 'dirt';
   if (trailDistance(x, z) < 5.5 || lomagnupurRouteDistance(x, z) < 4.5) return 'dirt';
   if (lagoonRouteDistance(x, z) < 4.5) return 'dirt';
-  if (southernGlacier(x, z).weight > 0.65) return 'ice';
+  if (icelandIceAt(x, z)) return 'ice';
   if (lomagnupurRise(x, z) > 8) return 'rock';
   if (skeidararsandurWeight(x, z) > 0.5) return sandurChannel(x, z) > 0.5 ? 'dirt' : 'sand';
   if (reynisfjallRise(x, z) > 5) return 'rock';
@@ -241,11 +259,6 @@ function terrainColor(x: number, z: number) {
   }
   const talus = lomagnupurTalus(x, z) * (1 - smooth((lomagnupurRise(x, z) - 35) / 30));
   base = base.map((v, i) => v * (1 - talus) + [0.43, 0.42, 0.36][i] * talus);
-  const glacier = southernGlacier(x, z);
-  const ice = smooth((Math.max(glacier.weight, southernGlacier(x, z - 9).weight) - 0.08) / 0.55);
-  const crevice = Math.min(1, glacierFracture(x, z) / 9) * 0.27;
-  const moraine = smooth((icelandNoise(x / 7 + 41, z / 39) - 0.58) / 0.23) * 0.55;
-  base = base.map((v, i) => v * (1 - ice) + ([0.78, 0.88, 0.87][i] - moraine - crevice + grain) * ice);
   const cliffTrack = (1 - smooth((Math.min(lomagnupurRouteDistance(x, z), lagoonRouteDistance(x, z)) - 2.8) / 4.5));
   base = base.map((v, i) => v * (1 - cliffTrack * 0.7) + [0.37, 0.36, 0.32][i] * cliffTrack * 0.7);
   // The continuous road mesh owns its asphalt colour. Painting sampled terrain
@@ -258,6 +271,8 @@ export function generateIcelandChunk(cx: number, cz: number, coarse = false): Ic
   if (cz >= 0 && cz <= 7 && (cx === -6 || cx === -5)) coarse = false;
   if (cx >= -2 && cx <= 0 && cz >= 2 && cz <= 5) coarse = false;
   if (cx >= 3 && cx <= 6 && cz >= 4 && cz <= 7) coarse = false;
+  // Retain the buried bed and framing hills at the glacier's detailed resolution.
+  if (cx >= 0 && cx <= 6 && cz >= 0 && cz <= 5) coarse = false;
   if (!Number.isInteger(cx) || !Number.isInteger(cz) || cx < -9 || cx > 8 || cz < -9 || cz > 8) throw new Error('Iceland chunk outside apron');
   const vertices: number[] = [], colors: number[] = [], normals: number[] = [], indices: number[] = [];
   const lookup = new Map<string, number>();

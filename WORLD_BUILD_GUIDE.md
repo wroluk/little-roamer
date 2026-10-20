@@ -151,7 +151,7 @@ progress file.
   and its role as the gateway to the glacier. Use reference photographs to check
   slope sections and connections before adding surface detail.
 - Glacier tongues need their own lower terminal profiles, broken calving edges and
-  irregularly spaced crevasses in the shared terrain/collision geometry. Keep
+  irregularly spaced crevasses in matching render/collision geometry. Keep
   fractures clear of established viewpoint routes. Icebergs need broad broken
   slabs and unequal ridges; stretched spheres and narrow cone peaks were rejected.
   Use depth-based lagoon opacity to hide submerged glacier walls while keeping
@@ -166,6 +166,28 @@ progress file.
   alpha and high transmission can make stranded slabs look ghost-like. Give
   shore pieces higher opacity, lower transmission and a rougher frosted surface;
   inspect the sand showing through from raised as well as low cameras.
+- Ice/rock contacts need distinct physical surfaces, not just a hard colour seam
+  across one heightfield. Iceland's contour-coloured terrain left an exposed dark
+  skirt below the ice and disconnected most of the calving face from the lagoon.
+  Use a separate, solid ice mesh with a sampled roof and walls buried into the
+  actual rock bed. Taper land-ending margins geometrically, weld roof/wall normals
+  to soften the rim, and retain full-height calving walls below the waterline.
+  Keep the original crevasses and vary lateral outlines as well as terminal fronts.
+- A land-ending ice taper must finish below the bed, not a fixed distance above
+  it. Leaving 2 m of exposed thickness produced a uniform vertical basal band
+  despite the separate mesh and softened normals. Keep the closing contour
+  buried before the roof rises into the visible ice; test sampled wall clearance
+  along the entire land front. Preserve the calving-wall exemption underwater.
+- Preserve the hills framing a glacier: the tongue need not stand taller than its
+  valley sides. Lowering the surrounding escarpment to hide a painted seam was a
+  rejected correction, not a general glacier technique. Excavate only beneath the
+  ice, let its sides intersect the framing hills, and keep a separate dry viewpoint.
+  Sample the highest exposed rock/ice surface for wheels and spawning. Render water
+  against the submerged bed rather than interpolating a ramp from the glacier roof.
+  Check horizontal visible/solid ray hits across the calving waterline, not just
+  glacier height above the lagoon; inspect front, side, low and supplied cameras.
+  See `iceland-glacier.ts`, `iceland-terrain.ts` and `iceland-lagoon-scenery.ts`;
+  current captures are in `artifacts/iceland/glacier-solids-final/`.
 - Suspension-bridge approaches must stay straight beyond the outer cable anchors,
   not merely through the deck. Jökulsá's original immediate east turn put a stay
   and anchorage in the road. Reserve the full asphalt/shoulder envelope through

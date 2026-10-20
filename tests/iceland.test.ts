@@ -1,13 +1,15 @@
 import { lagoonCarve } from '../src/game/iceland-lagoon';
+import { icelandNoise } from '../src/game/iceland-noise';
+import { buildIcelandGlacierGeometry } from '../src/game/iceland-glacier';
 import { icelandSeaTint } from '../src/game/iceland-river';
-import { LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE, JOKULSA_CROSSING, JOKULSA_BRIDGE, lagoonRadius, southernGlacier, LAGOON_WATER_BOUNDS } from '../src/game/iceland-lagoon';
+import { LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE, JOKULSA_CROSSING, JOKULSA_BRIDGE, lagoonRadius, southernGlacier, GLACIER_MARGIN_WEIGHT, LAGOON_WATER_BOUNDS } from '../src/game/iceland-lagoon';
 import { buildLagoonWater, addLagoonScenery } from '../src/game/iceland-lagoon-scenery';
 import { LOMAGNUPUR_ROUTE, LOMAGNUPUR, lomagnupurRouteDistance } from '../src/game/iceland-skeidararsandur';
 import assert from 'node:assert/strict';
 import { before, test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { generateIcelandChunk, icelandSurfaceHeight, icelandSurfaceAt, icelandWaterHeight, icelandDrivingHeight, COASTAL_TURNOUT, shoreZ,
+import { generateIcelandChunk, icelandSurfaceHeight, icelandBedHeight, icelandGlacierHeight, icelandSurfaceAt, icelandWaterHeight, icelandDrivingHeight, COASTAL_TURNOUT, shoreZ,
   icelandSpawn, riverX, FORD_PATH, BRIDGE_PATH, ICELAND_LOOP, type IcelandPoint } from '../src/game/iceland-terrain';
 import { IcelandStreamingRuntime, LocalIcelandTransport, type IcelandTransport } from '../src/game/iceland-streaming';
 import { ICELAND_RING_ROAD, ICELAND_RING_LENGTH, ringRoadAt } from '../src/game/iceland-road';
@@ -148,7 +150,7 @@ test('Skógafoss drops vertically with a bounded moving spray plume that respect
 });
 
 test('Iceland meshes are deterministic with exact sampled triangles and matching normals at chunk/LOD seams', () => {
-  for (const [cx, cz] of [[-6, 4], [-6, 5], [-6, 6], [-7, 7]]) {
+  for (const [cx, cz] of [[-6, 4], [-6, 5], [-6, 6], [-7, 7], [1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [1, 2]]) {
     const c = generateIcelandChunk(cx, cz);
     assert.deepEqual(c, generateIcelandChunk(cx, cz));
     const neighbor = generateIcelandChunk(cx + 1, cz), coarse = generateIcelandChunk(cx, cz, true);
@@ -168,7 +170,7 @@ test('Iceland meshes are deterministic with exact sampled triangles and matching
     for (let i = 0; i < c.indices.length; i += 57) {
       const ids = Array.from(c.indices.subarray(i, i + 3));
       const point = [0, 1, 2].map(axis => ids.reduce((sum, id) => sum + c.vertices[id * 3 + axis], 0) / 3);
-      assert.ok(Math.abs(icelandSurfaceHeight(point[0], point[2]) - point[1]) < 0.001);
+      assert.ok(Math.abs(icelandBedHeight(point[0], point[2]) - point[1]) < 0.001);
     }
   }
 });
@@ -213,6 +215,19 @@ async function drive(path: IcelandPoint[], model: 'modern' | 'classic', road = f
     runtime.dispose(); assert.equal(world.colliders.len(), vehicleColliders); world.free(); disposeScene(scene);
   }
 }
+test('Ring Road undulations are reduced by a quarter and bridge approach settling by thirty percent', () => {
+  const smooth = (v: number) => { const t = Math.max(0, Math.min(1, v)); return t * t * (3 - 2 * t); };
+  const points = ICELAND_RING_ROAD.filter(p => p.z === 530 && p.x >= -575 && p.x <= -490);
+  assert.ok(points.length > 8);
+  for (const p of points) {
+    const distance = Math.max(0, Math.abs(p.x + 531) - 32), blend = smooth(distance / 18);
+    const previousUndulation = 1.5 * (icelandNoise(p.x / 26 + 71, p.z / 31) - 0.5)
+      + 0.65 * (icelandNoise(p.x / 8, p.z / 10 + 39) - 0.5);
+    const previousSettling = 0.35 * Math.exp(-(((distance - 7) / 4) ** 2));
+    assert.ok(Math.abs(p.y - (6.3 + (previousUndulation * 0.75 - previousSettling * 0.7) * blend)) < 1e-10);
+  }
+});
+
 test('road verges sit below the asphalt and both bridges have real raised thresholds', () => {
   for (const side of [-1, 1]) {
     const center = icelandDrivingHeight(180, 610);
@@ -224,7 +239,7 @@ test('road verges sit below the asphalt and both bridges have real raised thresh
       const edge = bridge.x + side * bridge.length / 2;
       const approach = icelandDrivingHeight(edge + side * 0.1, bridge.z);
       const deck = icelandDrivingHeight(edge - side * 0.1, bridge.z);
-      assert.ok(deck - approach > 0.2 && deck - approach < 0.4, 'solid deck is higher than its settled approach');
+      assert.ok(deck - approach > 0.14 && deck - approach < 0.23, 'bridge threshold retains the reduced physical height step');
       assert.equal(deck, bridge.y);
     }
 });
@@ -624,6 +639,80 @@ for (const model of ['modern', 'classic'] as const) {
 }
 
 
+test('separate solid glacier roofs match sampling and calving walls reach below the water across the bay', () => {
+  const geometry = buildIcelandGlacierGeometry(), p = geometry.attributes.position, index = geometry.index!;
+  const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
+  mesh.updateMatrixWorld();
+  const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  world.createCollider(RAPIER.ColliderDesc.trimesh(Float32Array.from(p.array), Uint32Array.from(index.array)));
+  world.step();
+  const ray = new THREE.Raycaster(), hit = new THREE.Vector3();
+  for (const x of [442, 453, 465, 477, 489, 501, 513, 524]) {
+    ray.set(new THREE.Vector3(x, 0, 550), new THREE.Vector3(0, 0, -1));
+    const hits = ray.intersectObject(mesh);
+    assert.ok(hits.length > 0, `ice reaches the waterline at ${x}, not a bare terrain skirt`);
+    assert.ok(hits[0].point.z > 480 && hits[0].point.z < 510);
+    assert.ok(icelandBedHeight(x, hits[0].point.z + 0.5) < -2, 'water is deep immediately against the ice');
+    const solid = world.castRay(new RAPIER.Ray({ x, y: 0, z: 550 }, { x: 0, y: 0, z: -1 }), 100, true);
+    assert.ok(solid, 'the visible calving face is solid at the waterline');
+    assert.ok(Math.abs(550 - solid.timeOfImpact - hits[0].point.z) < 0.002);
+  }
+  for (const [x, z] of [[154, 500], [480, 480], [315, 265], [440, 440]]) {
+    ray.set(new THREE.Vector3(x, 160, z), new THREE.Vector3(0, -1, 0));
+    hit.copy(ray.intersectObject(mesh)[0].point);
+    assert.ok(Math.abs(hit.y - icelandSurfaceHeight(x, z)) < 0.002);
+    assert.equal(icelandSurfaceAt(x, z), 'ice');
+  }
+  let walls = 0, buriedLandWallVertices = 0;
+  for (let i = 0; i < index.count; i += 3) {
+    const a = index.getX(i), b = index.getX(i + 1), c = index.getX(i + 2);
+    const area = (p.getX(b) - p.getX(a)) * (p.getZ(c) - p.getZ(a)) - (p.getZ(b) - p.getZ(a)) * (p.getX(c) - p.getX(a));
+    if (Math.abs(area) < 1e-5) {
+      walls++;
+      for (const vertex of [a, b, c]) {
+        const x = p.getX(vertex), z = p.getZ(vertex);
+        if (x > 110 && x < 230 && z > 450) {
+          assert.ok(p.getY(vertex) < icelandBedHeight(x, z) - 0.5,
+            'the western land tongue closure is buried, not an exposed vertical basal band');
+          buriedLandWallVertices++;
+        }
+      }
+    }
+    else {
+      const x = (p.getX(a) + p.getX(b) + p.getX(c)) / 3, z = (p.getZ(a) + p.getZ(b) + p.getZ(c)) / 3;
+      assert.ok(Math.abs((p.getY(a) + p.getY(b) + p.getY(c)) / 3 - icelandGlacierHeight(x, z)) < 0.003);
+    }
+  }
+  assert.ok(walls > 1000, 'both tongues and cap have actual ice sides');
+  assert.ok(buriedLandWallVertices > 1000, 'check the entire land-ending front, not one contact point');
+  world.free(); geometry.dispose(); (mesh.material as THREE.Material).dispose();
+});
+
+test('both glacier tongues have irregular lateral profiles and ice traction down to their visible feet', () => {
+  const smooth = (v: number) => { const t = Math.max(0, Math.min(1, v)); return t * t * (3 - 2 * t); };
+  for (const side of [-1, 1]) for (const tongue of ['west', 'east']) {
+    const widths: number[] = [];
+    // Above this reach the tongues merge into the cap; there is no inner margin.
+    for (const z of [420, 432, 445, 460, 475, 485]) {
+      const centre = tongue === 'east' ? 455 + 25 * smooth((z - 320) / 170) : 220 - 66 * smooth((z - 300) / 215);
+      let lo = 0, hi = 110;
+      for (let i = 0; i < 30; i++) {
+        const width = (lo + hi) / 2;
+        if (southernGlacier(centre + side * width, z).weight >= GLACIER_MARGIN_WEIGHT) lo = width; else hi = width;
+      }
+      const width = (lo + hi) / 2;
+      widths.push(width - (tongue === 'west' ? 65 - 23 * smooth((z - 300) / 215) : 69));
+      const inside = centre + side * (width - 7), outside = centre + side * (width + 3);
+      assert.equal(icelandSurfaceAt(inside, z), 'ice', `${tongue} ${side} has ice traction at its margin`);
+      assert.notEqual(icelandSurfaceAt(outside, z), 'ice');
+    }
+    assert.ok(Math.max(...widths) - Math.min(...widths) > 2.5, `${tongue} ${side} is not a straight extrusion`);
+  }
+  assert.ok(icelandSurfaceHeight(395, 480) > 45, 'preserve the hill framing the eastern tongue');
+  assert.ok(icelandSurfaceHeight(395, 480) > icelandSurfaceHeight(420, 480),
+    'the glacier flows below the framing hill');
+});
+
 test('Jökulsárlón bridge crosses the outlet with open lagoon and glacier front upstream', () => {
   assert.ok(lagoonRadius(JOKULSA_BRIDGE.x, JOKULSA_BRIDGE.z) > 1.3);
   for (const z of [550, 600, 625, 650, 670, 690]) {
@@ -638,8 +727,8 @@ test('Jökulsárlón bridge crosses the outlet with open lagoon and glacier fron
   const mesh = buildLagoonWater(), positions = mesh.getAttribute('position'), colors = mesh.getAttribute('color');
   assert.ok(positions.count > 1000);
   for (let i = 0; i < positions.count; i++) {
-    assert.ok(icelandSurfaceHeight(positions.getX(i), positions.getZ(i)) < 0.025);
-    if (icelandSurfaceHeight(positions.getX(i), positions.getZ(i)) < -2.5) assert.ok(colors.getW(i) > 0.99, 'deep lagoon hides submerged ice');
+    assert.ok(icelandBedHeight(positions.getX(i), positions.getZ(i)) < 0.025);
+    if (icelandBedHeight(positions.getX(i), positions.getZ(i)) < -2.5) assert.ok(colors.getW(i) > 0.99, 'deep lagoon hides submerged ice');
     if (positions.getZ(i) > LAGOON_WATER_BOUNDS.z1 - 0.01) assert.equal(colors.getW(i), 1);
   }
   mesh.dispose();

@@ -397,6 +397,53 @@ test('Jökulsárlón renders its calving front, outlet bridge and Lómagnúpur g
   await expect.poll(async () => (await state(page)).mode).toBe('playing');
  });
 
+test('Iceland glacier margins follow the ice landforms on both tongues and the cap', async ({ page }, info) => {
+  test.setTimeout(180000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/?area=iceland&start=jokulsarlon');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(458.667, 624.179, 0));
+  for (const view of [
+    { name: 'glacier-user-edge', position: { x: 400.896, y: 12.306, z: 621.274 },
+      target: { x: 400.597, y: 12.913, z: 607.933 }, fov: 48 },
+    { name: 'glacier-east-west-margin', position: { x: 373, y: 9, z: 520 },
+      target: { x: 378, y: 12, z: 507 }, fov: 55 },
+    { name: 'glacier-calving-waterline', position: { x: 480, y: 7, z: 557 },
+      target: { x: 480, y: 10, z: 543 }, fov: 55 },
+    { name: 'glacier-calving-oblique', position: { x: 560, y: 4, z: 548 },
+      target: { x: 550, y: 7, z: 537 }, fov: 55 },
+    { name: 'glacier-east-east-margin', position: { x: 584, y: 10, z: 526 },
+      target: { x: 578, y: 14, z: 511 }, fov: 55 },
+    { name: 'glacier-west-front', position: { x: 108, y: 10, z: 563 },
+      target: { x: 113, y: 12, z: 556 }, fov: 55 },
+    { name: 'glacier-west-east-margin', position: { x: 238, y: 10, z: 544 },
+      target: { x: 233, y: 15, z: 532 }, fov: 55 },
+    { name: 'glacier-cap-margin', position: { x: 91, y: 67, z: 240 },
+      target: { x: 104, y: 73, z: 241 }, fov: 55 },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Iceland glacier viewpoint terminal approaches drive both directions', async ({ page }, info) => {
+  test.setTimeout(300000);
+  await page.goto('/?area=iceland&start=jokulsarlon');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  for (const [name, route] of [['lagoon', LAGOON_VIEW_ROUTE], ['western-tongue', GLACIER_VIEW_ROUTE]] as const) {
+    const approach = route.slice(-2);
+    expect((await drive(page, approach)).depth).toBe(0);
+    await page.screenshot({ path: info.outputPath(`${name}-viewpoint-arrival.png`) });
+    expect((await drive(page, [...approach].reverse())).depth).toBe(0);
+    expect((await state(page)).contacts).toBeGreaterThanOrEqual(2);
+  }
+});
+
 test('Jökulsárlón outlet bridge and shores drive both directions and reset from deep water', async ({ page }) => {
   test.setTimeout(480000);
   await page.goto('/?area=iceland&start=jokulsarlon');
