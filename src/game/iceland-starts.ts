@@ -1,4 +1,5 @@
 import { LAGOON_VIEW_ROUTE } from './iceland-lagoon';
+import { VATNAJOKULL_START } from './iceland-vatnajokull';
 import { LOMAGNUPUR_START } from './iceland-skeidararsandur';
 import { ICELAND_START, icelandSpawn } from './iceland-terrain';
 import { SOLHEIMASANDUR_APPROACH } from './iceland-sandur';
@@ -49,6 +50,14 @@ export const ICELAND_STARTS: readonly IcelandStart[] = [
     description: 'Follow the gravel track below Lómagnúpur, then rejoin Route 1 across the dark outwash plain.',
     hint: 'The cliff track returns to the paved road at both ends.',
     readyMessage: 'Lómagnúpur is ready. The sandur opens to the east.',
+  },
+  {
+    id: 'vatnajokull', name: 'Vatnajökull', position: VATNAJOKULL_START,
+    heading: -Math.PI / 2,
+    welcomeTitle: 'Above the southern ice.',
+    description: 'Cross the broad ice plateau below the dark Grímsvötn rim. The western ascent returns to the sandur; the eastern descent returns to Route 1 beyond the lagoon.',
+    hint: 'Stone cairns flank the easy traverse. Keep clear of the broken outlet tongues south of the plateau.',
+    readyMessage: 'Vatnajökull is ready. The Grímsvötn overlook lies northeast.',
   },
   {
     id: 'jokulsarlon', name: 'Jökulsárlón', position: LAGOON_VIEW_ROUTE[1],

@@ -41,6 +41,7 @@ for (const p of ICELAND_RING_ROAD) {
 }
 ICELAND_RING_ROAD.push({ ...ICELAND_RING_ROAD[0] });
 const buckets = new Map<string, number[]>();
+const coastBuckets = new Map<string, number[]>();
 export const RING_HALF_WIDTH = 5;
 export let ICELAND_RING_LENGTH = 0;
 const distances: number[] = [];
@@ -51,15 +52,29 @@ for (let i = 0; i < ICELAND_RING_ROAD.length - 1; i++) {
     for (let z = Math.floor((Math.min(a.z, b.z) - 40) / 96); z <= Math.floor((Math.max(a.z, b.z) + 40) / 96); z++) {
       const key = `${x},${z}`, list = buckets.get(key) ?? []; list.push(i); buckets.set(key, list);
     }
+  for (let x = Math.floor((Math.min(a.x, b.x) - 300) / 96); x <= Math.floor((Math.max(a.x, b.x) + 300) / 96); x++)
+    for (let z = Math.floor((Math.min(a.z, b.z) - 300) / 96); z <= Math.floor((Math.max(a.z, b.z) + 300) / 96); z++) {
+      const key = `${x},${z}`, list = coastBuckets.get(key) ?? []; list.push(i); coastBuckets.set(key, list);
+    }
 }
 /** Bounded local segment lookup also used by worker terrain, without Three.js. */
 export function ringRoadAt(x: number, z: number) {
-  let distance = Infinity, height = 0, along = 0;
-  for (const i of buckets.get(`${Math.floor(x / 96)},${Math.floor(z / 96)}`) ?? []) {
+  return nearestRoad(x, z, buckets);
+}
+/** Flags the seaward side of the closed, clockwise road circuit. */
+export function ringRoadCoastAt(x: number, z: number) {
+  return nearestRoad(x, z, coastBuckets);
+}
+function nearestRoad(x: number, z: number, index: Map<string, number[]>) {
+  let distance = Infinity, height = 0, along = 0, seaward = false;
+  for (const i of index.get(`${Math.floor(x / 96)},${Math.floor(z / 96)}`) ?? []) {
     const a = ICELAND_RING_ROAD[i], b = ICELAND_RING_ROAD[i + 1], dx = b.x - a.x, dz = b.z - a.z;
     const length2 = dx * dx + dz * dz, t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / length2));
     const dist = Math.hypot(x - a.x - t * dx, z - a.z - t * dz);
-    if (dist < distance) { distance = dist; height = a.y + (b.y - a.y) * t; along = distances[i] + Math.sqrt(length2) * t; }
+    if (dist < distance) {
+      distance = dist; height = a.y + (b.y - a.y) * t; along = distances[i] + Math.sqrt(length2) * t;
+      seaward = dx * (z - a.z) - dz * (x - a.x) > 0;
+    }
   }
-  return { distance, height, along };
+  return { distance, height, along, seaward };
 }

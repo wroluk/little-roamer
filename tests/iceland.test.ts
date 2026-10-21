@@ -1,5 +1,6 @@
 import { lagoonCarve } from '../src/game/iceland-lagoon';
 import { icelandNoise } from '../src/game/iceland-noise';
+import { GRIMSVOTN, VATNAJOKULL_ROUTE, vatnajokullRouteAt } from '../src/game/iceland-vatnajokull';
 import { buildIcelandGlacierGeometry } from '../src/game/iceland-glacier';
 import { icelandSeaTint } from '../src/game/iceland-river';
 import { LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE, JOKULSA_CROSSING, JOKULSA_BRIDGE, lagoonRadius, southernGlacier, GLACIER_MARGIN_WEIGHT, LAGOON_WATER_BOUNDS } from '../src/game/iceland-lagoon';
@@ -9,11 +10,12 @@ import assert from 'node:assert/strict';
 import { before, test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { generateIcelandChunk, icelandSurfaceHeight, icelandBedHeight, icelandGlacierHeight, icelandSurfaceAt, icelandWaterHeight, icelandDrivingHeight, COASTAL_TURNOUT, shoreZ,
+import { generateIcelandChunk, icelandSurfaceHeight, icelandBedHeight, icelandGlacierHeight, icelandIceAt, icelandSurfaceAt, icelandWaterHeight, icelandDrivingHeight, COASTAL_TURNOUT, shoreZ,
   icelandSpawn, riverX, FORD_PATH, BRIDGE_PATH, ICELAND_LOOP, type IcelandPoint } from '../src/game/iceland-terrain';
 import { IcelandStreamingRuntime, LocalIcelandTransport, type IcelandTransport } from '../src/game/iceland-streaming';
-import { ICELAND_RING_ROAD, ICELAND_RING_LENGTH, ringRoadAt } from '../src/game/iceland-road';
+import { ICELAND_RING_ROAD, ICELAND_RING_LENGTH, ringRoadAt, ringRoadCoastAt } from '../src/game/iceland-road';
 import { buildIcelandRoadGeometry } from '../src/game/iceland-road-scenery';
+import { buildIcelandScenery } from '../src/game/iceland-scenery';
 import { Vehicle } from '../src/game/vehicle';
 import { buildSkogafossWater, FALL } from '../src/game/iceland-waterfall';
 import { disposeScene } from '../src/game/dispose';
@@ -27,7 +29,7 @@ import { REYNIS_SHALLOW_BOUNDS, buildReynisShallowGeometry } from '../src/game/i
 before(async () => { await RAPIER.init(); });
 
 test('Iceland regional starts are unique, dry, level and select the nearest reset', () => {
-  assert.deepEqual(ICELAND_STARTS.map(start => start.id), ['skogafoss', 'solheimasandur', 'reynisfjara', 'lomagnupur', 'jokulsarlon']);
+  assert.deepEqual(ICELAND_STARTS.map(start => start.id), ['skogafoss', 'solheimasandur', 'reynisfjara', 'lomagnupur', 'vatnajokull', 'jokulsarlon']);
   assert.equal(new Set(ICELAND_STARTS.map(start => start.id)).size, ICELAND_STARTS.length);
   for (const start of ICELAND_STARTS) {
     const { x, z } = start.position, spawn = icelandStartSpawn(start);
@@ -41,6 +43,184 @@ test('Iceland regional starts are unique, dry, level and select the nearest rese
   assert.equal(nearestIcelandStart(-365, 635).id, 'solheimasandur');
   assert.equal(nearestIcelandStart(-535, 480).id, 'skogafoss');
   assert.equal(nearestIcelandStart(-263, 595).id, 'reynisfjara');
+});
+
+test('Vatnajökull traverse has broad dry graded shoulders and a low half-buried brown rim', () => {
+  for (let i = 1; i < VATNAJOKULL_ROUTE.length; i++) {
+    const a = VATNAJOKULL_ROUTE[i - 1], b = VATNAJOKULL_ROUTE[i], length = Math.hypot(b.x - a.x, b.z - a.z);
+    for (let d = 0; d <= length; d += 1) {
+      const x = a.x + (b.x - a.x) * d / length, z = a.z + (b.z - a.z) * d / length;
+      assert.ok(vatnajokullRouteAt(x, z).distance < 0.001);
+      for (const side of [-5, 0, 5]) {
+        const sx = x + (b.z - a.z) / length * side, sz = z - (b.x - a.x) / length * side;
+        const height = icelandSurfaceHeight(sx, sz);
+        assert.equal(icelandWaterHeight(sx, sz), null, `dry traverse ${sx},${sz}`);
+        assert.ok(Math.abs(height - (a.y + (b.y - a.y) * d / length)) < 4,
+          `graded shoulder ${sx},${sz}: ${height}`);
+        assert.ok(Math.abs(icelandSurfaceHeight(sx + 0.5, sz) - height) < 0.9);
+        assert.ok(Math.abs(icelandSurfaceHeight(sx, sz + 0.5) - height) < 0.9);
+      }
+    }
+  }
+  const rim: number[] = [];
+  for (let i = 0; i < 36; i++) {
+    const angle = i * Math.PI / 18;
+    rim.push(icelandSurfaceHeight(GRIMSVOTN.x + Math.cos(angle) * GRIMSVOTN.radiusX,
+      GRIMSVOTN.z + Math.sin(angle) * GRIMSVOTN.radiusZ));
+  }
+  assert.ok(Math.max(...rim) > 117 && Math.max(...rim) < 123, 'only a low rim rises above the 110 m snowfield');
+  let visible = 0;
+  for (let i = 0; i < 72; i++) {
+    const angle = i * Math.PI / 36;
+    if (icelandSurfaceAt(GRIMSVOTN.x + Math.cos(angle) * GRIMSVOTN.radiusX,
+      GRIMSVOTN.z + Math.sin(angle) * GRIMSVOTN.radiusZ) === 'rock') visible++;
+  }
+  assert.ok(visible >= 29 && visible <= 40, `roughly half of the rim is exposed: ${visible}/72`);
+  const chunk = generateIcelandChunk(3, Math.floor(GRIMSVOTN.z / 96));
+  let brown = 0;
+  for (let i = 0; i < chunk.vertices.length; i += 3) {
+    const [x, y, z] = chunk.vertices.subarray(i, i + 3);
+    if (y > 112 && x > 250 && x < 365 && Math.abs(z - GRIMSVOTN.z) < 55) {
+      assert.ok(chunk.colors[i] > chunk.colors[i + 1] && chunk.colors[i + 1] > chunk.colors[i + 2],
+        'exposed crater rock is brown rather than cool gray');
+      brown++;
+    }
+  }
+  assert.ok(brown > 50);
+  assert.equal(icelandSurfaceAt(GRIMSVOTN.x, GRIMSVOTN.z - GRIMSVOTN.radiusZ), 'rock');
+  assert.equal(icelandSurfaceAt(GRIMSVOTN.x, GRIMSVOTN.z), 'ice', 'ice-filled caldera interior');
+  assert.equal(icelandSurfaceAt(310, 198), 'ice', 'the previous exposed rim is now continuous snow');
+  assert.equal(vatnajokullRouteAt(335, 270).blend, 0, 'the former overlook has no spur grading');
+  assert.ok(Math.abs(icelandGlacierHeight(335, 270) - southernGlacier(335, 270).height) < 0.01,
+    'natural ice replaces the removed overlook route');
+  let northernEdge = -55;
+  while (northernEdge < 232 && !icelandIceAt(GRIMSVOTN.x, northernEdge)) northernEdge += 0.5;
+  assert.ok(Math.abs((232 - GRIMSVOTN.z) / (232 - northernEdge) - 0.4) < 0.01,
+    'the crater moves north by forty percent of the former distance to the ice edge');
+});
+
+test('Vatnajökull cairns clear both lower road junctions without invisible colliders', () => {
+  const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  const scenery = buildIcelandScenery(world);
+  const stone = new THREE.DodecahedronGeometry(1, 0);
+  try {
+    const cairns = scenery.group.getObjectByName('Vatnajökull · traverse cairns') as THREE.Mesh;
+    const positions = cairns.geometry.getAttribute('position');
+    const pairs = VATNAJOKULL_ROUTE.slice(1).reduce((sum, b, i) => {
+      const a = VATNAJOKULL_ROUTE[i];
+      return sum + Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 40);
+    }, 0);
+    assert.equal(positions.count, (pairs - 3) * 2 * 3 * stone.attributes.position.count,
+      'one western pair and the final two eastern pairs are removed');
+    world.step();
+    for (const { segment, station, removed } of [
+      { segment: 1, station: 1, removed: true },
+      { segment: 1, station: 2, removed: false },
+      { segment: VATNAJOKULL_ROUTE.length - 2, station: 2, removed: false },
+      { segment: VATNAJOKULL_ROUTE.length - 1, station: 1, removed: true },
+      { segment: VATNAJOKULL_ROUTE.length - 1, station: 2, removed: true },
+    ]) for (const side of [-1, 1]) {
+      const a = VATNAJOKULL_ROUTE[segment - 1], b = VATNAJOKULL_ROUTE[segment];
+      const length = Math.hypot(b.x - a.x, b.z - a.z), count = Math.ceil(length / 40);
+      const x = a.x + (b.x - a.x) * station / count + (b.z - a.z) / length * 12 * side;
+      const z = a.z + (b.z - a.z) * station / count - (b.x - a.x) / length * 12 * side;
+      let nearest = Infinity;
+      for (let i = 0; i < positions.count; i++)
+        nearest = Math.min(nearest, Math.hypot(positions.getX(i) - x, positions.getZ(i) - z));
+      const ground = icelandSurfaceHeight(x, z);
+      const hit = world.castRay(new RAPIER.Ray({ x, y: ground + 5, z }, { x: 0, y: -1, z: 0 }), 6, true);
+      if (removed) {
+        assert.ok(nearest > 2, 'no visible stone remains at a removed cairn');
+        assert.ok(!hit || 5 - hit.timeOfImpact < 0.15, 'no invisible cairn collider remains');
+      } else {
+        assert.ok(nearest < 1, 'the next pair stays in place');
+        assert.ok(hit && 5 - hit.timeOfImpact > 0.5, 'the next pair remains solid');
+      }
+    }
+  } finally { stone.dispose(); scenery.dispose(); world.free(); }
+});
+
+test('coastal lowlands descend seaward from the Ring Road without generic mountains', () => {
+  for (let i = 1; i < ICELAND_RING_ROAD.length; i++) {
+    const a = ICELAND_RING_ROAD[i - 1], b = ICELAND_RING_ROAD[i];
+    if (b.z > 450) continue; // Named south-coast cliffs and headlands are retained.
+    const dx = b.x - a.x, dz = b.z - a.z, length = Math.hypot(dx, dz);
+    for (const distance of [12, 20, 35, 55, 80, 110]) {
+      const x = b.x - dz / length * distance, z = b.z + dx / length * distance;
+      const coast = ringRoadCoastAt(x, z);
+      assert.ok(coast.seaward);
+      assert.ok(icelandSurfaceHeight(x, z) <= Math.max(b.y, coast.height) + 1,
+        `no mountain outside Route 1 at ${x},${z}`);
+    }
+  }
+  for (const x of [-1, 1]) {
+    let previous = 710;
+    for (const z of [540, 570, 600, 630, 660]) {
+      let edge = 0;
+      for (let radius = 520; radius <= 720; radius++)
+        if (icelandSurfaceHeight(x * radius, z) > 0) edge = radius;
+      assert.ok(edge < previous - 2, `southern corner curves inland at ${x},${z}`);
+      previous = edge;
+    }
+    assert.ok(icelandSurfaceHeight(x * 660, 640) < -5, 'old square corner is open sea');
+    previous = 710;
+    for (const z of [-400, -450, -500, -550, -600]) {
+      let edge = 0;
+      for (let radius = 440; radius <= 720; radius++)
+        if (icelandSurfaceHeight(x * radius, z) > 0) edge = radius;
+      assert.ok(edge < previous - 2, `northern corner curves inland at ${x},${z}`);
+      previous = edge;
+    }
+    assert.ok(icelandSurfaceHeight(x * 660, -640) < -10, 'old northern square corner is open sea');
+  }
+  assert.ok(icelandSurfaceHeight(-220, 640) > 15, 'Reynisfjall remains above its beach');
+  assert.ok(icelandSurfaceHeight(-5, 425) > 100, 'Lómagnúpur is not flattened');
+  assert.ok(icelandSurfaceHeight(FALL.x, FALL.terrainLipZ) > 40, 'waterfall escarpment remains');
+});
+
+test('Vatnajökull covers a wider northern snowfield with solid sampled ice', () => {
+  let area = 0;
+  for (let z = -55; z < 530; z += 5) for (let x = 20; x < 600; x += 5)
+    if (icelandIceAt(x, z)) area += 25;
+  assert.ok(area > 165_000, `exposed ice area is enlarged: ${area} square metres`);
+  for (const point of [{ x: 315, z: 40 }, { x: 100, z: 150 }, { x: 500, z: 150 }])
+    assert.equal(icelandSurfaceAt(point.x, point.z), 'ice', 'new cap margins are exposed ice');
+});
+
+test('Vatnajökull sampled route and exposed rim match rendered and Rapier triangles', () => {
+  const iceGeometry = buildIcelandGlacierGeometry(), material = new THREE.MeshStandardMaterial();
+  const ice = new THREE.Mesh(iceGeometry, material); ice.updateMatrixWorld();
+  const ray = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0));
+  try {
+    for (const point of [...VATNAJOKULL_ROUTE, { x: 335, z: 270 },
+      { x: GRIMSVOTN.x, z: GRIMSVOTN.z - GRIMSVOTN.radiusZ }, GRIMSVOTN,
+      { x: 500, z: 315 }, { x: 515, z: 330 }, { x: 525, z: 350 },
+      { x: 315, z: 40 }, { x: 100, z: 150 }, { x: 500, z: 150 }, { x: 690, z: 400 }, { x: -650, z: 610 }]) {
+      const chunk = generateIcelandChunk(Math.floor(point.x / 96), Math.floor(point.z / 96));
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(chunk.vertices, 3));
+      geometry.setIndex(new THREE.BufferAttribute(chunk.indices, 1));
+      const terrain = new THREE.Mesh(geometry, material); terrain.updateMatrixWorld();
+      const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+      try {
+        world.createCollider(RAPIER.ColliderDesc.trimesh(chunk.vertices, chunk.indices));
+        world.createCollider(RAPIER.ColliderDesc.trimesh(Float32Array.from(iceGeometry.attributes.position.array),
+          Uint32Array.from(iceGeometry.index!.array)));
+        world.step(); ray.ray.origin.set(point.x, 180, point.z);
+        const visible = ray.intersectObjects([terrain, ice])[0];
+        const solid = world.castRay(new RAPIER.Ray({ x: point.x, y: 180, z: point.z }, { x: 0, y: -1, z: 0 }), 200, true);
+        assert.ok(visible && solid);
+        const height = icelandSurfaceHeight(point.x, point.z);
+        assert.ok(Math.abs(visible.point.y - height) < 0.01, `visible route ${point.x},${point.z}`);
+        assert.ok(Math.abs(180 - solid.timeOfImpact - height) < 0.01, `solid route ${point.x},${point.z}`);
+      } finally { world.free(); geometry.dispose(); }
+    }
+  } finally { iceGeometry.dispose(); material.dispose(); }
+});
+
+for (const model of ['modern', 'classic'] as const) test(`${model} drives the Vatnajökull through passage both directions`, async () => {
+  assert.equal(await drive(VATNAJOKULL_ROUTE, model), 0);
+  assert.equal(await drive([...VATNAJOKULL_ROUTE].reverse(), model), 0);
 });
 
 test('Reynisfjara beach spur stays dry and its basalt forms sit on terrain or offshore', () => {
@@ -150,7 +330,8 @@ test('Skógafoss drops vertically with a bounded moving spray plume that respect
 });
 
 test('Iceland meshes are deterministic with exact sampled triangles and matching normals at chunk/LOD seams', () => {
-  for (const [cx, cz] of [[-6, 4], [-6, 5], [-6, 6], [-7, 7], [1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [1, 2]]) {
+  for (const [cx, cz] of [[-6, 4], [-6, 5], [-6, 6], [-7, 7], [1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [1, 2],
+    [2, -1], [5, 1], [6, 6], [-7, 6], [7, 3]]) {
     const c = generateIcelandChunk(cx, cz);
     assert.deepEqual(c, generateIcelandChunk(cx, cz));
     const neighbor = generateIcelandChunk(cx + 1, cz), coarse = generateIcelandChunk(cx, cz, true);
@@ -657,7 +838,7 @@ test('separate solid glacier roofs match sampling and calving walls reach below 
     assert.ok(solid, 'the visible calving face is solid at the waterline');
     assert.ok(Math.abs(550 - solid.timeOfImpact - hits[0].point.z) < 0.002);
   }
-  for (const [x, z] of [[154, 500], [480, 480], [315, 265], [440, 440]]) {
+  for (const [x, z] of [[154, 500], [480, 480], [315, 300], [440, 440]]) {
     ray.set(new THREE.Vector3(x, 160, z), new THREE.Vector3(0, -1, 0));
     hit.copy(ray.intersectObject(mesh)[0].point);
     assert.ok(Math.abs(hit.y - icelandSurfaceHeight(x, z)) < 0.002);
@@ -686,6 +867,20 @@ test('separate solid glacier roofs match sampling and calving walls reach below 
   assert.ok(walls > 1000, 'both tongues and cap have actual ice sides');
   assert.ok(buriedLandWallVertices > 1000, 'check the entire land-ending front, not one contact point');
   world.free(); geometry.dispose(); (mesh.material as THREE.Material).dispose();
+});
+
+test('lagoon tongue joins the cap with a curved head instead of a rectangular northern ledge', () => {
+  const heads = [500, 508, 516, 524, 528].map(x => {
+    for (let z = 270; z <= 365; z += 0.5) if (icelandIceAt(x, z)) return z;
+    assert.fail(`missing eastern glacier shoulder at ${x}`);
+  });
+  assert.ok(heads.at(-1)! - heads[0] > 28, 'outer flowlines begin progressively farther south');
+  for (let i = 1; i < heads.length; i++)
+    assert.ok(heads[i] - heads[i - 1] > 3, 'the head is not a single straight Z cutoff');
+  for (const x of [510, 520, 530]) for (const z of [275, 280, 285, 290])
+    assert.equal(icelandIceAt(x, z), false, 'no detached square shelf northeast of the cap');
+  for (const [x, z] of [[500, 315], [515, 330], [525, 350]])
+    assert.ok(icelandIceAt(x, z), 'a connected rounded shoulder remains below the cap');
 });
 
 test('both glacier tongues have irregular lateral profiles and ice traction down to their visible feet', () => {

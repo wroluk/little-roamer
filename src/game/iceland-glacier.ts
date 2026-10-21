@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { glacierFracture, GLACIER_MARGIN_WEIGHT, southernGlacier } from './iceland-lagoon';
+import { glacierFracture, GLACIER_MARGIN_WEIGHT, ICELAND_GLACIER_BOUNDS, southernGlacier } from './iceland-lagoon';
 import { icelandNoise } from './iceland-noise';
 import { ICELAND_CELL, icelandBedHeight, icelandGridZ, icelandIceVertexHeight } from './iceland-terrain';
 
@@ -61,7 +61,8 @@ export function buildIcelandGlacierGeometry() {
       indices.push(bt, at, ab, bt, ab, bb);
     }
   };
-  for (let iz = 37; iz < 222; iz++) for (let ix = 26; ix < 247; ix++) {
+  for (let iz = Math.floor(ICELAND_GLACIER_BOUNDS.z0 / ICELAND_CELL); iz < Math.ceil(ICELAND_GLACIER_BOUNDS.z1 / ICELAND_CELL); iz++)
+    for (let ix = Math.floor(ICELAND_GLACIER_BOUNDS.x0 / ICELAND_CELL); ix < Math.ceil(ICELAND_GLACIER_BOUNDS.x1 / ICELAND_CELL); ix++) {
     const a = sample(ix, iz), b = sample(ix, iz + 1), c = sample(ix + 1, iz + 1), d = sample(ix + 1, iz);
     emit([a, b, d]); emit([d, b, c]);
   }

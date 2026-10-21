@@ -17,6 +17,32 @@ The remaining map continues to describe planned regions.
 [Open the editable SVG map](concept-map.svg). The image shows proposed
 driving routes and compressed geographic relationships, not real roads.
 
+## Current development map
+
+The single current-world map is the [full-world aerial render](iceland-aerial.png),
+3072 × 3072 pixels. The sampled surface-class SVG/PNG maps and separate southern
+crop were retired at the user's request. The concept map above remains a separate
+planning reference, not another rendering of current terrain.
+
+This is an actual Three.js render of all 324 full-detail terrain chunks and the
+game's scenery, including glacier solids, water, roads, bridges, icebergs and
+ground details. It uses the live vertex colours, materials, Iceland light
+colours/intensities, sun direction and game sRGB/ACES tone mapping, not the
+retired maps' surface-category palette. North is up (`-Z`), east is right
+(`+X`), and the view covers X/Z ±768 m. There are no labels or route overlays.
+
+The development-only camera is orthographic and straight down. Distance fog is
+disabled so the island is not hidden from aerial altitude, and the sun's shadow
+coverage is expanded across the island instead of following a car-sized patch.
+Thus it shows the real material colours from above, not a pixel-identical
+driving-camera screenshot. Animated scenery is captured at its initial state.
+No game geometry, streaming limits or runtime camera settings are changed.
+
+Regenerate with `node --import tsx scripts/render-iceland-aerial.ts`.
+The script follows the actual-model browser-rendering approach in
+`scripts/render-car-thumbnails.ts` and uses installed Playwright Chromium
+with Metal on the current macOS development host.
+
 ## Text schematic
 
 ```text
@@ -181,11 +207,51 @@ blocks; checking the centreline or bridge deck alone misses approach conflicts.
 
 ## Region design cards
 
+### Implemented Vatnajökull slice — 2026-10-20
+
+The cairned traverse now leaves Route 1 at `(188, 610)`, climbs west of the
+southern tongue through `(120, 370)` and `(205, 290)`, crosses the roughly
+110 m-high plateau at `(260, 300)` / `(315, 300)`, and descends east through
+`(555, 390)` to the existing road at `(635, 530)`. It has an 8 m graded
+half-width with broad eased shoulders, and solid paired cairns outside that
+easy line. The lowest western pair and final two eastern pairs are omitted at
+the Ring Road junctions, keeping the asphalt and entries clear. The internal
+start/reset ID is `vatnajokull`.
+
+Grímsvötn's low brown shoulders now surround `(310, 143)` with
+approximately 48 × 34 m radii. The centre moved 89 m north, about 40% of the
+distance from its former `(310, 232)` position to the northern ice edge.
+The through-route is unchanged. The former overlook branch to `(335, 270)` was
+removed at the user's request, including its grading and cairns: only the passage
+between the two entries remains. Ice fills the interior and buries the southeastern
+half of the rim; only about 44% of the circumference is exposed. The highest
+rock reaches about 122 m, roughly 12 m above the snowfield. The rim is streamed rock terrain,
+not a decorative mesh without collision. Its ice/rock contacts retain the
+separate glacier roof and exact sampled visible/solid surfaces.
+
+The cap now spreads farther north and west, with about 0.172 km² of sampled
+exposed ice across the cap and its two tongues. The northern head reaches near
+`z = 9` at `x = 310`. The lower southern tongues and accepted calving face are
+retained. Shared glacier bounds drive the mesh extent as well as terrain and
+traction, including the newly covered northern chunks.
+
+Coastal terrain outside the Ring Road now descends toward low shore ground
+instead of inheriting the inland escarpment. This applies around the island;
+named landmarks such as Skógafoss, Reynisfjall and Lómagnúpur retain their relief.
+All four island corners are rounded, preserving the road and its dry approaches.
+The northern interior remains reserved base terrain, not a completed new region.
+
+The cyan line on the SVG/PNG concept map marks this implemented traverse.
+The other highland routes remain proposals. The cave around `(115, 290)`
+and the northern Askja/Kverkfjöll connector are still reservations, not
+completed passages. [Current captures](vatnajokull/) show arrival, low rim,
+raised caldera, slopes and the preserved southern glacier contacts.
+
 | Region | Approach silhouette and palette | Easy line / harder choice / connection |
 | --- | --- | --- |
 | **South Coast** | Green escarpment and wide white Skógafoss above the Skógá plunge pool; black Sólheimasandur; Reynisfjara's vertical basalt and Reynisdrangar sea stacks. | Inland coast road and lagoon bridge; marked shallow Skógá ford downstream of the falls plus beach/outwash driving to the plane wreck; exits to sandur, Westfjords and Lakagígar. |
 | **Jökulsárlón** | Blue lagoon, scattered white/black ice, sheer striated Breiðamerkurjökull front, black beach beyond the short river. Ice mixes tabular slabs, split ridges, tilted slabs and fractured blocks, with independently varied clear/frosted pieces and a few substantially larger lagoon and beach forms. | Broad shore loop and bridge with straight approaches beyond its cable anchors; optional iceberg viewpoint; exits west along coast and uphill toward ice cap. |
-| **Vatnajökull** | Largest white mass, gently domed and fairly flat on top; dark Grímsvötn rocky caldera rim interrupts the summit. | Graded western ascent and eastern descent; optional plateau traverse near the rim, never over a blind cliff; visible link to lagoon and Askja. |
+| **Vatnajökull** | Largest white mass, gently domed and fairly flat on top; a low brown half-rim at Grímsvötn emerges from the snow farther north. | One cairned passage across the ice between the graded western ascent and eastern descent. No crater-overlook spur. Northern Askja connection remains planned. |
 | **Western Ice Margin** | Layered blue ice portal cut into the western ice-cap edge. | Wide, long drive-through cave with daylight at both ends; optional ice-roof viewpoint; exits to Lakagígar, plateau and Askja approach. |
 | **Lakagígar and Sandur** | Long row of dark cones with green moss on rock, then open grey/black braided outwash. | Firm corridor alongside fissure and broad dry sandur channels; optional rough pumice/lava lines; exits to south coast and ice margin. |
 | **Askja Highlands** | Huge dark caldera, smaller turquoise Askja Víti, pale pumice flats and Herðubreið's flat top. | Wide caldera-side road and desert corridor; optional higher rim line; exits south to glacier and north into Ódáðahraun. |

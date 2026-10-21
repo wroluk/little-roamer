@@ -1,4 +1,5 @@
 import { LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE, JOKULSA_CROSSING, JOKULSA_BRIDGE } from '../../src/game/iceland-lagoon';
+import { GRIMSVOTN, VATNAJOKULL_ROUTE } from '../../src/game/iceland-vatnajokull';
 import { SKOGA_BRIDGE } from '../../src/game/iceland-layout';
 import { LOMAGNUPUR_ROUTE, LOMAGNUPUR_START } from '../../src/game/iceland-skeidararsandur';
 import { test, expect, type Page } from '@playwright/test';
@@ -441,6 +442,101 @@ test('Iceland glacier viewpoint terminal approaches drive both directions', asyn
     await page.screenshot({ path: info.outputPath(`${name}-viewpoint-arrival.png`) });
     expect((await drive(page, [...approach].reverse())).depth).toBe(0);
     expect((await state(page)).contacts).toBeGreaterThanOrEqual(2);
+  }
+});
+
+test('lagoon glacier upper junction curves into the Vatnajökull cap', async ({ page }, info) => {
+  test.setTimeout(180000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/?area=iceland&start=vatnajokull');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  for (const view of [
+    { name: 'glacier-junction-east-ground', position: { x: 610, y: 57.2, z: 285 },
+      target: { x: 598, y: 63, z: 289 } },
+    { name: 'glacier-junction-route-height', position: { x: 505, y: 81, z: 355 },
+      target: { x: 499, y: 85, z: 344 } },
+    { name: 'glacier-junction-raised', position: { x: 580, y: 177, z: 265 },
+      target: { x: 570, y: 168, z: 270 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({ ...view, fov: 55 }), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Iceland coastal lowlands, rounded corners and half-buried brown crater render', async ({ page }, info) => {
+  test.setTimeout(180000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/?area=iceland&start=vatnajokull');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  for (const view of [
+    { name: 'east-coast-road-height', position: { x: 640, y: 56.5, z: 200 },
+      target: { x: 653, y: 53, z: 202 } },
+    { name: 'east-coast-lowlands', position: { x: 635, y: 28.2, z: 440 },
+      target: { x: 648, y: 27, z: 449 } },
+    { name: 'southwest-rounded-shore', position: { x: -600, y: 8, z: 575 },
+      target: { x: -612, y: 7, z: 585 } },
+    { name: 'southeast-rounded-shore', position: { x: 610, y: 20, z: 620 },
+      target: { x: 618, y: 16, z: 630 } },
+    { name: 'northeast-rounded-shore', position: { x: 580, y: 69, z: -390 },
+      target: { x: 588, y: 65, z: -400 } },
+    { name: 'northwest-rounded-shore', position: { x: -400, y: 69, z: -390 },
+      target: { x: -410, y: 65, z: -400 } },
+    { name: 'grimsvotn-low-brown-rim', position: { x: 335, y: 113.5, z: GRIMSVOTN.z + 50 },
+      target: { x: 330, y: 114, z: GRIMSVOTN.z + 38 } },
+    { name: 'grimsvotn-half-snow-rim', position: { x: 365, y: 153, z: GRIMSVOTN.z + 47 },
+      target: { x: GRIMSVOTN.x, y: 111, z: GRIMSVOTN.z } },
+    { name: 'vatnajokull-northern-snowfield', position: { x: 315, y: 113, z: 60 },
+      target: { x: 313, y: 111, z: 46 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({ ...view, fov: 55 }), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Vatnajökull regional start, rim views and nearest reset', async ({ page }, info) => {
+  test.setTimeout(180000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/?area=iceland&start=vatnajokull');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+  expect((await state(page)).position.y).toBeGreaterThan(109);
+  await page.screenshot({ path: info.outputPath('vatnajokull-plateau-arrival.png') });
+  for (const view of [
+    { name: 'grimsvotn-driving-rim', position: { x: 335, y: 114, z: GRIMSVOTN.z + 50 }, target: { x: 332, y: 115, z: GRIMSVOTN.z + 38 } },
+    { name: 'grimsvotn-ice-filled-caldera', position: { x: 365, y: 153, z: GRIMSVOTN.z + 47 }, target: { x: GRIMSVOTN.x, y: 111, z: GRIMSVOTN.z } },
+    { name: 'vatnajokull-west-ascent', position: { x: 112, y: 71, z: 382 }, target: { x: 119, y: 76, z: 370 } },
+    { name: 'vatnajokull-east-descent', position: { x: 556, y: 71, z: 391 }, target: { x: 563, y: 66, z: 403 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({ ...view, fov: 55 }), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+  await page.keyboard.press('KeyU'); await page.locator('#photo-exit').click();
+  await page.evaluate(async () => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(310, 280, 0));
+  await page.locator('#reset').click();
+  await expect.poll(async () => (await state(page)).position.x).toBeCloseTo(260, 0);
+  await expect.poll(async () => (await state(page)).waterDepth).toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test('Vatnajökull regional approaches drive both directions', async ({ page }) => {
+  test.setTimeout(300000);
+  await page.goto('/?area=iceland&start=vatnajokull');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  for (const path of [VATNAJOKULL_ROUTE.slice(7, 10), VATNAJOKULL_ROUTE.slice(13, 15)]) {
+    expect((await drive(page, path)).depth).toBe(0);
+    expect((await drive(page, [...path].reverse())).depth).toBe(0);
   }
 });
 

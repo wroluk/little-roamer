@@ -1,6 +1,6 @@
 # Iceland build plan
 
-Status: **Skógafoss, Sólheimasandur and Reynisfjara accepted; Lómagnúpur corrected; glacier gateway and Jökulsárlón built and verified; awaiting visual review** (2026-10-19).
+Status: **South-coast glacier corrections accepted and pushed; expanded Vatnajökull, lower brown Grímsvötn moved north, coastal lowlands and four rounded island corners are in visual review. Vatnajökull retains only the through-route; its overlook branch is removed. Western ice cave is next** (2026-10-21).
 See [implementation progress](ICELAND_PROGRESS.md) for checks and the next chunk.
 This is a new, full-size **Iceland** location alongside the existing 480 × 480 m
 Iceland Highlands. Do not replace that location during development. The new
@@ -101,7 +101,7 @@ Lómagnúpur, Kverkfjöll and Route 1 with a separate Westfjords branch.
 
 | Order | Region | Main driving/content proof |
 | --- | --- | --- |
-| 1 | Vatnajökull and Grímsvötn | Broad snow and ice ascent, genuinely driveable high plateau, dark exposed caldera rim, safe descent to lagoon side. |
+| 1 | Vatnajökull and Grímsvötn | Broad snow and ice ascent, genuinely driveable high plateau, low brown half-buried caldera rim, safe descent to lagoon side. |
 | 2 | Western ice margin | Long drive-through ice cave at the western edge, translucent layered ice, broad portal and roof clearance; optional roof route with separate safe line. |
 | 3 | Lakagígar and sandur | Moss-dark fissure row west of the ice cap, varied crater silhouettes, a dry braided outwash plain, and a road with optional rough volcanic-sand lines. |
 | 4 | Askja, Víti and Herðubreið | Large highland caldera with inner crater lake, smaller Víti crater, flat-topped Herðubreið landmark north/northeast of Askja, and a pumice-desert approach. |
@@ -155,6 +155,7 @@ date, skipped cases and exact next step in a dedicated `ICELAND_PROGRESS.md` onc
 implementation starts. Physical iPad Safari driving, touch and offline reload
 remain explicit manual acceptance until covered by automation.
 
-**Next step:** review the ridge/glacier/lagoon layout, then expand Vatnajökull
-and its western ice-cave route. Preserve the implemented Ring Road corridor
-as regional terrain is authored; road access alone does not complete a region.
+**Next step:** review the new plateau, Grímsvötn rim and cairned coast connectors,
+then build the western ice-cave route. The northern Askja/Kverkfjöll connector
+remains reserved for its later slice. Preserve the implemented Ring Road
+corridor as regional terrain is authored; road access alone does not complete a region.

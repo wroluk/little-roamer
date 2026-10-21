@@ -1,5 +1,7 @@
 import { addLagoonScenery } from './iceland-lagoon-scenery';
 import { buildIcelandGlacierGeometry } from './iceland-glacier';
+import { VATNAJOKULL_ROUTE } from './iceland-vatnajokull';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { SKOGA_BRIDGE } from './iceland-layout';
@@ -79,6 +81,24 @@ export function buildIcelandScenery(world: RAPIER.World) {
   addLagoonScenery(mesh);
   mesh(buildIcelandGlacierGeometry(), new THREE.MeshStandardMaterial({ vertexColors: true,
     roughness: 0.78 }), 'Iceland · solid southern glaciers', true);
+  const cairns: THREE.BufferGeometry[] = [];
+  // Leave the final eastern approach clear of cairns at the Ring Road.
+  for (let i = 1; i < VATNAJOKULL_ROUTE.length - 1; i++) {
+    const a = VATNAJOKULL_ROUTE[i - 1], b = VATNAJOKULL_ROUTE[i], length = Math.hypot(b.x - a.x, b.z - a.z);
+    const count = Math.ceil(length / 40);
+    // Omit the lowest western pair at the Ring Road junction.
+    for (let j = i === 1 ? 2 : 1; j <= count; j++) for (const side of [-1, 1]) {
+      const x = a.x + (b.x - a.x) * j / count + (b.z - a.z) / length * 12 * side;
+      const z = a.z + (b.z - a.z) * j / count - (b.x - a.x) / length * 12 * side;
+      const y = Math.min(...[[0, 0], [-0.7, 0], [0.7, 0], [0, -0.7], [0, 0.7]]
+        .map(([dx, dz]) => icelandSurfaceHeight(x + dx, z + dz)));
+      for (let stone = 0; stone < 3; stone++) cairns.push(new THREE.DodecahedronGeometry(1, 0)
+        .scale(0.72 - stone * 0.19, 0.36 - stone * 0.05, 0.65 - stone * 0.17)
+        .rotateY(i * 1.73 + j * 2.1 + stone).translate(x, y + 0.18 + stone * 0.48, z));
+    }
+  }
+  mesh(mergeGeometries(cairns), material('#57534a'), 'Vatnajökull · traverse cairns', true);
+  for (const geometry of cairns) geometry.dispose();
   const detail = buildIcelandGroundDetail(group);
   solids.push(world.createCollider(RAPIER.ColliderDesc.trimesh(detail.collider.vertices, detail.collider.indices).setFriction(0.9)));
   // The cliff is the terrain itself. Only the road bridge adds structural geometry.

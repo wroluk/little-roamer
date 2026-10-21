@@ -179,10 +179,15 @@
     <path class="highland" d="M180 330 Q227 381 289 468 Q340 543 389 648 Q420 700 378 749 Q290 780 186 800 M294 474 Q373 482 417 558 Q422 607 389 648 M389 648 Q445 664 520 697 Q599 725 663 696 Q720 729 739 823 M520 697 Q512 580 542 421 Q570 354 635 274"/>
     <path class="highland" d="M211 842 Q214 745 268 683 Q249 619 294 567 Q324 545 357 506 Q398 504 436 543 Q484 579 533 511 Q571 486 609 531 Q651 584 658 688 M294 471 Q319 487 357 506 M268 683 Q331 702 388 649"/>
     <path class="spur" d="M285 633 Q291 601 314 588"/>
-    <path class="spur" d="M220 826 Q215 847 205 863 L160 863 Q155 833 174 807 M211 829 Q242 862 277 869 M707 281 Q735 280 763 265 M793 441 Q759 456 743 472 M642 662 Q672 637 684 648"/>
+    <path class="spur" d="M220 826 Q215 847 205 863 L160 863 Q155 833 174 807 M211 829 Q242 862 277 869 M707 281 Q735 280 763 265 M793 441 Q759 456 743 472"/>
     <path d="M170 829 L198 829" stroke="#f5e2b1" stroke-width="8"/>
     <path d="M727 909 L775 909" stroke="#f5e2b1" stroke-width="8" stroke-linecap="round"/>
     <path d="M727 909 L775 909" stroke="#303d3b" stroke-width="2" stroke-dasharray="4 5"/>
+    <path d="M577 855 L537 839 L519 812 L519 785 L529 755 L540 726 L559 699 L586 683 L616 688 L645 688 L683 693 L715 704 L747 718 L774 737 L793 763 L804 788 L817 812"
+      fill="none" stroke="#9ce9ec" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"
+      style="filter:drop-shadow(0 1px 2px #172e36)">
+      <title>Implemented cairned Vatnajökull through passage only; ice cave and northern connector remain planned.</title>
+    </path>
   </g>
 
   <path d="M178 875 Q174 899 173 925" fill="none" stroke="#73bac0" stroke-width="9" stroke-linecap="round" opacity=".9"/>
@@ -270,9 +275,10 @@
   </g>
   <path d="M938 549H1191" stroke="#4d6970"/>
   <text x="938" y="582" class="panel-title">DRIVING LINES</text>
-  <path d="M940 610h61" class="route"/><text x="1015" y="615" class="panel-body">Ring Road / Route 1</text>
-  <path d="M940 646h61" class="highland"/><text x="1015" y="651" class="panel-body">Branches / highlands</text>
-  <path d="M940 682h61" class="spur"/><text x="1015" y="687" class="panel-body">Optional spur</text>
+  <path d="M940 604h61" class="route"/><text x="1015" y="609" class="panel-body">Ring Road / Route 1</text>
+  <path d="M940 632h61" class="highland"/><text x="1015" y="637" class="panel-body">Branches / highlands</text>
+  <path d="M940 660h61" class="spur"/><text x="1015" y="665" class="panel-body">Optional spur</text>
+  <path d="M940 688h61" stroke="#9ce9ec" stroke-width="3"/><text x="1015" y="693" class="panel-body">Built ice-cap traverse</text>
   <path d="M938 708H1191" stroke="#4d6970"/>
   <text x="938" y="740" class="panel-title">DESIGN NOTES</text>
   <text x="938" y="770" class="panel-body">• Deep sea on every edge</text>
@@ -282,6 +288,6 @@
   <text x="938" y="874" class="panel-body">• Cave and tube are stylised</text>
   <text x="938" y="900" class="panel-body">• Skógá bridge + gravel ford</text>
   <text x="938" y="927" class="legend-small">Concept layout · subject to driving review</text>
-  <text x="62" y="992" class="subtitle">DRAFT / 2026-10-19 · REVISION 4</text>
+  <text x="62" y="992" class="subtitle">DRAFT / 2026-10-20 · REVISION 5</text>
   <text x="890" y="992" class="subtitle" text-anchor="end">MAP IS SCHEMATIC, NOT A REAL-WORLD ROAD MAP</text>
 </svg>

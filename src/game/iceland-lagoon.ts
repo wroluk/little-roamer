@@ -59,23 +59,32 @@ export function glacierFracture(x: number, z: number) {
   return cut * smooth((z - 330) / 60);
 }
 export const GLACIER_MARGIN_WEIGHT = 0.12;
+export const ICELAND_GLACIER_BOUNDS = { x0: 20, x1: 600, z0: -55, z1: 530 };
 /** Southern ice field and two outlet tongues; the summit regions are a later chunk. */
 export function southernGlacier(x: number, z: number) {
-  if (x < 65 || x > 590 || z < 90 || z > 530) return { weight: 0, height: 0 };
+  if (x < ICELAND_GLACIER_BOUNDS.x0 || x > ICELAND_GLACIER_BOUNDS.x1
+    || z < ICELAND_GLACIER_BOUNDS.z0 || z > ICELAND_GLACIER_BOUNDS.z1) return { weight: 0, height: 0 };
   const margin = 13 * (icelandNoise(x / 43 + 8, z / 37) - 0.5)
     + 6 * (icelandNoise(x / 13, z / 17 + 52) - 0.5);
   const capRadius = Math.hypot((x - 315 + margin) / 205, (z - 265 + margin * 0.6) / 165);
-  const cap = 1 - smooth((capRadius - 0.62) / 0.38);
+  const upperRadius = Math.hypot((x - 300 + margin) / 265, (z - 200 + margin * 0.6) / 235);
+  const upperCap = 1 - smooth((upperRadius - 0.62) / 0.38);
+  const cap = Math.max(1 - smooth((capRadius - 0.62) / 0.38), upperCap * (1 - smooth((z - 300) / 60)));
   const progress = smooth((z - 300) / 215);
   const westX = 220 - progress * 66;
   const westWidth = 65 - progress * 23;
   const westFront = 516 + 18 * (icelandNoise(x / 19, 31) - 0.5);
   const west = (1 - smooth((Math.abs(x - westX) - westWidth + margin + 4) / 10))
     * smooth((z - 260) / 70) * (1 - smooth((z - westFront + 4) / 12));
-  const eastX = 455 + 25 * smooth((z - 320) / 170);
+  const eastShoulder = 1 - smooth((z - 265) / 85);
+  const eastX = 455 + 25 * smooth((z - 320) / 170) - 25 * eastShoulder;
+  // A rounded head overlaps the cap; a fixed-width strip with a Z fade made
+  // the upper junction a rectangular ledge.
+  const head = Math.max(0, (350 - z) / 95);
+  const eastWidth = 69 * Math.sqrt(Math.max(0, 1 - head * head));
   const eastFront = 493 + 20 * (icelandNoise(x / 16, 42) - 0.5);
-  const east = (1 - smooth((Math.abs(x - eastX) - 69 + margin) / 10))
-    * smooth((z - 270) / 65) * (1 - smooth((z - eastFront) / 3));
+  const east = (1 - smooth((Math.abs(x - eastX) - eastWidth + margin) / 10))
+    * smooth((z - 265) / 35) * (1 - smooth((z - eastFront) / 3));
   const weight = Math.max(cap, west, east);
   const surface = 110 - 78 * smooth((z - 295) / 220)
     + 2.5 * (icelandNoise(x / 19, z / 43) - 0.5);

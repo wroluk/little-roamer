@@ -325,10 +325,20 @@ Sólheimasandur wreck approach with
 `http://127.0.0.1:5173/?area=iceland&start=solheimasandur`, or the Lómagnúpur
 sandur gateway with `http://127.0.0.1:5173/?area=iceland&start=lomagnupur`.
 The lagoon approach is `http://127.0.0.1:5173/?area=iceland&start=jokulsarlon`.
+The ice-cap traverse starts at `http://127.0.0.1:5173/?area=iceland&start=vatnajokull`:
+cairns mark one through-route over the ice, with a broad western ascent and an
+eastern descent to Route 1 beyond the lagoon. Grímsvötn sits farther north;
+there is no overlook branch. The western ice cave is not built yet.
 Reset returns to the nearest completed Iceland regional start. Iceland is
 separate from Iceland Highlands and stays out of the production picker/direct
 links until the coastal pilot is ready. See
 [Iceland progress](ICELAND_PROGRESS.md) and [build plan](ICELAND_BUILD_PLAN.md).
+The single current-world development map is a
+[full-world 3D aerial render](artifacts/iceland/iceland-aerial.png)
+with the game's actual materials and colours, separate from the proposed concept map.
+Regenerate with `node --import tsx scripts/render-iceland-aerial.ts`.
+It uses an orthographic overhead camera with distance fog disabled;
+see [render details](artifacts/iceland/DESIGN.md#current-development-map).
 Focused coverage: `node --import tsx --test tests/iceland.test.ts tests/vehicle-selection.test.ts`
 and `./node_modules/.bin/playwright test tests/browser/iceland.spec.ts`.
 

@@ -36,6 +36,8 @@ latest instructions. Historical screenshots are not proof of the current code.
 | Surface appearance, labels and per-wheel handling | [Surface profiles](src/game/surfaces.ts), [vehicle](src/game/vehicle.ts), [terrain effects](src/game/terrain-effects.ts) | [Surface regressions](tests/surfaces.test.ts), actual region drives |
 | Current Iceland river, sea join and connected road ribbon | [River geometry](src/game/iceland-river.ts), [terrain](src/game/iceland-terrain.ts), [road geometry](src/game/iceland-road-scenery.ts) | [Iceland tests](tests/iceland.test.ts), [browser checks](tests/browser/iceland.spec.ts), [current progress](ICELAND_PROGRESS.md). Recent revisions remain subject to user review. |
 | Regional entry and reset shortcuts | [Northern starts](src/game/regional-starts.ts), [Mars starts](src/game/mars-terrain.ts), [Iceland starts](src/game/iceland-starts.ts), [URL and reset wiring](src/main.ts) | Give each completed region a unique `?area=<world>&start=<region>` ID, a dry level spawn, a useful heading, and nearest-region reset. Check direct URL entry, initial vehicle position, and reset in a real browser. Document the exact URL when a region is completed. |
+| Sampled development maps | [Northern renderer](scripts/render-northern-map.ts) | Sample live terrain and water, then overlay exported routes/starts. Keep concept maps separate: unbuilt regions must not appear implemented. Embed relief in SVG for portability; preserve vector labels, grid and routes. Such maps are references, not driving-acceptance evidence. |
+| Actual material-colour aerial views | [Iceland aerial renderer](scripts/render-iceland-aerial.ts), [actual-model thumbnail renderer](scripts/render-car-thumbnails.ts) | Render full-detail chunks and actual scenery/materials in Three.js with the game's lighting and tone mapping. A surface-ID palette is not a colour-faithful scene render. Use a north-up orthographic camera, disclose disabled distance fog and expanded shadow coverage, and do not widen gameplay streaming just to export an image. The user chose this [full aerial render](artifacts/iceland/iceland-aerial.png) as Iceland's single current-world map; do not recreate sampled/southern variants. |
 
 ## Earlier world-building feedback ledger
 
@@ -173,11 +175,27 @@ progress file.
   actual rock bed. Taper land-ending margins geometrically, weld roof/wall normals
   to soften the rim, and retain full-height calving walls below the waterline.
   Keep the original crevasses and vary lateral outlines as well as terminal fronts.
+- A glacier tongue needs a shaped head as well as irregular side noise. Turning
+  on a constant-width strip with a straight longitudinal fade can leave a square
+  shoulder where it meets an elliptical cap. Curve its upper centreline and
+  taper the head inside the cap, preserving the accepted lower reach. Change
+  the shared shape used by ice, bed, collision and traction, not just map colours.
+  Check a sampled overhead map alongside low and oblique game views; see the
+  lagoon junction in `iceland-lagoon.ts` and `tests/iceland.test.ts`.
 - A land-ending ice taper must finish below the bed, not a fixed distance above
   it. Leaving 2 m of exposed thickness produced a uniform vertical basal band
   despite the separate mesh and softened normals. Keep the closing contour
   buried before the roof rises into the visible ice; test sampled wall clearance
   along the entire land front. Preserve the calving-wall exemption underwater.
+- Grade an ice/rock route as a pair of surfaces: bring the independent ice roof
+  to the intended line before lowering its supporting bed, while keeping the
+  closure contour buried. Grading only the roof can expose the closing wall
+  again; a nominally smooth height profile can still hide a steep traction
+  handoff after triangle interpolation. Leave gentler grades specifically
+  through the snowline and prove both cars uphill and downhill without changing
+  physics to rescue an authored slope. See `iceland-vatnajokull.ts` and its
+  full-traverse tests. Carry dark rock colour below the ice intersection too:
+  low green vertices can interpolate moss stripes up an otherwise dark cliff.
 - Preserve the hills framing a glacier: the tongue need not stand taller than its
   valley sides. Lowering the surrounding escarpment to hide a painted seam was a
   rejected correction, not a general glacier technique. Excavate only beneath the
@@ -188,6 +206,19 @@ progress file.
   glacier height above the lagoon; inspect front, side, low and supplied cameras.
   See `iceland-glacier.ts`, `iceland-terrain.ts` and `iceland-lagoon-scenery.ts`;
   current captures are in `artifacts/iceland/glacier-solids-final/`.
+- Keep generic inland relief on the inland side of a coastal circuit. When
+  flattening a seaward strip, derive its side and road height from the actual
+  closed route, ease down toward low shore ground, then add named landmark
+  relief separately. Preserve road/deck grades and fit water to the revised
+  terrain. Gate rounded-corner masks to their intended hemisphere; an ungated
+  rounded-box distance also changes the opposite shore. Check all four coast
+  profiles, dry road widths and actual low-angle/overhead captures.
+- Enlarging a separate ice cap must also enlarge its mesh iteration bounds and
+  detailed supporting terrain coverage. Share explicit footprint bounds instead
+  of leaving a hardcoded mesh box behind. For a mostly subglacial crater, bury
+  the unwanted half of the actual rock ridge below the ice instead of painting
+  it white. Anchor shape noise locally when relocating it, and move routes only
+  when requested. Verify exposed circumference and peak height against snow.
 - Suspension-bridge approaches must stay straight beyond the outer cable anchors,
   not merely through the deck. Jökulsá's original immediate east turn put a stay
   and anchorage in the road. Reserve the full asphalt/shoulder envelope through
@@ -206,6 +237,9 @@ progress file.
   entrances, trails, reset sites and discoveries' accessible lines clear. Decide
   deliberately which props are solid: large obstacles/trunks must be; tiny ground
   dressing and crowns may be decorative. Do not hide invisible blockers in a route.
+  A trail-side marker pair can still straddle an intersecting road at its entry;
+  inspect junction stations separately and remove unwanted markers before building
+  both their visible and collision meshes. Check both ends of a through-route.
 - Use instancing, stable seeds and one owner per prop cell; release owned resources.
   Cluster detail and leave intentional open ground, including bare black sand.
   A generated field with no near-camera detail is not a finished region.
@@ -238,6 +272,10 @@ an artificial rectangular shallow shelf even when the water mesh joins correctly
 - Grade the full width, shoulders, switchbacks and connections. A centreline that
   passes a slope check does not prove the wheel paths are safe. Drive both ways
   with the actual cars; fix geometry before changing established vehicle physics.
+- Removing a route means removing its grading, markers and scatter exclusions,
+  not just its map line. Keep these consumers on one route definition; check a
+  former endpoint returns to natural ground without disturbing the retained
+  through-route. See Iceland's removed Grímsvötn spur and route/contact tests.
 - Rendering, sampled heights and Rapier must describe the same surface. Arches and
   tubes need genuinely open passages, not bounding-box colliders that seal openings.
 - Deliberate paint/deck overlays may need a small depth bias. First establish that

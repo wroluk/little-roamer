@@ -1,5 +1,264 @@
 # Iceland implementation progress
 
+## Eastern entry: clear the lower cairns — 2026-10-21
+
+- Removed the final two eastern marker pairs (four cairns) along the approach
+  from `(610, 485)` to `(635, 530)`. One sat on the asphalt and the final pair
+  straddled the Ring Road. The preceding uphill pair, western correction,
+  route grading and all other markers remain unchanged.
+- Reused the western entry correction in `iceland-scenery.ts`: omit these
+  stations before generating the shared visible/solid cairn mesh. Expanded its
+  focused unit test to verify all six removed cairns across both junctions,
+  their absent colliders and the retained uphill pairs. It passed, as did
+  `npm run build` including typecheck. Full driving/browser/PWA suites were
+  not rerun for this obstacle-only removal.
+- Preserved feedback as `artifacts/iceland/feedback/eastern-route-bottom-cairns.png`.
+  Inspected the actual Chromium/Metal junction capture at
+  `artifacts/iceland/vatnajokull/chromium/eastern-entry-no-bottom-cairns.png`;
+  the road and lower approach are clear. Refreshed the single aerial map.
+  Changes remain uncommitted.
+- **Next:** user visual review; western ice cave remains the next planned slice.
+
+## Western entry: remove the lowest cairn pair — 2026-10-21
+
+- Removed only the first paired cairns on the western ascent, near
+  `(156.06, 583.90)` and `(146.94, 606.10)`. The latter sat on the Ring Road.
+  The next pair and every remaining marker, route grade and entry stay unchanged.
+  Reference: existing paired cairn generation and its shared visible/collider
+  mesh in `iceland-scenery.ts`; omitted that station before stone generation so
+  no invisible obstacle survives.
+- Added a focused unit regression checking the exact remaining stone count,
+  both removed footprints, and the next pair's visible geometry and Rapier
+  collision. It passed; `npm run build` passed with typecheck. Inspected an
+  actual Chromium/Metal ground-height capture of the cleared junction.
+  Full driving/browser/PWA suites were not rerun for this two-obstacle removal.
+- Preserved the user's image at
+  `artifacts/iceland/feedback/western-route-bottom-cairns.png` and the corrected
+  view at `artifacts/iceland/vatnajokull/chromium/western-entry-no-bottom-cairns.png`.
+  Regenerated the single full-world aerial map. Work remains uncommitted.
+- **Next:** user visual review; western ice cave remains the next planned slice.
+
+## Coastal reshaping, northern crater and through-route only — 2026-10-21
+
+- Applied the user's confirmed scope: low coastal ground outside the Ring Road
+  around the whole island, except existing named landmarks. Removed the generic
+  eastern seaward mountains without flattening Skógafoss, Reynisfjall or
+  Lómagnúpur. Rounded all four island corners and retained dry road clearance.
+- Enlarged Vatnajökull northward and westward to about 0.172 km² of exposed
+  ice including its tongues. Expanded the shared glacier mesh bounds and
+  detailed supporting terrain, preserving the accepted lower tongues and
+  underwater calving walls. Grímsvötn is now warm brown, about 122 m high
+  against 110 m snow, with roughly 44% of its rim exposed.
+- Moved Grímsvötn from `(310, 232)` to `(310, 143)`: 89 m north, approximately
+  40% of the former distance to the northern ice margin. Anchored its noise in
+  crater-local coordinates to preserve the unequal shoulder shape.
+- Latest route decision supersedes the earlier request to leave routes alone:
+  removed the former Grímsvötn overlook branch, its grading and paired cairns.
+  Shared route clearance now follows only the through-route. The western/eastern
+  entries, through-route waypoints and regional start/reset are unchanged.
+  Added a regression requiring zero spur blend and natural ice at `(335, 270)`,
+  and included that point in exact rendered/Rapier surface checks.
+- Reference: existing `iceland-road.ts` nearest-segment lookup, paired
+  `vatnajokullRouteAt` bed/roof grading, `southernGlacier`, solid glacier
+  geometry, footprint-grounded scenery cairns, and their unit/browser checks.
+  Kept all downstream consumers on the shared route definition rather than
+  patching only the visible markers. Reused the proven road lookup with a
+  separately bounded coastal index. Named relief follows the coastal base;
+  hemisphere-gated corner masks prevent opposite-coast distortion.
+- Kept only `artifacts/iceland/iceland-aerial.png` as the current-world map,
+  regenerated from actual game materials after branch removal. Retired the
+  sampled full/south maps, sampled-map exporter and southern aerial.
+  `concept-map.svg/.png` remain a separate planning reference; removed the
+  obsolete spur from both. Rebuild the current map with
+  `node --import tsx scripts/render-iceland-aerial.ts`.
+- Earlier coastal/cap checks passed: focused terrain/road/corner, named-relief,
+  expanded ice, buried closures, calving-water contact, seam, exact road overlay
+  and streaming/disposal checks; both cars traversed the cap and representative
+  complete Ring Road directions. Coastal/crater views and regional approach
+  scenarios passed in Chromium and WebKit after the four-corner update and
+  again after crater relocation. Historical drives including the old overlook
+  are not evidence of the final branch-free route.
+- **Final branch-removal checks:** five focused Iceland unit scenarios passed,
+  including broad route shoulders/low rim, exact render/Rapier contact, both cars
+  driving the complete through passage both directions, and solid glacier/
+  underwater front agreement. `npm run build` passed, including typecheck.
+  Four browser cases passed: regional entry/views/reset and remaining approach
+  drives both directions in Chromium and WebKit. Used the session-only no-HMR
+  configuration and Chromium/Metal setup documented below. No assertions were
+  weakened; no skipped cases counted as passes.
+- Inspected the refreshed aerial, final plateau arrival, and a driving-height
+  view toward the former branch: open natural snow, no spur cairns. Preserved
+  final coastal/crater views in `artifacts/iceland/coastal-refinement/`,
+  refreshed regional views in `artifacts/iceland/vatnajokull/`, and saved the
+  former-branch view there as `chromium/former-overlook-removed.png`.
+- Full-project/PWA suites were not rerun for these local Iceland changes; the
+  last recorded full-project run remains 2026-10-11. Physical iPad Safari and
+  ordinary software-headless Chromium performance acceptance remain open.
+  Iceland remains internal, all work after `f466e42` is uncommitted, and the
+  user-requested local server remains available on port 5173.
+- **Next:** visual review of this branch-free passage and revised island;
+  the next planned implementation is the western ice cave, not part of this
+  feedback pass. Earlier entries below retain superseded map/route history.
+
+## Actual-material bird's-eye renders — 2026-10-21
+
+- Added `artifacts/iceland/iceland-aerial.png` (3072 × 3072) and
+  `iceland-aerial-south.png` (3930 × 2040), alongside the labelled sampled maps.
+  These are real Three.js renders of the same detailed terrain meshes, vertex
+  colours and scenery materials used by the game, not a surface-class palette.
+  Roads/markings, bridges, glacier solids, iceberg meshes, wreck, basalt and
+  ground detail are included. North is up; images have no overlays.
+- Reference: `scripts/render-car-thumbnails.ts` for browser rendering of actual
+  game objects through a temporary Vite server; `iceland-streaming.ts` for
+  detailed terrain geometry/material construction; `main.ts` and `areas.ts`
+  for renderer settings and Iceland lighting. Read the existing glacier render/
+  collider checks and retained ground-height junction views for context.
+  New `scripts/render-iceland-aerial.ts` imports live game builders rather than
+  copying terrain colour rules or reconstructing scenery.
+- Rendered all 324 detailed chunks (1,036,800 terrain triangles) simultaneously
+  in an export-only scene, without changing gameplay streaming or camera limits.
+  Used the game's sRGB/ACES settings, light colours/intensities and sun direction.
+  Export differences are explicit: straight-down orthographic projection,
+  distance fog disabled, island-wide shadow coverage, no car/UI, animation at
+  its initial state. This is material-faithful overhead reference, not a promise
+  of identical pixels from an atmospheric driving camera.
+- Inspected both images, including actual ice/rock/sand colours, icebergs,
+  roads and both river bridges. Generator checks complete detailed chunk count,
+  terrain triangle count, required scenery, WebGL/browser errors and PNG sizes.
+  The initial module lookup matched a Three.js addon instead of core; narrowed
+  it to the exact core URL and regenerated successfully. Final exports use
+  installed full Chromium/Metal. No game source changes or gameplay/PWA checks
+  needed for this offline exporter; physical device acceptance stays open.
+- **Next:** review these alternative renders with the corrected glacier join,
+  then continue the already planned western ice cave after regional visual
+  review. All new exports/exporter and preceding work remain uncommitted.
+
+## Curved lagoon-glacier / ice-cap junction — 2026-10-21
+
+- The sampled development map exposed a real geometric issue: the eastern
+  tongue's constant-width strip switched on along a straight Z line, leaving
+  a rectangular shoulder northeast of the cap. Preserved the user's crop as
+  `artifacts/iceland/feedback/glacier-rectangular-cap-junction.png`.
+- Reference: existing `southernGlacier`, its independent clipped glacier mesh,
+  paired bed/roof route grading and glacier contact/real-driving tests.
+  Curved the upper centreline into the cap and tapered its head with an elliptical
+  width profile. The change ends at Z=350; the lower reach, calving front,
+  framing hills, western tongue and vehicle physics retain their accepted
+  definitions. Bed, visible ice, Rapier collision and traction all continue
+  using the same shared shape. No map-only colour patch or new scenery geometry.
+- Added a regression requiring the upper edge to advance progressively south
+  across the outer flowlines, rather than starting along one straight line.
+  Checked three new junction probes against exact rendered/Rapier heights.
+  Eleven focused unit scenarios passed, including both cars on the full
+  Vatnajökull traverse/overlook and existing lagoon/viewpoint routes, buried
+  western closures, calving-water contact, tongue traction and framing hills.
+  Application typecheck and production build passed.
+- Regenerated both full-world and southern SVG/PNG maps from the corrected
+  live definitions and inspected the reported overhead outline. Inspected
+  actual ground, route-height and raised-oblique game views; preserved final
+  Chromium/WebKit captures in `artifacts/iceland/glacier-junction/`.
+  The glacier margin views and regional approaches both directions also
+  passed in both engines. Chromium used the previously documented full channel/
+  Metal setup and the session-only no-HMR config; no assertions were weakened.
+- No full-project or PWA run for this local shape correction. Physical iPad
+  Safari and standard software-headless Chromium performance remain open;
+  Iceland is still internal. Plateau, maps and this correction are uncommitted.
+- **Next:** user visual review of the corrected junction and Vatnajökull/rim,
+  then the planned western ice cave. No later region was added in this fix.
+
+## Current-world development maps — 2026-10-21
+
+- Added full-world `artifacts/iceland/mapa-iceland.svg/.png` and enlarged
+  south-coast/ice-cap `mapa-iceland-south.svg/.png`. Unlike the concept map,
+  these show actual current terrain, exposed glacier roofs, water depths,
+  wheel-surface classes and implemented roads/routes, not planned regions.
+  Added coordinate axes, north/scale, 96 m chunk grid, 20 m contours, eleven
+  numbered landmarks and all six regional starts/reset positions.
+- Reference: `scripts/render-northern-map.ts` and its current Northern Reach
+  SVG/PNG maps. Reused its code-sampled relief, hillshading, embedded raster,
+  live vector overlays and Playwright PNG export. Adapted sampling to Iceland's
+  highest exposed bed/independent ice roof and elevated Skógá water; sampled
+  wet depth prevents painting water across the glacier. Read the exact triangle/
+  seam checks in `tests/iceland.test.ts` before using those terrain samplers.
+- Rebuild command: `node --import tsx scripts/render-iceland-map.ts`.
+  Generator asserts finite samples, dry regional entries, elevated upstream
+  water, exposed Grímsvötn rock, plateau ice, deep lagoon and outer sea.
+  Both SVGs decoded and both PNG exports were visually inspected for layout,
+  terrain/route alignment and readable markers. No game behavior or geometry
+  changed; no driving/browser gameplay/PWA suite needed for these artifacts.
+  Application typecheck/build passed. A separate standalone generator `tsc`
+  check could not resolve Node built-in types because this repository does not
+  install `@types/node`; the documented `tsx` generator ran successfully twice.
+  No dependencies were added for this development-only artifact.
+- Individual props and structure roofs/rails are omitted; the three sea stacks
+  have schematic live-anchor footprints. SVG relief is an embedded 2 m raster;
+  routes, contours, grid, markers and labels remain vector/editable.
+  These maps are implementation references, not new route-acceptance evidence.
+- Next implementation remains visual review of Vatnajökull/Grímsvötn, then the
+  western ice cave. Maps and preceding plateau work remain uncommitted.
+
+## Vatnajökull traverse and Grímsvötn rim — 2026-10-20
+
+- Committed and pushed the accepted solid-glacier/no-band corrections and gentler
+  road transitions as `f466e42` on `main`. The initial push failed because the
+  enterprise `GH_TOKEN` overrode the saved github.com login; the retry used the
+  existing github.com keyring credentials without changing credential settings.
+  Earlier "uncommitted" notes below describe their historical checkpoints.
+- Built the next planned slice: a broad western ascent from the sandur road,
+  approximately 110 m-high ice plateau, short Grímsvötn overlook, and eastern
+  descent to the existing road beyond the lagoon. Paired solid, footprint-grounded
+  stone cairns mark the through route. Scatter is excluded after secondary
+  offsets, not just at cluster seeds. Ice cave, Lakagígar and northern
+  Askja/Kverkfjöll connector remain later work.
+- Grímsvötn is an unequal, southeast-breached dark rock rim around an ice-filled
+  interior, not a bare conical volcano. It uses the streamed terrain's exact
+  visible/collision triangles; the retained separate ice roof remains below
+  exposed rock. Plateau grading feeds that same ice mesh, sampling and collider.
+  Render/physics rings, vehicle handling and the accepted tongues/calving bay
+  are unchanged. New cairn geometry uses the existing solid callback/disposal.
+- References: `highlands-terrain.ts` and `tests/highlands.test.ts` for a broad,
+  real-vehicle-tested glacier ascent and ice-filled volcanic landform;
+  Iceland's existing road grading, separate glacier mesh, scenery solid callback
+  and regional start/reset tests for the actual implementation. Adapted the
+  old Highlands' symmetric shallow bowl into unequal exposed nunatak shoulders
+  intersecting independent ice, rather than copying its bare volcano profile.
+- Initial real-driving checks caught excessive grades at both ice/rock handoffs.
+  Eased the authored route profiles instead of changing physics or assertions.
+  A first grading attempt also re-exposed the accepted western closure; retained
+  the existing buried-wall regression and corrected the roof/bed transition.
+  The roof meets the graded line before excavation lowers the supporting bed.
+  Extended dark rock colour below the snow intersection to avoid green stripes
+  interpolating up the exposed rim.
+- Added internal `/?area=iceland&start=vatnajokull` and nearest-region reset;
+  updated README and SVG/PNG concept map (cyan marks the implemented traverse).
+  Reviewed actual arrival, low rim, raised caldera and both slope captures in
+  Chromium/WebKit, saved in `artifacts/iceland/vatnajokull/`. Retained current
+  original-angle, western-front and calving regression captures there too.
+- Thirteen focused unit scenarios passed: both cars on the full new traverse
+  and overlook in both directions, dry graded shoulders, exact rendered/Rapier
+  roof and exposed-rim heights, reset selection, chunk/LOD seams, scatter
+  clearance, buried land closure, calving waterline, retained road reductions,
+  lagoon geometry, and both cars on the existing outlet/viewpoint routes.
+  Production build/typecheck passed. Six browser scenarios passed: regional
+  entry/views/reset, unchanged local approach drives both ways, and all eight
+  glacier-margin views, each in Chromium and WebKit.
+- Browser evidence caveats: live-reload runs were interrupted and are not
+  passes. A stable default headless Chromium run missed the existing driving
+  time budget while still moving with four contacts and no obstruction.
+  The final run disabled Vite watching/HMR in a session-only config and used
+  Chromium's full headless channel with `--use-angle=metal`; unchanged route,
+  deadline and assertions passed. WebKit passed without rendering flags.
+  Standard headless Chromium performance and physical iPad Safari acceptance
+  remain open; no assertion, speed threshold or vehicle physics was weakened.
+- No full-project or PWA suite for this first post-pilot region. Last recorded
+  full project run remains 2026-10-11; full suites are next due after three
+  completed post-pilot regions, broader shared changes or public release.
+  Iceland remains an internal development entry. This new slice is uncommitted.
+- **Next:** visual review of the plateau/rim and western/eastern approaches;
+  then the planned western drive-through ice cave around `(115, 290)`, with
+  broad portals, roof clearance, a separate roof route and both-way driving.
+  Do not count the cave or the northern connector as built by this slice.
+
 ## Gentler Ring Road and bridge transitions — 2026-10-20
 
 - Reduced both existing nonperiodic road-height noise amplitudes by exactly

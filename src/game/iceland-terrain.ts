@@ -1,9 +1,10 @@
 import { southernGlacier, GLACIER_MARGIN_WEIGHT, calvingBay, lagoonCarve, lagoonRouteDistance, onJokulsaBridge, JOKULSA_BRIDGE } from './iceland-lagoon';
 import { lomagnupurRise, lomagnupurTalus, lomagnupurRouteDistance, skeidararsandurWeight, sandurChannel } from './iceland-skeidararsandur';
 import { icelandNoise } from './iceland-noise';
+import { grimsvotnRockHeight, vatnajokullRouteAt } from './iceland-vatnajokull';
 import type { SurfaceId } from './surfaces';
 import { FALL, SKOGA_BRIDGE, onSkogaBridge } from './iceland-layout';
-import { ringRoadAt, RING_HALF_WIDTH } from './iceland-road';
+import { ringRoadAt, ringRoadCoastAt, RING_HALF_WIDTH } from './iceland-road';
 import { SOLHEIMASANDUR_WRECK, solheimasandurApproachDistance, solheimasandurWeight } from './iceland-sandur';
 import { REYNIS_CAVE, reynisBeachPathDistance, reynisBeachWeight, reynisCaveCut,
   reynisCoastHeight, reynisCoastWeight, reynisWaterlineZ, reynisfjallRise } from './iceland-reynisfjara';
@@ -67,6 +68,10 @@ export function icelandHeight(x: number, z: number) {
   const sea = smooth((z - shore + 15) / 50);
   const westernSea = smooth((-x - 652) / 52);
   const outerSea = smooth((Math.max(Math.abs(x), Math.abs(z)) - 675) / 55);
+  const southernCorners = smooth((Math.hypot(Math.max(0, Math.abs(x) - (x < 0 ? 500 : 520)),
+    Math.max(0, z - 510)) - 155) / 55) * smooth((z - 420) / 60);
+  const northernCorners = smooth((Math.hypot(Math.max(0, Math.abs(x) - 440),
+    Math.max(0, -z - 400)) - 205) / 55) * smooth((-z - 300) / 80);
   let h = shelf + 1.1 * Math.sin(x * 0.031) * Math.sin(z * 0.021);
   // Preserve the authored waterfall brink; away from it, unequal shoulders
   // and recesses replace the old periodic scallops (Mars rim lesson).
@@ -80,6 +85,13 @@ export function icelandHeight(x: number, z: number) {
   h += cliff * cliffFootprint * (42 + (1 - irregular) * 4 * Math.sin(x * 0.018) ** 2
     + irregular * (14 * (icelandNoise(x / 117, 23) - 0.35)
       + 4 * (icelandNoise(x / 37, 62) - 0.5)));
+  // The generic escarpment belongs inland. Authored landmarks are added below.
+  const coast = ringRoadCoastAt(x, z);
+  if (coast.seaward) {
+    const lowland = 3.5 + 0.6 * (icelandNoise(x / 41, z / 37) - 0.5);
+    const coastalHeight = lowland + (coast.height - lowland) * (1 - smooth((coast.distance - 12) / 95));
+    h = coastalHeight;
+  }
   const sandur = solheimasandurWeight(x, z);
   h += sandur * (0.55 * (icelandNoise(x / 28 + 19, z / 24 - 7) - 0.5)
     + 0.24 * (icelandNoise(x / 8 - 11, z / 9 + 31) - 0.5));
@@ -96,6 +108,12 @@ export function icelandHeight(x: number, z: number) {
   const glacier = southernGlacier(x, z);
   // Excavate only beneath the ice, preserving the higher rock valley sides.
   h += (Math.min(h, glacier.height - 8) - h) * smooth(glacier.weight / GLACIER_MARGIN_WEIGHT);
+  h = Math.max(h, grimsvotnRockHeight(x, z));
+  const iceRoute = vatnajokullRouteAt(x, z);
+  const iceTaper = smooth((glacier.weight - 0.4) / 0.5);
+  // Meet the graded ice roof before lowering its bed; contour walls stay buried.
+  const routeBed = iceRoute.height - 4 * smooth((iceTaper - 0.2) / 0.8);
+  h += (routeBed - h) * iceRoute.blend;
   const lagoonTrack = 1 - smooth((lagoonRouteDistance(x, z) - 4.5) / 10);
   h += (shelf - h) * lagoonTrack;
   const wreckApproach = 1 - smooth((solheimasandurApproachDistance(x, z) - 3.5) / 10);
@@ -151,7 +169,7 @@ export function icelandHeight(x: number, z: number) {
   }
   const wreckRadius = Math.hypot(x - SOLHEIMASANDUR_WRECK.x, z - SOLHEIMASANDUR_WRECK.z);
   h += (SOLHEIMASANDUR_WRECK.y - h) * (1 - smooth((wreckRadius - 12) / 12));
-  h += (-17 - h) * Math.max(sea, westernSea, outerSea);
+  h += (-17 - h) * Math.max(sea, westernSea, outerSea, southernCorners, northernCorners);
   const reynisCoast = reynisCoastWeight(x) * smooth((z - reynisWaterlineZ(x) + 40) / 12);
   h += (reynisCoastHeight(x, z) - h) * reynisCoast;
   h += (REYNIS_CAVE.floorY - h) * reynisCaveCut(x, z);
@@ -187,7 +205,12 @@ export function icelandIceVertexHeight(x: number, z: number) {
   const taper = smooth((ice.weight - 0.4) / 0.5);
   // Bury the closure contour before the roof rises, avoiding an exposed vertical
   // basal band. The calving face stays full-height.
-  return Math.fround(ice.height - thickness * (1 - taper) * (1 - calvingBay(x, z)));
+  let height = ice.height - thickness * (1 - taper) * (1 - calvingBay(x, z));
+  const route = vatnajokullRouteAt(x, z);
+  const exposed = smooth(taper / 0.2);
+  const routeRoof = (bed - 1) * (1 - exposed) + route.height * exposed;
+  height += (routeRoof - height) * route.blend;
+  return Math.fround(height);
 }
 export const icelandGlacierHeight = (x: number, z: number) =>
   sampleIcelandTriangle(x, z, icelandIceVertexHeight);
@@ -211,6 +234,8 @@ export function icelandSurfaceAt(x: number, z: number): SurfaceId {
   if (trailDistance(x, z) < 5.5 || lomagnupurRouteDistance(x, z) < 4.5) return 'dirt';
   if (lagoonRouteDistance(x, z) < 4.5) return 'dirt';
   if (icelandIceAt(x, z)) return 'ice';
+  if (grimsvotnRockHeight(x, z) > 109) return 'rock';
+  if (vatnajokullRouteAt(x, z).distance < 8) return 'dirt';
   if (lomagnupurRise(x, z) > 8) return 'rock';
   if (skeidararsandurWeight(x, z) > 0.5) return sandurChannel(x, z) > 0.5 ? 'dirt' : 'sand';
   if (reynisfjallRise(x, z) > 5) return 'rock';
@@ -259,6 +284,10 @@ function terrainColor(x: number, z: number) {
   }
   const talus = lomagnupurTalus(x, z) * (1 - smooth((lomagnupurRise(x, z) - 35) / 30));
   base = base.map((v, i) => v * (1 - talus) + [0.43, 0.42, 0.36][i] * talus);
+  const caldera = smooth((grimsvotnRockHeight(x, z) - 80) / 16);
+  base = base.map((v, i) => v * (1 - caldera) + ([0.34, 0.27, 0.20][i] + grain + patch * 0.06) * caldera);
+  const iceTrack = (1 - smooth((vatnajokullRouteAt(x, z).distance - 5) / 6));
+  base = base.map((v, i) => v * (1 - iceTrack * 0.65) + [0.37, 0.36, 0.32][i] * iceTrack * 0.65);
   const cliffTrack = (1 - smooth((Math.min(lomagnupurRouteDistance(x, z), lagoonRouteDistance(x, z)) - 2.8) / 4.5));
   base = base.map((v, i) => v * (1 - cliffTrack * 0.7) + [0.37, 0.36, 0.32][i] * cliffTrack * 0.7);
   // The continuous road mesh owns its asphalt colour. Painting sampled terrain
@@ -272,7 +301,7 @@ export function generateIcelandChunk(cx: number, cz: number, coarse = false): Ic
   if (cx >= -2 && cx <= 0 && cz >= 2 && cz <= 5) coarse = false;
   if (cx >= 3 && cx <= 6 && cz >= 4 && cz <= 7) coarse = false;
   // Retain the buried bed and framing hills at the glacier's detailed resolution.
-  if (cx >= 0 && cx <= 6 && cz >= 0 && cz <= 5) coarse = false;
+  if (cx >= 0 && cx <= 6 && cz >= -1 && cz <= 5) coarse = false;
   if (!Number.isInteger(cx) || !Number.isInteger(cz) || cx < -9 || cx > 8 || cz < -9 || cz > 8) throw new Error('Iceland chunk outside apron');
   const vertices: number[] = [], colors: number[] = [], normals: number[] = [], indices: number[] = [];
   const lookup = new Map<string, number>();
