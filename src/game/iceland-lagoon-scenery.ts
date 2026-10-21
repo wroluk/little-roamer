@@ -115,17 +115,25 @@ export function addLagoonScenery(add: AddMesh) {
     add(g, iceMaterial(clear, sx * (0.25 + 0.2 * icelandHash(i, 214)), i), `Jökulsárlón · iceberg ${i + 1}`, true).renderOrder = clear ? 2 : 0;
   }
   // Stranded ice is partly buried in the black beach, clear of the outlet and road.
+  const easternIce: { x: number; z: number }[] = [];
   for (let i = 0; i < 44; i++) {
-    const x = i % 2 === 0 ? 441 + icelandHash(i, 101) * 34 : 532 + icelandHash(i, 101) * 38;
-    const z = 675 + icelandHash(i, 102) * 24;
+    const east = i % 2 === 1;
+    const x = east ? 532 + icelandHash(i, 101) * 38 : 441 + icelandHash(i, 101) * 34;
+    // The eastern shore slopes seaward as it approaches the outlet. Follow that
+    // narrow dry strip instead of scattering most candidates into deep water.
+    const z = east ? 678 - (x - 540) * 0.25 + (icelandHash(i, 102) - 0.5) * 6
+      : 675 + icelandHash(i, 102) * 24;
     const ground = icelandSurfaceHeight(x, z);
     if (ground < -0.3 || ground > 2.5) continue;
+    if (east && easternIce.some(piece => Math.hypot(piece.x - x, piece.z - z) < 6)) continue;
     const size = (0.45 + icelandHash(i, 103) * 1.4) * (i % 3 === 1 ? 2.1 + 0.3 * icelandHash(i, 217) : 1)
       * (i === 38 ? 2.2 : 1);
+    const iceSize = east ? Math.max(1.2, size * 1.2) : size;
     // Use a separate shape sequence: shoreline filtering leaves only a handful of pieces.
-    const g = fracturedIce(i + 30, size, size * 0.8, size * 0.7).translate(x, ground + size * 0.12, z);
+    const g = fracturedIce(i + 30, iceSize, iceSize * 0.8, iceSize * 0.7).translate(x, ground + iceSize * 0.12, z);
     const clear = icelandHash(i + 50, 210) > 0.6;
-    add(g, iceMaterial(clear, size * (0.25 + 0.2 * icelandHash(i + 50, 214)), i + 50, true), `Jökulsárlón · beach ice ${i + 1}`, true).renderOrder = clear ? 2 : 0;
+    add(g, iceMaterial(clear, iceSize * (0.25 + 0.2 * icelandHash(i + 50, 214)), i + 50, true), `Jökulsárlón · beach ice ${i + 1}`, true).renderOrder = clear ? 2 : 0;
+    if (east) easternIce.push({ x, z });
   }
   const b = JOKULSA_BRIDGE;
   const concrete = new THREE.MeshStandardMaterial({ color: '#89928c', roughness: 1,

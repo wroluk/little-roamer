@@ -1,5 +1,12 @@
 # Iceland implementation progress
 
+## Eastern Jökulsá beach ice — 2026-10-21
+
+- The user found only one small piece of ice east of the outlet. A fresh Chromium capture from `(541, 3.2, 685)` confirmed it. The existing eastern scatter used a broad `z = 675–699` rectangle; the narrow beach falls below the water surface across most of that range, so nearly all candidates were filtered out.
+- Reference: the existing `fracturedIce` forms, shore materials and `add(..., true)` render/collider ownership in `src/game/iceland-lagoon-scenery.ts`, plus its ice-mix regression in `tests/iceland.test.ts`. Kept that technique, its western placements and lagoon ice. Adapted the eastern candidates to follow the sampled dry-shore slope, retain a shallow-ground filter, and keep at least 6 m between survivors. A modest size floor makes the smaller pieces visible from the beach. The eastern side now has five distinct pieces instead of one; the west still has four. All five eastern pieces are solid, partly buried and more than 18 m from the Ring Road.
+- The focused ice unit check, typecheck, production build and `git diff --check` passed. Compared identical beach-level Chromium captures before/after and inspected the final WebKit view under `artifacts/iceland/east-beach-ice/`. Both final views show the scattered group along the waterline with the road open above it. This was a focused visual check; the long five-view browser scenario, full unit/browser suites and physical iPad Safari review were not run for this local correction.
+- Next: user review of the eastern beach in the game; keep the separate cave and postcard work out of this ice commit. Continue the previously planned Iceland region work after that review.
+
 ## Eastern entry: clear the lower cairns — 2026-10-21
 
 - Removed the final two eastern marker pairs (four cairns) along the approach

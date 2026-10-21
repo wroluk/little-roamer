@@ -961,7 +961,12 @@ test('Jökulsá approaches stay straight beyond the anchors and every outer cabl
 });
 test('Jökulsárlón mixes translucent and opaque ice in both lagoon and beach groups', () => {
   const scene = new THREE.Scene();
-  addLagoonScenery((g, m, name) => { const mesh = new THREE.Mesh(g, m); mesh.name = name; scene.add(mesh); return mesh; });
+  const solid = new Map<string, boolean>();
+  addLagoonScenery((g, m, name, collidable) => {
+    const mesh = new THREE.Mesh(g, m); mesh.name = name; scene.add(mesh);
+    solid.set(name, !!collidable);
+    return mesh;
+  });
   for (const group of ['Jökulsárlón · iceberg ', 'Jökulsárlón · beach ice ']) {
     const meshes = scene.children.filter(object => object.name.startsWith(group)) as THREE.Mesh[];
     const clear = meshes.filter(mesh => (mesh.material as THREE.Material).transparent);
@@ -991,6 +996,21 @@ test('Jökulsárlón mixes translucent and opaque ice in both lagoon and beach g
       assert.ok(material.thickness > 0 && material.ior === 1.31);
       assert.equal(mesh.renderOrder, 2, 'translucent ice renders after the transparent water');
     }
+  }
+  const east = scene.children.filter(object => object.name.startsWith('Jökulsárlón · beach ice ')
+    && (object as THREE.Mesh).geometry.boundingBox!.getCenter(new THREE.Vector3()).x > 520) as THREE.Mesh[];
+  assert.ok(east.length >= 4, 'several stranded pieces survive on the eastern beach');
+  assert.ok(east.some(mesh => (mesh.material as THREE.Material).transparent)
+    && east.some(mesh => !(mesh.material as THREE.Material).transparent), 'eastern ice has clear and opaque forms');
+  for (let i = 0; i < east.length; i++) {
+    const mesh = east[i], box = mesh.geometry.boundingBox!, centre = box.getCenter(new THREE.Vector3());
+    const ground = icelandSurfaceHeight(centre.x, centre.z);
+    assert.equal(solid.get(mesh.name), true, 'visible shore ice keeps its matching collider');
+    assert.ok(ground >= -0.3 && ground <= 2.5 && box.min.y < ground + 0.1 && box.max.y > ground + 0.2,
+      'eastern pieces are partly buried in the shallow beach');
+    assert.ok(ringRoadAt(centre.x, centre.z).distance > 18, 'shore ice clears the Ring Road');
+    for (let j = 0; j < i; j++) assert.ok(centre.distanceTo(east[j].geometry.boundingBox!.getCenter(new THREE.Vector3())) > 5,
+      'eastern pieces remain distinct');
   }
   disposeScene(scene);
 });
