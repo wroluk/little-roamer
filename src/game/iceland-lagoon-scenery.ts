@@ -120,8 +120,10 @@ export function addLagoonScenery(add: AddMesh) {
     const z = 675 + icelandHash(i, 102) * 24;
     const ground = icelandSurfaceHeight(x, z);
     if (ground < -0.3 || ground > 2.5) continue;
-    const size = (0.45 + icelandHash(i, 103) * 1.4) * (i % 3 === 1 ? 2.1 + 0.3 * icelandHash(i, 217) : 1);
-    const g = fracturedIce(i + 50, size, size * 0.8, size * 0.7).translate(x, ground + size * 0.12, z);
+    const size = (0.45 + icelandHash(i, 103) * 1.4) * (i % 3 === 1 ? 2.1 + 0.3 * icelandHash(i, 217) : 1)
+      * (i === 38 ? 2.2 : 1);
+    // Use a separate shape sequence: shoreline filtering leaves only a handful of pieces.
+    const g = fracturedIce(i + 30, size, size * 0.8, size * 0.7).translate(x, ground + size * 0.12, z);
     const clear = icelandHash(i + 50, 210) > 0.6;
     add(g, iceMaterial(clear, size * (0.25 + 0.2 * icelandHash(i + 50, 214)), i + 50, true), `Jökulsárlón · beach ice ${i + 1}`, true).renderOrder = clear ? 2 : 0;
   }
