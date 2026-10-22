@@ -1,0 +1,11 @@
+{
+  "note": "Single isolated Node process sample after glacier/cave construction, not a whole-world startup benchmark. Concurrent validation can affect timings.",
+  "glacierMs": 4557.191917,
+  "caveMs": 136.4806669999998,
+  "fringeMs": 199.13237500000014,
+  "fringeVertices": 2655,
+  "fringeTriangles": 5298,
+  "fringeBufferBytes": 127368,
+  "hangingPoints": 146,
+  "glacierBuffersUnchanged": true
+}

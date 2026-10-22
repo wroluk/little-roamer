@@ -188,6 +188,41 @@ progress file.
   despite the separate mesh and softened normals. Keep the closing contour
   buried before the roof rises into the visible ice; test sampled wall clearance
   along the entire land front. Preserve the calving-wall exemption underwater.
+- Buried walls and smooth normals do not remove coarse sawteeth where two
+  independent surfaces intersect. Round the shallow ice toe in real geometry
+  and refine only the contact band, sampling the actual rendered ground
+  triangles rather than the analytic terrain underneath them. Iceland uses
+  0.6 m ice cells at land contacts and 2.4 m elsewhere, retaining a separate
+  opaque solid. Colour blending is an independent appearance choice, not a
+  substitute for aligned geometry. Share the adaptive
+  triangles and scalar fields across the exterior, cave, surface/traction
+  sampling and collision. Freeze fields along fine/coarse transitions and
+  split the adjoining coarse faces into conforming fans: matching heights
+  alone still left T-junctions and false exposed cavity edges. Keep the
+  watertight-lip check, route grades and submerged calving exemption intact.
+  Exempt the proven graded corridor from refinement as well as toe shaping:
+  denser ice over its original ground triangles changed an uphill traction
+  handoff and stopped both cars. Preserve that corridor's existing lattice,
+  compare a failed drive with main, and do not rescue it by changing physics.
+  Bound immutable sample caches and measure mesh growth instead of raising
+  the whole terrain resolution. Count actual typed-buffer bytes: crossing
+  65,535 vertices also promotes the index buffer from 16 to 32 bits. Iceland's
+  local refinement adds about 2.1 MiB of render buffers and no draw calls;
+  local desktop frame cadence is not proof of iPad Safari performance.
+  Compare the reported close view as well as
+  the other tongues; see [contact evidence](artifacts/iceland/glacier-contacts/).
+- A terrain-colour contact blend can make a separate glacier look naturally
+  dirty without changing its geometry or opacity. Blend toward the
+  actual terrain triangles' linear vertex colours, including their Float32
+  samples, not an independently evaluated colour/noise field. Exempt high snow
+  and submerged calving ice, and keep physics unchanged.
+  Different ice/ground normals can still reveal the seam despite matching
+  colours. Iceland's user accepted the dirty transition after a reversible
+  in-game comparison. It is now applied once during geometry construction,
+  after Float32 conversion, with no toggle or retained preview buffers.
+  Compare the accepted preview's actual colours and geometry byte-for-byte
+  when promoting it; see `blendGlacierTerrainColors`, the permanent-colour
+  unit/browser checks and `glacier-contacts/colour-preview/` evidence.
 - Grade an ice/rock route as a pair of surfaces: bring the independent ice roof
   to the intended line before lowering its supporting bed, while keeping the
   closure contour buried. Grading only the roof can expose the closing wall
@@ -220,6 +255,66 @@ progress file.
   the unwanted half of the actual rock ridge below the ice instead of painting
   it white. Anchor shape noise locally when relocating it, and move routes only
   when requested. Verify exposed circumference and peak height against snow.
+- A cave in a separate glacier needs an actual opening in the outer roof at both
+  approaches. Lowering that roof to the floor instead makes a solid sloping lid.
+  Clip the approach channels, close their side walls and fit a separate solid
+  vault and portal rims below the retained snow roof. Keep the highest surface
+  sampler separate from the driving/spawn/camera floor, and check vertical floor/
+  ceiling rays plus a horizontal daylight ray through both portals. See
+  `iceland-ice-cave.ts`, its scenery builder and Iceland contact/driving tests.
+- A small amount of noise on a straight semicircular vault still reads as an
+  engineered tunnel. Planar portal collars reinforce the detached appearance.
+  Intersect an asymmetric, winding cavity with the real glacier on one shared
+  triangle grid, so its inner skin and outer solid meet on the same depth-varying
+  contour. Merge branch and chamber fields before meshing: overlapping shells
+  leave walls across a Y junction. Grade the full cavity and chamber footprint,
+  not a narrow centre strip; otherwise the floor reads as a raised causeway.
+  Keep that grading footprint independent when tightening an entrance roof,
+  or the floor shoulders rise again as the void becomes smaller.
+  Preserve neighbouring upper routes and fade exposed grades before sampling
+  bounds. Check the lip, wall-to-wall floor, hall and each fork from driving
+  height as well as measuring shared render/collider seams. Current reference:
+  [Iceland cavity](src/game/iceland-ice-cave-scenery.ts),
+  [flat-floor/Y checks](tests/iceland.test.ts) and
+  [refined cave views](artifacts/iceland/ice-cave-refined/).
+- Hanging ice must be supported over its complete root footprint, not merely
+  centred on a lip where the glacier has zero thickness. Inset from the actual
+  three-dimensional contour, sample the visible ceiling across the base, bury
+  it without piercing the outer roof, and measure clearance after taper/lean.
+  A flat root plane may not fit near a thin, inclined lip: conform its vertices
+  to the actual ceiling instead of moving every piece back inside. For a dense
+  fringe, retain unequal lengths, lean and spacing without blocking the lane.
+  Continue a snowy overhang using its shared palette and opaque material at the
+  roots, not unrelated transparent blue cones behind a dark band. Verify final
+  tip clearance, smaller-mouth sightlines and real driving rather than keeping
+  an obsolete tall-vault clearance requirement. Keep visible/solid geometry and
+  disposal together; see `buildIceCaveIcicles`.
+- Matching the snow palette and burying individual icicle roots still left
+  Iceland's entrance looking knife-cut: a dark gap separated the white outer
+  edge from pieces mounted farther back on the ceiling. Roll the actual outer
+  contour down into a continuous, irregular curtain instead. Share the roof's
+  vertex colours and normals at its front join, round the shoulder through
+  depth, and end it in unequal flat hanging points rather than repeated cones.
+  Bury the back in sampled ceiling triangles; share columns across source
+  edges and close the ends so each mouth is one watertight solid. Verify the
+  connected topology, root lighting, final point clearance and real drives,
+  then compare the same close camera with the rejected attached-piece version.
+  Reuse the existing glacier buffers; do not rebuild or refine the whole cap.
+  Closing the strip at a height cutoff still left blunt caps on its sides.
+  Measure distance along the real contour from both ends and ease the profile
+  back into its buried attachment over several metres. Keep a finite closed
+  cross-section inside the solid rather than collapsing it into degenerate
+  triangles. Check terminal face interiors as well as their vertices against
+  the roof and ceiling, and inspect both shoulders of every entrance.
+- Runtime frame cadence and generation time are separate performance gates.
+  A profile on a branch predating a geometry change cannot clear that change's
+  loading cost. Record isolated builder measurements as such, not as complete
+  world-load benchmarks or physical-device acceptance.
+- Leaving photo mode restores streamed terrain asynchronously. Browser drives
+  must wait for playing mode before placing the vehicle, then wait for wheel
+  contact and settling before input. Otherwise placement can preserve loading
+  mode and falsely look like a handling failure. Wait for reset readiness before
+  checking exact destination coordinates; do not loosen driving assertions.
 - Suspension-bridge approaches must stay straight beyond the outer cable anchors,
   not merely through the deck. Jökulsá's original immediate east turn put a stay
   and anchorage in the road. Reserve the full asphalt/shoulder envelope through

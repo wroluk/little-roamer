@@ -1,6 +1,7 @@
 import { addLagoonScenery } from './iceland-lagoon-scenery';
 import { buildIcelandGlacierGeometry } from './iceland-glacier';
 import { VATNAJOKULL_ROUTE } from './iceland-vatnajokull';
+import { buildIceCaveGeometry, buildIceCaveIcicles } from './iceland-ice-cave-scenery';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
@@ -79,8 +80,16 @@ export function buildIcelandScenery(world: RAPIER.World) {
   addSolheimasandurWreck((geometry, material, name) => mesh(geometry, material, name, true));
   addReynisfjaraScenery((geometry, material, name) => mesh(geometry, material, name, true));
   addLagoonScenery(mesh);
-  mesh(buildIcelandGlacierGeometry(), new THREE.MeshStandardMaterial({ vertexColors: true,
+  const glacier = buildIcelandGlacierGeometry();
+  mesh(glacier, new THREE.MeshStandardMaterial({ vertexColors: true,
     roughness: 0.78 }), 'Iceland · solid southern glaciers', true);
+  const cave = buildIceCaveGeometry();
+  mesh(cave, new THREE.MeshPhysicalMaterial({ vertexColors: true,
+    roughness: 0.36, transmission: 0.18, thickness: 3, ior: 1.31, side: THREE.DoubleSide }),
+  'Vatnajökull · layered ice cave', true);
+  mesh(buildIceCaveIcicles(cave, glacier).geometry, new THREE.MeshStandardMaterial({ vertexColors: true,
+    roughness: 0.78, side: THREE.DoubleSide }),
+  'Vatnajökull · entrance icicles', true);
   const cairns: THREE.BufferGeometry[] = [];
   // Leave the final eastern approach clear of cairns at the Ring Road.
   for (let i = 1; i < VATNAJOKULL_ROUTE.length - 1; i++) {

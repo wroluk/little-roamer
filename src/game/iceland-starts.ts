@@ -1,5 +1,6 @@
 import { LAGOON_VIEW_ROUTE } from './iceland-lagoon';
 import { VATNAJOKULL_START } from './iceland-vatnajokull';
+import { ICE_CAVE_START, ICE_CAVE_ROUTE } from './iceland-ice-cave';
 import { LOMAGNUPUR_START } from './iceland-skeidararsandur';
 import { ICELAND_START, icelandSpawn } from './iceland-terrain';
 import { SOLHEIMASANDUR_APPROACH } from './iceland-sandur';
@@ -57,7 +58,15 @@ export const ICELAND_STARTS: readonly IcelandStart[] = [
     welcomeTitle: 'Above the southern ice.',
     description: 'Cross the broad ice plateau below the dark Grímsvötn rim. The western ascent returns to the sandur; the eastern descent returns to Route 1 beyond the lagoon.',
     hint: 'Stone cairns flank the easy traverse. Keep clear of the broken outlet tongues south of the plateau.',
-    readyMessage: 'Vatnajökull is ready. The Grímsvötn overlook lies northeast.',
+    readyMessage: 'Vatnajökull is ready. Grímsvötn lies north of the through-route.',
+  },
+  {
+    id: 'ice-cave', name: 'Western Ice Margin', position: ICE_CAVE_START,
+    heading: Math.atan2(ICE_CAVE_START.x - ICE_CAVE_ROUTE[2].x, ICE_CAVE_START.z - ICE_CAVE_ROUTE[2].z),
+    welcomeTitle: 'Beneath the blue ice.',
+    description: 'Follow winding melt passages beneath the glacier. At the fork, continue north or take the western opening to the hillside.',
+    hint: 'Three irregular mouths connect to the hillside return. The southern approach rejoins the cairned ascent.',
+    readyMessage: 'The western ice cave is ready. Follow the blue ice to the fork.',
   },
   {
     id: 'jokulsarlon', name: 'Jökulsárlón', position: LAGOON_VIEW_ROUTE[1],

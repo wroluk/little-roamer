@@ -328,7 +328,23 @@ The lagoon approach is `http://127.0.0.1:5173/?area=iceland&start=jokulsarlon`.
 The ice-cap traverse starts at `http://127.0.0.1:5173/?area=iceland&start=vatnajokull`:
 cairns mark one through-route over the ice, with a broad western ascent and an
 eastern descent to Route 1 beyond the lagoon. Grímsvötn sits farther north;
-there is no overlook branch. The western ice cave is not built yet.
+there is no overlook branch. The western ice margin has a winding blue-ice
+cavity carved into the glacier, a broad underground hall and a Y junction
+leading to three irregular mouths and an open-air hillside return:
+`http://127.0.0.1:5173/?area=iceland&start=ice-cave`.
+The floor is level across the cavity and hall, not a raised driving strip.
+Smaller entrance throats screen the upper interior. The white snow surface
+rolls over each lip into a connected fringe of irregular, flattened ice points,
+tapering back into the glacier at both sides rather than ending in exposed
+caps or separate cones attached behind the edge. There is room to drive
+beneath them.
+Shallow land-contact ice permanently blends toward the actual ground colours
+for a dirtier, more natural edge. The locally refined, rounded solid geometry
+is retained; high snow, the calving front, blue cavity and white fringe keep
+their own colours. There is no colour-preview toggle.
+The approaches connect back to the western ascent. The main ice-cap passage
+remains the higher alternative; northern Askja and Lakagígar connectors are
+not implemented yet.
 Reset returns to the nearest completed Iceland regional start. Iceland is
 separate from Iceland Highlands and stays out of the production picker/direct
 links until the coastal pilot is ready. See

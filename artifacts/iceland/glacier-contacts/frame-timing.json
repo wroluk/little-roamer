@@ -1,0 +1,38 @@
+{
+  "note": "Local macOS desktop GPU, stationary driving camera at western cave; not an iPad benchmark or a before/after comparison.",
+  "samplesPerBrowser": 240,
+  "results": [
+    {
+      "browser": "chromium",
+      "medianMs": 16.700000000000728,
+      "p95Ms": 16.700000000000728,
+      "maxMs": 16.80000000000291,
+      "drawCalls": 106,
+      "triangles": 2197620,
+      "pixelRatio": 1,
+      "graphicsReduced": false,
+      "activeRender": 25,
+      "mode": "playing",
+      "viewport": {
+        "width": 1080,
+        "height": 810
+      }
+    },
+    {
+      "browser": "webkit",
+      "medianMs": 17,
+      "p95Ms": 18,
+      "maxMs": 18,
+      "drawCalls": 106,
+      "triangles": 2197638,
+      "pixelRatio": 1,
+      "graphicsReduced": false,
+      "activeRender": 25,
+      "mode": "playing",
+      "viewport": {
+        "width": 1080,
+        "height": 810
+      }
+    }
+  ]
+}

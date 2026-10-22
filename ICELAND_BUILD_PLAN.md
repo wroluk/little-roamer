@@ -1,6 +1,6 @@
 # Iceland build plan
 
-Status: **South-coast glacier corrections accepted and pushed; expanded Vatnajökull, lower brown Grímsvötn moved north, coastal lowlands and four rounded island corners are in visual review. Vatnajökull retains only the through-route; its overlook branch is removed. Western ice cave is next** (2026-10-21).
+Status: **Vatnajökull and coastal refinements committed and pushed as `49a2046`. The winding Y cave, hall and flat floor have smaller entrance throats; the white snow now rolls over each lip into a connected fringe of irregular flat points, tapering into the glacier at both sides rather than ending in blunt caps or separate ceiling-mounted cones. Glacier/terrain contacts retain locally refined, rounded toes and the graded traverse's original triangles; accepted dirty terrain-colour fading is permanent, with no toggle. Focused geometry, both-car driving and Chromium/WebKit entrance checks pass; physical iPad and refined-world loading performance remain open, and cave/contact work remains uncommitted. Vatnajökull retains only its higher through-route, with no crater-overlook branch. Lakagígar and sandur are next** (2026-10-22).
 See [implementation progress](ICELAND_PROGRESS.md) for checks and the next chunk.
 This is a new, full-size **Iceland** location alongside the existing 480 × 480 m
 Iceland Highlands. Do not replace that location during development. The new

@@ -242,17 +242,76 @@ All four island corners are rounded, preserving the road and its dry approaches.
 The northern interior remains reserved base terrain, not a completed new region.
 
 The cyan line on the SVG/PNG concept map marks this implemented traverse.
-The other highland routes remain proposals. The cave around `(115, 290)`
-and the northern Askja/Kverkfjöll connector are still reservations, not
-completed passages. [Current captures](vatnajokull/) show arrival, low rim,
+The other highland routes remain proposals. The northern Askja/Kverkfjöll
+connector is still a reservation. [Current captures](vatnajokull/) show arrival, low rim,
 raised caldera, slopes and the preserved southern glacier contacts.
+
+### Western ice cave slice — 2026-10-21
+
+The fictional western-margin cave winds from the southern approach near
+`(112, 331)` into the glacier at `(142, 287)`, then turns northwest toward
+`(104, 211)`. A Y junction opens west through `(110, 256)` and `(88, 248)`
+to the hillside return at `(70, 240)`. It is not a straight 120 m extrusion.
+The three mouths are irregular intersections of the cavity with the real
+glacier, not planar arch collars or a tunnel attached to its outside.
+
+An unequal underground hall centred on `(130, 270)` has a roughly 50 by 58 m
+ceiling footprint, merging into all three passages without overlapping inner
+walls. Scalloped ice, unequal shoulders and changing roof height replace the
+regular semicircular vault. The broad level floor is at 78 m, continuous with
+the southern clearing, including the full width up to the ice walls. There is
+no elevated roadway or six-metre entry ramp. The inner easy lane has at least
+10 m of clearance, with over 15 m across the hall's central 20 by 20 m floor.
+The three mouths narrow into short, low throats, roughly 7–8 m high at their
+centres, before expanding into the original interior. They screen the upper
+interior on approach rather than exposing a large hall from outside.
+Layered blue ice contrasts with opaque snow above; the rounded ice shoulder
+joins the cap rather than following the cave as a separate narrow strip.
+
+The white upper surface rolls over all three lips into connected, rounded
+overhangs with unequal flat hanging points. This replaces separate tapered
+pieces set back on the ceiling, which left a knife-cut edge and dark gap above
+their roots. The front joins the real snow contour with its actual vertex
+colours and normals; the back is buried in the sampled ceiling. Shared columns
+and closed ends make each curtain a watertight solid, not a planar arch collar.
+The three curtains share one opaque, rough mesh: 146 hanging points, 2,655
+vertices and 5,298 triangles, about the same buffer storage as the previous
+97-piece fringe. Final vertices retain at least 3.95 m of floor clearance,
+with matching visible/solid geometry. There is no fallen debris or change
+to the flat interior or hall. Current close and approach captures:
+`ice-cave-lips/{chromium,webkit}/`.
+
+Both sides of each overhang ease back into the glacier over 3.2 m measured
+along the three-dimensional lip. Hanging points and the rounded projection
+shrink into the buried back attachment, rather than ending in visible vertical
+caps at the old height cutoff. The finite end faces stay entirely inside the
+ice; the central fringe, mesh counts and vehicle clearance are retained.
+The supplied abrupt-side image and preceding captures are preserved in
+`ice-cave-lips/user-abrupt-sides.png` and `ice-cave-lips/side-endings/before/`.
+
+The southern gravel approach branches from the existing ascent at `(120, 370)`.
+Beyond the north portal, a hillside return through `(70, 190)`, `(70, 240)`,
+`(70, 270)` and `(70, 330)` rejoins the same southern approach. The western
+mouth joins this return directly; none of the three exits is a dead end.
+The internal start/reset is `?area=iceland&start=ice-cave` at `(95, 350)`,
+facing the south portal. No additional roadside cairns were introduced.
+The original higher ice-cap through-route remains the alternative above the cave.
+Lakagígar and northern Askja connections remain later work, not completed exits.
+
+The floor is the sampled terrain. Cavity underside and glacier exterior use
+the same adaptive global grid and clip against their shared height difference, meeting
+along the identical three-dimensional lip. There are no extra front panels.
+The roof is continuous above the winding passages and hall, and the same
+triangles provide rendering and collision, including the Y junction.
+Driving/spawn/camera height uses the floor inside, while the surface sampler
+retains the upper snow roof for scenery and aerial rendering.
 
 | Region | Approach silhouette and palette | Easy line / harder choice / connection |
 | --- | --- | --- |
 | **South Coast** | Green escarpment and wide white Skógafoss above the Skógá plunge pool; black Sólheimasandur; Reynisfjara's vertical basalt and Reynisdrangar sea stacks. | Inland coast road and lagoon bridge; marked shallow Skógá ford downstream of the falls plus beach/outwash driving to the plane wreck; exits to sandur, Westfjords and Lakagígar. |
 | **Jökulsárlón** | Blue lagoon, scattered white/black ice, sheer striated Breiðamerkurjökull front, black beach beyond the short river. Ice mixes tabular slabs, split ridges, tilted slabs and fractured blocks, with independently varied clear/frosted pieces and a few substantially larger lagoon and beach forms. | Broad shore loop and bridge with straight approaches beyond its cable anchors; optional iceberg viewpoint; exits west along coast and uphill toward ice cap. |
 | **Vatnajökull** | Largest white mass, gently domed and fairly flat on top; a low brown half-rim at Grímsvötn emerges from the snow farther north. | One cairned passage across the ice between the graded western ascent and eastern descent. No crater-overlook spur. Northern Askja connection remains planned. |
-| **Western Ice Margin** | Layered blue ice portal cut into the western ice-cap edge. | Wide, long drive-through cave with daylight at both ends; optional ice-roof viewpoint; exits to Lakagígar, plateau and Askja approach. |
+| **Western Ice Margin** | Low, unequal white-fringed mouths cut into the glacier solid, winding blue passages and an irregular underground hall. | Flat full-width cavity floor, Y junction, three driveable mouths and a hillside return; higher cap passage remains accessible. Lakagígar and Askja connectors remain planned. |
 | **Lakagígar and Sandur** | Long row of dark cones with green moss on rock, then open grey/black braided outwash. | Firm corridor alongside fissure and broad dry sandur channels; optional rough pumice/lava lines; exits to south coast and ice margin. |
 | **Askja Highlands** | Huge dark caldera, smaller turquoise Askja Víti, pale pumice flats and Herðubreið's flat top. | Wide caldera-side road and desert corridor; optional higher rim line; exits south to glacier and north into Ódáðahraun. |
 | **Ódáðahraun** | Long, black, broken lava field with sparse moss and varied flow ages; Askja/Herðubreið recede while Mývatn's greener ground appears ahead. | Firm wandering traverse in both directions and optional rock challenges; clear entries at Askja and Mývatn. |
@@ -390,3 +449,38 @@ and supplied-angle views: `glacier-solids-final/`.
 The subsequent basal-band correction buries land-margin closing walls below
 the bed instead of leaving a uniform exposed ice lip. Current land-contact
 views: `glacier-no-band/`; the calving face remains full-height underwater.
+
+The later close-up beside the western cave exposed coarse sawteeth at the
+ice/rock intersection even with buried closures. Land contacts now have a
+rounded shallow toe and locally refined 0.6 m ice triangles; the broad cap
+retains its 2.4 m grid and the ground mesh is unchanged. The ice remains a
+separate opaque solid; the accepted shallow-contact colour blend is applied
+on top of that geometry, not instead of it.
+Exterior, cavity, occupancy and roof sampling use the same conforming
+fine/coarse transitions and the actual ground triangles. Calving walls remain
+underwater; fully graded route cells retain their original lattice as well as
+being exempt from toe rounding, preserving the proven ice/rock handoff. The current
+glacier has 137,483 triangles versus 81,886 before local refinement, without
+an additional scene object or draw call. The former refitted 97-piece fringe
+is now replaced by the continuous, rounded white lips described above; its
+opaque material, floor and passage layout are retained. The preserved user
+image, same-camera baseline and current low views are in `glacier-contacts/`.
+
+The user accepted terrain-colour fading as the permanent appearance: shallow
+land-contact ice blends toward the underlying triangles' actual linear
+Float32 colours over the first 3 m above the bed. This gives the ice a dirty,
+natural edge without changing opacity, geometry, collision, the blue cavity
+or white fringe. High snow and calving-water contact stay unchanged.
+There is no G shortcut, pause-menu toggle or retained preview-colour cache.
+Current views: `glacier-contacts/{chromium,webkit}/`; the reversible comparison
+is preserved as history in `glacier-contacts/colour-preview/`.
+
+The locally refined geometry is retained. Its render buffers total 3.98 MiB,
+about 2.07 MiB more than the original coarse glacier, including promotion to
+32-bit indices. No draw calls or per-frame geometry generation were added.
+The local macOS driving-camera sample at 1080 × 810 and pixel ratio 1 held
+approximately 60 fps in Chromium and WebKit; this is not an iPad benchmark
+or a before/after measurement. Physical iPad Safari performance remains an
+acceptance gate.
+Whole-world generation/loading with the refined glacier also remains
+unmeasured; the separate baseline investigation predates that refinement.

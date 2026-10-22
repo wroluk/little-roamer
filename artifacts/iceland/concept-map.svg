@@ -186,7 +186,15 @@
     <path d="M577 855 L537 839 L519 812 L519 785 L529 755 L540 726 L559 699 L586 683 L616 688 L645 688 L683 693 L715 704 L747 718 L774 737 L793 763 L804 788 L817 812"
       fill="none" stroke="#9ce9ec" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"
       style="filter:drop-shadow(0 1px 2px #172e36)">
-      <title>Implemented cairned Vatnajökull through passage only; ice cave and northern connector remain planned.</title>
+      <title>Implemented cairned Vatnajökull through passage; northern connector remains planned.</title>
+    </path>
+    <path d="M541 727 L533 716 L537 706 L547 695 L553 683 L547 671 L541 660 L534 650 L532 642 L524 636 L514 631 L514 658 L514 674 L514 706 L522 716 L533 716 M547 671 L535 666 L524 662 L514 658"
+      fill="none" stroke="#9ce9ec" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+      <title>Western ice cave: winding passage, underground hall and western Y exit to the hillside return. Lakagígar and Askja connections remain planned.</title>
+    </path>
+    <path d="M538 661 Q553 657 558 671 Q558 687 545 688 Q531 682 534 669Z"
+      fill="#9ce9ec" fill-opacity=".18" stroke="#9ce9ec" stroke-width="1">
+      <title>Broad irregular underground ice hall; the complete cave floor is level with the southern clearing.</title>
     </path>
   </g>
 

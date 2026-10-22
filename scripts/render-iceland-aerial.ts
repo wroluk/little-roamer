@@ -82,7 +82,7 @@ try {
         }
       scenery = buildIcelandScenery(world);
       scene.add(scenery.group);
-      for (const name of ['Iceland · solid southern glaciers', 'Iceland · deep sea', 'Skógá · continuous river'])
+      for (const name of ['Iceland · solid southern glaciers', 'Iceland · deep sea', 'Skógá · continuous river', 'Vatnajökull · layered ice cave'])
         if (!scene.getObjectByName(name)) throw new Error(`Missing actual scenery: ${name}`);
       const width = 3072, height = 3072;
       const camera = new THREE.OrthographicCamera(-area.half, area.half, area.half, -area.half, 1, 3000);

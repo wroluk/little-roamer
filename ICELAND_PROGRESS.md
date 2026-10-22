@@ -1,11 +1,455 @@
 # Iceland implementation progress
 
+## Tapered overhang sides — 2026-10-22
+
+- User identified exposed, abruptly cut caps on both sides of the new white
+  overhang. Preserved the supplied image as
+  `artifacts/iceland/ice-cave-lips/user-abrupt-sides.png` and retained the
+  preceding same-camera views under `ice-cave-lips/side-endings/before/`.
+- Reference: the current continuous, closed curtain and its ceiling-buried
+  attachment. The old 4.8 m clearance filter ended that curtain at full profile
+  thickness. Adapted the existing geometry rather than adding end decorations:
+  measure contour distance from all six ends and smoothly retract the hanging
+  profile into its supported back over the final 3.2 m. The closed end keeps
+  a small finite section entirely inside the ice, avoiding both visible slabs
+  and zero-area collapsed geometry. The central rounded lip stays intact.
+- Same 2,655 vertices, 5,298 triangles and single draw batch. No extra terrain
+  refinement, material, collider or per-frame update. Floor, routes, cavity,
+  accepted dirty contact colours and final driving clearance are retained.
+  An isolated fringe-builder probe took about 144 ms; this is not a world-load
+  benchmark and does not clear the outstanding generation-performance gate.
+- Three focused unit checks pass: cavity/solid agreement, the closed lip and
+  its six buried terminations, and permanent contact colours. The strengthened
+  lip check samples the vertices and interiors of every terminal face between
+  the actual ceiling and roof, verifies a multi-column taper, retains full
+  central projection, and still checks watertight topology, matching Rapier
+  hits and final clearance. Typecheck/production build pass.
+- Chromium/WebKit entrance scenarios pass 2/2 (3.2 minutes), covering the reported northern angle,
+  close views of both shoulders at all three mouths and six entrance drives
+  per engine. Current views replace `ice-cave-lips/{chromium,webkit}/`; the
+  single aerial is refreshed. No whole-cave unit drives were repeated because
+  this only retracts the local fringe and the browser cases exercise every
+  affected entrance in both directions.
+- **Next:** user review of the tapered sides at
+  `http://localhost:5173/?area=iceland&start=ice-cave`. Physical iPad Safari and
+  refined-world loading comparisons remain open. Work remains uncommitted;
+  unrelated work and user images are preserved. Full-project/PWA suites were
+  not rerun for this local geometry correction; last full suite remains
+  2026-10-11. Lakagígar/sandur is unchanged and not started here.
+
+## Rolled white entrance lips, not attached icicles — 2026-10-22
+
+- User reported knife-cut cave edges and requested the white top surface itself
+  continue down into hanging ice, without requiring round cones. Reproduced the
+  defect at the same close southern camera: the old fitted cones still sat
+  behind a dark, sharply cut edge despite sharing the snow palette.
+- References: the shared cavity/exterior contour, `buildIceCaveIcicles`, its
+  ceiling-root and driving-clearance checks, and the accepted opaque snow
+  material. Replaced the discrete pieces with three connected curtains built
+  from the actual exposed roof contours. A rounded depth profile flows into
+  irregular flat hanging points; its front inherits the existing snow vertices'
+  colours and normals, while its back is buried in real ceiling triangles.
+  Adjacent source edges share columns and the ends are closed. No new planar
+  portal collar, extra draw call, shader or terrain refinement was added.
+- One batch contains 146 hanging points, 2,655 vertices and 5,298 triangles,
+  versus 97 / 2,716 / 5,044 before. Buffer storage is 127,368 bytes versus
+  128,040 before. Minimum final-vertex clearance is 3.95 m. The main glacier's
+  positions, normals, indices and accepted dirty colours remain byte-identical.
+  The flat floor, Y layout, hall, high traverse and calving face are unchanged.
+- Six selected unit checks pass across the initial run and focused repeat:
+  cavity/solid integration, the new continuous lips, both cars over all three
+  full cave/return routes in both directions, calving/roof agreement and
+  permanent contact colours. The new check proves three closed connected
+  solids, inherited roof normals/colours, buried backs, bounded mesh size,
+  final clearance and matching visible/Rapier hits beneath the hanging points.
+  An obsolete length calculation measured only tip records, not the new
+  continuous lower outline; it now measures all actual outline columns and
+  passes. Production geometry was unchanged during that test correction.
+  Typecheck and production build pass.
+- Chromium and WebKit final entrance scenarios pass 2/2 (about 1.5 minutes
+  each), including all three approaches, close/oblique views and six real
+  entrance drives per engine. Inspected the actual driving-height captures,
+  including the before/after southern close-up and all three mouths. The
+  white top now visibly rolls into the fringe, rather than ending above a row
+  of attached pieces. Current evidence and retained before views:
+  `artifacts/iceland/ice-cave-lips/`. The single aerial is refreshed.
+- The isolated Node fringe-builder probe fell from about 425 ms before to
+  139 ms after (199 ms during concurrent validation), reusing the already-built
+  glacier and reducing repeated ceiling raycasts. These are individual builder
+  probes, not a whole-world loading benchmark. The user clarified that the
+  separate loading investigation runs on a branch predating detailed contacts:
+  current refined-world loading therefore remains unverified, independently
+  of the earlier desktop frame-rate sample. Physical iPad Safari performance
+  also remains open.
+- **Next:** user review at
+  `http://localhost:5173/?area=iceland&start=ice-cave`; retain the existing loading
+  and device-performance gates. Lakagígar/sandur is still the next planned
+  region, not started here. Work remains uncommitted; unrelated changes and
+  user images are preserved. Full-project/PWA suites were not rerun for this
+  local scenery replacement; last full suite remains 2026-10-11.
+
+## Permanent dirty contact colours; retained geometry — 2026-10-22
+
+- User accepted the earthy fade as more natural and requested removal of the
+  comparison controls. Promoted that exact appearance to the normal glacier
+  builder. Removed the G shortcut, pause-menu button and reversible-colour
+  cache. Reloads and location changes no longer switch back to clean contacts.
+  References: the accepted live preview, actual Float32 ground-triangle colours
+  and its unit/browser comparisons; the adaptation is applying the blend once
+  after mesh attributes are created instead of keeping alternate buffers.
+- The separate rounded solid is retained, as the user permits if technically
+  reasonable. It has 137,483 triangles, about 55,600 more than the coarse
+  version, with no additional draw calls or per-frame mesh generation.
+  Actual render buffers total 4,174,872 bytes (3.98 MiB), up about 2.07 MiB,
+  including the switch from 16-bit to 32-bit indices above 65,535 vertices.
+  This is render-buffer storage, not total CPU/physics memory.
+- Local macOS measurements at the western-cave driving camera, 1080 × 810,
+  pixel ratio 1, 25 active render chunks and normal graphics: Chromium median
+  and 95th percentile 16.7 ms; WebKit median 17 ms / 95th percentile 18 ms
+  across 240 frames each. Both recorded 106 draw calls and about 2.20 million
+  rendered triangles across passes. No immediate local frame-cadence issue
+  was observed. This is neither an iPad benchmark nor a before/after comparison;
+  physical iPad Safari performance remains open. Recorded sample:
+  `artifacts/iceland/glacier-contacts/frame-timing.json`.
+- Permanent colours match the accepted enabled preview byte-for-byte:
+  colour SHA-256
+  `834cd1a23072c9b63268a4422680fccc4f1a6656b553b433636f468d1a4ec092`.
+  Position, normal and index hashes also match exactly. No geometry, route,
+  traction, collision, floor or cave-layout changes were made for promotion.
+  High snow and underwater calving ice stay clean; the blue cavity and white
+  fringe are unchanged.
+- Four selected unit checks and typecheck/production build pass. Final
+  Chromium/WebKit margin and permanent-default scenarios pass 4/4 (2.9 minutes),
+  including no preview control, no G effect, exact parked screenshot stability
+  and unchanged colours after reload. Inspected actual close-angle images in
+  both engines; refreshed current contact captures and the single aerial.
+  Historical before/after images and the supplied user image are preserved.
+- **Next:** physical iPad Safari acceptance of the retained refinement; Lakagígar
+  and sandur remain the next planned region, not started by this colour change.
+  Work remains uncommitted. Long driving suites were not repeated because the
+  solid buffers are byte-identical to their validated versions. Full-project
+  and PWA suites were not rerun for this appearance-only promotion; last full
+  suite remains 2026-10-11. Unrelated beach, Mars and postcard work is preserved.
+
+## Optional live terrain-colour fade comparison — 2026-10-22
+
+- Historical comparison, superseded by the permanent appearance above.
+- User requested an alternative they could try while playing, not screenshots.
+  Added a development-only **G** shortcut while driving/in photo mode and a
+  touch-accessible **Glacier colour fade** button in the pause menu. Off by
+  default; reload or changing location restores the original appearance.
+  This is an explicitly requested comparison, not a replacement of the
+  accepted separate solid glacier or rounded contacts.
+- References: existing glacier vertex colours, the terrain triangle sampler,
+  coastal turnout's vertex-based transition and development instrumentation.
+  Adapted to opaque RGB blending instead of opacity: shallow ice fades toward
+  the exact ground triangles' linear Float32 colours over the first 3 m of
+  height above the bed. High snow and the full calving-water contact retain
+  their original colours. Original/faded arrays are cached per geometry with
+  weak ownership; toggling back restores every original colour exactly.
+- Positions, normals, indices, collision, traction and routes are unchanged.
+  The white entrance fringe and blue cavity are not recoloured. Inspected the
+  close reported-angle comparison: terrain colour softens the boundary but
+  produces an earthy transition; separate surface normals remain perceptible.
+  The existing default aerial is unchanged.
+- Four selected unit checks and typecheck/production build pass. Final
+  Chromium/WebKit live-toggle cases pass 2/2 (about a minute), covering keyboard
+  and pause controls, changed opaque colours, unchanged parked view and mesh
+  counts, exact restoration and area isolation. Coverage caught and corrected
+  preview-button reset placement during area changes. No long driving suites
+  were repeated for this colour-only alternative.
+- Evidence: `artifacts/iceland/glacier-contacts/colour-preview/{chromium,webkit}/`.
+  **Next:** try G at `http://localhost:5173/?area=iceland&start=ice-cave`
+  and compare at the same viewpoint. Work remains uncommitted; the default
+  remains the rounded, distinct ice edge until the user chooses otherwise.
+  Physical iPad Safari/performance, full-project and PWA coverage remain as
+  recorded below; last full suite remains 2026-10-11.
+
+## Rounded glacier/terrain contacts — 2026-10-22
+
+- User reported sharp, coarse ice/rock intersections beside the western cave.
+  Preserved the supplied image in
+  `artifacts/iceland/glacier-contacts/user-sharp-edge.png` and reproduced the
+  southern contact at driving height, with a same-camera baseline.
+- References: the accepted separate glacier's buried land closures, shared
+  cavity/exterior clipping and exact render/Rapier/sampler checks. Adapted that
+  technique with a rounded shallow land toe and local 0.6 m ice triangles.
+  The ground and broad cap retain their 2.4 m lattice. Ice remains a distinct
+  solid and material: no transparency fade, terrain paint, extra skirt or
+  removal of the framing hills.
+- Exterior, cavity, occupancy, roof sampling and collision share the adaptive
+  triangles and scalar fields. Fractional vertices use the actual ground
+  triangles, including the special compressed waterfall row, not a different
+  analytic bed. The first transition prototype failed the existing exposed
+  cavity-edge assertion: freezing heights alone left T-junctions. Conforming
+  coarse-face fans fixed the topology without relaxing that check.
+- Extended driving found an eastern uphill handoff regression near
+  `(533, 376)`: both cars stopped after refining the graded corridor, despite
+  exempting it from toe rounding. Reproduced the modern-car failure alone and
+  compared it with an isolated committed-main snapshot, where the same drive
+  passed. Preserved the original ice/bed triangles wherever a cell touches the
+  fully graded traverse. Added route-wide lattice assertions; changed neither
+  vehicle physics nor the driving test's requirements.
+- Final glacier: 70,141 vertices and 137,483 triangles versus 41,955 / 81,886
+  before contact refinement, below the regression's 150,000-triangle budget.
+  Bounded immutable grid caches and fixed fractional sample memoisation avoid
+  repeatedly evaluating the fields. No additional scenery object or draw call.
+  Calving walls retain their full underwater contact.
+- Refitting against the refined lip gives 97 icicles: 36 south, 30 north and
+  31 west, in 5,044 triangles; the cavity has 3,368 triangles. The final
+  graded-route exemption leaves the cavity and fringe's complete vertex,
+  colour, normal and index buffers byte-identical to the preceding validated
+  version. Flat floor, hall, smaller throats, Y layout and tip clearance remain
+  unchanged.
+- Final nine selected unit checks pass: rounded toes and route lattice,
+  exact roof/bed/render/Rapier contacts, submerged calving walls, tongue
+  profiles/traction, cave and icicle geometry, sampled traverse, broad grades,
+  and both cars over the complete upper passage in both directions.
+  Typecheck and production build pass. The preceding extended run also passed
+  both-car cave/Y/return drives, deterministic chunk/LOD seams and
+  stale-worker/disposal checks; its two upper-route failures are fixed above.
+- Chromium and WebKit passed all eight glacier-margin, terminal-approach,
+  entrance and full cave/Y/return/hall/reset scenarios (10.9 minutes).
+  After the route exemption, repeated final contact and entrance scenarios
+  passed 4/4 (2.1 minutes). The cave geometry was byte-identical, so its long
+  drives were not needlessly repeated after that correction.
+- Inspected the close southern comparison, northern mouth, both tongues and
+  calving views. The large sawteeth are reduced and the toe is rounder; the
+  contrasting white/dark boundary and some fine faceting remain, rather than
+  blurring the two materials together. Saved final dual-engine views in
+  `artifacts/iceland/glacier-contacts/{chromium,webkit}/`, refreshed the cave
+  gallery and regenerated the single actual-material aerial.
+- **Next:** review the contact locally at
+  `http://localhost:5173/?area=iceland&start=ice-cave`; Lakagígar/sandur remains
+  the next planned region. Work remains local and uncommitted. Physical iPad
+  Safari and its performance gate remain open; full-project/PWA suites were
+  not rerun for this local scenery change. Last recorded full suite remains
+  2026-10-11. Unrelated beach, Mars and postcard work is preserved.
+
+## Smaller mouths and a white glacier fringe — 2026-10-22
+
+- User requested a fringe instead of scattered icicle clusters, smaller
+  driveable openings that reveal less of the interior, and roots continuing
+  the white upper glacier surface. This supersedes the tall, widely spaced
+  entrance dressing described below.
+- Reference: the accepted shared-grid cavity/glacier intersection,
+  `buildIceCaveIcicles`, its whole-root contact checks, and the existing
+  glacier's snow palette and opaque material. Lowered and narrowed the three
+  entrance throats through the shared cavity field, easing back into the
+  unchanged winding passages and large hall. Central throat heights are
+  approximately 7.2–7.7 m rather than the former full-height vaults.
+  The roof remains joined to the real cap, not a new front panel or collar.
+- Preserved the original full-width floor grading separately from the
+  constricted roof. The first geometry check caught rising shoulders when
+  grading followed the newly smaller void; retaining the original grading
+  footprint fixes that without excavating the neighbouring upper route.
+- The current fringe has 88 unequal pieces: 36 south, 29 north and 23 west,
+  approximately 0.6–3.4 m long, in one 4,576-triangle solid batch.
+  Roots sit closer to the true lip and conform vertex-by-vertex to its
+  ceiling, buried below the snow. A flat root plane rejected too many
+  near-edge pieces; fitted roots retain full contact without moving the
+  fringe back inside. The lip and roots now share the actual glacier snow
+  palette; the fringe uses its opaque, rough material rather than the
+  previous separately transmitting blue decoration. Tips retain a subtle
+  pale icy tint. No loose floor ice was added.
+- Regression checks measure 5–9 m central throat clearance, solid walls
+  bounding each smaller mouth, screened upper-interior sightlines, the
+  unchanged broad level floor and hall, neighbour density across the fringe,
+  shared snow colour, buried roots, exact render/Rapier contacts, and over
+  3.8 m clearance beneath every final bent vertex. Six focused
+  geometry/terrain/streaming/disposal checks and typecheck/production build
+  pass. The aperture-change run passed ten selected checks, including both
+  cars driving the main passage, Y branch and hillside return both ways, plus
+  both directions over the preserved higher cap passage. Final Chromium and
+  WebKit scenarios passed (4/4): entrance views/materials and all three real
+  cave routes in both directions, hall placement and nearest reset.
+- Inspected final Chromium and WebKit views of all three mouths and the close southern
+  lip at driving height: white roots read as part of the overhang, while the
+  smaller throats screen the upper interior. Refreshed the actual-material
+  aerial. Current captures are preserved in
+  `artifacts/iceland/ice-cave-refined/{chromium,webkit}/`.
+- **Next:** view the smaller white-fringed mouths locally at
+  `http://localhost:5173/?area=iceland&start=ice-cave`.
+  Work remains local and uncommitted. Physical iPad Safari,
+  full-project and PWA checks have not been rerun; the last recorded full
+  suite remains 2026-10-11. Lakagígar/sandur remains the next planned region.
+
+## Western cave entrance icicles — 2026-10-21
+
+- User accepted the revised cavity/hall/flat-floor shape and requested entrance
+  icicles. Added 46 irregular hanging pieces: 22 at the southern mouth, 16 at
+  the northern mouth and eight at the western fork. Lengths range from about
+  0.8 to 5.3 m, with uneven spacing, omissions, thickness, taper and slight
+  lean. The accepted cave geometry, level floor and routes are unchanged.
+- References: the existing cavity's shared three-dimensional lip and exact
+  contact checks, the lagoon's seeded `fracturedIce` variation/physical ice
+  material, and existing scenery render/collider/disposal ownership. Adapted
+  footprint grounding for hanging forms: inset candidates from the actual
+  lip, ray-sample the entire root footprint against the visible ceiling, bury
+  the base in ice and reject roots that could poke through the snow.
+- All final vertices retain over 10 m of floor clearance. The lightly
+  transmitting pale ice is one 2,392-triangle batch with the identical Rapier
+  mesh, owned and disposed by existing scenery. No new floor obstacles,
+  falling debris or motion were introduced.
+- The cavity and new icicle geometry/contact units passed, as did typecheck
+  and production build. The final four-view entrance scenario passed in
+  Chromium and WebKit (2/2); inspected each mouth at driving height and a
+  close southern view. An initial browser lookup used an orphaned, no-HMR
+  test server with cached scenery; identified and stopped that session-owned
+  process, then reran against a fresh server. This was not a missing runtime
+  mesh. Preserved corrected views in
+  `artifacts/iceland/ice-cave-refined/{chromium,webkit}/` and refreshed the
+  single actual-material aerial.
+- Full drives were not repeated for this high-clearance decoration; their
+  preceding two-car and dual-engine cave results remain recorded below.
+  Full-project/PWA suites and physical iPad Safari were not rerun. Last
+  recorded full-project run remains 2026-10-11.
+- **Next:** review the entrance detail locally at
+  `http://localhost:5173/?area=iceland&start=ice-cave`. Cave work remains
+  uncommitted; no unrelated beach, Mars or postcard edits were changed.
+  Lakagígar/sandur remains the next planned region.
+
+## Western cave: glacier cavity, Y junction, hall and flat floor — 2026-10-21
+
+- User rejected the regular tunnel attached to the glacier and requested a
+  naturally integrated entrance, non-straight passage, possible Y junction,
+  underground hall and a flat floor rather than a raised strip. This supersedes
+  the earlier two-portal cave geometry and its captures below.
+- The shared guide already warned against symmetric primitives and repeated
+  extrusions. The first implementation did not carry that lesson far enough:
+  small centreline noise and blue ice did not disguise a semicircular tube and
+  planar portal collars. References for this correction: Mars
+  `lavaTubeGeometry`, its solid/open-passage tests and the guide's buried,
+  unequal forms; Iceland's exact glacier triangles and render/collider checks.
+  Reviewed the user's [flat-floor entrance reference](https://thumbs.dreamstime.com/b/ice-cave-26646831.jpg).
+  The supplied Westend61 Plaine Morte image returned HTTP 402, so no visual
+  comparison with that image is claimed. Reference URLs remain preserved in
+  this conversation; the fetched preview is kept in session artifacts.
+- Replaced the separate extruded arch with a cavity intersecting the actual
+  glacier solid. The inner blue skin and outer snow use the same global
+  triangles and interpolated clearance field: their lip meets along a shared
+  three-dimensional contour, without front panels, a collar or a detached
+  shell. The broad, noisy rounded glacier shoulder attaches to the cap rather
+  than following the tunnel as a narrow strip. Unequal widths, shear, scallops
+  and changing roof height are actual geometry, not just colour variation.
+- The main passage now bends from `(112, 331.2)` through `(132, 310)` and
+  `(142, 287)`, turning northwest through `(132, 265)` toward the northern
+  mouth. A western fork through `(110, 256)` and `(88, 248)` exits to the
+  hillside return at `(70, 240)`. All three mouths have a return route.
+  The branching cavity is merged before meshing, so no second shell blocks
+  the Y junction.
+- Added an irregular underground hall centred near `(130, 270)`, with an
+  approximately 50 by 58 m ceiling footprint and three passage openings.
+  Lowered the main cavity/hall floor from 84 m to the southern clearing's
+  78 m level, and graded the full cavity width to the walls. Removed the
+  narrow bright-blue driving ribbon; the broad floor is muted frosty gravel/
+  ice, with gravel on exposed approaches. The external hillside return keeps
+  its gentle elevation changes. The original higher glacier traverse remains
+  above the cavity and retains its grades.
+- Early checks caught a missing northern terrain chunk in the expanded geometry
+  test, and the first broad floor grade disturbed an upper-route shoulder.
+  Restricted the full cavity excavation to the actual underground extent,
+  preserving the exposed ascent. Also faded outside grades before the sampling
+  bounds to prevent a new approach step. These are geometry/test-fixture
+  corrections, not vehicle-physics changes or relaxed drive-completion checks.
+- Final checks: nine focused unit/real-driving checks passed: geometry,
+  wall-to-wall level floor, broad hall,
+  three-dimensional mouth contact, open fork lanes, exact visible/solid roof
+  and floor, safe start, original traverse grades/contacts, chunk/LOD seams,
+  stale/error worker handling, full disposal and calving-water contact. Both real
+  cars completed the main passage, Y branch and hillside return in both
+  directions after lowering the floor. The final envelope correction and direct
+  blocked-line/flat-floor regression were rechecked separately; typecheck and
+  production build passed. The cavity's nominal north/south span remains 120 m,
+  but a solid wall now interrupts the straight line between them.
+- Final Chromium and WebKit cave scenarios passed (2/2), each driving all three
+  routes in both directions, checking the actual hall floor/ice HUD and nearest
+  reset. The earlier interrupted browser run is not counted as a pass.
+  Compared actual low portal, oblique glacier, hall and driving-height captures
+  under `artifacts/iceland/ice-cave-refined/{chromium,webkit}/`. The old cave
+  directory is superseded evidence, not the current accepted shape; intermediate
+  raised-floor trial views were moved to session storage.
+- Regenerated the single 3072-square actual-material aerial and the separate
+  concept SVG/PNG, including the winding route, hall and Y branch. The user's
+  local server remains running.
+- **Next:** user visual review at
+  `http://localhost:5173/?area=iceland&start=ice-cave`.
+  Work is uncommitted; unrelated beach, Mars and postcard work is preserved.
+  Physical iPad acceptance remains open, and no full-project/PWA rerun is
+  claimed; the last recorded full-project run remains 2026-10-11. The region
+  stays internal. Lakagígar/sandur follows user review of this cave.
+
 ## Eastern Jökulsá beach ice — 2026-10-21
 
 - The user found only one small piece of ice east of the outlet. A fresh Chromium capture from `(541, 3.2, 685)` confirmed it. The existing eastern scatter used a broad `z = 675–699` rectangle; the narrow beach falls below the water surface across most of that range, so nearly all candidates were filtered out.
 - Reference: the existing `fracturedIce` forms, shore materials and `add(..., true)` render/collider ownership in `src/game/iceland-lagoon-scenery.ts`, plus its ice-mix regression in `tests/iceland.test.ts`. Kept that technique, its western placements and lagoon ice. Adapted the eastern candidates to follow the sampled dry-shore slope, retain a shallow-ground filter, and keep at least 6 m between survivors. A modest size floor makes the smaller pieces visible from the beach. The eastern side now has five distinct pieces instead of one; the west still has four. All five eastern pieces are solid, partly buried and more than 18 m from the Ring Road.
 - The focused ice unit check, typecheck, production build and `git diff --check` passed. Compared identical beach-level Chromium captures before/after and inspected the final WebKit view under `artifacts/iceland/east-beach-ice/`. Both final views show the scattered group along the waterline with the road open above it. This was a focused visual check; the long five-view browser scenario, full unit/browser suites and physical iPad Safari review were not run for this local correction.
 - Next: user review of the eastern beach in the game; keep the separate cave and postcard work out of this ice commit. Continue the previously planned Iceland region work after that review.
+
+## Western ice margin: drive-through cave — 2026-10-21
+
+- Committed and pushed the accepted Vatnajökull/coastal/map/junction work as
+  `49a2046`. Left concurrent Mars/postcard changes uncommitted and untouched.
+  The ordinary push could not find a password through `osxkeychain`; succeeded
+  with the saved github.com login through a command-local `gh auth git-credential`
+  helper, without changing credential configuration or persisting credentials.
+- Built the next planned slice: a 120 m fictional western-margin ice cave near
+  `x = 105`, between `z = 211.2` and `331.2`. A gently unequal blue layered vault
+  and two open portal rims sit below the opaque glacier roof. Light physical
+  transmission distinguishes the ice from snow without an alpha-blended shell.
+  The sampled floor is approximately 84 m high; the 8 m-wide easy lane has more
+  than 12 m of headroom. Visible vault, rims and approach walls are solid.
+- The southern gravel approach joins the accepted western ascent at `(120, 370)`.
+  The northern portal connects to an open-air hillside return through
+  `(70, 190)`, `(70, 270)` and `(70, 330)`, closing the loop at the south approach.
+  Both entrances have daylight and a clear driving line; no new cairns were added.
+  The existing higher cap traverse remains the alternative above the cave.
+  Lakagígar and Askja connectors are explicitly future work.
+- Added internal start/reset `?area=iceland&start=ice-cave` at `(95, 350)`,
+  facing the south portal. Kept highest-surface sampling for the snow roof
+  separate from driving/spawn/camera floor selection inside the cave.
+  Ground scatter excludes the complete final route offsets. Existing scene
+  ownership disposes the vault material/geometry and its Rapier collider.
+- References: Mars `lavaTubeGeometry` and tube tests for a real separate vault
+  over a graded terrain floor, shared render/collision triangles, open portals
+  and actual drives; Iceland's independent glacier, paired grading, exact
+  sampling, cairns and regional starts. Adapted the technique for a single
+  translucent ice vault and continuous retained snow roof, rather than copying
+  Mars's collapsed rock skylights. Both exposed approaches are clipped out of
+  the glacier roof; lowering the roof into a channel would create a solid lid.
+- Initial checks caught overlapping fork grades and interference with the
+  existing through-route shoulders. Moved the vault slightly north, joined both
+  lower branches at one equal-height point, and preserved primary-route grades
+  through the exposed approach. The first browser drives failed before entering
+  the cave; an isolated reproduction passed after the browser drive helper
+  waited for wheel contact and settling, matching the unit driver's idle start.
+  No physics tuning or relaxed drive-completion assertions.
+- Focused unit coverage passed: portal daylight ray in both directions; exact
+  floor/vault collision and measured headroom; dry level regional starts; the
+  retained traverse/low brown rim and exact glacier/rim contacts; both real cars
+  on the complete cave and return routes both directions; retained cairn
+  omissions; exact chunk/LOD seams; worker errors/stale results and complete
+  collider disposal; accepted solid glacier/calving contact. Typecheck/build
+  passed. The final flat clearing also passed a full-wheelbase height check;
+  Chromium remained stationary at `(95, 350)` after settling and reset there.
+- Earlier WebKit runs failed while loading, not at a cave obstacle. Returning
+  from photo mode streams terrain asynchronously; vehicle placement started too
+  early and retained loading mode. The browser helper now waits for playing mode
+  before placement, then wheel contact and settling. Reset checks wait for the
+  reset button to re-enable before asserting the unchanged exact destination.
+  The final cave and plateau scenarios passed in Chromium and WebKit (4/4),
+  including cave/return drives in both directions and nearest reset. No physics
+  changes or weakened position/drive assertions.
+- Refreshed the single aerial and concept map for the cave. Preserved actual
+  portal, interior, margin and driving-height captures under
+  `artifacts/iceland/ice-cave/{chromium,webkit}/`; reviewed the blue vault and
+  stable angled arrival. The region remains internal and awaits user visual
+  review. Physical iPad Safari and ordinary software-headless Chromium
+  acceptance remain open. No full-project or PWA suites were rerun for this
+  local region; the last recorded full-project run remains 2026-10-11.
+- **Next:** user visual review at
+  `http://localhost:5173/?area=iceland&start=ice-cave`. This cave work is not
+  committed. Lakagígar and sandur are the next planned region after review.
 
 ## Eastern entry: clear the lower cairns — 2026-10-21
 

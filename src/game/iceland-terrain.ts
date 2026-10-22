@@ -1,7 +1,8 @@
-import { southernGlacier, GLACIER_MARGIN_WEIGHT, calvingBay, lagoonCarve, lagoonRouteDistance, onJokulsaBridge, JOKULSA_BRIDGE } from './iceland-lagoon';
+import { southernGlacier, GLACIER_MARGIN_WEIGHT, ICELAND_GLACIER_BOUNDS, calvingBay, lagoonCarve, lagoonRouteDistance, onJokulsaBridge, JOKULSA_BRIDGE } from './iceland-lagoon';
 import { lomagnupurRise, lomagnupurTalus, lomagnupurRouteDistance, skeidararsandurWeight, sandurChannel } from './iceland-skeidararsandur';
 import { icelandNoise } from './iceland-noise';
 import { grimsvotnRockHeight, vatnajokullRouteAt } from './iceland-vatnajokull';
+import { iceCaveRouteAt, iceCaveOpenApproach, iceCaveInBounds, iceCaveVaultRise, insideIceCave, onIceCaveFloor } from './iceland-ice-cave';
 import type { SurfaceId } from './surfaces';
 import { FALL, SKOGA_BRIDGE, onSkogaBridge } from './iceland-layout';
 import { ringRoadAt, ringRoadCoastAt, RING_HALF_WIDTH } from './iceland-road';
@@ -110,10 +111,13 @@ export function icelandHeight(x: number, z: number) {
   h += (Math.min(h, glacier.height - 8) - h) * smooth(glacier.weight / GLACIER_MARGIN_WEIGHT);
   h = Math.max(h, grimsvotnRockHeight(x, z));
   const iceRoute = vatnajokullRouteAt(x, z);
-  const iceTaper = smooth((glacier.weight - 0.4) / 0.5);
+  const iceTaper = iceCaveOpenApproach(x, z) ? 0 : smooth((glacier.weight - 0.4) / 0.5);
   // Meet the graded ice roof before lowering its bed; contour walls stay buried.
   const routeBed = iceRoute.height - 4 * smooth((iceTaper - 0.2) / 0.8);
   h += (routeBed - h) * iceRoute.blend;
+  const caveRoute = iceCaveRouteAt(x, z);
+  h += (caveRoute.height - h) * caveRoute.blend
+    * (onIceCaveFloor(x, z) ? 1 : smooth((iceRoute.distance - 8) / 13));
   const lagoonTrack = 1 - smooth((lagoonRouteDistance(x, z) - 4.5) / 10);
   h += (shelf - h) * lagoonTrack;
   const wreckApproach = 1 - smooth((solheimasandurApproachDistance(x, z) - 3.5) / 10);
@@ -182,9 +186,13 @@ export function icelandHeight(x: number, z: number) {
 /** Collapse one terrain row at the brink into a 5 cm vertical rock face.
  * Both rendering and collision use this coordinate; no decorative cliff shell.
  */
-export const icelandGridZ = (row: number) => Math.fround(row === 196 ? 468.05 : row * ICELAND_CELL);
+export function icelandGridZ(row: number): number {
+  if (Number.isInteger(row)) return Math.fround(row === 196 ? 468.05 : row * ICELAND_CELL);
+  const whole = Math.floor(row);
+  return Math.fround(icelandGridZ(whole) + (icelandGridZ(whole + 1) - icelandGridZ(whole)) * (row - whole));
+}
 /** Barycentric interpolation of the actual terrain triangle, including the brink row. */
-function sampleIcelandTriangle(x: number, z: number, valueAt: (x: number, z: number) => number) {
+export function sampleIcelandTriangle(x: number, z: number, valueAt: (x: number, z: number) => number) {
   const gx = x / ICELAND_CELL, ix = Math.floor(gx), u = gx - ix;
   let iz = Math.floor(z / ICELAND_CELL);
   if (z >= icelandGridZ(196) && z < 470.4) iz = 196;
@@ -197,10 +205,17 @@ function sampleIcelandTriangle(x: number, z: number, valueAt: (x: number, z: num
 export const icelandBedHeight = (x: number, z: number) =>
   sampleIcelandTriangle(x, z, (x, z) => Math.fround(icelandHeight(x, z)));
 export const icelandIceAt = (x: number, z: number) =>
-  sampleIcelandTriangle(x, z, (x, z) => southernGlacier(x, z).weight) >= GLACIER_MARGIN_WEIGHT
+  (!iceCaveInBounds(x, z) || iceCaveVaultRise(x, z) <= 0 || sampleIcelandIceTriangle(x, z, (ix, iz) =>
+    icelandIceGridHeight(ix, iz) - icelandIceGridBedHeight(ix, iz)
+      - icelandIceGridSample(ix, iz, iceCaveVaultRise)) >= 0)
+    && sampleIcelandIceTriangle(x, z, (ix, iz) =>
+      icelandIceGridSample(ix, iz, (x, z) => southernGlacier(x, z).weight)) >= GLACIER_MARGIN_WEIGHT
     && icelandGlacierHeight(x, z) >= icelandBedHeight(x, z);
 export function icelandIceVertexHeight(x: number, z: number) {
-  const ice = southernGlacier(x, z), bed = icelandHeight(x, z);
+  return iceRoofHeight(x, z, icelandHeight(x, z));
+}
+function iceRoofHeight(x: number, z: number, bed: number) {
+  const ice = southernGlacier(x, z);
   const thickness = Math.max(0, ice.height - bed + 1);
   const taper = smooth((ice.weight - 0.4) / 0.5);
   // Bury the closure contour before the roof rises, avoiding an exposed vertical
@@ -210,13 +225,131 @@ export function icelandIceVertexHeight(x: number, z: number) {
   const exposed = smooth(taper / 0.2);
   const routeRoof = (bed - 1) * (1 - exposed) + route.height * exposed;
   height += (routeRoof - height) * route.blend;
+  const gap = height - bed;
+  if (gap > 0 && gap < 4)
+    height += gap * (smooth(gap / 4) - 1) * (1 - calvingBay(x, z)) * (1 - route.blend);
   return Math.fround(height);
 }
+const iceGridBounds = {
+  x0: Math.floor(ICELAND_GLACIER_BOUNDS.x0 / ICELAND_CELL), x1: Math.ceil(ICELAND_GLACIER_BOUNDS.x1 / ICELAND_CELL),
+  z0: Math.floor(ICELAND_GLACIER_BOUNDS.z0 / ICELAND_CELL), z1: Math.ceil(ICELAND_GLACIER_BOUNDS.z1 / ICELAND_CELL),
+};
+const iceGridWidth = iceGridBounds.x1 - iceGridBounds.x0 + 1;
+const iceGridSize = iceGridWidth * (iceGridBounds.z1 - iceGridBounds.z0 + 1);
+// Bounded immutable samples keep the denser mesh and per-wheel queries on the same inexpensive field.
+const iceGridCache = { ready: new Uint8Array(iceGridSize), detail: new Uint8Array(iceGridSize),
+  roof: new Float32Array(iceGridSize), bed: new Float32Array(iceGridSize), weight: new Float32Array(iceGridSize),
+  graded: new Uint8Array(iceGridSize) };
+function coarseIceGridIndex(ix: number, iz: number) {
+  if (ix < iceGridBounds.x0 || ix > iceGridBounds.x1 || iz < iceGridBounds.z0 || iz > iceGridBounds.z1) return -1;
+  const index = ix - iceGridBounds.x0 + (iz - iceGridBounds.z0) * iceGridWidth;
+  if (!iceGridCache.ready[index]) {
+    const x = ix * ICELAND_CELL, z = icelandGridZ(iz), bed = icelandHeight(x, z);
+    iceGridCache.bed[index] = bed; iceGridCache.roof[index] = iceRoofHeight(x, z, bed);
+    iceGridCache.graded[index] = vatnajokullRouteAt(x, z).blend === 1 ? 1 : 0;
+    iceGridCache.weight[index] = southernGlacier(x, z).weight; iceGridCache.ready[index] = 1;
+  }
+  return index;
+}
+export function icelandIceCellDivisions(ix: number, iz: number) {
+  if (ix < iceGridBounds.x0 || ix >= iceGridBounds.x1 || iz < iceGridBounds.z0 || iz >= iceGridBounds.z1) return 1;
+  const index = coarseIceGridIndex(ix, iz), cached = iceGridCache.detail[index];
+  if (cached !== 0) return cached;
+  let low = Infinity, high = -Infinity, weight = 0, graded = false;
+  for (const dx of [0, 1]) for (const dz of [0, 1]) {
+    const vertex = coarseIceGridIndex(ix + dx, iz + dz), gap = iceGridCache.roof[vertex] - iceGridCache.bed[vertex];
+    low = Math.min(low, gap); high = Math.max(high, gap);
+    weight = Math.max(weight, iceGridCache.weight[vertex]);
+    graded ||= iceGridCache.graded[vertex] === 1;
+  }
+  // Keep the proven roof/bed traction handoff on its original triangles.
+  const divisions = !graded && weight >= GLACIER_MARGIN_WEIGHT && low < 2.5 && high > 0.1 ? 4 : 1;
+  iceGridCache.detail[index] = divisions;
+  return divisions;
+}
+type IceGridPoint = readonly [number, number];
+export function forEachIcelandIceTriangle(bounds: { x0: number; x1: number; z0: number; z1: number },
+  visit: (a: IceGridPoint, b: IceGridPoint, c: IceGridPoint) => void) {
+  // Split the coarse face too, so a refined edge never leaves a T-junction in the cave skin.
+  const transition = (points: [IceGridPoint, IceGridPoint, IceGridPoint], edges: number[]) => {
+    if (edges.every(n => n === 1)) { visit(...points); return; }
+    const boundary: IceGridPoint[] = [];
+    for (let i = 0; i < 3; i++) {
+      const a = points[i], b = points[(i + 1) % 3];
+      for (let j = 0; j < edges[i]; j++)
+        boundary.push([a[0] + (b[0] - a[0]) * j / edges[i], a[1] + (b[1] - a[1]) * j / edges[i]]);
+    }
+    const center: IceGridPoint = [(points[0][0] + points[1][0] + points[2][0]) / 3,
+      (points[0][1] + points[1][1] + points[2][1]) / 3];
+    for (let i = 0; i < boundary.length; i++) visit(center, boundary[i], boundary[(i + 1) % boundary.length]);
+  };
+  for (let iz = Math.floor(bounds.z0 / ICELAND_CELL + 1e-8); iz < Math.ceil(bounds.z1 / ICELAND_CELL - 1e-8); iz++)
+    for (let ix = Math.floor(bounds.x0 / ICELAND_CELL + 1e-8); ix < Math.ceil(bounds.x1 / ICELAND_CELL - 1e-8); ix++) {
+      const divisions = icelandIceCellDivisions(ix, iz), step = 1 / divisions;
+      for (let dz = 0; dz < divisions; dz++) for (let dx = 0; dx < divisions; dx++) {
+        const x = ix + dx * step, z = iz + dz * step;
+        const a: IceGridPoint = [x, z], b: IceGridPoint = [x, z + step];
+        const c: IceGridPoint = [x + step, z + step], d: IceGridPoint = [x + step, z];
+        if (divisions > 1) { visit(a, b, d); visit(d, b, c); }
+        else {
+          transition([a, b, d], [icelandIceCellDivisions(ix - 1, iz), 1, icelandIceCellDivisions(ix, iz - 1)]);
+          transition([d, b, c], [1, icelandIceCellDivisions(ix, iz + 1), icelandIceCellDivisions(ix + 1, iz)]);
+        }
+      }
+    }
+}
+/** Match the coarse neighbour along a refined edge, avoiding cracks and different cavity lips. */
+export function icelandIceGridSample(ix: number, iz: number, valueAt: (x: number, z: number) => number) {
+  const col = Math.floor(ix), row = Math.floor(iz), u = ix - col, v = iz - row;
+  if ((u !== 0 || v !== 0) && icelandIceCellDivisions(col, row) === 1)
+    return sampleIcelandTriangle(ix * ICELAND_CELL, icelandGridZ(iz), valueAt);
+  if (u !== 0 && v === 0 && (icelandIceCellDivisions(col, row - 1) === 1 || icelandIceCellDivisions(col, row) === 1))
+    return valueAt(col * ICELAND_CELL, icelandGridZ(row)) * (1 - u)
+      + valueAt((col + 1) * ICELAND_CELL, icelandGridZ(row)) * u;
+  if (v !== 0 && u === 0 && (icelandIceCellDivisions(col - 1, row) === 1 || icelandIceCellDivisions(col, row) === 1))
+    return valueAt(col * ICELAND_CELL, icelandGridZ(row)) * (1 - v)
+      + valueAt(col * ICELAND_CELL, icelandGridZ(row + 1)) * v;
+  return valueAt(ix * ICELAND_CELL, icelandGridZ(iz));
+}
+export function icelandIceGridBedHeight(ix: number, iz: number) {
+  if (Number.isInteger(ix) && Number.isInteger(iz)) {
+    const index = coarseIceGridIndex(ix, iz);
+    if (index >= 0) return iceGridCache.bed[index];
+  }
+  return icelandBedHeight(ix * ICELAND_CELL, icelandGridZ(iz));
+}
+const iceContactHeights = new Map<string, number>();
+export function icelandIceGridHeight(ix: number, iz: number) {
+  if (Number.isInteger(ix) && Number.isInteger(iz)) {
+    const index = coarseIceGridIndex(ix, iz);
+    return index >= 0 ? iceGridCache.roof[index] : icelandIceVertexHeight(ix * ICELAND_CELL, icelandGridZ(iz));
+  }
+  const key = `${ix},${iz}`, cached = iceContactHeights.get(key);
+  if (cached !== undefined) return cached;
+  const height = Math.fround(icelandIceGridSample(ix, iz, (x, z) => iceRoofHeight(x, z, icelandBedHeight(x, z))));
+  iceContactHeights.set(key, height);
+  return height;
+}
+function sampleIcelandIceTriangle(x: number, z: number, valueAt: (ix: number, iz: number) => number) {
+  const col = Math.floor(x / ICELAND_CELL);
+  let row = Math.floor(z / ICELAND_CELL);
+  if (z >= icelandGridZ(196) && z < 470.4) row = 196;
+  const divisions = icelandIceCellDivisions(col, row);
+  const gx = x / ICELAND_CELL, gz = row + (z - icelandGridZ(row)) / (icelandGridZ(row + 1) - icelandGridZ(row));
+  const ix = col + Math.floor((gx - col) * divisions) / divisions;
+  const iz = row + Math.floor((gz - row) * divisions) / divisions;
+  const step = 1 / divisions, u = (gx - ix) * divisions, v = (gz - iz) * divisions;
+  const a = valueAt(ix + step, iz), b = valueAt(ix, iz + step);
+  return u + v <= 1 ? valueAt(ix, iz) + u * (a - valueAt(ix, iz)) + v * (b - valueAt(ix, iz))
+    : valueAt(ix + step, iz + step) + (1 - u) * (b - valueAt(ix + step, iz + step))
+      + (1 - v) * (a - valueAt(ix + step, iz + step));
+}
 export const icelandGlacierHeight = (x: number, z: number) =>
-  sampleIcelandTriangle(x, z, icelandIceVertexHeight);
+  sampleIcelandIceTriangle(x, z, icelandIceGridHeight);
 export const icelandSurfaceHeight = (x: number, z: number) =>
   icelandIceAt(x, z) ? Math.max(icelandBedHeight(x, z), icelandGlacierHeight(x, z)) : icelandBedHeight(x, z);
-export const icelandDrivingHeight = (x: number, z: number) => onJokulsaBridge(x, z) ? Math.max(JOKULSA_BRIDGE.y, icelandSurfaceHeight(x, z)) : onSkogaBridge(x, z) ? Math.max(SKOGA_BRIDGE.y, icelandSurfaceHeight(x, z)) : icelandSurfaceHeight(x, z);
+export const icelandDrivingHeight = (x: number, z: number) => insideIceCave(x, z) ? icelandBedHeight(x, z)
+  : onJokulsaBridge(x, z) ? Math.max(JOKULSA_BRIDGE.y, icelandSurfaceHeight(x, z)) : onSkogaBridge(x, z) ? Math.max(SKOGA_BRIDGE.y, icelandSurfaceHeight(x, z)) : icelandSurfaceHeight(x, z);
 export const icelandSpawn = (p = ICELAND_START) => ({ ...p, y: icelandDrivingHeight(p.x, p.z) + 1.25 });
 export function icelandWaterHeight(x: number, z: number): number | null {
   if (z >= SKOGA_WATER_START && z <= 700 && (z <= FALL.terrainLipZ ? upperRiverDistance(x, z) < 30 : Math.abs(x - riverX(z)) < 35)) {
@@ -234,6 +367,7 @@ export function icelandSurfaceAt(x: number, z: number): SurfaceId {
   if (trailDistance(x, z) < 5.5 || lomagnupurRouteDistance(x, z) < 4.5) return 'dirt';
   if (lagoonRouteDistance(x, z) < 4.5) return 'dirt';
   if (icelandIceAt(x, z)) return 'ice';
+  if (iceCaveRouteAt(x, z).distance < 8) return 'dirt';
   if (grimsvotnRockHeight(x, z) > 109) return 'rock';
   if (vatnajokullRouteAt(x, z).distance < 8) return 'dirt';
   if (lomagnupurRise(x, z) > 8) return 'rock';
@@ -246,7 +380,7 @@ export function icelandSurfaceAt(x: number, z: number): SurfaceId {
   return 'moss';
 }
 const linear = (v: number) => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-function terrainColor(x: number, z: number) {
+export function icelandTerrainColor(x: number, z: number) {
   const rock = z > 465 && z < 483;
   const sandur = solheimasandurWeight(x, z);
   const reynisBeach = reynisBeachWeight(x, z);
@@ -288,6 +422,11 @@ function terrainColor(x: number, z: number) {
   base = base.map((v, i) => v * (1 - caldera) + ([0.34, 0.27, 0.20][i] + grain + patch * 0.06) * caldera);
   const iceTrack = (1 - smooth((vatnajokullRouteAt(x, z).distance - 5) / 6));
   base = base.map((v, i) => v * (1 - iceTrack * 0.65) + [0.37, 0.36, 0.32][i] * iceTrack * 0.65);
+  const caveFloor = insideIceCave(x, z);
+  const caveTrack = caveFloor ? 1 : 1 - smooth((iceCaveRouteAt(x, z).distance - 5) / 6);
+  const caveIce = caveFloor && icelandIceAt(x, z);
+  base = base.map((v, i) => v * (1 - caveTrack)
+    + (caveIce ? [0.34 + patch * 0.04, 0.43 + patch * 0.04, 0.45 + patch * 0.04][i] : [0.37, 0.36, 0.32][i]) * caveTrack);
   const cliffTrack = (1 - smooth((Math.min(lomagnupurRouteDistance(x, z), lagoonRouteDistance(x, z)) - 2.8) / 4.5));
   base = base.map((v, i) => v * (1 - cliffTrack * 0.7) + [0.37, 0.36, 0.32][i] * cliffTrack * 0.7);
   // The continuous road mesh owns its asphalt colour. Painting sampled terrain
@@ -309,7 +448,7 @@ export function generateIcelandChunk(cx: number, cz: number, coarse = false): Ic
     const key = `${i},${j}`, found = lookup.get(key); if (found !== undefined) return found;
     const x = (cx * 40 + i) * 2.4, z = icelandGridZ(cz * 40 + j), h = icelandHeight(x, z);
     const index = vertices.length / 3;
-    vertices.push(x, h, z); colors.push(...terrainColor(x, z));
+    vertices.push(x, h, z); colors.push(...icelandTerrainColor(x, z));
     const nx = icelandHeight(x - 1.2, z) - icelandHeight(x + 1.2, z);
     const nz = icelandHeight(x, z - 1.2) - icelandHeight(x, z + 1.2), length = Math.hypot(nx, 2.4, nz);
     normals.push(nx / length, 2.4 / length, nz / length); lookup.set(key, index); return index;

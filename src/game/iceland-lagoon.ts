@@ -1,4 +1,5 @@
 import { icelandNoise } from './iceland-noise';
+import { iceCaveWeight } from './iceland-ice-cave';
 const smooth = (value: number) => { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); };
 export const JOKULSARLON = { x: 485, z: 553, level: 0 };
 export const JOKULSA_BRIDGE = { x: 500, z: 650, y: 4.8, length: 88, width: 12 };
@@ -85,10 +86,11 @@ export function southernGlacier(x: number, z: number) {
   const eastFront = 493 + 20 * (icelandNoise(x / 16, 42) - 0.5);
   const east = (1 - smooth((Math.abs(x - eastX) - eastWidth + margin) / 10))
     * smooth((z - 265) / 35) * (1 - smooth((z - eastFront) / 3));
-  const weight = Math.max(cap, west, east);
+  const cave = iceCaveWeight(x, z);
+  const weight = Math.max(cap, west, east, cave);
   const surface = 110 - 78 * smooth((z - 295) / 220)
     + 2.5 * (icelandNoise(x / 19, z / 43) - 0.5);
   const westLowering = west * smooth((z - 345) / 155) * 19;
   const brokenFront = smooth((z - 435) / 55) * (icelandNoise(x / 6, z / 11) - 0.5) * 12;
-  return { weight, height: surface - westLowering - glacierFracture(x, z) + brokenFront };
+  return { weight, height: Math.max(surface - westLowering - glacierFracture(x, z) + brokenFront, cave * 110) };
 }

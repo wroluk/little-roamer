@@ -1,5 +1,6 @@
 import { LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE, JOKULSA_CROSSING, JOKULSA_BRIDGE } from '../../src/game/iceland-lagoon';
 import { GRIMSVOTN, VATNAJOKULL_ROUTE } from '../../src/game/iceland-vatnajokull';
+import { ICE_CAVE_HALL, ICE_CAVE_START, ICE_CAVE_ROUTE, ICE_CAVE_BRANCH, ICE_CAVE_BYPASS } from '../../src/game/iceland-ice-cave';
 import { SKOGA_BRIDGE } from '../../src/game/iceland-layout';
 import { LOMAGNUPUR_ROUTE, LOMAGNUPUR_START } from '../../src/game/iceland-skeidararsandur';
 import { test, expect, type Page } from '@playwright/test';
@@ -16,7 +17,10 @@ type Game = { snapshot(): State; placeVehicle(x: number, z: number, heading: num
 const state = (page: Page) => page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
 async function boot(page: Page) { await page.goto('/?area=iceland'); await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 }); await page.locator('#start').click(); }
 async function drive(page: Page, points: IcelandPoint[], budgetMs = 150000) {
+  await expect.poll(async () => (await state(page)).mode, { timeout: 35000 }).toBe('playing');
   await page.evaluate(async path => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(path[0].x, path[0].z, Math.atan2(path[0].x - path[1].x, path[0].z - path[1].z)), points);
+  await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+  await page.waitForTimeout(500);
   const result = await page.evaluate(async ({ path, budgetMs }) => {
     const game = (window as unknown as { __ROAMER__: Game }).__ROAMER__;
     let next = 1, depth = 0, verticalSpeed = 0, minimumSuspension = Infinity, maximumSuspension = -Infinity;
@@ -420,14 +424,82 @@ test('Iceland glacier margins follow the ice landforms on both tongues and the c
       target: { x: 113, y: 12, z: 556 }, fov: 55 },
     { name: 'glacier-west-east-margin', position: { x: 238, y: 10, z: 544 },
       target: { x: 233, y: 15, z: 532 }, fov: 55 },
-    { name: 'glacier-cap-margin', position: { x: 91, y: 67, z: 240 },
-      target: { x: 104, y: 73, z: 241 }, fov: 55 },
+    { name: 'glacier-cap-margin', position: { x: 95, y: 82, z: 350 },
+      target: { x: 94, y: 79, z: 329 }, fov: 48 },
+    { name: 'glacier-cave-south-contact', position: { x: 95, y: 82, z: 350 },
+      target: { x: 100, y: 81, z: 331 }, fov: 48 },
+    { name: 'glacier-cave-north-contact', position: { x: 80, y: 84, z: 191 },
+      target: { x: 91, y: 80, z: 205 }, fov: 48 },
   ]) {
     await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), view);
     if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
     await page.waitForTimeout(500);
     await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
   }
+  expect(errors).toEqual([]);
+});
+
+test('Iceland glacier terrain colours are permanent without a preview toggle', async ({ page }, info) => {
+  test.setTimeout(120000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  const visit = async () => {
+    await page.goto('/?area=iceland&start=ice-cave');
+    await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+    await page.locator('#start').click();
+    await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+  };
+  const photo = async () => {
+    await page.evaluate(async () => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({
+      position: { x: 95, y: 82, z: 350 }, target: { x: 94, y: 79, z: 329 }, fov: 48,
+    }));
+    await page.locator('#photo-ui').click();
+  };
+  await visit();
+  await page.waitForTimeout(500);
+  const timing = await page.evaluate(async () => {
+    const frames: number[] = [];
+    let last = await new Promise<number>(requestAnimationFrame);
+    for (let i = 0; i < 120; i++) {
+      const now = await new Promise<number>(requestAnimationFrame);
+      frames.push(now - last); last = now;
+    }
+    frames.sort((a, b) => a - b);
+    const game = (window as unknown as { __ROAMER__: {
+      snapshot(): State & { triangles: number; drawCalls: number };
+    } }).__ROAMER__;
+    const snapshot = game.snapshot();
+    return { medianMs: frames[60], p95Ms: frames[114], triangles: snapshot.triangles, drawCalls: snapshot.drawCalls };
+  });
+  await info.attach('driving-camera-frame-timing', { body: JSON.stringify(timing), contentType: 'application/json' });
+  await photo();
+  const read = () => page.evaluate(() => {
+    const scene = (window as unknown as { __ROAMER__: { vehicle: { model: import('three').Group } } }).__ROAMER__.vehicle.model.parent!;
+    const mesh = scene.getObjectByName('Iceland · solid southern glaciers') as import('three').Mesh<
+      import('three').BufferGeometry, import('three').MeshStandardMaterial>;
+    const colors = mesh.geometry.getAttribute('color');
+    let checksum = 0;
+    for (let i = 0; i < colors.count; i++)
+      checksum += colors.getX(i) + colors.getY(i) * 3 + colors.getZ(i) * 7;
+    return { checksum, vertices: mesh.geometry.getAttribute('position').count,
+      indices: mesh.geometry.index!.count, transparent: mesh.material.transparent };
+  });
+  const original = await read(), position = (await state(page)).position;
+  expect(original.transparent).toBe(false);
+  await expect(page.locator('#glacier-fade-preview')).toHaveCount(0);
+  const originalImage = await page.screenshot({ path: info.outputPath('glacier-colour-permanent.png') });
+  await page.keyboard.press('g');
+  expect(await read()).toEqual(original);
+  expect((await state(page)).position).toEqual(position);
+  const unchangedImage = await page.screenshot({ path: info.outputPath('glacier-colour-no-shortcut.png') });
+  expect(unchangedImage.equals(originalImage), 'G no longer changes the accepted appearance').toBe(true);
+  await page.keyboard.press('p');
+  await expect.poll(async () => (await state(page)).mode).toBe('playing');
+  await page.locator('#pause').click();
+  await expect(page.getByRole('button', { name: /Glacier colour fade/ })).toHaveCount(0);
+  await visit();
+  expect(await read()).toEqual(original);
+  await photo();
+  await page.screenshot({ path: info.outputPath('glacier-colour-after-reload.png') });
   expect(errors).toEqual([]);
 });
 
@@ -501,6 +573,90 @@ test('Iceland coastal lowlands, rounded corners and half-buried brown crater ren
   expect(errors).toEqual([]);
 });
 
+test('western ice cave white lips flow into a connected ragged fringe at all three entrances', async ({ page }, info) => {
+  test.setTimeout(210000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/?area=iceland&start=ice-cave');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  const detail = await page.evaluate(() => {
+    const scene = (window as unknown as { __ROAMER__: { vehicle: { model: import('three').Group } } }).__ROAMER__.vehicle.model.parent!;
+    const mesh = scene.getObjectByName('Vatnajökull · entrance icicles') as import('three').Mesh;
+    const material = mesh.material as import('three').MeshStandardMaterial;
+    const snow = scene.getObjectByName('Iceland · solid southern glaciers') as import('three').Mesh;
+    return { count: mesh.geometry.userData.icicleCount, continuousLip: mesh.geometry.userData.continuousLip,
+      triangles: mesh.geometry.index!.count / 3,
+      material: material.type, transparent: material.transparent, roughness: material.roughness,
+      snowRoughness: (snow.material as import('three').MeshStandardMaterial).roughness };
+  });
+  expect(detail.count).toBeGreaterThanOrEqual(80); expect(detail.triangles).toBeLessThan(6000);
+  expect(detail.continuousLip).toBe(true);
+  expect(detail.material).toBe('MeshStandardMaterial'); expect(detail.transparent).toBe(false);
+  expect(detail.roughness).toBe(detail.snowRoughness);
+  for (const view of [
+    { name: 'south-icicles', position: { x: 94, y: 82, z: 351 }, target: { x: 115, y: 83, z: 325 } },
+    { name: 'west-icicles', position: { x: 67, y: 85, z: 234 }, target: { x: 99, y: 83, z: 251 } },
+    { name: 'north-icicles', position: { x: 84, y: 82, z: 191 }, target: { x: 105, y: 83, z: 217 } },
+    { name: 'south-icicles-close', position: { x: 114, y: 81, z: 345 }, target: { x: 114, y: 84, z: 329 } },
+    { name: 'south-lip-oblique', position: { x: 104, y: 87, z: 341 }, target: { x: 116, y: 86, z: 329 } },
+    { name: 'west-lip-close', position: { x: 79, y: 84, z: 244 }, target: { x: 94, y: 85, z: 249 } },
+    { name: 'north-inner-throat', position: { x: 96, y: 83, z: 201 }, target: { x: 105, y: 85, z: 216 } },
+    { name: 'north-east-shoulder', position: { x: 84, y: 82.5, z: 183 }, target: { x: 94, y: 84, z: 197 } },
+    { name: 'north-west-shoulder', position: { x: 76, y: 82.5, z: 202 }, target: { x: 88, y: 84, z: 207 } },
+    { name: 'west-north-shoulder', position: { x: 74, y: 85, z: 231 }, target: { x: 87, y: 85, z: 242 } },
+    { name: 'west-south-shoulder', position: { x: 71, y: 84, z: 255 }, target: { x: 86, y: 84, z: 250 } },
+    { name: 'south-west-shoulder', position: { x: 94, y: 82.5, z: 332 }, target: { x: 107, y: 84, z: 329 } },
+    { name: 'south-east-shoulder', position: { x: 122, y: 82.5, z: 348 }, target: { x: 115, y: 84, z: 337 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({ ...view, fov: 55 }), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500); await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+  await page.keyboard.press('KeyP');
+  await expect.poll(async () => (await state(page)).mode).toBe('playing');
+  for (const path of [ICE_CAVE_ROUTE.slice(1, 4), ICE_CAVE_ROUTE.slice(7), ICE_CAVE_BRANCH.slice(1)])
+    for (const points of [path, [...path].reverse()])
+      expect((await drive(page, points)).depth).toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test('western ice cave renders open layered portals and drives the passage and bypass', async ({ page }, info) => {
+  test.setTimeout(480000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/?area=iceland&start=ice-cave');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30000 });
+  await page.locator('#start').click();
+  await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+  await page.screenshot({ path: info.outputPath('ice-cave-arrival.png') });
+  for (const view of [
+    { name: 'ice-cave-south-portal', position: { x: 94, y: 82, z: 351 }, target: { x: 115, y: 83, z: 325 } },
+    { name: 'ice-cave-south-oblique', position: { x: 79, y: 103, z: 345 }, target: { x: 122, y: 97, z: 321 } },
+    { name: 'ice-cave-layered-vault', position: { x: 127, y: 83, z: 312 }, target: { x: 140, y: 87, z: 289 } },
+    { name: 'ice-cave-hall', position: { x: 139, y: 84, z: 286 }, target: { x: 124, y: 90, z: 268 } },
+    { name: 'ice-cave-west-portal', position: { x: 67, y: 85, z: 234 }, target: { x: 99, y: 83, z: 251 } },
+    { name: 'ice-cave-north-portal', position: { x: 84, y: 82, z: 191 }, target: { x: 105, y: 83, z: 217 } },
+    { name: 'ice-cave-margin-overview', position: { x: 49, y: 144, z: 326 }, target: { x: 125, y: 103, z: 280 } },
+  ]) {
+    await page.evaluate(async view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({ ...view, fov: 55 }), view);
+    if (await page.locator('#photo-ui').isVisible()) await page.locator('#photo-ui').click();
+    await page.waitForTimeout(500); await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
+  }
+  await page.keyboard.press('KeyU'); await page.locator('#photo-exit').click();
+  for (const path of [ICE_CAVE_ROUTE, ICE_CAVE_BRANCH, ICE_CAVE_BYPASS]) {
+    expect((await drive(page, path)).depth).toBe(0);
+    expect((await drive(page, [...path].reverse())).depth).toBe(0);
+  }
+  await page.evaluate(async point => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(point.x, point.z, 0), ICE_CAVE_HALL);
+  await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+  await expect(page.locator('#surface-label')).toHaveText('Glacier ice');
+  expect((await state(page)).position.y).toBeLessThan(ICE_CAVE_HALL.floor + 3);
+  await page.screenshot({ path: info.outputPath('ice-cave-driving-interior.png') });
+  await page.locator('#reset').click();
+  await expect(page.locator('#reset')).toBeEnabled({ timeout: 35000 });
+  await expect.poll(async () => (await state(page)).position.z).toBeCloseTo(ICE_CAVE_START.z, 0);
+  expect(errors).toEqual([]);
+});
+
 test('Vatnajökull regional start, rim views and nearest reset', async ({ page }, info) => {
   test.setTimeout(180000);
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
@@ -522,8 +678,10 @@ test('Vatnajökull regional start, rim views and nearest reset', async ({ page }
     await page.screenshot({ path: info.outputPath(`${view.name}.png`) });
   }
   await page.keyboard.press('KeyU'); await page.locator('#photo-exit').click();
+  await expect.poll(async () => (await state(page)).mode, { timeout: 35000 }).toBe('playing');
   await page.evaluate(async () => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(310, 280, 0));
   await page.locator('#reset').click();
+  await expect(page.locator('#reset')).toBeEnabled({ timeout: 35000 });
   await expect.poll(async () => (await state(page)).position.x).toBeCloseTo(260, 0);
   await expect.poll(async () => (await state(page)).waterDepth).toBe(0);
   expect(errors).toEqual([]);

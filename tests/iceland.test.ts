@@ -1,7 +1,9 @@
-import { lagoonCarve } from '../src/game/iceland-lagoon';
+import { calvingBay, lagoonCarve } from '../src/game/iceland-lagoon';
 import { icelandNoise } from '../src/game/iceland-noise';
 import { GRIMSVOTN, VATNAJOKULL_ROUTE, vatnajokullRouteAt } from '../src/game/iceland-vatnajokull';
-import { buildIcelandGlacierGeometry } from '../src/game/iceland-glacier';
+import { buildIcelandGlacierGeometry, icelandGlacierColor } from '../src/game/iceland-glacier';
+import { ICE_CAVE, ICE_CAVE_HALL, ICE_CAVE_ROUTE, ICE_CAVE_BRANCH, ICE_CAVE_BYPASS, iceCaveEntranceWeight } from '../src/game/iceland-ice-cave';
+import { buildIceCaveGeometry, buildIceCaveIcicles } from '../src/game/iceland-ice-cave-scenery';
 import { icelandSeaTint } from '../src/game/iceland-river';
 import { LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE, JOKULSA_CROSSING, JOKULSA_BRIDGE, lagoonRadius, southernGlacier, GLACIER_MARGIN_WEIGHT, LAGOON_WATER_BOUNDS } from '../src/game/iceland-lagoon';
 import { buildLagoonWater, addLagoonScenery } from '../src/game/iceland-lagoon-scenery';
@@ -10,8 +12,9 @@ import assert from 'node:assert/strict';
 import { before, test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { generateIcelandChunk, icelandSurfaceHeight, icelandBedHeight, icelandGlacierHeight, icelandIceAt, icelandSurfaceAt, icelandWaterHeight, icelandDrivingHeight, COASTAL_TURNOUT, shoreZ,
-  icelandSpawn, riverX, FORD_PATH, BRIDGE_PATH, ICELAND_LOOP, type IcelandPoint } from '../src/game/iceland-terrain';
+import { generateIcelandChunk, icelandHeight, icelandSurfaceHeight, icelandBedHeight, icelandGlacierHeight, icelandIceAt, icelandSurfaceAt, icelandWaterHeight, icelandDrivingHeight, COASTAL_TURNOUT, shoreZ,
+  icelandSpawn, riverX, FORD_PATH, BRIDGE_PATH, ICELAND_LOOP, icelandIceCellDivisions,
+  icelandTerrainColor, sampleIcelandTriangle, type IcelandPoint } from '../src/game/iceland-terrain';
 import { IcelandStreamingRuntime, LocalIcelandTransport, type IcelandTransport } from '../src/game/iceland-streaming';
 import { ICELAND_RING_ROAD, ICELAND_RING_LENGTH, ringRoadAt, ringRoadCoastAt } from '../src/game/iceland-road';
 import { buildIcelandRoadGeometry } from '../src/game/iceland-road-scenery';
@@ -29,7 +32,7 @@ import { REYNIS_SHALLOW_BOUNDS, buildReynisShallowGeometry } from '../src/game/i
 before(async () => { await RAPIER.init(); });
 
 test('Iceland regional starts are unique, dry, level and select the nearest reset', () => {
-  assert.deepEqual(ICELAND_STARTS.map(start => start.id), ['skogafoss', 'solheimasandur', 'reynisfjara', 'lomagnupur', 'vatnajokull', 'jokulsarlon']);
+  assert.deepEqual(ICELAND_STARTS.map(start => start.id), ['skogafoss', 'solheimasandur', 'reynisfjara', 'lomagnupur', 'vatnajokull', 'ice-cave', 'jokulsarlon']);
   assert.equal(new Set(ICELAND_STARTS.map(start => start.id)).size, ICELAND_STARTS.length);
   for (const start of ICELAND_STARTS) {
     const { x, z } = start.position, spawn = icelandStartSpawn(start);
@@ -97,6 +100,265 @@ test('Vatnajökull traverse has broad dry graded shoulders and a low half-buried
   while (northernEdge < 232 && !icelandIceAt(GRIMSVOTN.x, northernEdge)) northernEdge += 0.5;
   assert.ok(Math.abs((232 - GRIMSVOTN.z) / (232 - northernEdge) - 0.4) < 0.01,
     'the crater moves north by forty percent of the former distance to the ice edge');
+});
+
+test('western ice cave has an integrated irregular curved Y cavity with matching solid clearance', () => {
+  const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  const cave = buildIceCaveGeometry(), glacier = buildIcelandGlacierGeometry();
+  const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+  const ceiling = new THREE.Mesh(cave, material); ceiling.updateMatrixWorld();
+  try {
+    assert.ok(Math.abs(ICE_CAVE.south - ICE_CAVE.north - 120) < 1e-10);
+    for (const dx of [-3, 0, 3]) for (const dz of [-3, 0, 3])
+      assert.ok(Math.abs(icelandDrivingHeight(95 + dx, 350 + dz) - 78) < 0.01,
+        'the regional start has a flat full-wheelbase clearing');
+    for (const x of [95, 110, 120, 130, 140])
+      assert.ok(Math.abs(icelandHeight(x, ICE_CAVE.z1 - 0.01) - icelandHeight(x, ICE_CAVE.z1 + 0.01)) < 0.03,
+        'the exposed approach grade fades before the cavity sampling bounds');
+    const vertices = cave.getAttribute('position');
+    for (let i = 0; i < vertices.count; i++)
+      assert.ok(vertices.getY(i) <= icelandGlacierHeight(vertices.getX(i), vertices.getZ(i)) + 0.01,
+        'no blue vault or portal seam protrudes above the snow roof');
+    for (const geometry of [cave, glacier]) {
+      const indices = geometry.index?.array ?? Uint32Array.from({ length: geometry.attributes.position.count }, (_, i) => i);
+      world.createCollider(RAPIER.ColliderDesc.trimesh(Float32Array.from(geometry.attributes.position.array), Uint32Array.from(indices)));
+    }
+    for (const cx of [0, 1]) for (const cz of [1, 2, 3]) {
+      const chunk = generateIcelandChunk(cx, cz);
+      world.createCollider(RAPIER.ColliderDesc.trimesh(chunk.vertices, chunk.indices));
+    }
+    world.step();
+    assert.ok(Math.max(...ICE_CAVE_ROUTE.map(p => p.x)) - ICE_CAVE_ROUTE[2].x >= 30,
+      'the main passage bends substantially into the glacier, rather than adding surface noise to a straight tube');
+    const edges = new Map<string, { count: number; a: THREE.Vector3; b: THREE.Vector3 }>();
+    const key = (p: THREE.Vector3) => p.toArray().map(v => Math.round(v * 1000)).join(',');
+    for (let i = 0; i < cave.index!.count; i += 3) for (let j = 0; j < 3; j++) {
+      const a = new THREE.Vector3().fromBufferAttribute(vertices, cave.index!.getX(i + j));
+      const b = new THREE.Vector3().fromBufferAttribute(vertices, cave.index!.getX(i + (j + 1) % 3));
+      const k = [key(a), key(b)].sort().join('/');
+      const edge = edges.get(k);
+      if (edge) edge.count++; else edges.set(k, { count: 1, a, b });
+    }
+    const mouths: THREE.Vector3[] = [];
+    for (const { count, a, b } of edges.values()) if (count === 1) {
+      if (a.y <= icelandBedHeight(a.x, a.z) + 0.02 && b.y <= icelandBedHeight(b.x, b.z) + 0.02) continue;
+      for (const p of [a, b]) {
+        assert.ok(Math.abs(p.y - icelandGlacierHeight(p.x, p.z)) < 0.01,
+          'every exposed cavity boundary meets the real glacier, without a collar or detached shell');
+        mouths.push(p);
+      }
+    }
+    const southernLip = mouths.filter(p => p.z > 315);
+    assert.ok(southernLip.length > 10);
+    assert.ok(Math.max(...southernLip.map(p => p.z)) - Math.min(...southernLip.map(p => p.z)) > 8,
+      'the entrance recedes through depth, not a flat arch panel');
+    assert.ok(mouths.some(p => p.x < 94 && p.z > 230 && p.z < 263), 'the Y branch opens through the western glacier margin');
+    assert.ok(mouths.some(p => p.z < 220), 'the northern mouth remains open');
+    const south = ICE_CAVE_ROUTE[2], north = ICE_CAVE_ROUTE[8];
+    const direct = new THREE.Vector3(north.x - south.x, 0, north.z - south.z);
+    assert.ok(world.castRay(new RAPIER.Ray({ x: south.x, y: ICE_CAVE_HALL.floor + 4, z: south.z },
+      direct.clone().normalize()), direct.length(), true),
+    'solid ice interrupts the old straight-through line; drivers must follow the bends');
+    for (const [point, inward] of [
+      [ICE_CAVE_ROUTE[2], ICE_CAVE_ROUTE[3]], [ICE_CAVE_ROUTE[8], ICE_CAVE_ROUTE[7]],
+      [ICE_CAVE_BRANCH[2], ICE_CAVE_BRANCH[1]],
+    ]) {
+      const floor = icelandBedHeight(point.x, point.z);
+      const roof = new THREE.Raycaster(new THREE.Vector3(point.x, floor + 2, point.z),
+        new THREE.Vector3(0, 1, 0)).intersectObject(ceiling)[0];
+      assert.ok(roof && roof.point.y - floor > 5 && roof.point.y - floor < 9,
+        'each mouth has a low throat instead of exposing the full-height interior');
+      const normal = new THREE.Vector3(inward.z - point.z, 0, point.x - inward.x).normalize();
+      for (const side of [-1, 1]) {
+        const wall = world.castRay(new RAPIER.Ray({ x: point.x, y: floor + 2.5, z: point.z },
+          normal.clone().multiplyScalar(side)), 13, true);
+        assert.ok(wall && wall.timeOfImpact > 4.5, 'a narrowed solid mouth still leaves a generous vehicle lane');
+      }
+    }
+    for (const [origin, target] of [
+      [{ x: 94, y: 82, z: 351 }, { x: 132, y: 94, z: 310 }],
+      [{ x: 84, y: 82, z: 191 }, { x: 120, y: 94, z: 244 }],
+      [{ x: 67, y: 85, z: 234 }, { x: 110, y: 94, z: 256 }],
+    ]) {
+      const direction = new THREE.Vector3(target.x - origin.x, target.y - origin.y, target.z - origin.z);
+      assert.ok(world.castRay(new RAPIER.Ray(origin, direction.clone().normalize()), direction.length(), true),
+        'solid entrance ice screens the upper interior from the outside approach');
+    }
+    for (const dx of [-10, 0, 10]) for (const dz of [-10, 0, 10]) {
+      const x = ICE_CAVE_HALL.x + dx, z = ICE_CAVE_HALL.z + dz, floor = icelandDrivingHeight(x, z);
+      assert.ok(Math.abs(floor - ICE_CAVE_HALL.floor) < 0.05, 'the hall has a broad usable floor, not just a widened ceiling');
+      const hit = new THREE.Raycaster(new THREE.Vector3(x, floor + 2, z), new THREE.Vector3(0, 1, 0)).intersectObject(ceiling)[0];
+      assert.ok(hit && hit.point.y - floor > 15, 'the underground hall is fully enclosed with generous headroom');
+    }
+    for (const path of [ICE_CAVE_ROUTE, ICE_CAVE_BRANCH]) for (let i = 1; i < path.length; i++) {
+      const a = path[i - 1], b = path[i], length = Math.hypot(b.x - a.x, b.z - a.z);
+      for (let d = 0; d <= length; d += 3) for (const offset of [-4, 0, 4]) {
+        const x = a.x + (b.x - a.x) * d / length + (b.z - a.z) / length * offset;
+        const z = a.z + (b.z - a.z) * d / length - (b.x - a.x) / length * offset;
+        const floor = icelandDrivingHeight(x, z);
+        const tolerance = path === ICE_CAVE_ROUTE && i === 1 ? 3 : 0.9;
+        assert.ok(Math.abs(floor - (a.y + (b.y - a.y) * d / length)) < tolerance, `graded lane ${x},${z}: ${floor}`);
+        const visible = new THREE.Raycaster(new THREE.Vector3(x, floor + 2, z), new THREE.Vector3(0, 1, 0)).intersectObject(ceiling)[0];
+        const solid = world.castRay(new RAPIER.Ray({ x, y: floor + 2, z }, { x: 0, y: 1, z: 0 }), 50, true);
+        if (visible) {
+          assert.ok(solid && visible.point.y - floor > 10 - 5.5 * iceCaveEntranceWeight(x, z), `headroom at ${x},${z}`);
+          assert.ok(Math.abs(floor + 2 + solid.timeOfImpact - visible.point.y) < 0.01, 'visible vault is the collider');
+        } else assert.equal(solid, null, `open approach at ${x},${z} has no hidden roof`);
+        const ground = world.castRay(new RAPIER.Ray({ x, y: floor + 2, z }, { x: 0, y: -1, z: 0 }), 4, true);
+        assert.ok(ground && Math.abs(2 - ground.timeOfImpact) < 0.01, 'visible terrain floor is solid');
+      }
+      if (path === ICE_CAVE_ROUTE && i >= 3 && i <= 8) for (let d = 0; d <= length; d += 3)
+        for (const offset of [-10, -5, 0, 5, 10]) {
+          const x = a.x + (b.x - a.x) * d / length + (b.z - a.z) / length * offset;
+          const z = a.z + (b.z - a.z) * d / length - (b.x - a.x) / length * offset;
+          assert.ok(Math.abs(icelandBedHeight(x, z) - ICE_CAVE_HALL.floor) < 0.05,
+            `the floor stays flat across the cavity, not a raised narrow roadway: ${x},${z}`);
+        }
+      for (const offset of path === ICE_CAVE_ROUTE && i < 3 ? [] : [-3, 0, 3]) {
+        const x = a.x + (b.z - a.z) / length * offset, z = a.z - (b.x - a.x) / length * offset;
+        const y = icelandDrivingHeight(x, z) + 2;
+        const dy = icelandDrivingHeight(b.x, b.z) + 2 - y;
+        const direction = new THREE.Vector3(b.x - a.x, dy, b.z - a.z);
+        assert.equal(world.castRay(new RAPIER.Ray({ x, y, z }, direction.clone().normalize()), direction.length(), true), null,
+          'each curved passage and fork lane is open, with no overlapping inner wall');
+      }
+    }
+    for (const path of [ICE_CAVE_ROUTE, ICE_CAVE_BRANCH, ICE_CAVE_BYPASS]) for (const point of path) {
+      assert.equal(icelandWaterHeight(point.x, point.z), null);
+      assert.ok(Math.abs(icelandDrivingHeight(point.x, point.z) - point.y) < 0.5);
+    }
+  } finally { world.free(); cave.dispose(); glacier.dispose(); material.dispose(); }
+});
+
+test('western ice cave white lips form three connected rounded curtains with solid irregular hanging points', () => {
+  const cave = buildIceCaveGeometry(), glacier = buildIcelandGlacierGeometry();
+  const first = buildIceCaveIcicles(cave, glacier), repeated = buildIceCaveIcicles(cave, glacier);
+  const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+  const ceiling = new THREE.Mesh(cave, material), icicles = new THREE.Mesh(first.geometry, material);
+  ceiling.updateMatrixWorld(); icicles.updateMatrixWorld();
+  const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  try {
+    assert.deepEqual(first.icicles, repeated.icicles);
+    assert.deepEqual(first.geometry.attributes.position.array, repeated.geometry.attributes.position.array);
+    assert.ok(first.icicles.length >= 80 && first.icicles.length <= 190, `fringe count: ${first.icicles.length}`);
+    assert.ok(first.icicles.filter(p => p.z > 315).length >= 20);
+    assert.ok(first.icicles.filter(p => p.z < 225).length >= 20);
+    assert.ok(first.icicles.filter(p => p.z > 230 && p.z < 265).length >= 15);
+    assert.ok(first.icicles.filter(p => first.icicles.some(q => q !== p
+      && Math.hypot(p.x - q.x, p.z - q.z) < 1.3)).length > first.icicles.length * 0.9,
+    'the hanging points remain closely spaced along the continuous lip');
+    const lengths = first.roots.map(p => p.y - first.geometry.attributes.position.getY(p.start + 5));
+    assert.ok(Math.min(...lengths) < 1 && Math.max(...lengths) > 2.5,
+      'the continuous lower outline includes short scallops and long hanging points');
+    assert.ok(first.geometry.index!.count / 3 < 6000, 'entrance detail remains a small batched mesh');
+    assert.ok(first.geometry.attributes.position.count < 2800, 'no additional broad terrain refinement is needed');
+    world.createCollider(RAPIER.ColliderDesc.trimesh(Float32Array.from(first.geometry.attributes.position.array),
+      Uint32Array.from(first.geometry.index!.array)));
+    world.step();
+    const positions = first.geometry.getAttribute('position');
+    for (let i = 0; i < positions.count; i++) {
+      assert.ok(positions.getY(i) - icelandBedHeight(positions.getX(i), positions.getZ(i)) > 3.8,
+        'even the final bent tip leaves room for the car below the fringe');
+    }
+    const colors = first.geometry.getAttribute('color'), normals = first.geometry.getAttribute('normal');
+    const snowPositions = glacier.getAttribute('position'), snowColors = glacier.getAttribute('color');
+    const snowNormals = glacier.getAttribute('normal'), snowVertices = new Map<string, number>();
+    const key = (p: THREE.Vector3) => p.toArray().map(v => Math.round(v * 1000)).join(',');
+    for (let i = 0; i < snowPositions.count; i++)
+      snowVertices.set(key(new THREE.Vector3().fromBufferAttribute(snowPositions, i)), i);
+    let shared = 0;
+    for (const root of first.roots) {
+      const p = new THREE.Vector3().fromBufferAttribute(positions, root.start);
+      assert.ok(Math.abs(p.y - icelandGlacierHeight(p.x, p.z)) < 0.01,
+        'the front starts at the actual snow contour, not back inside the blue ceiling');
+      const snowIndex = snowVertices.get(key(p));
+      if (snowIndex !== undefined) {
+        assert.ok(new THREE.Vector3().fromBufferAttribute(normals, root.start)
+          .distanceTo(new THREE.Vector3().fromBufferAttribute(snowNormals, snowIndex)) < 1e-6,
+        'lighting continues smoothly from the existing snow surface');
+        for (const get of ['getX', 'getY', 'getZ'] as const)
+          assert.ok(Math.abs(colors[get](root.start) - snowColors[get](snowIndex)) < 1e-6,
+            'the joined lip shares the actual snow colours');
+        shared++;
+      }
+      const anchor = new THREE.Vector3().fromBufferAttribute(positions, root.start + 8);
+      const floor = icelandBedHeight(anchor.x, anchor.z);
+      const hit = new THREE.Raycaster(new THREE.Vector3(anchor.x, floor + 2, anchor.z),
+        new THREE.Vector3(0, 1, 0)).intersectObject(ceiling)[0];
+      assert.ok(hit && anchor.y > hit.point.y + 0.1, 'the back of every section is buried in the actual ceiling');
+      assert.ok(anchor.y < icelandGlacierHeight(anchor.x, anchor.z) - 0.05,
+        'the attachment remains below the real snow roof');
+    }
+    assert.ok(shared > 30, 'the continuous strip reuses snow vertices across all three mouths');
+    const ends = first.roots.filter(root => root.endDistance === 0);
+    assert.equal(ends.length, 6, 'both sides of every mouth have a tapered termination');
+    for (const end of ends) for (let row = 1; row < 9; row++) {
+      const vertex = new THREE.Vector3().fromBufferAttribute(positions, end.start + row);
+      const hit = new THREE.Raycaster(new THREE.Vector3(vertex.x, icelandBedHeight(vertex.x, vertex.z) + 2, vertex.z),
+        new THREE.Vector3(0, 1, 0)).intersectObject(ceiling)[0];
+      assert.ok(hit && vertex.y > hit.point.y + 0.02, 'the side cap is buried above the visible ceiling');
+      assert.ok(vertex.y < icelandGlacierHeight(vertex.x, vertex.z) - 0.02,
+        'the side cap is buried below the snow, rather than ending as a visible slab');
+    }
+    const ids = first.geometry.index!;
+    for (const end of ends) {
+      let capFaces = 0;
+      for (let i = 0; i < ids.count; i += 3) {
+        const face = [ids.getX(i), ids.getX(i + 1), ids.getX(i + 2)];
+        if (!face.every(index => index >= end.start && index < end.start + 9)) continue;
+        capFaces++;
+        for (const weights of [[1 / 3, 1 / 3, 1 / 3], [0.8, 0.1, 0.1], [0.1, 0.8, 0.1], [0.1, 0.1, 0.8]]) {
+          const point = new THREE.Vector3();
+          for (let j = 0; j < 3; j++)
+            point.add(new THREE.Vector3().fromBufferAttribute(positions, face[j]).multiplyScalar(weights[j]));
+          const hit = new THREE.Raycaster(new THREE.Vector3(point.x, icelandBedHeight(point.x, point.z) + 2, point.z),
+            new THREE.Vector3(0, 1, 0)).intersectObject(ceiling)[0];
+          assert.ok(hit && point.y > hit.point.y + 0.003
+            && point.y < icelandGlacierHeight(point.x, point.z) - 0.003,
+          'the whole terminal face retreats inside the glacier, not just its vertices');
+        }
+      }
+      assert.equal(capFaces, 7, 'the hidden termination remains a closed, non-degenerate cap');
+    }
+    assert.ok(first.roots.filter(root => root.endDistance > 0 && root.endDistance < 3.2).length > 20,
+      'the profile eases back over several columns, not just one tiny end face');
+    for (const root of first.roots.filter(root => root.endDistance >= 3.2)) {
+      const front = new THREE.Vector3().fromBufferAttribute(positions, root.start + 2);
+      assert.ok(Math.hypot(front.x - root.x, front.z - root.z) > 0.35,
+        'the central overhang keeps its rounded projection');
+    }
+    const edges = new Map<string, number>();
+    const parents = Array.from({ length: positions.count }, (_, i) => i);
+    const parent = (i: number): number => parents[i] === i ? i : (parents[i] = parent(parents[i]));
+    for (let i = 0; i < ids.count; i += 3) for (let j = 0; j < 3; j++) {
+      const a = ids.getX(i + j), b = ids.getX(i + (j + 1) % 3), k = a < b ? `${a},${b}` : `${b},${a}`;
+      edges.set(k, (edges.get(k) ?? 0) + 1); parents[parent(a)] = parent(b);
+    }
+    assert.ok([...edges.values()].every(count => count === 2), 'all rolled lips are closed solids, without cracks');
+    assert.equal(new Set(parents.map((_, i) => parent(i))).size, 3,
+      'three connected curtains replace the many separate cones');
+    for (const ice of first.icicles) {
+      let triangle = -1;
+      for (let i = 0; i < ids.count; i += 3)
+        if ([ids.getX(i), ids.getX(i + 1), ids.getX(i + 2)].includes(ice.start + 5)) { triangle = i; break; }
+      assert.ok(triangle >= 0);
+      const sample = new THREE.Vector3();
+      for (let i = 0; i < 3; i++)
+        sample.add(new THREE.Vector3().fromBufferAttribute(positions, ids.getX(triangle + i)).multiplyScalar(1 / 3));
+      const origin = new THREE.Vector3(sample.x, icelandBedHeight(sample.x, sample.z) + 2, sample.z);
+      const visible = new THREE.Raycaster(origin, new THREE.Vector3(0, 1, 0)).intersectObject(icicles)[0];
+      const solid = world.castRay(new RAPIER.Ray(origin, { x: 0, y: 1, z: 0 }), 40, true);
+      assert.ok(visible && solid && Math.abs(visible.point.y - origin.y - solid.timeOfImpact) < 0.01,
+        'visible hanging points and Rapier contact use the same triangles');
+    }
+  } finally { world.free(); cave.dispose(); glacier.dispose(); first.geometry.dispose(); repeated.geometry.dispose(); material.dispose(); }
+});
+
+for (const model of ['modern', 'classic'] as const) test(`${model} drives the western ice cave and open-air return both directions`, async () => {
+  for (const path of [ICE_CAVE_ROUTE, ICE_CAVE_BRANCH, ICE_CAVE_BYPASS]) {
+    assert.equal(await drive(path, model), 0);
+    assert.equal(await drive([...path].reverse(), model), 0);
+  }
 });
 
 test('Vatnajökull cairns clear both lower road junctions without invisible colliders', () => {
@@ -388,7 +650,7 @@ async function drive(path: IcelandPoint[], model: 'modern' | 'classic', road = f
       const angle = Math.atan2(dx, -dz) - Math.atan2(f.x, -f.z), error = Math.atan2(Math.sin(angle), Math.cos(angle));
       car.beforeStep({ steer: Math.max(-1, Math.min(1, error * 2)), forward: tick > 90 && Math.abs(car.speed) < (Math.abs(error) > 0.5 ? 3 : road ? 8 : 5), reverse: false }, 1 / 60);
       world.step(); car.capture(); depth = Math.max(depth, car.waterDepth); observe?.(car);
-      assert.ok(car.position.y > icelandSurfaceHeight(car.position.x, car.position.z) - 1);
+      assert.ok(car.position.y > icelandDrivingHeight(car.position.x, car.position.z) - 1);
     }
     assert.equal(next, path.length, `${model}: stopped at ${JSON.stringify(car.position)}`);
     return depth;
@@ -867,6 +1129,80 @@ test('separate solid glacier roofs match sampling and calving walls reach below 
   assert.ok(walls > 1000, 'both tongues and cap have actual ice sides');
   assert.ok(buriedLandWallVertices > 1000, 'check the entire land-ending front, not one contact point');
   world.free(); geometry.dispose(); (mesh.material as THREE.Material).dispose();
+});
+
+test('land glacier contacts have locally refined rounded toes with matching visible and solid surfaces', () => {
+  const geometry = buildIcelandGlacierGeometry(), material = new THREE.MeshStandardMaterial();
+  const mesh = new THREE.Mesh(geometry, material), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  mesh.updateMatrixWorld();
+  try {
+    assert.ok(geometry.index!.count / 3 < 150000, 'refine the contact band, not the entire ice cap');
+    assert.equal(icelandIceCellDivisions(Math.floor(315 / 2.4), Math.floor(300 / 2.4)), 1,
+      'the broad interior retains its existing mesh density');
+    for (let i = 1; i < VATNAJOKULL_ROUTE.length; i++) {
+      const a = VATNAJOKULL_ROUTE[i - 1], b = VATNAJOKULL_ROUTE[i];
+      const steps = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 2.4);
+      for (let j = 0; j <= steps; j++) {
+        const x = a.x + (b.x - a.x) * j / steps, z = a.z + (b.z - a.z) * j / steps;
+        assert.equal(icelandIceCellDivisions(Math.floor(x / 2.4), Math.floor(z / 2.4)), 1,
+          `preserve the graded route's original ice/bed handoff at ${x},${z}`);
+      }
+    }
+    world.createCollider(RAPIER.ColliderDesc.trimesh(Float32Array.from(geometry.attributes.position.array),
+      Uint32Array.from(geometry.index!.array)));
+    world.step();
+    for (const z of [305, 310, 315, 320, 325]) {
+      let lo = 75, hi = 110;
+      for (let i = 0; i < 28; i++) {
+        const x = (lo + hi) / 2;
+        if (icelandGlacierHeight(x, z) > icelandBedHeight(x, z)) hi = x; else lo = x;
+      }
+      const edge = (lo + hi) / 2, x = edge + 0.1;
+      assert.equal(icelandIceCellDivisions(Math.floor(x / 2.4), Math.floor(z / 2.4)), 4,
+        'the reported cave-side contact uses sixty-centimetre detail');
+      const toe = icelandGlacierHeight(x, z) - icelandBedHeight(x, z);
+      assert.ok(toe > 0 && toe < 0.12, 'the ice meets the bed through a shallow rounded toe, not a knife edge');
+      assert.ok(icelandGlacierHeight(edge + 0.6, z) - icelandBedHeight(edge + 0.6, z) > 0.2,
+        'rounding is real ice geometry rising away from the contact, not opacity or terrain paint');
+      const origin = new THREE.Vector3(x, 150, z), direction = new THREE.Vector3(0, -1, 0);
+      const visible = new THREE.Raycaster(origin, direction).intersectObject(mesh)[0];
+      const solid = world.castRay(new RAPIER.Ray(origin, direction), 150, true);
+      assert.ok(visible && solid && Math.abs(150 - solid.timeOfImpact - visible.point.y) < 0.003,
+        'the finer exposed toe remains solid where it is visible');
+      assert.ok(Math.abs(visible.point.y - icelandGlacierHeight(x, z)) < 0.003,
+        'wheel, spawn and HUD sampling follows the refined triangles');
+      assert.equal(icelandSurfaceAt(x, z), 'ice');
+    }
+  } finally { world.free(); geometry.dispose(); material.dispose(); }
+});
+
+test('glacier land contacts have permanent terrain colours while high snow and calving ice stay clean', () => {
+  const geometry = buildIcelandGlacierGeometry();
+  try {
+    const colors = geometry.attributes.color, positions = geometry.attributes.position;
+    let dirty = 0, clean = 0, groundMatches = 0;
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
+      const current = [colors.getX(i), colors.getY(i), colors.getZ(i)];
+      const snow = icelandGlacierColor(x, z).toArray(), gap = y - icelandBedHeight(x, z), bay = calvingBay(x, z);
+      if (gap >= 3 || bay === 1) {
+        const wall = icelandGlacierColor(x, z, (icelandNoise(x / 9 + z / 13, y / 5) - 0.5) * 0.045).toArray();
+        assert.ok([snow, wall].some(expected => current.every((value, channel) =>
+          Math.abs(value - expected[channel]) < 0.00002)), 'high snow and calving ice retain their clean palettes');
+        clean++;
+      } else if (current.some((value, channel) => Math.abs(value - snow[channel]) > 0.1)) dirty++;
+      if (gap <= 0 && bay === 0 && groundMatches < 5) {
+        const terrain = [0, 1, 2].map(channel => sampleIcelandTriangle(x, z,
+          (x, z) => Math.fround(icelandTerrainColor(x, z)[channel])));
+        assert.ok(current.every((value, channel) => Math.abs(value - terrain[channel]) < 0.000001),
+          'the buried contact matches the actual rendered ground colours');
+        groundMatches++;
+      }
+    }
+    assert.ok(dirty > 100, 'land-contact ice has the accepted dirty appearance by default');
+    assert.ok(clean > 100, 'the tint is confined to shallow contacts');
+    assert.equal(groundMatches, 5);
+  } finally { geometry.dispose(); }
 });
 
 test('lagoon tongue joins the cap with a curved head instead of a rectangular northern ledge', () => {
