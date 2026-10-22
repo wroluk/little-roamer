@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { LAVA_TUBES, tubePoint } from '../../src/game/mars-tubes-layout';
 import { POSTCARD_STORAGE_KEY } from '../../src/game/postcards';
-import { inletCenterX } from '../../src/game/northern-watershed';
+import { inletCenterX, LAKE_ISLAND, lakeShorePoint } from '../../src/game/northern-watershed';
 
 test('journal appears only on supported home and pause screens and shows this world only', async ({ page }) => {
   await page.goto('/?area=valley');
@@ -103,6 +103,25 @@ test('driving the western Lava Tube unlocks its postcard away from the regional 
   await expect(page.locator('#journal-grid .journal-card').filter({ hasText: 'Lava Tubes' })).toContainText('FIRST VISITED');
 });
 
+test('short drives on the far Crown rim and inside Iron Maze unlock their postcards', async ({ page }, info) => {
+  for (const [start, point, heading, name] of [
+    ['crown-crater', { x: 0, z: -260 }, Math.PI / 2, 'Crown Crater'],
+    ['iron-maze', { x: 404, z: 477 }, 0, 'Iron Maze'],
+  ] as const) {
+    await page.goto(`/?area=mars&start=${start}`);
+    await expect(page.locator('#start')).toBeEnabled();
+    await page.locator('#start').click();
+    await page.evaluate(({ point, heading }) => (window as unknown as {
+      __ROAMER__: { placeVehicle(x: number, z: number, heading: number): Promise<void> };
+    }).__ROAMER__.placeVehicle(point.x, point.z, heading), { point, heading });
+    await expect(page.locator('#postcard-notice')).toBeHidden();
+    await page.keyboard.down('KeyW');
+    try { await expect(page.locator('#postcard-notice-name')).toHaveText(name, { timeout: 20_000 }); }
+    finally { await page.keyboard.up('KeyW'); }
+    await page.screenshot({ path: info.outputPath(`${start}-postcard-drive.png`) });
+  }
+});
+
 test('a short drive on the far Alder River bank unlocks its postcard', async ({ page }) => {
   await page.goto('/?area=northern-reach&start=alder-river');
   await expect(page.locator('#start')).toBeEnabled();
@@ -116,4 +135,47 @@ test('a short drive on the far Alder River bank unlocks its postcard', async ({ 
   finally { await page.keyboard.up('KeyW'); }
   const records = await page.evaluate(key => JSON.parse(localStorage.getItem(key) ?? '[]') as { id: string }[], POSTCARD_STORAGE_KEY);
   expect(records.some(record => record.id === 'alder-river')).toBe(true);
+});
+
+test('Northern lake island, shore and far rims unlock on short real drives', async ({ page }, info) => {
+  test.setTimeout(120_000);
+  for (const [start, point, name] of [
+    ['great-lake', LAKE_ISLAND, 'Great Lake'],
+    ['great-lake', lakeShorePoint(1.8, 22), 'Great Lake'],
+    ['stonegate-basin', { x: -185, z: -365 }, 'Stonegate Basin'],
+    ['ember-basin', { x: 635, z: 380 }, 'Ember Basin'],
+    ['ochre-terraces', { x: 550, z: 190 }, 'Ochre Terraces'],
+    ['ochre-terraces', { x: 375, z: 40 }, 'Ochre Terraces'],
+  ] as const) {
+    if (page.url().startsWith('http'))
+      await page.evaluate(key => localStorage.removeItem(key), POSTCARD_STORAGE_KEY);
+    await page.goto(`/?area=northern-reach&start=${start}`);
+    await expect(page.locator('#start')).toBeEnabled();
+    await page.locator('#start').click();
+    await page.evaluate(point => (window as unknown as {
+      __ROAMER__: { placeVehicle(x: number, z: number, heading: number): Promise<void> };
+    }).__ROAMER__.placeVehicle(point.x, point.z, 0), point);
+    await expect(page.locator('#postcard-notice')).toBeHidden();
+    await page.keyboard.down('KeyW');
+    try { await expect(page.locator('#postcard-notice-name')).toHaveText(name, { timeout: 20_000 }); }
+    finally { await page.keyboard.up('KeyW'); }
+    await page.screenshot({ path: info.outputPath(`${start}-${Math.round(point.z)}-postcard-drive.png`) });
+  }
+});
+
+test('driving the outer Ochre slope does not unlock the terraces postcard', async ({ page }, info) => {
+  await page.goto('/?area=northern-reach&start=ochre-terraces');
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('#start').click();
+  await page.evaluate(() => (window as unknown as {
+    __ROAMER__: { placeVehicle(x: number, z: number, heading: number): Promise<void> };
+  }).__ROAMER__.placeVehicle(480, -20, 0));
+  await page.keyboard.down('KeyW');
+  try {
+    await expect.poll(async () => page.evaluate(() => (window as unknown as {
+      __ROAMER__: { snapshot(): { position: { z: number } } };
+    }).__ROAMER__.snapshot().position.z), { timeout: 20_000 }).toBeLessThan(-32);
+  } finally { await page.keyboard.up('KeyW'); }
+  await expect(page.locator('#postcard-notice')).toBeHidden();
+  await page.screenshot({ path: info.outputPath('ochre-outer-slope-no-postcard.png') });
 });

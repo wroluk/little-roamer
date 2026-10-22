@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1450" height="1000" viewBox="0 0 1450 1000"><rect width="1450" height="1000" fill="#211d24"/>
+  <rect width="1100" height="1000" fill="#211d24"/>
+  <style>text{font-family:system-ui;fill:#f1dbc4}.label{font-size:15px;font-weight:600}.small{font-size:12px}.road{fill:none;stroke:#efd09b;stroke-width:3}.future{fill:none;stroke:#bc978b;stroke-width:2;stroke-dasharray:7 6}</style>
+  <text x="50" y="45" font-size="28">MARS OUTPOST / EXPLORATION LAYOUT</text>
+  <text x="50" y="72" font-size="15">1,536 x 1,536 m / Nine-region development layout / North is up</text>
+  <rect x="66" y="106" width="768" height="768" rx="100" fill="#ac6950" stroke="#6e3d36" stroke-width="25"/>
+  <text x="450" y="132" text-anchor="middle" font-size="15">THE GREAT RING</text>
+  <g transform="translate(450 490) scale(.5)">
+    <path d="M162,-320 L193,-365 L267,-350 L296,-280 L245,-213 L191,-233 Z" fill="#a1644d"/>
+    <path d="M171,134 L229,87 L294,115 L315,206 L262,271 L193,242 Z" fill="#a1644d"/>
+    <path d="M389,291 L425,265 L496,270 L543,312 L517,351 L422,362 L388,332 Z" fill="#754537"/>
+    <ellipse cx="398" cy="-472" rx="95" ry="100" fill="#bc7655"/>
+    <ellipse cx="500" cy="-30" rx="119" ry="141" fill="#dac49c"/>
+    <ellipse cx="380" cy="460" rx="129" ry="115" fill="#82503a"/>
+    <ellipse cx="0" cy="532" rx="220" ry="155" fill="#c59569"/>
+    <ellipse cx="-428" cy="434" rx="173" ry="119" fill="#ac6950"/>
+    <ellipse cx="-525" cy="15" rx="145" ry="185" fill="#c47740"/>
+    <path d="M-600,177 Q-561,260 -595,351 M-727,186 Q-654,132 -597,186"
+      fill="none" stroke="#c98554" stroke-width="24"/>
+    <g transform="translate(-653 265) rotate(13.75)" fill="#626765" stroke="#393d3c" stroke-width="2">
+      <path d="M-11,-50 Q-20,-43 -20,-23 L-9,-21 L-10,17 L-17,19 L-12,47 Q0,57 12,47 L19,-30 Q20,-43 11,-50 Z"/>
+      <path d="M-10,-49 Q0,-44 10,-49" fill="none"/>
+    </g>
+    <ellipse cx="-460" cy="-458" rx="145" ry="218" fill="#675047"/>
+    <circle cx="0" cy="-195" r="75" fill="#d5ab80" stroke="#ecd1a3" stroke-width="12"/>
+    <circle cx="0" cy="48" r="55" fill="#cba580"/>
+    <g fill="#302e2e">
+      <path d="M552,-69 Q470,-30 400,6 Q475,-2 552,-69"/>
+      <path d="M552,-69 Q514,25 443,74 Q521,58 552,-69"/>
+      <path d="M552,-69 Q560,10 525,80 Q568,50 552,-69"/>
+      <circle cx="552" cy="-69" r="14"/>
+    </g>
+    <g stroke="#49372f" stroke-width="8">
+      <path d="M364,380 l-3,38 M369,433 l2,30 M372,488 l-2,30 M447,400 l-7,58 M475,418 l-6,50 M308,386 l-2,28 M302,455 l2,36"/>
+    </g>
+    <g fill="#b5825e">
+      <ellipse cx="-76" cy="530" rx="38" ry="30"/><ellipse cx="78" cy="530" rx="36" ry="27"/>
+      <ellipse cx="62" cy="492" rx="21" ry="18"/><ellipse cx="144" cy="442" rx="21" ry="18"/>
+    </g>
+    <path d="M-88,530 Q-40,522 0,530 Q40,536 88,530 M62,492 Q105,470 144,442"
+      fill="none" stroke="#c59670" stroke-width="12"/>
+    <path d="M-600,120 Q-510,75 -525,-5 Q-526,-70 -566,-90" fill="none" stroke="#e5a05d" stroke-width="18"/>
+    <ellipse cx="-472" cy="12" rx="20" ry="27" fill="#504139"/>
+    <path d="M-430,-330 Q-423,-410 -430,-456 Q-435,-526 -431,-574 M-490,-373 Q-483,-425 -485,-456 Q-492,-540 -492,-591"
+      fill="none" stroke="#51443c" stroke-width="44"/>
+    <g fill="#29262a">
+      <ellipse cx="-427" cy="-381" rx="11" ry="12"/><ellipse cx="-430" cy="-456" rx="11" ry="12"/>
+      <ellipse cx="-433" cy="-535" rx="11" ry="12"/><ellipse cx="-486" cy="-413" rx="11" ry="12"/>
+      <ellipse cx="-485" cy="-456" rx="11" ry="12"/><ellipse cx="-490" cy="-558" rx="11" ry="12"/>
+    </g>
+    <path d="M-423,-522 L-419,-530 L-415,-522" fill="none" stroke="#a3b9a5" stroke-width="3"/>
+    <g fill="none" stroke="#efd09b" stroke-width="6">
+      <path d="M0,8 L-12,-65 L0,-120 M75,-195 L110,-225 L145,-272 L155,-325 L190,-365 L240,-378 L290,-411"/>
+      <path d="M290,-411 L331,-389 L388,-386 L409,-408 L376,-423 L333,-431 L330,-443 L359,-462 L370,-472"/>
+      <path d="M388,-386 L415,-376 L423,-358 L419,-335 L410,-311 L405,-290"/>
+      <path d="M405,-290 L425,-278 L460,-300 L505,-292 L548,-256 L549,-218 L525,-194 L477,-170 L449,-137 L426,-110"/>
+      <path d="M426,-110 L449,-137 L488,-147 L533,-136 L573,-107 L594,-68 L594,-21 L577,22 L558,80 L501,100 L441,103 L401,72 L374,16 L375,-33 L403,-74 Z"/>
+      <path d="M501,100 L520,112 L520,141 L531,187 L511,228 L464,250 L418,252 L380,279 L374,315 L404,363"/>
+      <path d="M404,363 L408,398 L408,439 L404,477 L404,512 L376,548"/>
+      <path d="M404,363 L366,362 L320,365 L281,393 L269,438 L274,485 L304,526 L341,545 L376,548"/>
+      <path d="M376,548 L337,571 L289,573 L243,568"/>
+      <path d="M42,20 L100,24 L155,-10 L202,-5 L235,-50 L290,-82 L345,-76 L426,-110"/>
+      <path d="M40,64 L40,110 L35,150 L20,175 L0,228 L-20,280 L-4,337 L17,384 L0,434 L0,486"/>
+      <path d="M-12,60 L-75,88 L-139,115 L-187,170 L-205,233 L-235,295 L-285,350 L-345,405"/>
+      <path d="M243,568 L213,590 L176,596 L145,575 L115,602 L72,618 L28,605 L0,579 L0,530 L0,486 L-28,459 L-72,448"/>
+      <path d="M-72,448 L-105,464 L-131,499 L-136,540 L-119,571 L-92,580 L-57,591 L-25,620 L8,632 L42,632 L72,618"/>
+      <path d="M-72,448 L-100,416 L-150,419 L-181,451 L-190,490 L-179,544 L-155,590 L-111,626 L-58,646 L8,632"/>
+      <path d="M-92,580 L-106,560 L-110,537 L-96,530 L-88,530 M88,530 L119,547 L145,575"/>
+      <path d="M-88,530 L88,530" stroke-dasharray="5 5" stroke-width="3"/>
+      <path d="M-190,490 L-235,495 L-270,520 L-300,505 L-332,486 L-370,470 L-430,440 L-482,415 L-505,365 L-544,333 L-535,280"/>
+      <path d="M-370,470 L-418,510 L-475,490 L-525,435 L-532,394 L-505,365"/>
+      <path d="M-300,505 L-313,462 L-331,430 L-345,405 L-385,376 L-430,354 L-475,348 L-505,365"/>
+      <path d="M-535,280 L-515,239 L-535,190 L-600,155 L-648,95 L-655,20 L-630,-55 L-560,-108 L-480,-160"/>
+      <path d="M-600,155 L-578,113 L-552,75 L-528,28 L-528,-5 L-545,-50 L-566,-79 L-560,-108"/>
+      <path d="M-535,190 L-472,145 L-431,77 L-409,15 L-425,-49 L-460,-111 L-480,-160"/>
+      <path d="M-480,-160 L-445,-213 L-455,-275 L-431,-304 L-429,-330 L-427,-355 L-427,-381 L-427,-413 L-429,-438 L-430,-456 L-432,-482 L-433,-506 L-433,-535 L-432,-558 L-431,-574 L-429,-602 L-392,-622 L-351,-585 L-340,-536 L-357,-493"/>
+      <path d="M-455,-275 L-514,-318 L-536,-370 L-526,-430 L-536,-493 L-541,-552 L-537,-624 L-475,-643 L-392,-622"/>
+      <path d="M-455,-275 L-479,-310 L-491,-346 L-490,-373 L-488,-393 L-486,-413 L-485,-436 L-485,-456 L-485,-481 L-486,-509 L-488,-534 L-490,-558 L-491,-578 L-491,-591 L-491,-614 L-475,-643"/>
+      <path d="M-430,-456 L-456,-456 L-485,-456 M-433,-506 L-420,-513 L-418,-520"/>
+      <path d="M-357,-493 L-318,-473 L-275,-433 L-229,-412 L-179,-393 L-133,-349 L-106,-295 L-103,-246 L-75,-195"/>
+    </g>
+    <g fill="#f9ebc7" stroke="#46383b" stroke-width="4">
+      <circle cx="0" cy="48" r="11"/><circle cx="0" cy="-195" r="11"/><circle cx="398" cy="-472" r="11"/>
+      <circle cx="500" cy="-30" r="11"/><circle cx="380" cy="460" r="11"/>
+    </g>
+    <g fill="#f9ebc7" stroke="#46383b" stroke-width="4">
+      <circle cx="145" cy="575" r="11"/><circle cx="-300" cy="505" r="11"/><circle cx="-535" cy="190" r="11"/><circle cx="-455" cy="-275" r="11"/>
+    </g>
+    <g fill="#d8efc2" stroke="#254839" stroke-width="4">
+      <path d="M549,-230 l12,24 h-24 Z"/><path d="M374,303 l12,24 h-24 Z"/>
+    </g>
+  </g>
+  <g class="label">
+    <text x="408" y="380">Crown Crater</text><text x="394" y="535">Habitat Seven</text>
+    <text x="606" y="237">Dish Ridge</text><text x="660" y="471">Glassfall Plain</text>
+    <text x="604" y="735">Iron Maze</text><text x="396" y="842">Keyhole Badlands</text>
+    <text x="177" y="773">Fossil Delta</text><text x="119" y="527">Rust Dunes</text>
+    <text x="178" y="203">Lava Tubes / Vault</text>
+  </g>
+  <text x="858" y="190" class="label">EASTERN JOURNEY</text>
+  <text x="858" y="223" class="small">Dish: relocated, same machinery</text>
+  <text x="858" y="245" class="small">Low approach: open pale plain</text>
+  <text x="858" y="267" class="small">Glassfall: 1.45x wider landforms</text>
+  <text x="858" y="289" class="small">Sediment wash: hidden Iron entry</text>
+  <text x="858" y="311" class="small">Iron Maze: 1.4x wider corridors</text>
+  <text x="858" y="366" class="label">VISIBILITY</text>
+  <text x="858" y="393" class="small">Low shoulders; Iron stays screened</text>
+  <text x="858" y="415" class="small">Green triangles mark reveals</text>
+  <text x="858" y="437" class="small">Moderate haze: 65-250 m</text>
+  <text x="858" y="492" class="label">SCOPE</text>
+  <text x="858" y="519" class="small">Four Habitat destination spokes</text>
+  <text x="858" y="541" class="small">Outer route graph now connected</text>
+  <text x="858" y="563" class="small">Road and vehicle scale retained</text>
+  <text x="858" y="606" class="label">UNMARKED DISCOVERY</text>
+  <text x="858" y="632" class="small">Buried wreck west of Delta / Dunes</text>
+  <text x="858" y="654" class="small">Sand-screened; no access trail</text>
+  <text x="66" y="925" font-size="15">Development layout; full-circuit and device acceptance pending. Not a public-release claim.</text>
+  <text x="66" y="951" font-size="13">Routes and centres follow the expanded layout. Region outlines are schematic; heights are verified separately.</text>
+<g id="postcard-triggers"><g data-postcard="habitat-seven"><circle cx="450" cy="510" r="38" fill="#f3a949" fill-opacity=".22" stroke="#fff3ca" stroke-width="3.5" /><circle cx="450" cy="510" r="17" fill="#f3a949" stroke="#242c2b" stroke-width="2.5"/><text x="450" y="516" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" style="fill:#242c2b">1</text></g><g data-postcard="crown-crater"><circle cx="450" cy="392.5" r="52.5" fill="#f3a949" fill-opacity=".22" stroke="#fff3ca" stroke-width="3.5" /><circle cx="450" cy="392.5" r="17" fill="#f3a949" stroke="#242c2b" stroke-width="2.5"/><text x="450" y="398.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" style="fill:#242c2b">2</text></g><g data-postcard="dish-ridge"><circle cx="649" cy="254" r="38" fill="#f3a949" fill-opacity=".22" stroke="#fff3ca" stroke-width="3.5" /><circle cx="649" cy="254" r="17" fill="#f3a949" stroke="#242c2b" stroke-width="2.5"/><text x="649" y="260" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" style="fill:#242c2b">3</text></g><g data-postcard="glassfall-plain"><circle cx="726.1" cy="455.43" r="38" fill="#f3a949" fill-opacity=".22" stroke="#fff3ca" stroke-width="3.5" /><circle cx="726.1" cy="455.43" r="17" fill="#f3a949" stroke="#242c2b" stroke-width="2.5"/><text x="726.1" y="461.43" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" style="fill:#242c2b">4</text></g><g data-postcard="iron-maze"><circle cx="645" cy="717.5" r="65" fill="#f3a949" fill-opacity=".22" stroke="#fff3ca" stroke-width="3.5" /><circle cx="645" cy="717.5" r="17" fill="#f3a949" stroke="#242c2b" stroke-width="2.5"/><text x="645" y="723.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" style="fill:#242c2b">5</text></g><g data-postcard="keyhole-badlands"><circle cx="450" cy="755" r="41" fill="#f3a949" fill-opacity=".22" stroke="#fff3ca" stroke-width="3.5" /><circle cx="450" cy="755" r="17" fill="#f3a949" stroke="#242c2b" stroke-width="2.5"/><text x="450" y="761" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" style="fill:#242c2b">6</text></g><g data-postcard="fossil-delta"><circle cx="300" cy="742.5" r="38" fill="#f3a949" fill-opacity=".22" stroke="#fff3ca" stroke-width="3.5" /><circle cx="235" cy="710" r="34" fill="#f3a949" fill-opacity=".14" stroke="#fff3ca" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="212.5" cy="735" r="34" fill="#f3a949" fill-opacity=".14" stroke="#fff3ca" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="235" cy="667" r="34" fill="#f3a949" fill-opacity=".14" stroke="#fff3ca" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="197.5" cy="672.5" r="34" fill="#f3a949" fill-opacity=".14" stroke="#fff3ca" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="300" cy="742.5" r="17" fill="#f3a949" stroke="#242c2b" stroke-width="2.5"/><text x="300" y="748.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" style="fill:#242c2b">7</text></g><g data-postcard="rust-dunes"><circle cx="182.5" cy="585" r="38" fill="#f3a949" fill-opacity=".22" stroke="#fff3ca" stroke-width="3.5" /><circle cx="122.5" cy="500" r="36" fill="#f3a949" fill-opacity=".14" stroke="#fff3ca" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="186" cy="487.5" r="36" fill="#f3a949" fill-opacity=".14" stroke="#fff3ca" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="245.5" cy="497.5" r="36" fill="#f3a949" fill-opacity=".14" stroke="#fff3ca" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="182.5" cy="585" r="17" fill="#f3a949" stroke="#242c2b" stroke-width="2.5"/><text x="182.5" y="591" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" style="fill:#242c2b">8</text></g><g data-postcard="lava-tubes"><circle cx="235" cy="262" r="38" fill="#f3a949" fill-opacity=".22" stroke="#fff3ca" stroke-width="3.5" /><circle cx="187" cy="275" r="38" fill="#f3a949" fill-opacity=".14" stroke="#fff3ca" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="235" cy="262" r="17" fill="#f3a949" stroke="#242c2b" stroke-width="2.5"/><text x="235" y="268" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" style="fill:#242c2b">9</text></g><g data-postcard="shuttle-wreck"><circle cx="123.5" cy="622.5" r="20.5" fill="#b24b91" fill-opacity=".22" stroke="#fff0ff" stroke-width="3.5" /><circle cx="101.15" cy="640.2" r="21" fill="#b24b91" fill-opacity=".14" stroke="#fff0ff" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="102.07" cy="630.13" r="21" fill="#b24b91" fill-opacity=".14" stroke="#fff0ff" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="104.45" cy="620.41" r="21" fill="#b24b91" fill-opacity=".14" stroke="#fff0ff" stroke-width="2.5" stroke-dasharray="8 6"/><circle cx="123.5" cy="622.5" r="17" fill="#b24b91" stroke="#242c2b" stroke-width="2.5"/><text x="123.5" y="628.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="700" style="fill:#242c2b">✦</text></g></g><rect x="850" y="125" width="550" height="850" rx="18" fill="#f8f3e8" stroke="#d9cbbb" stroke-width="2"/><text x="876" y="167" font-family="Arial,Helvetica,sans-serif" font-size="25" font-weight="700" style="fill:#263f3c">POSTCARD TRIGGER AREAS</text><text x="876" y="197" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="400" style="fill:#5a6b62">Solid ring = main zone  ·  dashed = alternate approach</text><text x="876" y="221" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="400" style="fill:#5a6b62">Exact x/z centres and radii from src/game/postcards.ts</text><circle cx="892" cy="252" r="16" fill="#bc6730"/><text x="892" y="258" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" style="fill:#fff9ec">1</text><text x="922" y="258" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#263f3c">Habitat Seven</text><text x="922" y="278" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="400" style="fill:#69786b">1 zone · main radius 76 m</text><circle cx="892" cy="319" r="16" fill="#bc6730"/><text x="892" y="325" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" style="fill:#fff9ec">2</text><text x="922" y="325" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#263f3c">Crown Crater</text><text x="922" y="345" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="400" style="fill:#69786b">1 zone · main radius 105 m</text><circle cx="892" cy="386" r="16" fill="#bc6730"/><text x="892" y="392" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" style="fill:#fff9ec">3</text><text x="922" y="392" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#263f3c">Dish Ridge</text><text x="922" y="412" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="400" style="fill:#69786b">1 zone · main radius 76 m</text><circle cx="892" cy="453" r="16" fill="#bc6730"/><text x="892" y="459" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" style="fill:#fff9ec">4</text><text x="922" y="459" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#263f3c">Glassfall Plain</text><text x="922" y="479" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="400" style="fill:#69786b">1 zone · main radius 76 m</text><circle cx="892" cy="520" r="16" fill="#bc6730"/><text x="892" y="526" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" style="fill:#fff9ec">5</text><text x="922" y="526" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#263f3c">Iron Maze</text><text x="922" y="546" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="400" style="fill:#69786b">1 zone · main radius 130 m</text><circle cx="892" cy="587" r="16" fill="#bc6730"/><text x="892" y="593" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" style="fill:#fff9ec">6</text><text x="922" y="593" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#263f3c">Keyhole Badlands</text><text x="922" y="613" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="400" style="fill:#69786b">1 zone · main radius 82 m</text><circle cx="892" cy="654" r="16" fill="#bc6730"/><text x="892" y="660" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" style="fill:#fff9ec">7</text><text x="922" y="660" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#263f3c">Fossil Delta</text><text x="922" y="680" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="400" style="fill:#69786b">5 zones · main radius 76 m</text><circle cx="892" cy="721" r="16" fill="#bc6730"/><text x="892" y="727" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" style="fill:#fff9ec">8</text><text x="922" y="727" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#263f3c">Rust Dunes</text><text x="922" y="747" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="400" style="fill:#69786b">4 zones · main radius 76 m</text><circle cx="892" cy="788" r="16" fill="#bc6730"/><text x="892" y="794" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" style="fill:#fff9ec">9</text><text x="922" y="794" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#263f3c">Lava Tubes</text><text x="922" y="814" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="400" style="fill:#69786b">2 zones · main radius 76 m</text><circle cx="892" cy="855" r="16" fill="#b24b91"/><text x="892" y="861" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#fff9ec">✦</text><text x="922" y="861" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="700" style="fill:#263f3c">Buried Shuttle</text><text x="922" y="881" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="400" style="fill:#69786b">4 zones · main radius 41 m · secret</text><text x="876" y="923" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="400" style="fill:#5a6b62">After 8 m of driving, a pass through any ring unlocks.</text><text x="876" y="945" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="400" style="fill:#5a6b62">Spawn, reset and teleport do not count as discovery.</text></svg>

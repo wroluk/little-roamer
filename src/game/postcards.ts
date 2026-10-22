@@ -10,7 +10,7 @@ import { TUBES_CENTRE, TUBES_LOOKOUT } from './mars-tubes-layout';
 import { DELTA_ROUTES } from './mars-delta-layout';
 import { DUNES_ROUTES } from './mars-dunes-layout';
 import { VALLEY_FORDS } from './northern-valley';
-import { inletCenterX, INLET_FORDS } from './northern-watershed';
+import { inletCenterX, INLET_FORDS, LAKE_ISLAND, lakeShorePoint } from './northern-watershed';
 import { ADVENTURE_REGIONS } from './northern-adventures';
 import { PASS_LOOKOUT, PASS_BOWL } from './northern-pass';
 import { EMBER_LOOKOUT } from './northern-ember';
@@ -56,10 +56,22 @@ const marsNotes: Record<string, string> = {
   'lava-tubes': 'Light falls through broken skylights into the cooled lava.',
 };
 const marsLandmarks: Record<string, { x: number; z: number }> = {
+  'crown-crater': { x: 0, z: -195 },
   'dish-ridge': DISH_SITE,
   'glassfall-plain': GLASSFALL_SCAR,
+  'iron-maze': { x: 390, z: 455 },
   'keyhole-badlands': KEYHOLE_ARCH,
   'lava-tubes': TUBES_CENTRE,
+};
+const northernLandmarks: Record<string, { x: number; z: number }> = {
+  'stonegate-basin': { x: -260, z: -365 },
+  'ember-basin': { x: 592, z: 438 },
+  'ochre-terraces': { x: 400, z: 110 },
+};
+const northernRadii: Record<string, number> = {
+  'stonegate-basin': 115,
+  'ember-basin': 90,
+  'ochre-terraces': 85,
 };
 const visitZone = (point: { x: number; z: number }, radius = 76) => ({ x: point.x, z: point.z, radius });
 const northernTrail = (id: string, name: string) => ADVENTURE_REGIONS.find(region => region.id === id)!
@@ -71,11 +83,14 @@ const northernVisitZones: Record<string, readonly { x: number; z: number; radius
   'river-valley': [visitZone(VALLEY_FORDS[1], 52)],
   'high-pass': [visitZone(PASS_LOOKOUT, 52), visitZone(PASS_BOWL, 46)],
   'ember-basin': [visitZone(EMBER_LOOKOUT, 52)],
+  'ochre-terraces': [visitZone({ x: 480, z: 165 }, 85)],
   'willow-marsh': [visitZone(MARSH_LOOKOUT, 52)],
   'timber-run': [visitZone(northernTrail('timber-run', 'Coast Road connection')[2], 52)],
-  'stonegate-basin': [visitZone(northernTrail('stonegate-basin', 'North crown')[1], 52)],
   'windstone-ridge': [visitZone(northernTrail('windstone-ridge', 'Windstone lookout')[0], 52)],
-  'ochre-terraces': [visitZone(northernTrail('ochre-terraces', 'Rock ramp traverse')[1], 52)],
+  'great-lake': [
+    ...Array.from({ length: 7 }, (_, i) => visitZone(lakeShorePoint(0.4 + (i + 1) * Math.PI / 4, 10), 76)),
+    visitZone(LAKE_ISLAND, 50),
+  ],
   'alder-river': [
     visitZone({ x: INLET_FORDS[0].x + 42, z: INLET_FORDS[0].z }, 52),
     visitZone(INLET_FORDS[1], 52),
@@ -100,8 +115,10 @@ export const POSTCARDS: readonly Postcard[] = [
     image: image('northern-reach', 'pine-hollows') },
   ...NORTHERN_STARTS.filter(start => start.id !== 'northern-reach').map(start => ({
     id: start.id, area: 'northern-reach' as const, name: start.name,
-    note: northernNotes[start.id], x: start.position.x, z: start.position.z,
-    radius: 72, visitZones: northernVisitZones[start.id], image: image('northern-reach', start.id),
+    note: northernNotes[start.id], x: (northernLandmarks[start.id] ?? start.position).x,
+    z: (northernLandmarks[start.id] ?? start.position).z,
+    radius: northernRadii[start.id] ?? 72,
+    visitZones: northernVisitZones[start.id], image: image('northern-reach', start.id),
   })),
   { id: 'stone-circle', area: 'northern-reach', name: 'Stone Circle',
     note: 'Old stones stand quietly inside a hidden hollow.',
@@ -110,7 +127,8 @@ export const POSTCARDS: readonly Postcard[] = [
     const point = marsLandmarks[start.id] ?? start.position;
     return { id: start.id, area: 'mars' as const, name: start.name,
       note: marsNotes[start.id], x: point.x, z: point.z,
-      radius: start.id === 'keyhole-badlands' ? 82 : 76,
+      radius: start.id === 'iron-maze' ? 130 : start.id === 'crown-crater' ? 105
+        : start.id === 'keyhole-badlands' ? 82 : 76,
       visitZones: marsVisitZones[start.id],
       image: image('mars', start.id) };
   }),
