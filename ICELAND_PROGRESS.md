@@ -386,6 +386,14 @@
 - The focused ice unit check, typecheck, production build and `git diff --check` passed. Compared identical beach-level Chromium captures before/after and inspected the final WebKit view under `artifacts/iceland/east-beach-ice/`. Both final views show the scattered group along the waterline with the road open above it. This was a focused visual check; the long five-view browser scenario, full unit/browser suites and physical iPad Safari review were not run for this local correction.
 - Next: user review of the eastern beach in the game; keep the separate cave and postcard work out of this ice commit. Continue the previously planned Iceland region work after that review.
 
+## Jökulsárlón ice variety CI repair — 2026-10-21
+
+- GitHub Pages run 39632417559 failed 1 of 355 unit tests at the ice-variety assertion; all earlier tests passed and the build step was skipped. Reproduced against a clean archive of pushed commit `49a2046`. The five beach pieces surviving shoreline filtering had only two `iceProfile` values and no piece wider than 4 m. The lagoon group retained all four profiles.
+- Reused the existing `fracturedIce` generator and its render/collision geometry in `src/game/iceland-lagoon-scenery.ts`, plus the existing focused geometry and browser visual checks. Adapted only the beach shape seed and enlarged one opaque stranded slab at approximately `(468, 678)`, 28.5 m from the Ring Road. Placement, materials, lagoon geometry and streaming ownership remain the same.
+- The focused failing unit check, final typecheck/production build and `git diff --check` pass. The five-view Chromium lagoon/beach scenario timed out at its 120-second software-rendering limit after three captures, without a geometry assertion failure. A direct Chromium capture of the final beach at driving height passed and was inspected at `artifacts/iceland/ci-ice-repair/beach-driving-height.png`; the opaque, frosted and clear forms remain distinct and grounded. This single view does not certify the entire browser scenario. The ice cave and unrelated worktree edits remain uncommitted.
+- User approved the push. Committed only `src/game/iceland-lagoon-scenery.ts` as `f04cdd3` and pushed it to `main`; no other worktree change entered that commit. GitHub Pages run `39649537386` started and was still in progress at the last check.
+- Next: confirm run `39649537386` passes; if it fails, inspect that exact job log. Keep the longer visual scenario's software-rendering timeout separate from this unit-test fix.
+
 ## Western ice margin: drive-through cave — 2026-10-21
 
 - Committed and pushed the accepted Vatnajökull/coastal/map/junction work as
