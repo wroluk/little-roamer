@@ -1,5 +1,5 @@
 // Render the actual game vehicles as transparent selection-button images.
-// Run: node --import tsx scripts/render-car-thumbnails.ts
+// Run: node --import tsx scripts/render-car-thumbnails.ts [model...]
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
 import { createServer } from 'vite';
@@ -14,7 +14,7 @@ try {
   // A blank same-origin page lets us load the models without starting the game.
   await page.route('**/thumbnail-render', route => route.fulfill({ contentType: 'text/html', body: '<html></html>' }));
   await page.goto(`http://127.0.0.1:${address.port}/thumbnail-render`);
-  const images = await page.evaluate(async () => {
+  const images = await page.evaluate(async requested => {
     // Resolve the same optimized module URLs (including hashes) as the vehicle.
     const source = await (await fetch('/src/game/vehicle.ts')).text();
     const threeUrl = source.match(/from "([^"\n]*deps\/three[^"\n]*)"/)?.[1];
@@ -26,6 +26,8 @@ try {
     const { Vehicle, VEHICLE_MODELS } = await import('/src/game/vehicle.ts');
     // @ts-expect-error Browser-only Vite module URL.
     const { disposeScene } = await import('/src/game/dispose.ts');
+    const models = requested.length ? requested : VEHICLE_MODELS;
+    for (const model of models) if (!VEHICLE_MODELS.includes(model)) throw new Error(`Unknown vehicle: ${model}`);
     await RAPIER.init();
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true });
     renderer.setSize(360, 240);
@@ -33,13 +35,13 @@ try {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     const images: Record<string, string> = {};
-    for (const model of VEHICLE_MODELS) {
+    for (const model of models) {
       const scene = new THREE.Scene();
       const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
       try {
         const vehicle = new Vehicle(scene, world, { x: 0, y: 0, z: 0 }, 1, undefined, undefined, undefined, model);
         // Rapier has not stepped here; show the Earth cars at their parked ride height.
-        if (model !== 'mars-scout') for (const wheel of vehicle.wheels) wheel.position.y = -0.24;
+        if (model === 'modern' || model === 'classic') for (const wheel of vehicle.wheels) wheel.position.y = -0.24;
         scene.add(new THREE.HemisphereLight('#fef3d6', '#7f9f87', 1.9));
         const sun = new THREE.DirectionalLight('#fff0d1', 2.6);
         sun.position.set(-3, 7, -5);
@@ -58,7 +60,7 @@ try {
     }
     renderer.dispose();
     return images;
-  });
+  }, process.argv.slice(2));
   await mkdir('public/cars', { recursive: true });
   for (const [model, data] of Object.entries(images)) {
     await writeFile(`public/cars/${model}.png`, Buffer.from(data, 'base64'));

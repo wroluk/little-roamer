@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { MOON_BASE, MOON_FLOOR, MOON_OVERLOOK, MOON_ROUTES } from '../../src/game/moon-terrain';
+import { MOON_BASE, MOON_BASALT, MOON_FLOOR, MOON_HIGHLANDS, MOON_OVERLOOK, MOON_RILLE, MOON_ROUTES, moonSurfaceHeight } from '../../src/game/moon-terrain';
 import { MOON_SHELTER } from '../../src/game/moon-scenery';
 
 test.use({ deviceScaleFactor: 1 });
@@ -67,7 +67,7 @@ test('Moon pilot has Earth, crisp terrain, bounded frame work, regional reset an
   expect((await state(page)).gravity).toBe(-3);
   expect((await state(page)).fog).toBe(false);
   expect((await state(page)).viewDistance).toBe(3200);
-  expect((await state(page)).car).toBe('mars-scout');
+  expect((await state(page)).car).toBe('lunar-rover');
   await expect(page.locator('.vignette')).toHaveCSS('background-image', 'none');
   for (const [name, p, heading] of [
     ['earthview-base', MOON_BASE, 0],
@@ -133,7 +133,8 @@ test('Moon pilot has Earth, crisp terrain, bounded frame work, regional reset an
   expect(sample.state.streaming.queued).toBe(0);
   expect(sample.state.streaming.activePhysics).toBeLessThanOrEqual(9);
   await page.locator('#pause').click(); await page.locator('#home').click();
-  await expect(page.getByRole('radio', { name: 'Lunar Scout' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Lunar Rover' })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'Mars Scout' })).toBeVisible();
   await expect(page.locator('input[name="area"][value="moon"]')).toHaveCount(0);
   await page.locator('input[name="area"][value="valley"]').check();
   await expect(page.locator('#start')).toBeEnabled();
@@ -233,4 +234,151 @@ test('Moon regional direct entry starts at the Earthrise overlook', async ({ pag
   expect((await state(page)).position.z).toBeCloseTo(MOON_OVERLOOK.z, 0);
   await page.locator('#reset').click();
   await expect(page.locator('#toast')).toHaveText('Back at Earthrise Overlook');
+});
+
+test('Moon basalt and rille starts, views and resets retain the bounded haze-free presentation', async ({ page }, info) => {
+  test.setTimeout(90_000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  const folder = `artifacts/moon/basalt-rille/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  for (const [id, name, point] of [
+    ['basalt-reach', 'Basalt Reach', MOON_BASALT], ['silver-rille', 'Silver Rille', MOON_RILLE],
+  ] as const) {
+    await boot(page, id);
+    const s = await state(page);
+    expect(s.position.x).toBeCloseTo(point.x, 0); expect(s.position.z).toBeCloseTo(point.z, 0);
+    expect(s.gravity).toBe(-3); expect(s.fog).toBe(false);
+    expect(s.streaming.activeRender).toBe(64); expect(s.streaming.activePhysics).toBeLessThanOrEqual(9);
+    expect(s.drawCalls).toBeLessThan(90); expect(s.triangles).toBeLessThan(120_000);
+    await page.screenshot({ path: `${folder}/${id}.png` });
+    await page.locator('#reset').click();
+    await expect(page.locator('#toast')).toHaveText(`Back at ${name}`);
+    expect((await state(page)).position.x).toBeCloseTo(point.x, 0);
+  }
+  for (const [name, x, z, heading] of [
+    ['bank-arrival', 208, -95, Math.PI], ['breach-floor', 238, 85, -Math.PI / 2],
+    ['eastern-shoulder', 288, 70, Math.PI / 2],
+  ] as const) {
+    await page.evaluate(({ x, z, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, heading),
+      { x, z, heading });
+    await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: `${folder}/${name}.png` });
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Basalt Reach identity is readable from the start and reported northern approach', async ({ page }, info) => {
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await boot(page, 'basalt-reach');
+  const folder = `artifacts/moon/basalt-identity/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: `${folder}/arrival.png` });
+  await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView({
+    position: { x: 108.684, y: 10.09, z: 173.21 },
+    target: { x: 98.706, y: 6.846, z: 182.326 }, fov: 48,
+  }));
+  await page.getByRole('button', { name: 'Hide UI', exact: true }).click();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${folder}/reported-view.png` });
+  await page.keyboard.press('Escape');
+  await page.evaluate(view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), {
+    position: { x: 147, y: moonSurfaceHeight(147, 186) + 3, z: 186 },
+    target: { x: 138, y: moonSurfaceHeight(138, 192) + 1, z: 192 }, fov: 55,
+  });
+  await page.getByRole('button', { name: 'Hide UI', exact: true }).click();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${folder}/grounded-crust.png` });
+  expect((await state(page)).streaming.activePhysics).toBeLessThanOrEqual(9);
+  expect(errors).toEqual([]);
+});
+
+test('real browser basalt flow corridor remains open in both directions', async ({ page }, info) => {
+  test.setTimeout(240_000);
+  await boot(page, 'basalt-reach');
+  for (const reversed of [false, true]) {
+    const points = MOON_ROUTES[2].points.slice(3, 6), path = reversed ? [...points].reverse() : points;
+    const first = path[0], second = path[1];
+    await page.evaluate(({ first, second }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(
+      first.x, first.z, Math.atan2(-(second.x - first.x), -(second.z - first.z))), { first, second });
+    await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+    await drive(page, path);
+  }
+  const folder = `artifacts/moon/basalt-identity/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  await page.screenshot({ path: `${folder}/real-drive.png` });
+});
+
+test('Broken Highlands has safe regional entry, fractured uplands, ridge views and reset', async ({ page }, info) => {
+  test.setTimeout(90_000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await boot(page, 'broken-highlands');
+  const folder = `artifacts/moon/broken-highlands/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  const initial = await state(page);
+  expect(initial.position.x).toBeCloseTo(MOON_HIGHLANDS.x, 0);
+  expect(initial.position.z).toBeCloseTo(MOON_HIGHLANDS.z, 0);
+  expect(initial.gravity).toBe(-3); expect(initial.fog).toBe(false);
+  expect(initial.streaming.activeRender).toBe(64); expect(initial.streaming.activePhysics).toBeLessThanOrEqual(9);
+  await page.locator('#reset').click();
+  await expect(page.locator('#toast')).toHaveText('Back at Broken Highlands');
+  for (const [name, x, z, heading] of [
+    ['arrival', MOON_HIGHLANDS.x, MOON_HIGHLANDS.z, 0],
+    ['shelf-climb', -272, -135, -Math.atan2(22, 45)],
+    ['western-ridge', -300, -160, 0],
+    ['northern-return', -205, -225, -Math.PI / 2],
+    ['basin-view', -250, -180, -Math.PI / 2],
+  ] as const) {
+    await page.evaluate(({ x, z, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, heading),
+      { x, z, heading });
+    await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+    await page.waitForTimeout(1000);
+    const s = await state(page);
+    expect(s.cameraObstructed).toBe(false);
+    expect(s.triangles).toBeLessThan(120_000);
+    expect(s.drawCalls).toBeLessThan(90);
+    await page.screenshot({ path: `${folder}/${name}.png` });
+  }
+  await page.evaluate(view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view), {
+    position: { x: -224, y: moonSurfaceHeight(-224, -110) + 6, z: -110 },
+    target: { x: -234, y: 39, z: -116 }, fov: 55,
+  });
+  await page.getByRole('button', { name: 'Hide UI', exact: true }).click();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${folder}/fracture.png` });
+  expect(errors).toEqual([]);
+});
+
+test('real browser highland climb and exposed ridge stay driveable both ways', async ({ page }, info) => {
+  test.setTimeout(420_000);
+  await boot(page, 'broken-highlands');
+  for (const points of [MOON_ROUTES[6].points.slice(1, 6), MOON_ROUTES[7].points.slice(2)]) {
+    for (const reversed of [false, true]) {
+      const path = reversed ? [...points].reverse() : [...points], first = path[0], second = path[1];
+      await page.evaluate(({ first, second }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(
+        first.x, first.z, Math.atan2(-(second.x - first.x), -(second.z - first.z))), { first, second });
+      await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+      await drive(page, path);
+    }
+  }
+  const folder = `artifacts/moon/broken-highlands/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  await page.screenshot({ path: `${folder}/real-drive.png` });
+});
+
+test('real browser lunar excursion crosses basalt, rille bends and the crossing breach both ways', async ({ page }, info) => {
+  test.setTimeout(480_000);
+  await boot(page, 'basalt-reach');
+  const paths = [
+    MOON_ROUTES[2].points.slice(3, 5), MOON_ROUTES[3].points.slice(1, 7), MOON_ROUTES[5].points.slice(2),
+  ];
+  for (const points of paths) for (const reversed of [false, true]) {
+    const path = reversed ? [...points].reverse() : [...points], first = path[0], second = path[1];
+    await page.evaluate(({ first, second }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(first.x, first.z,
+      Math.atan2(-(second.x - first.x), -(second.z - first.z))), { first, second });
+    await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+    await drive(page, path);
+  }
+  await page.screenshot({ path: info.outputPath('basalt-rille-real-drive.png') });
 });

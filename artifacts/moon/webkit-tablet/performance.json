@@ -1,8 +1,8 @@
 {
   "renderer": "Apple GPU",
-  "loadMs": 1247,
+  "loadMs": 1117,
   "medianMs": 17,
-  "p95Ms": 29,
+  "p95Ms": 28,
   "state": {
     "area": "moon",
     "bounds": 384,
@@ -14,7 +14,7 @@
     "gravity": -3,
     "fog": false,
     "viewDistance": 3200,
-    "car": "mars-scout",
+    "car": "lunar-rover",
     "surface": "lunar-regolith",
     "wheelSurfaces": [
       "lunar-regolith",
@@ -35,21 +35,21 @@
     "mode": "playing",
     "position": {
       "x": 40.001220703125,
-      "y": 2.782661199569702,
+      "y": 2.7826590538024902,
       "z": -105
     },
     "rotation": {
-      "x": 0.0005414480110630393,
+      "x": 0.0005413152975961566,
       "y": 0.7071065902709961,
-      "z": -0.0005414480110630393,
+      "z": -0.0005413152975961566,
       "w": 0.7071065902709961
     },
     "velocity": {
-      "x": 0.000031128973205341026,
-      "y": -0.018671974539756775,
-      "z": 2.1949128800245274e-32
+      "x": 0.00003154503065161407,
+      "y": -0.018657460808753967,
+      "z": 1.0956831744579536e-30
     },
-    "speed": -0.00005972405564692172,
+    "speed": -0.00006011088218479016,
     "contacts": 4,
     "input": {
       "steer": 0,
@@ -57,23 +57,23 @@
       "reverse": false
     },
     "camera": [
-      53.54664603517762,
-      4.21838705105154,
-      -105.00000067031921
+      53.54664619527371,
+      4.218367218107696,
+      -105.00000068447812
     ],
-    "targetDistance": 13.62130160873188,
+    "targetDistance": 13.62129993181101,
     "wheelSteering": 0,
     "suspension": [
-      0.30422356724739075,
-      0.30422356724739075,
-      0.3011303246021271,
-      0.3011303246021271
+      0.30422070622444153,
+      0.30422070622444153,
+      0.30112817883491516,
+      0.30112817883491516
     ],
-    "drawCalls": 24,
-    "triangles": 112494,
+    "drawCalls": 25,
+    "triangles": 110284,
     "pixelRatio": 1,
     "graphicsReduced": false,
-    "geometries": 31,
+    "geometries": 33,
     "textures": 2,
     "cameraObstructed": false,
     "streaming": {
@@ -81,11 +81,11 @@
       "activePhysics": 9,
       "queued": 0,
       "triangles": 91008,
-      "colliderCount": 31,
+      "colliderCount": 33,
       "lastActivationMs": 1
     },
     "navigation": {
-      "heading": 269.9999973448392,
+      "heading": 269.9999973613057,
       "direction": "W",
       "elevation": 2
     }

@@ -4,6 +4,67 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Lunar Rover window fit and matching tint — 2026-10-23
+
+- Derived lunar side-window edges from the existing cabin faces, sharing the
+  front/corner sill and header and keeping a constant-width corner pillar.
+  Shifted flank identification marks below the glass. Replaced only the lunar
+  cabin's glossy glass with one light-independent dark-blue finish: previously
+  shared material still looked differently coloured across angled faces.
+  Solar/body lighting, Mars Scout and shared physics remain unchanged.
+- Reused the current rover builder and geometry/browser regressions.
+  **20 focused unit checks**, typecheck/build and **four dual-engine rover
+  browser cases pass**, including actual front/corner/side pixel-colour matching.
+  Inspected final Moon/Mars three-quarter and both-side profiles and refreshed
+  the thumbnail. Details and captures:
+  [Moon progress](MOON_PROGRESS.md#lunar-rover-window-fit-and-matching-tint--2026-10-23).
+- No full-project/PWA, long-region or fresh hardware checks; the last full-suite
+  record remains 2026-10-11 and physical-iPad/existing WebKit gaps remain open.
+  **Exact next step:** user reviews `?area=mars&car=lunar-rover`. User requested
+  committing and pushing the accumulated Moon/rover changes.
+
+### Lunar Rover upright-front refinement — 2026-10-23
+
+- User requested exposed wheels and selected a three-pane upright windshield,
+  rectangular headlights and low bumper. Removed lunar guards/stays, replaced
+  the lunar front with solid corner facets and fitted glazing, and retained
+  the solar deck/dish rims. Mars Scout and shared physics/handling are unchanged.
+- Reused the existing convex `solidPanel` vehicle helper and geometry checks;
+  **20 focused unit tests**, typecheck/build and **four dual-engine rover
+  browser cases pass**. Inspected actual head-on/three-quarter Moon and Mars
+  captures and refreshed the lunar thumbnail. Full detail and the corrected
+  unstepped-suspension test assumption are in
+  [Moon progress](MOON_PROGRESS.md#lunar-rover-upright-front-and-exposed-wheels--2026-10-23).
+- No terrain, startup/storage/offline or public-release change; no repeated
+  full-project/PWA suites or fresh hardware benchmark. Last full suite remains
+  2026-10-11; physical-iPad and existing WebKit gaps remain open.
+  **Exact next step:** user reviews `?area=mars&car=lunar-rover`. No commit/push.
+
+### Shared Lunar Rover choice — 2026-10-23
+
+- User requested a Lunar Rover alongside Mars Scout for extraterrestrial
+  exploration and selected a cab-forward survey body with silver dish rims.
+  Both are now selectable on Mars and the internal Moon. Mars defaults to Scout;
+  Moon defaults to Lunar Rover. URL selections reload correctly, direct travel
+  retains an active rover choice, and saved Earth preferences remain independent.
+- Reused the batched Scout builder, vehicle-swap lifecycle and selection tests.
+  Lunar-only geometry adds a shorter forward cabin, separate rear solar/equipment
+  deck, wheel guards and six-opening dish rims. Fixed the new windshield's
+  occlusion by the beveled shell using actual surface samples and glass-first
+  raycasts. Shared physics, contact points, body envelope and handling are intact.
+- Typecheck/build and **32 focused unit checks pass**. **Eight focused browser
+  cases pass** across Chromium/WebKit; four rover cases were refreshed after the
+  final glazing fix. Actual final Mars/Moon views were inspected.
+  **PWA: 17 passed, three existing WebKit offline cases skipped**, including
+  new asset precaching and Chromium offline rover selection/reload/driving.
+  See [Moon progress](MOON_PROGRESS.md#separate-lunar-rover-and-cab-forward-body--2026-10-23)
+  for references, iteration failures, exact scope and capture links.
+- No full-project/long-region suites or new hardware benchmark ran for this local
+  vehicle addition. Last full-suite record remains 2026-10-11; physical-iPad and
+  existing WebKit touch/offline gaps remain open. No terrain, publication, commit
+  or push. **Exact next step:** user reviews `?area=mars&car=lunar-rover` or uses
+  the home-screen picker to compare it with Scout.
+
 ### Northern Reach Ochre postcard trigger refinement — 2026-10-21
 
 - Replaced Ochre Terraces' single 165 m circle centred at (480, 120) with two 85 m circles centred at (400, 110) and (480, 165). The circles follow the full authored shelves circuit and inner rock-ramp traverse; the northern, eastern and southern outer-slope sample points are outside. No terrain, scenery, route, collision, handling or journal UI changed.

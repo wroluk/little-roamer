@@ -65,7 +65,10 @@ Keep this terminal/session and the Mac awake while playing.
 
 Use the Home Screen to choose Sunshine Valley, Iceland Highlands, Northern
 Reach, Samurai Village, or Mars Outpost. Earth offers the green Modern
-Roamer and orange Classic expedition wagon; Mars exclusively uses the Mars Scout.
+Roamer and orange Classic expedition wagon; Mars offers the Mars Scout and
+Lunar Rover. The latter has a short forward cabin with an upright three-pane
+windshield, rectangular lights, a solar-equipped rear deck and silver
+six-opening dish rims.
 Your Earth car choice is remembered locally across trips to Mars and
 does not change the shared four-wheel physics or terrain handling. Pause and
 choose **Back to home screen** to return to these options. Switching areas
@@ -139,9 +142,11 @@ Use `?area=mars&start=crown-crater` to begin at the crater entrance,
 `?area=mars&start=fossil-delta` for the channels,
 `?area=mars&start=rust-dunes` for the crescent,
 `?area=mars&start=lava-tubes` for the passage. Reset chooses the nearest
-of the nine regional starts. Mars always uses the Scout; incompatible `car`
-parameters are corrected to the world's available car. Returning to Earth restores
-your Modern or Classic preference (legacy saved Scout selections fall back to Modern).
+of the nine regional starts. Mars defaults to the Scout; use `car=lunar-rover`
+or the home-screen car picker for the Lunar Rover. Both share the same physics.
+Incompatible `car` parameters are corrected to the world's default car.
+Returning to Earth restores your Modern or Classic preference (legacy saved
+extraterrestrial selections fall back to Modern).
 Habitat arrival and reset place you on the 07 landing pad facing Crown, with
 a lower Mars-only driving camera directly behind the car. The home screen uses
 the same angled car preview as Earth; Earth driving framing is unchanged.
@@ -321,15 +326,37 @@ appear in development; the public `RAPIER.init()` API is used.
 With the development server running, open
 `http://localhost:5173/?area=moon` for Earthview Base,
 `?area=moon&start=earthrise-overlook` for the exposed rim, or
-`?area=moon&start=crater-floor` for Quiet Crater. Moon is not in the public
+`?area=moon&start=crater-floor` for Quiet Crater,
+`?area=moon&start=basalt-reach` for the southern lava plain,
+`?area=moon&start=silver-rille` for the eastern channel, or
+`?area=moon&start=broken-highlands` for the western uplands. Moon is not in the public
 picker and production ignores these development-only links.
 
-The pilot tests low-gravity Scout driving, a black sky with a fixed-direction
-procedural Earth, a two-way crater loop and a graded floor descent. All pilot
+The pilot tests low-gravity rover driving, a black sky with a fixed-direction
+procedural Earth, a two-way crater loop and a graded floor descent. The first
+extension adds a basalt excursion, winding rille floor, higher-bank alternative
+and a crossing breach, all connected back to the original circuit. Basalt Reach
+has low lava lobes, pressure ridges and sparse grounded angular slabs around
+its open through line. Broken Highlands adds pale fractured shelves, a broad
+climb, an optional 43 m western ridge and a return to Earthrise Overlook. All pilot
 terrain remains rendered at fixed detail; only the bounded terrain-collision
 core moves. It does not yet certify full-world streaming or physical-iPad
 performance. See [plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
 and [current progress](MOON_PROGRESS.md).
+
+Moon defaults to the **Lunar Rover**; both it and **Mars Scout** are available
+from the home-screen car picker. Add `&car=mars-scout` or `&car=lunar-rover` to
+any Moon/Mars link to select one explicitly. The chosen rover survives a URL
+reload and direct Moon-to-Mars travel without overwriting your saved Earth car.
+The visual differences do not change wheel contacts, collision or handling;
+Moon's existing low-gravity tuning applies equally to both.
+
+Use the [Moon navigation map](artifacts/moon/moon-map.png) to find the new areas:
+orange is the southern Basalt approach, cyan the eastern Silver Rille floor,
+and dashed purple the optional bank/breach routes. Green leads west into Broken
+Highlands and returns east to the overlook; dashed green is its higher ridge. A
+[zoomable SVG](artifacts/moon/moon-map.svg) is also available. Regenerate with
+`node --import tsx scripts/render-moon-map.ts`.
 
 Focused checks: `npx tsx --test tests/moon.test.ts` and
 `npx playwright test tests/browser/moon.spec.ts` (Chromium and WebKit).

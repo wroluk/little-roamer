@@ -5,16 +5,19 @@ Read [WORLD_BUILD_GUIDE.md](WORLD_BUILD_GUIDE.md),
 [design](artifacts/moon/DESIGN.md) and [progress](MOON_PROGRESS.md) before extending.
 
 The user accepted the pilot's visual direction and handling, and approved the
-staged continuation on 2026-10-23. The larger places below are planned, not built.
+staged continuation on 2026-10-23. The basalt–rille excursion and Broken Highlands
+are implemented inside the existing footprint; Skylight Hollow remains planned.
 Moon remains internal; this approval is not a public-release gate.
+The user subsequently requested a separate Lunar Rover: it is now the default
+Moon vehicle, with both exploration rovers selectable on Moon and Mars.
 
 ## Purpose and scope
 
 Prove enjoyable reduced-gravity driving and a crisp, haze-free landscape before
 committing to another full location. This is invented lunar geography, not a
-replica of a named crater. Reuse the Scout for the pilot; no new vehicle model,
-missions, survival mechanics, extensive caves or completed larger region roster
-in this pilot checkpoint.
+replica of a named crater. The original pilot reused the Scout; the later
+user-approved Lunar Rover shares its established physics. No missions, survival
+mechanics, extensive caves or completed larger region roster in the pilot checkpoint.
 
 - Earthview Base, a broad two-way crater circuit, an exposed Earthrise Overlook,
   and a two-way descent to Quiet Crater's floor.
@@ -64,9 +67,9 @@ Grow the existing pilot rather than replacing it or recreating a real lunar site
 | --- | --- | --- |
 | Earthview Base | Home anchor, restrained exploration hardware and clear departures. | Pilot implemented. |
 | Quiet Crater and Earthrise Overlook | Bowl descent, rim circuit and signature Earth view. | Pilot implemented. |
-| Basalt Reach | Open dark lava plain, shallow flow ridges and pale boulders. | Planned first extension. |
-| Silver Rille | Winding channel floor, broad crossing breaches and an upper-bank route. | Planned with the basalt excursion. |
-| Broken Highlands | Pale fractured uplands, graded climbs and optional technical lines. | Planned later. |
+| Basalt Reach | Open dark lava plain, overlapping low flow lobes, pressure ridges and sparse angular basalt clusters. | Excursion and identity pass accepted by user; physical-device acceptance pending. |
+| Silver Rille | Winding channel floor, broad crossing breach and an upper-bank route. | Excursion accepted by user; physical-device acceptance pending. |
+| Broken Highlands | Pale fractured uplands, broad graded traverse, optional 43 m western ridge and return to Earthrise Overlook. | Implemented; user/physical-device acceptance pending. |
 | Skylight Hollow | Short daylight-visible collapsed-tube passage with an easy surface bypass. | Planned last, not an extensive cave system. |
 
 1. Save the accepted pilot after correcting the structure footings.
@@ -78,6 +81,9 @@ Grow the existing pilot rather than replacing it or recreating a real lunar site
    regional start/reset. Keep the existing pilot reachable and unchanged in feel.
 4. Inspect rover-height arrivals, the channel floor and exposed horizons; measure
    resource growth and frame cadence before adding the highlands or skylight.
+5. Complete the bounded Broken Highlands loop with a safe regional clearing,
+   a broad main climb and optional higher ridge. Inspect both directions and
+   compare current performance before proceeding to Skylight Hollow.
 
 Use the current detailed footprint where practical. Establish the next terrain
 budget before widening it; the fixed pilot mesh does not prove larger-world

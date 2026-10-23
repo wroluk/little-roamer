@@ -3,14 +3,14 @@ import { before, test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import {
-  generateMoonChunk, MOON_BASE, MOON_CELL, MOON_CELLS, MOON_ROUTES, MOON_STARTS,
-  moonHeightAt, moonSpawn, moonSurfaceAt, moonSurfaceHeight, nearestMoonStart,
+  generateMoonChunk, MOON_BASE, MOON_BASALT, MOON_BASALT_FLOWS, MOON_CELL, MOON_CELLS, MOON_HIGHLANDS, MOON_RILLE, MOON_RILLE_PATH, MOON_ROUTES, MOON_STARTS,
+  moonBasaltRelief, moonColor, moonHeightAt, moonSpawn, moonSurfaceAt, moonSurfaceHeight, moonTrailSample, nearestMoonStart,
 } from '../src/game/moon-terrain';
 import { MOON_GRAVITY, MOON_HANDLING, MoonRuntime } from '../src/game/moon';
 import { Vehicle } from '../src/game/vehicle';
 import { AREAS, isAreaId } from '../src/game/areas';
 import { disposeScene } from '../src/game/dispose';
-import { buildMoonScenery, buildMoonSky, MOON_EARTH_DIRECTION } from '../src/game/moon-scenery';
+import { buildMoonScenery, buildMoonSky, MOON_BASALT_ROCKS, MOON_HIGHLAND_ROCKS, MOON_EARTH_DIRECTION, moonSlabGeometry } from '../src/game/moon-scenery';
 
 before(async () => { await RAPIER.init(); });
 
@@ -98,7 +98,7 @@ test('lunar structures have buried full-footprint bases, positive matching solid
 });
 
 test('lunar lattice, colors and normals are deterministic and exact at seams and collision samples', () => {
-  for (const [cx, cz] of [[-2, 0], [-1, -3], [1, -2]]) {
+  for (const [cx, cz] of [[-2, 0], [-1, -3], [1, -2], [0, 1], [0, 2], [1, 2], [-3, -1], [-3, -2], [-3, -3]]) {
     const a = generateMoonChunk(cx, cz), b = generateMoonChunk(cx + 1, cz);
     assert.deepEqual(a, generateMoonChunk(cx, cz));
     const positions = new Map<string, number>();
@@ -156,6 +156,99 @@ test('lunar easy routes have broad gentle grades and regional clearings are leve
   assert.ok(MOON_CELL <= 4);
 });
 
+test('basalt and rille form connected choices inside the existing pilot budget and neutral palette', () => {
+  const approach = MOON_ROUTES[2], rille = MOON_ROUTES[3], bank = MOON_ROUTES[4], breach = MOON_ROUTES[5];
+  assert.deepEqual(approach.points[0], MOON_ROUTES[0].points[13]);
+  assert.deepEqual(approach.points.at(-1), rille.points[0]);
+  assert.deepEqual(bank.points[0], rille.points[0]);
+  assert.deepEqual(bank.points.at(-1), rille.points[7]);
+  assert.deepEqual(rille.points.at(-1), MOON_ROUTES[0].points[7]);
+  assert.deepEqual(breach.points[0], MOON_ROUTES[0].points[10]);
+  assert.deepEqual(breach.points[2], bank.points[3]);
+  assert.deepEqual(breach.points[4], rille.points[3]);
+  for (const [id, point] of [['basalt-reach', MOON_BASALT], ['silver-rille', MOON_RILLE]] as const) {
+    assert.equal(nearestMoonStart(point.x, point.z).id, id);
+    assert.equal(moonSurfaceAt(point.x, point.z), 'lunar-regolith');
+  }
+  for (const route of MOON_ROUTES) for (const p of route.points)
+    assert.ok(Math.max(Math.abs(p.x), Math.abs(p.z)) < 310, 'routes stay inside the existing natural perimeter');
+  for (const p of MOON_RILLE_PATH.slice(2, 7)) {
+    const floor = moonSurfaceHeight(p.x, p.z);
+    assert.ok(moonSurfaceHeight(p.x + 25, p.z) > floor + 6, `east bank at ${p.z}`);
+    assert.ok(moonSurfaceHeight(p.x - 30, p.z) > floor + 6, `west bank at ${p.z}`);
+  }
+  assert.ok(moonColor(MOON_BASALT.x, MOON_BASALT.z)[1] < moonColor(-200, -200)[1] - 0.08);
+  for (const p of [MOON_BASALT, MOON_RILLE, ...bank.points]) {
+    const [r, g, b] = moonColor(p.x, p.z);
+    assert.ok(r / g < 1.02 && g / b < 1.04, 'retain neutral warm-grey ground rather than recolouring Moon');
+  }
+});
+
+test('basalt lobes and lunar outcrops retain readable relief, buried solid bases and clear driving shoulders', async () => {
+  for (const flow of MOON_BASALT_FLOWS) {
+    assert.ok(moonBasaltRelief(flow.x, flow.z) > 3, 'several metres of finite flow relief, not a colour-only plain');
+    assert.ok(moonSurfaceHeight(flow.x, flow.z) > 7.5, 'lobes survive terrain blending');
+    const corridorSide = flow.z < MOON_BASALT.z ? 1 : -1;
+    const outside = { x: flow.x - flow.sin * flow.width * 1.4 * corridorSide,
+      z: flow.z + flow.cos * flow.width * 1.4 * corridorSide };
+    assert.ok(moonSurfaceHeight(flow.x, flow.z) - moonSurfaceHeight(outside.x, outside.z) > 2, 'visible shoulder facing the through corridor');
+  }
+  assert.equal(moonBasaltRelief(80, 235), 0, 'keep the regional clearing and through line open');
+  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: MOON_GRAVITY, z: 0 });
+  const runtime = new MoonRuntime(scene, world);
+  try {
+    scene.updateMatrixWorld(true);
+    let triangles = 0;
+    for (const rock of [...MOON_BASALT_ROCKS, ...MOON_HIGHLAND_ROCKS]) {
+      assert.ok(moonTrailSample(rock.x, rock.z).distance > rock.width + 13, 'solid rocks stay outside the route shoulders');
+      const geometry = moonSlabGeometry(rock);
+      try {
+        assert.deepEqual(geometry.getAttribute('position').array, moonSlabGeometryArray(rock));
+        const positions = geometry.getAttribute('position');
+        triangles += positions.count / 3;
+        geometry.computeBoundingBox();
+        const bounds = geometry.boundingBox!;
+        assert.ok(bounds.max.y - bounds.min.y < rock.height + 3.5, 'avoid tall plinths on steep prop sites');
+        for (let j = 0; j <= 30; j++) for (let i = 0; i <= 30; i++) {
+          const x = bounds.min.x + (bounds.max.x - bounds.min.x) * i / 30;
+          const z = bounds.min.z + (bounds.max.z - bounds.min.z) * j / 30;
+          assert.ok(bounds.min.y < moonSurfaceHeight(x, z) - 0.07, 'bury the entire slab underside');
+        }
+        await runtime.ensureReady(rock.x, rock.z); world.step();
+        const rendered = new THREE.Raycaster(new THREE.Vector3(rock.x, 100, rock.z), new THREE.Vector3(0, -1, 0))
+          .intersectObject(scene, true)[0];
+        const hit = world.castRay(new RAPIER.Ray({ x: rock.x, y: 100, z: rock.z }, { x: 0, y: -1, z: 0 }), 110, true);
+        assert.ok(hit && rendered);
+        assert.ok(rendered.point.y > moonSurfaceHeight(rock.x, rock.z) + 0.5, 'rock remains exposed');
+        assert.ok(Math.abs(100 - hit.timeOfImpact - rendered.point.y) < 0.001, 'rock render and solid top agree');
+      } finally { geometry.dispose(); }
+    }
+    assert.ok(triangles <= 340, 'cluster and outcrop detail stays tiny and material-batched');
+  } finally { runtime.dispose(); world.free(); disposeScene(scene); }
+});
+
+function moonSlabGeometryArray(rock: typeof MOON_BASALT_ROCKS[number]) {
+  const geometry = moonSlabGeometry(rock);
+  try { return geometry.getAttribute('position').array.slice(); } finally { geometry.dispose(); }
+}
+
+test('Broken Highlands adds a connected broad climb and optional ridge with genuine fractured relief', () => {
+  const main = MOON_ROUTES[6], ridge = MOON_ROUTES[7];
+  assert.deepEqual(main.points[0], MOON_ROUTES[0].points[2]);
+  assert.deepEqual(main.points.at(-1), MOON_ROUTES[0].points[5]);
+  assert.deepEqual(ridge.points[0], MOON_HIGHLANDS);
+  assert.deepEqual(ridge.points.at(-1), main.points[6]);
+  assert.equal(nearestMoonStart(MOON_HIGHLANDS.x, MOON_HIGHLANDS.z).id, 'broken-highlands');
+  assert.ok(moonSurfaceHeight(-300, -160) > moonSurfaceHeight(MOON_BASE.x, MOON_BASE.z) + 30);
+  const cleft = moonSurfaceHeight(-244, -104);
+  for (const x of [-257, -231]) assert.ok(moonSurfaceHeight(x, -104) > cleft + 3, 'real cleft with solid shoulders');
+  assert.ok(moonColor(-264, -65)[1] > moonColor(MOON_BASALT.x, MOON_BASALT.z)[1] + 0.12, 'pale uplands contrast with basalt');
+  for (const p of [...main.points, ...ridge.points]) {
+    assert.equal(moonSurfaceAt(p.x, p.z), 'lunar-regolith');
+    assert.ok(Math.abs(p.x) < 310 && Math.abs(p.z) < 310);
+  }
+});
+
 test('Moon has bounded collision, fixed render buffers, explicit invalid destinations and complete disposal', async () => {
   const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: MOON_GRAVITY, z: 0 });
   const started = performance.now(), runtime = new MoonRuntime(scene, world);
@@ -183,7 +276,7 @@ test('Moon has bounded collision, fixed render buffers, explicit invalid destina
   } finally { runtime.dispose(); world.free(); disposeScene(scene); }
 });
 
-test('real lunar rover completes the circuit and crater descent in both directions without reset', async () => {
+test('real lunar rover completes every old and new lunar route in both directions without reset', async () => {
   const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: MOON_GRAVITY, z: 0 });
   const runtime = new MoonRuntime(scene, world);
   try {

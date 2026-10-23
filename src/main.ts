@@ -5,7 +5,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import {
   isVehicleModelId, Vehicle, type VehicleModelId,
 } from './game/vehicle';
-import { earthVehicle, vehicleAvailable } from './game/vehicle-selection';
+import { earthVehicle, explorationVehicle, vehicleAvailable } from './game/vehicle-selection';
 import { FollowCamera, horizontalDragDirection } from './game/camera';
 import { FixedClock } from './game/driving';
 import { NORTHERN_STARTS, nearestNorthernStart, regionalSpawn } from './game/regional-starts';
@@ -139,7 +139,7 @@ async function boot() {
     }
   }
   let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'northern-reach'];
-  if (area.id === 'mars' || area.id === 'moon') selectedModel = 'mars-scout';
+  if (area.id === 'mars' || area.id === 'moon') selectedModel = explorationVehicle(area.id, modelFromUrl);
   const syncCarUrl = () => {
     const url = new URL(window.location.href);
     url.searchParams.set('car', selectedModel);
@@ -208,8 +208,6 @@ async function boot() {
     element<HTMLButtonElement>('open-journal').disabled = !enabled;
   };
   const syncCarPicker = () => {
-    element('mars-car-option').querySelector('b')!.textContent = area.id === 'moon' ? 'Lunar Scout' : 'Mars Scout';
-    element('mars-car-option').querySelector('small')!.textContent = area.id === 'moon' ? 'Low-gravity pilot' : 'Planet explorer';
     for (const input of carInputs) {
       const available = vehicleAvailable(area.id, input.value);
       input.checked = input.value === selectedModel;
@@ -781,7 +779,7 @@ async function boot() {
     // Let the loading card paint before generating terrain and the physics mesh.
     await new Promise<void>(resolve => window.setTimeout(resolve, 40));
     if (hasFailed()) return;
-    selectedModel = id === 'mars' || id === 'moon' ? 'mars-scout' : selectedEarthModel;
+    selectedModel = id === 'mars' || id === 'moon' ? explorationVehicle(id, selectedModel) : selectedEarthModel;
     const next = await createArea(AREAS[id]);
     if (hasFailed()) {
       next.runtime?.dispose();

@@ -55,6 +55,16 @@ records describe superseded geometry.
 
 ## Geometry and visual review rules
 
+Mars offers both Mars Scout and Lunar Rover, defaulting to Scout. The Lunar
+Rover's upright three-pane forward cabin, rectangular lamps, low bumper,
+exposed wheels, rear solar deck and six-opening silver dish rims give it
+a separate silhouette without changing established four-wheel physics or route
+clearances. Both are also available on the internal Moon; Earth retains its
+Modern/Classic choices. [Current lunar body on Mars](../moon/lunar-rover/webkit-tablet/mars-rover-front.png).
+Its side glazing follows the cabin faces with common front/corner/side window
+heights and a parallel corner pillar. Cabin panes share one light-independent
+dark-blue finish; solar and body lighting remain separate.
+
 Hero forms use authored profiles, ribs, bevels, strata, and asymmetric silhouettes. Scattered rocks support these forms and stay outside the easy route. A landmark must read from the car's camera, not just an overhead map. Keep routes at least 7 m wide in the pilot, widen switchbacks and junctions, and grade both shoulders. Sample actual triangle heights, then drive in both directions.
 
 The landing pad and roads meet the terrain without raised collision lips. Domes use flat triangular panels cut at the foundation plane, with matching panel colliders; airlocks and support feet have matching solids. The crater has a genuine terrain bowl; the visible road is the collision surface. Future arches and tubes require open meshes with matching triangle collisions; a bounding box must never seal a visible passage.

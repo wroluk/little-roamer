@@ -1,0 +1,502 @@
+{
+  "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+  "viewport": {
+    "width": 1080,
+    "height": 810
+  },
+  "pixelRatio": 1,
+  "loadMs": 1075,
+  "note": "macOS hardware-backed desktop sample, not physical iPad acceptance",
+  "samples": [
+    {
+      "name": "earthrise",
+      "medianMs": 16.699999999999818,
+      "p95Ms": 16.799999999999727,
+      "peakActivationMs": 2.3999999910593033,
+      "from": {
+        "x": -45,
+        "y": 29.76970100402832,
+        "z": -199.99830627441406
+      },
+      "state": {
+        "area": "moon",
+        "bounds": 384,
+        "spawn": {
+          "x": -45,
+          "y": 30.2,
+          "z": -200
+        },
+        "gravity": -3,
+        "fog": false,
+        "viewDistance": 3200,
+        "car": "mars-scout",
+        "surface": "lunar-regolith",
+        "wheelSurfaces": [
+          "lunar-regolith",
+          "lunar-regolith",
+          "lunar-regolith",
+          "lunar-regolith"
+        ],
+        "terrainFeedback": 0,
+        "waterDepth": 0,
+        "terrainParticles": 0,
+        "terrainTracks": 0,
+        "terrainRipples": 0,
+        "terrainParticleCapacity": 72,
+        "terrainEffectUsesInstanceColors": true,
+        "reducedMotion": false,
+        "cameraFeedbackApplied": 0,
+        "waterHeight": null,
+        "mode": "playing",
+        "position": {
+          "x": -45,
+          "y": 29.782655715942383,
+          "z": -199.99826049804688
+        },
+        "rotation": {
+          "x": 0.0007662170100957155,
+          "y": 0,
+          "z": 0,
+          "w": 0.9999997019767761
+        },
+        "velocity": {
+          "x": 0,
+          "y": -0.01867145113646984,
+          "z": 0.00002654584932315629
+        },
+        "speed": -0.00005515857655422952,
+        "contacts": 4,
+        "input": {
+          "steer": 0,
+          "forward": false,
+          "reverse": false
+        },
+        "camera": [
+          -45,
+          31.21843571753341,
+          -186.45283559565758
+        ],
+        "targetDistance": 13.621306838891668,
+        "wheelSteering": 0,
+        "suspension": [
+          0.30422070622444153,
+          0.30422070622444153,
+          0.30112507939338684,
+          0.30112507939338684
+        ],
+        "drawCalls": 24,
+        "triangles": 111054,
+        "pixelRatio": 1,
+        "graphicsReduced": false,
+        "geometries": 24,
+        "textures": 2,
+        "cameraObstructed": false,
+        "streaming": {
+          "activeRender": 64,
+          "activePhysics": 9,
+          "queued": 0,
+          "triangles": 91008,
+          "colliderCount": 31,
+          "lastActivationMs": 2.3999999910593033
+        },
+        "navigation": {
+          "heading": 0,
+          "direction": "N",
+          "elevation": 29
+        }
+      }
+    },
+    {
+      "name": "basalt-reach",
+      "medianMs": 16.69999999999891,
+      "p95Ms": 16.799999999999272,
+      "peakActivationMs": 2.9000000059604645,
+      "from": {
+        "x": 79.99832153320312,
+        "y": 5.768146991729736,
+        "z": 235
+      },
+      "state": {
+        "area": "moon",
+        "bounds": 384,
+        "spawn": {
+          "x": -45,
+          "y": 30.2,
+          "z": -200
+        },
+        "gravity": -3,
+        "fog": false,
+        "viewDistance": 3200,
+        "car": "mars-scout",
+        "surface": "lunar-regolith",
+        "wheelSurfaces": [
+          "lunar-regolith",
+          "lunar-regolith",
+          "lunar-regolith",
+          "lunar-regolith"
+        ],
+        "terrainFeedback": 0,
+        "waterDepth": 0,
+        "terrainParticles": 0,
+        "terrainTracks": 0,
+        "terrainRipples": 0,
+        "terrainParticleCapacity": 72,
+        "terrainEffectUsesInstanceColors": true,
+        "reducedMotion": false,
+        "cameraFeedbackApplied": 0,
+        "waterHeight": null,
+        "mode": "playing",
+        "position": {
+          "x": 79.99850463867188,
+          "y": 5.782666206359863,
+          "z": 235
+        },
+        "rotation": {
+          "x": 0.0005420368397608399,
+          "y": -0.7071065902709961,
+          "z": 0.0005420368397608399,
+          "w": 0.7071065902709961
+        },
+        "velocity": {
+          "x": -0.000026561056074569933,
+          "y": -0.018701540306210518,
+          "z": 1.401298464324817e-45
+        },
+        "speed": -0.00005523256863822661,
+        "contacts": 4,
+        "input": {
+          "steer": 0,
+          "forward": false,
+          "reverse": false
+        },
+        "camera": [
+          66.45307973628039,
+          7.218446207866184,
+          234.99999935549943
+        ],
+        "targetDistance": 13.62130683888493,
+        "wheelSteering": 0,
+        "suspension": [
+          0.3042307198047638,
+          0.3042307198047638,
+          0.3011341392993927,
+          0.3011341392993927
+        ],
+        "drawCalls": 22,
+        "triangles": 110838,
+        "pixelRatio": 1,
+        "graphicsReduced": false,
+        "geometries": 24,
+        "textures": 2,
+        "cameraObstructed": false,
+        "streaming": {
+          "activeRender": 64,
+          "activePhysics": 9,
+          "queued": 0,
+          "triangles": 91008,
+          "colliderCount": 31,
+          "lastActivationMs": 2.9000000059604645
+        },
+        "navigation": {
+          "heading": 90.00000272826884,
+          "direction": "E",
+          "elevation": 5
+        }
+      }
+    },
+    {
+      "name": "silver-rille",
+      "medianMs": 16.69999999999891,
+      "p95Ms": 16.799999999999272,
+      "peakActivationMs": 2.2000000029802322,
+      "from": {
+        "x": 250,
+        "y": 4.768939018249512,
+        "z": 140.00169372558594
+      },
+      "state": {
+        "area": "moon",
+        "bounds": 384,
+        "spawn": {
+          "x": -45,
+          "y": 30.2,
+          "z": -200
+        },
+        "gravity": -3,
+        "fog": false,
+        "viewDistance": 3200,
+        "car": "mars-scout",
+        "surface": "lunar-regolith",
+        "wheelSurfaces": [
+          "lunar-regolith",
+          "lunar-regolith",
+          "lunar-regolith",
+          "lunar-regolith"
+        ],
+        "terrainFeedback": 0,
+        "waterDepth": 0,
+        "terrainParticles": 0,
+        "terrainTracks": 0,
+        "terrainRipples": 0,
+        "terrainParticleCapacity": 72,
+        "terrainEffectUsesInstanceColors": true,
+        "reducedMotion": false,
+        "cameraFeedbackApplied": 0,
+        "waterHeight": null,
+        "mode": "playing",
+        "position": {
+          "x": 250,
+          "y": 4.782666206359863,
+          "z": 140.00173950195312
+        },
+        "rotation": {
+          "x": 0.000766158162150532,
+          "y": 0,
+          "z": 0,
+          "w": 0.9999997019767761
+        },
+        "velocity": {
+          "x": 0,
+          "y": -0.018701890483498573,
+          "z": 0.000026469693693798035
+        },
+        "speed": -0.00005512686616110693,
+        "contacts": 4,
+        "input": {
+          "steer": 0,
+          "forward": false,
+          "reverse": false
+        },
+        "camera": [
+          250,
+          6.218446207892421,
+          153.54716440434242
+        ],
+        "targetDistance": 13.621306838885504,
+        "wheelSteering": 0,
+        "suspension": [
+          0.3042302429676056,
+          0.3042302429676056,
+          0.3011350929737091,
+          0.3011350929737091
+        ],
+        "drawCalls": 22,
+        "triangles": 110838,
+        "pixelRatio": 1,
+        "graphicsReduced": false,
+        "geometries": 24,
+        "textures": 2,
+        "cameraObstructed": false,
+        "streaming": {
+          "activeRender": 64,
+          "activePhysics": 9,
+          "queued": 0,
+          "triangles": 91008,
+          "colliderCount": 31,
+          "lastActivationMs": 2.2000000029802322
+        },
+        "navigation": {
+          "heading": 0,
+          "direction": "N",
+          "elevation": 4
+        }
+      }
+    },
+    {
+      "name": "upper-bank",
+      "medianMs": 16.700000000000728,
+      "p95Ms": 16.799999999999272,
+      "peakActivationMs": 1.6000000089406967,
+      "from": {
+        "x": 208.0054931640625,
+        "y": 24.725101470947266,
+        "z": -95.00955200195312
+      },
+      "state": {
+        "area": "moon",
+        "bounds": 384,
+        "spawn": {
+          "x": -45,
+          "y": 30.2,
+          "z": -200
+        },
+        "gravity": -3,
+        "fog": false,
+        "viewDistance": 3200,
+        "car": "mars-scout",
+        "surface": "lunar-regolith",
+        "wheelSurfaces": [
+          "lunar-regolith",
+          "lunar-regolith",
+          "lunar-regolith",
+          "lunar-regolith"
+        ],
+        "terrainFeedback": 0,
+        "waterDepth": 0,
+        "terrainParticles": 0,
+        "terrainTracks": 0,
+        "terrainRipples": 0,
+        "terrainParticleCapacity": 72,
+        "terrainEffectUsesInstanceColors": true,
+        "reducedMotion": false,
+        "cameraFeedbackApplied": 0,
+        "waterHeight": null,
+        "mode": "playing",
+        "position": {
+          "x": 208.0065460205078,
+          "y": 24.739234924316406,
+          "z": -95.02581787109375
+        },
+        "rotation": {
+          "x": 0.004516132641583681,
+          "y": 0.9999682903289795,
+          "z": -0.006555368658155203,
+          "w": -0.0003400972636882216
+        },
+        "velocity": {
+          "x": 0.0009121529874391854,
+          "y": -0.018916264176368713,
+          "z": -0.004427447449415922
+        },
+        "speed": -0.004674332254621313,
+        "contacts": 4,
+        "input": {
+          "steer": 0,
+          "forward": false,
+          "reverse": false
+        },
+        "camera": [
+          207.99628788441476,
+          26.175046680883852,
+          -108.57053834302901
+        ],
+        "targetDistance": 13.620614148114862,
+        "wheelSteering": 0,
+        "suspension": [
+          0.3022647202014923,
+          0.3073064982891083,
+          0.3036911189556122,
+          0.29794779419898987
+        ],
+        "drawCalls": 22,
+        "triangles": 110838,
+        "pixelRatio": 1,
+        "graphicsReduced": false,
+        "geometries": 24,
+        "textures": 2,
+        "cameraObstructed": false,
+        "streaming": {
+          "activeRender": 64,
+          "activePhysics": 9,
+          "queued": 0,
+          "triangles": 91008,
+          "colliderCount": 31,
+          "lastActivationMs": 1.6000000089406967
+        },
+        "navigation": {
+          "heading": 179.9576328490457,
+          "direction": "S",
+          "elevation": 24
+        }
+      }
+    },
+    {
+      "name": "basalt-collision-crossing",
+      "medianMs": 16.700000000000728,
+      "p95Ms": 16.799999999999272,
+      "peakActivationMs": 2.5,
+      "from": {
+        "x": 84.99832153320312,
+        "y": 5.7689385414123535,
+        "z": 235
+      },
+      "state": {
+        "area": "moon",
+        "bounds": 384,
+        "spawn": {
+          "x": -45,
+          "y": 30.2,
+          "z": -200
+        },
+        "gravity": -3,
+        "fog": false,
+        "viewDistance": 3200,
+        "car": "mars-scout",
+        "surface": "lunar-regolith",
+        "wheelSurfaces": [
+          "lunar-regolith",
+          "lunar-regolith",
+          "lunar-regolith",
+          "lunar-regolith"
+        ],
+        "terrainFeedback": 0.007531612735242003,
+        "waterDepth": 0,
+        "terrainParticles": 4,
+        "terrainTracks": 25,
+        "terrainRipples": 0,
+        "terrainParticleCapacity": 72,
+        "terrainEffectUsesInstanceColors": true,
+        "reducedMotion": false,
+        "cameraFeedbackApplied": 0.007531612735242003,
+        "waterHeight": null,
+        "mode": "playing",
+        "position": {
+          "x": 102.70037078857422,
+          "y": 5.782167434692383,
+          "z": 235
+        },
+        "rotation": {
+          "x": 0.00925940927118063,
+          "y": -0.7070461511611938,
+          "z": 0.00925940740853548,
+          "w": 0.7070461511611938
+        },
+        "velocity": {
+          "x": 6.548315525054932,
+          "y": -0.018249480053782463,
+          "z": 2.4760686301306123e-7
+        },
+        "speed": 6.545591852149078,
+        "contacts": 4,
+        "input": {
+          "steer": 0,
+          "forward": false,
+          "reverse": false
+        },
+        "camera": [
+          87.89765784889588,
+          7.218671166307268,
+          234.999999025804
+        ],
+        "targetDistance": 14.871380033348823,
+        "wheelSteering": 0,
+        "suspension": [
+          0.32926610112190247,
+          0.32926610112190247,
+          0.2761228382587433,
+          0.2761228382587433
+        ],
+        "drawCalls": 25,
+        "triangles": 114326,
+        "pixelRatio": 1,
+        "graphicsReduced": false,
+        "geometries": 26,
+        "textures": 2,
+        "cameraObstructed": false,
+        "streaming": {
+          "activeRender": 64,
+          "activePhysics": 9,
+          "queued": 0,
+          "triangles": 91008,
+          "colliderCount": 31,
+          "lastActivationMs": 0.9000000059604645
+        },
+        "navigation": {
+          "heading": 89.99999960244969,
+          "direction": "E",
+          "elevation": 5
+        }
+      }
+    }
+  ]
+}

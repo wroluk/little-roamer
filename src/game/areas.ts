@@ -74,8 +74,8 @@ export const AREAS: Record<AreaId, Area> = {
   moon: {
     id: 'moon', name: 'Moon', label: '07 / INTERNAL LUNAR PILOT',
     tagline: 'A little closer to the stars.',
-    description: 'An internal lunar driving pilot. Leave Earthview Base, circle Quiet Crater, and find Earth above the highland rim.',
-    hint: 'The broad pale circuit climbs to Earthrise Overlook. The eastern turn descends into Quiet Crater. Use a gentle throttle.',
+    description: 'An internal lunar playground. Circle Quiet Crater, cross Basalt Reach, follow Silver Rille, and climb the pale Broken Highlands.',
+    hint: 'From the crater circuit, head south to Basalt Reach, east to Silver Rille, or west into Broken Highlands. Use a gentle throttle.',
     welcomeEyebrow: 'MOON / EARTHVIEW PILOT', welcomeTitle: 'Home on the horizon.',
     readyMessage: 'Earthview Base is ready. Take the crater loop in either direction.',
     ambientLight: '#c6cbd4', groundLight: '#44464d', sunlight: '#fff8eb',

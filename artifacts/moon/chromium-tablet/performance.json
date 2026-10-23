@@ -1,8 +1,8 @@
 {
   "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
-  "loadMs": 4477,
-  "medianMs": 50,
-  "p95Ms": 66.70000000000073,
+  "loadMs": 3834,
+  "medianMs": 50.099999999998545,
+  "p95Ms": 83.29999999999927,
   "state": {
     "area": "moon",
     "bounds": 384,
@@ -14,7 +14,7 @@
     "gravity": -3,
     "fog": false,
     "viewDistance": 3200,
-    "car": "mars-scout",
+    "car": "lunar-rover",
     "surface": "lunar-regolith",
     "wheelSurfaces": [
       "lunar-regolith",
@@ -39,17 +39,17 @@
       "z": -105
     },
     "rotation": {
-      "x": 0.0005420002853497863,
+      "x": 0.0005420005181804299,
       "y": 0.7071065902709961,
-      "z": -0.0005420002853497863,
+      "z": -0.0005420005181804299,
       "w": 0.7071065902709961
     },
     "velocity": {
-      "x": 0.000026466805138625205,
-      "y": -0.018700938671827316,
+      "x": 0.00002648622466949746,
+      "y": -0.018700886517763138,
       "z": -1.401298464324817e-45
     },
-    "speed": -0.00005513546192084395,
+    "speed": -0.00005515481379257759,
     "contacts": 4,
     "input": {
       "steer": 0,
@@ -58,22 +58,22 @@
     },
     "camera": [
       53.54664560551684,
-      4.218445969774138,
-      -105.00000064392614
+      4.21844596977414,
+      -105.00000064392594
     ],
     "targetDistance": 13.621306838919695,
     "wheelSteering": 0,
     "suspension": [
-      0.3042307198047638,
-      0.3042307198047638,
+      0.3042304813861847,
+      0.3042304813861847,
       0.3011339008808136,
       0.3011339008808136
     ],
-    "drawCalls": 24,
-    "triangles": 112494,
+    "drawCalls": 25,
+    "triangles": 110284,
     "pixelRatio": 1,
     "graphicsReduced": true,
-    "geometries": 31,
+    "geometries": 33,
     "textures": 2,
     "cameraObstructed": false,
     "streaming": {
@@ -81,11 +81,11 @@
       "activePhysics": 9,
       "queued": 0,
       "triangles": 91008,
-      "colliderCount": 31,
-      "lastActivationMs": 1.5
+      "colliderCount": 33,
+      "lastActivationMs": 1.3999999910593033
     },
     "navigation": {
-      "heading": 269.99999727627204,
+      "heading": 269.9999972762431,
       "direction": "W",
       "elevation": 2
     }

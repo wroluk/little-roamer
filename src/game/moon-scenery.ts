@@ -5,6 +5,60 @@ import { MOON_BASE, MOON_OVERLOOK, moonRandom, moonSurfaceHeight, moonTrailSampl
 export type MoonSolid = { x: number; y: number; z: number; hx: number; hy: number; hz: number };
 export const MOON_EARTH_DIRECTION = new THREE.Vector3(0.16, 0.28, -1).normalize();
 export const MOON_SHELTER = { x: MOON_BASE.x - 25, z: MOON_BASE.z + 5 };
+const BASALT_COLOR = '#525451';
+const HIGHLAND_COLOR = '#93958e';
+export const MOON_BASALT_ROCKS = [
+  { x: 22, z: 204 }, { x: 31, z: 207 }, { x: 38, z: 204 },
+  { x: 129, z: 188 }, { x: 138, z: 192 }, { x: 146, z: 189 },
+  { x: -28, z: 266 }, { x: -18, z: 270 }, { x: -11, z: 267 },
+  { x: 130, z: 269 }, { x: 140, z: 273 }, { x: 149, z: 269 },
+].map((point, i) => ({ ...point, width: 2.6 + moonRandom(i, 0, 60) * 2,
+  depth: 1.5 + moonRandom(i, 0, 61), height: 0.9 + moonRandom(i, 0, 62) * 1.2,
+  angle: -0.4 + moonRandom(i, 0, 63) * 0.8 }));
+export const MOON_HIGHLAND_ROCKS = [
+  { x: -228, z: -95, width: 3.2, depth: 2, height: 4.1, angle: 0.35 },
+  { x: -218, z: -110, width: 2.5, depth: 2.1, height: 3.3, angle: -0.2 },
+  { x: -218, z: -148, width: 3.4, depth: 1.7, height: 4.8, angle: 0.65 },
+  { x: -217, z: -250, width: 2.8, depth: 2.4, height: 3.5, angle: -0.5 },
+  { x: -170, z: -260, width: 3.6, depth: 2.2, height: 3.8, angle: 0.15 },
+];
+
+function groundRange(x: number, z: number, sx: number, sz: number) {
+  let min = Infinity, max = -Infinity;
+  const nx = Math.ceil(sx / 0.25), nz = Math.ceil(sz / 0.25);
+  for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) {
+    const height = moonSurfaceHeight(x - sx / 2 + sx * i / nx, z - sz / 2 + sz * j / nz);
+    min = Math.min(min, height); max = Math.max(max, height);
+  }
+  return { min, max };
+}
+
+export function moonSlabGeometry(rock: typeof MOON_BASALT_ROCKS[number]) {
+  const vertices: number[] = [], indices: number[] = [], sides = 6;
+  const footprint: { x: number; z: number }[] = [];
+  for (let i = 0; i < sides; i++) {
+    const angle = rock.angle + i / sides * Math.PI * 2;
+    const radius = 0.85 + moonRandom(i, rock.x, 64) * 0.2;
+    footprint.push({ x: rock.x + Math.cos(angle) * rock.width * radius,
+      z: rock.z + Math.sin(angle) * rock.depth * radius });
+  }
+  const xs = footprint.map(p => p.x), zs = footprint.map(p => p.z);
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);
+  const ground = groundRange((minX + maxX) / 2, (minZ + maxZ) / 2, maxX - minX, maxZ - minZ);
+  for (const p of footprint) vertices.push(p.x, ground.min - 0.12, p.z);
+  for (const [i, p] of footprint.entries()) vertices.push(rock.x + (p.x - rock.x) * 0.72,
+    ground.max + rock.height * (0.7 + moonRandom(i, rock.z, 65) * 0.3), rock.z + (p.z - rock.z) * 0.72);
+  for (let i = 0; i < sides; i++) {
+    const next = (i + 1) % sides;
+    indices.push(i, i + sides, next, next, i + sides, next + sides);
+    if (i > 0 && i < sides - 1) indices.push(0, i, next, sides, next + sides, i + sides);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setIndex(indices);
+  const flat = geometry.toNonIndexed(); geometry.dispose(); flat.computeVertexNormals();
+  return flat;
+}
 
 const earthBlend = (value: number) => {
   const t = Math.max(0, Math.min(1, value));
@@ -78,15 +132,6 @@ export function buildMoonScenery() {
   };
   const box = (color: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, solid = false) =>
     part(color, new THREE.BoxGeometry(), x, y, z, sx, sy, sz, solid);
-  const groundRange = (x: number, z: number, sx: number, sz: number) => {
-    let min = Infinity, max = -Infinity;
-    const nx = Math.ceil(sx / 0.25), nz = Math.ceil(sz / 0.25);
-    for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) {
-      const height = moonSurfaceHeight(x - sx / 2 + sx * i / nx, z - sz / 2 + sz * j / nz);
-      min = Math.min(min, height); max = Math.max(max, height);
-    }
-    return { min, max };
-  };
   const groundedBox = (color: string, x: number, z: number, sx: number, sz: number, requestedTop: number) => {
     const ground = groundRange(x, z, sx, sz), bottom = ground.min - 0.08;
     const top = Math.max(requestedTop, ground.max + 0.08);
@@ -137,6 +182,13 @@ export function buildMoonScenery() {
     geometry.translate(px, support - height * 0.15, pz);
     const batch = batches.get('#777874') ?? []; batch.push(geometry); batches.set('#777874', batch);
   }
+  for (const rock of [...MOON_BASALT_ROCKS, ...MOON_HIGHLAND_ROCKS]) {
+    if (moonTrailSample(rock.x, rock.z).distance < rock.width + 13)
+      throw new Error(`Moon rock overlaps a driving corridor at ${rock.x},${rock.z}`);
+    const color = rock.z > 0 ? BASALT_COLOR : HIGHLAND_COLOR;
+    const batch = batches.get(color) ?? [];
+    batch.push(moonSlabGeometry(rock)); batches.set(color, batch);
+  }
   for (const [color, geometries] of batches) {
     const material = new THREE.MeshStandardMaterial({ color, roughness: 0.95 });
     // Box and rock primitives differ in UV topology; all carry the same attributes.
@@ -145,8 +197,9 @@ export function buildMoonScenery() {
     for (const source of sources) source.dispose();
     if (!geometry) throw new Error('Moon scenery batching failed');
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.name = color === '#777874' ? 'Moon solid rocks' : 'Moon base fixtures';
-    mesh.castShadow = color !== '#777874'; mesh.receiveShadow = true; group.add(mesh);
+    const rocks = color === '#777874' || color === BASALT_COLOR || color === HIGHLAND_COLOR;
+    mesh.name = rocks ? 'Moon solid rocks' : 'Moon base fixtures';
+    mesh.castShadow = !rocks; mesh.receiveShadow = true; group.add(mesh);
     for (const source of geometries) source.dispose();
   }
   return { group, solids };
