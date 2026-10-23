@@ -17,6 +17,8 @@ button:disabled { cursor: wait; }
 body.playing #game { cursor: grab; }
 body.playing #game.camera-dragging { cursor: grabbing; }
 .vignette { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #f5f0da44, transparent 23%, transparent 70%, #263e3920); }
+body[data-area="moon"] .vignette { background: none; }
+body[data-area="moon"] .wordmark { color: #e3e6e1; }
 .topbar { position: absolute; top: max(27px, env(safe-area-inset-top)); left: max(32px, env(safe-area-inset-left)); right: max(32px, env(safe-area-inset-right)); display: flex; align-items: center; justify-content: space-between; gap: 20px; z-index: 5; }
 .wordmark { display: flex; gap: 10px; align-items: center; font-weight: 900; font-size: 17px; letter-spacing: 2px; line-height: 1.35; }
 .brand-icon { width: 37px; height: 37px; display: block; }
@@ -56,6 +58,7 @@ body:not(.playing) .navigation-instrument { opacity: 0; }
 .surface-indicator[data-surface="mud"] i { background: #665744; }
 .surface-indicator[data-surface="rock"] i { background: #7b8582; }
 .surface-indicator[data-surface="sand"] i { background: #bca77e; }
+.surface-indicator[data-surface="lunar-regolith"] i { background: #a6a6a0; }
 body[data-area="iceland"] .surface-indicator[data-surface="sand"] i { background: #4a4d4a; }
 body:not(.playing) .surface-indicator { opacity: 0; }
 .controls { position: absolute; left: max(32px, env(safe-area-inset-left)); right: max(32px, env(safe-area-inset-right)); bottom: max(30px, env(safe-area-inset-bottom)); display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none; }

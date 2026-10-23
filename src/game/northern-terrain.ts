@@ -500,6 +500,7 @@ const SURFACE_BASE_COLOR: Record<SurfaceId, [number, number, number]> = {
   regolith: [0.68, 0.39, 0.27],
   'mars-dust': [0.62, 0.3, 0.2],
   'mars-glass': [0.105, 0.125, 0.13],
+  'lunar-regolith': [0.35, 0.35, 0.34],
 };
 
 function surfaceColor(surface: SurfaceId, x: number, z: number): [number, number, number] {

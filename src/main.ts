@@ -11,6 +11,7 @@ import { FixedClock } from './game/driving';
 import { NORTHERN_STARTS, nearestNorthernStart, regionalSpawn } from './game/regional-starts';
 import { MARS_STARTS, nearestMarsStart, marsSpawn } from './game/mars-terrain';
 import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from './game/iceland-starts';
+import { MOON_STARTS, nearestMoonStart, moonSpawn } from './game/moon-terrain';
 import { SKOGA_WATER_START } from './game/iceland-terrain';
 import { SKOGA_MOUTH_Z, SKOGA_WATER_MAX_X, SKOGA_WATER_MIN_X } from './game/iceland-river';
 import { reynisShallowWaterAt } from './game/iceland-reynisfjara';
@@ -72,6 +73,7 @@ async function boot() {
   const camera = new THREE.PerspectiveCamera(48, 1, 0.15, 900);
   const ambient = new THREE.HemisphereLight('#fef3d6', '#7f9f87', 1.9);
   const sun = new THREE.DirectionalLight('#fff0d1', 2.6);
+  const sunOffset = new THREE.Vector3(-25, 45, 20);
   sun.position.set(-25, 45, 20);
   sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024);
@@ -91,13 +93,13 @@ async function boot() {
   const requestedArea = new URLSearchParams(window.location.search).get('area');
   let storedModel: string | null = null;
   try { storedModel = window.localStorage.getItem('little-roamer-car'); } catch { /* Storage is optional. */ }
-  let selectedEarthModel = earthVehicle(requestedArea === 'mars' ? null : modelFromUrl, storedModel);
+  let selectedEarthModel = earthVehicle(requestedArea === 'mars' || requestedArea === 'moon' ? null : modelFromUrl, storedModel);
   let selectedModel: VehicleModelId = selectedEarthModel;
   async function createArea(area: Area) {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(area.sky);
-    scene.fog = new THREE.Fog(area.sky, area.fogNear, area.fogFar);
-    const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+    scene.fog = area.fogDisabled ? null : new THREE.Fog(area.sky, area.fogNear, area.fogFar);
+    const world = new RAPIER.World({ x: 0, y: area.gravity ?? -18, z: 0 });
     world.timestep = 1 / 60;
     let runtime: AreaRuntime | void = undefined;
     try {
@@ -114,11 +116,12 @@ async function boot() {
         area.waterHeight,
         (x, z) => runtime?.shrubBumpAt(x, z) ?? 0,
         selectedModel,
+        area.handling,
       );
       if (area.spawnHeading !== undefined) vehicle.body.setRotation(
         new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), area.spawnHeading), true);
       const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight,
-        { pitch: -0.2, yaw: 0 });
+        { pitch: area.id === 'moon' ? -0.46 : -0.2, yaw: 0 });
       // Populate scene queries and settle all four wheels before handing over control.
       for (let i = 0; i < 90; i++) {
         vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
@@ -136,7 +139,7 @@ async function boot() {
     }
   }
   let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'northern-reach'];
-  if (area.id === 'mars') selectedModel = 'mars-scout';
+  if (area.id === 'mars' || area.id === 'moon') selectedModel = 'mars-scout';
   const syncCarUrl = () => {
     const url = new URL(window.location.href);
     url.searchParams.set('car', selectedModel);
@@ -173,6 +176,9 @@ async function boot() {
     welcomeTitle: icelandStart.welcomeTitle, description: icelandStart.description,
     hint: icelandStart.hint, readyMessage: icelandStart.readyMessage,
   };
+  const moonStart = MOON_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
+  if (area.id === 'moon' && moonStart) area = { ...area, spawn: moonSpawn(moonStart.position),
+    spawnHeading: moonStart.heading, readyMessage: `${moonStart.name}. Home is above the horizon.` };
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
     ? 'Preparing the road ahead...'
@@ -202,6 +208,8 @@ async function boot() {
     element<HTMLButtonElement>('open-journal').disabled = !enabled;
   };
   const syncCarPicker = () => {
+    element('mars-car-option').querySelector('b')!.textContent = area.id === 'moon' ? 'Lunar Scout' : 'Mars Scout';
+    element('mars-car-option').querySelector('small')!.textContent = area.id === 'moon' ? 'Low-gravity pilot' : 'Planet explorer';
     for (const input of carInputs) {
       const available = vehicleAvailable(area.id, input.value);
       input.checked = input.value === selectedModel;
@@ -242,7 +250,12 @@ async function boot() {
     ambient.color.set(area.ambientLight);
     ambient.groundColor.set(area.groundLight);
     sun.color.set(area.sunlight);
+    ambient.intensity = area.ambientIntensity ?? 1.9;
+    sun.intensity = area.sunIntensity ?? 2.6;
+    if (area.sunOffset) sunOffset.fromArray(area.sunOffset);
+    else sunOffset.set(-25, 45, 20);
     camera.fov = 48;
+    camera.far = area.viewDistance ?? 900;
     camera.updateProjectionMatrix();
     document.body.dataset.area = area.id;
     const journalAvailable = area.id === 'northern-reach' || area.id === 'mars';
@@ -259,7 +272,7 @@ async function boot() {
     element('surface-label').textContent = surfaceLabel();
     element('surface-trait').textContent = vehicle.currentSurface.trait;
     element('loading-status').textContent = area.readyMessage;
-    element<HTMLButtonElement>('reset').title = area.id === 'northern-reach' || area.id === 'mars' || area.id === 'iceland'
+    element<HTMLButtonElement>('reset').title = area.id === 'northern-reach' || area.id === 'mars' || area.id === 'iceland' || area.id === 'moon'
       ? 'Return to the nearest regional start (R)' : `Return to the ${area.name} starting area (R)`;
   }
   presentArea();
@@ -628,7 +641,8 @@ async function boot() {
     const start = area.id === 'northern-reach' ? nearestNorthernStart(vehicle.position.x, vehicle.position.z)
       : area.id === 'mars' ? nearestMarsStart(vehicle.position.x, vehicle.position.z) : null;
     const icelandResetStart = area.id === 'iceland' ? nearestIcelandStart(vehicle.position.x, vehicle.position.z) : null;
-    const destination = icelandResetStart ? icelandStartSpawn(icelandResetStart)
+    const moonResetStart = area.id === 'moon' ? nearestMoonStart(vehicle.position.x, vehicle.position.z) : null;
+    const destination = moonResetStart ? moonSpawn(moonResetStart.position) : icelandResetStart ? icelandStartSpawn(icelandResetStart)
       : start ? (area.id === 'mars' ? marsSpawn(start.position) : regionalSpawn(start)) : area.spawn;
     if (runtime) {
       mode = 'loading';
@@ -649,7 +663,7 @@ async function boot() {
       world.step();
     }
     vehicle.reset(destination);
-    const resetHeading = icelandResetStart?.heading ?? area.spawnHeading;
+    const resetHeading = moonResetStart?.heading ?? icelandResetStart?.heading ?? area.spawnHeading;
     if (resetHeading !== undefined) vehicle.body.setRotation(
       new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), resetHeading), true);
     for (let i = 0; i < 30; i++) {
@@ -676,7 +690,7 @@ async function boot() {
         pause();
       }
     }
-    toast(start ? `Back at ${start.name}` : 'Back on your wheels. Off you go.');
+    toast(moonResetStart ? `Back at ${moonResetStart.name}` : start ? `Back at ${start.name}` : 'Back on your wheels. Off you go.');
   };
   controls = new Controls(pause, () => { void reset().catch(showError); });
   canvas.addEventListener('pointerdown', event => {
@@ -740,7 +754,7 @@ async function boot() {
     follow.reset();
     follow.update(1 / 60, true);
     syncCarPicker();
-    if (area.id !== 'mars') {
+    if (area.id !== 'mars' && area.id !== 'moon') {
       selectedEarthModel = selectedModel;
       try { window.localStorage.setItem('little-roamer-car', selectedEarthModel); } catch { /* Storage is optional. */ }
     }
@@ -767,7 +781,7 @@ async function boot() {
     // Let the loading card paint before generating terrain and the physics mesh.
     await new Promise<void>(resolve => window.setTimeout(resolve, 40));
     if (hasFailed()) return;
-    selectedModel = id === 'mars' ? 'mars-scout' : selectedEarthModel;
+    selectedModel = id === 'mars' || id === 'moon' ? 'mars-scout' : selectedEarthModel;
     const next = await createArea(AREAS[id]);
     if (hasFailed()) {
       next.runtime?.dispose();
@@ -851,6 +865,7 @@ async function boot() {
       __ROAMER__: {
         snapshot: () => ({
           area: area.id, bounds: area.half, spawn: area.spawn,
+          gravity: world.gravity.y, fog: scene.fog !== null, viewDistance: camera.far,
           car: vehicle.currentModel,
           surface: vehicle.currentSurface.id,
           wheelSurfaces: vehicle.wheelSurfaces,
@@ -930,7 +945,6 @@ async function boot() {
     });
   }
 
-  const sunOffset = new THREE.Vector3(-25, 45, 20);
   function frame(now: number) {
     if (mode === 'error') return;
     requestAnimationFrame(frame);
@@ -951,7 +965,7 @@ async function boot() {
       const alpha = clock.advance(elapsed, dt => {
         // Hold at an unready Mars/Iceland chunk until collision arrives, including the next
         // short movement interval. A delayed worker must not let the car fall through.
-        if ((area.id === 'mars' || area.id === 'iceland') && runtime) {
+        if ((area.id === 'mars' || area.id === 'iceland' || area.id === 'moon') && runtime) {
           const v = vehicle.body.linvel();
           if (!runtime.isCollisionReadyAt(vehicle.position.x, vehicle.position.z)
             || !runtime.isCollisionReadyAt(vehicle.position.x + v.x * 0.15, vehicle.position.z + v.z * 0.15)) return;

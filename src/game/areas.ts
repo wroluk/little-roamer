@@ -17,8 +17,11 @@ import { tubesWeight } from './mars-tubes-layout';
 import type { ParticleColors } from './terrain-effects';
 import { ICELAND_HALF, icelandSpawn, icelandDrivingHeight, icelandSurfaceAt, icelandWaterHeight } from './iceland-terrain';
 import { IcelandStreamingRuntime, IcelandWorkerTransport } from './iceland-streaming';
+import { MoonRuntime, MOON_GRAVITY, MOON_HANDLING } from './moon';
+import { MOON_HALF, moonSpawn, moonSurfaceAt, moonSurfaceHeight } from './moon-terrain';
+import type { VehicleHandling } from './vehicle';
 
-export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars' | 'iceland';
+export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars' | 'iceland' | 'moon';
 export type AreaRuntime = {
   update: (x: number, z: number) => void;
   animate?: (dt: number, reducedMotion: boolean) => void;
@@ -49,6 +52,13 @@ export type Area = {
   fogFar: number;
   groundLight: string;
   sunlight: string;
+  gravity?: number;
+  handling?: VehicleHandling;
+  fogDisabled?: boolean;
+  viewDistance?: number;
+  ambientIntensity?: number;
+  sunIntensity?: number;
+  sunOffset?: [number, number, number];
   surfaceHeight: (x: number, z: number) => number;
   waterHeight: (x: number, z: number) => number | null;
   surfaceAt: (x: number, z: number) => SurfaceId;
@@ -61,6 +71,21 @@ export type Area = {
 };
 
 export const AREAS: Record<AreaId, Area> = {
+  moon: {
+    id: 'moon', name: 'Moon', label: '07 / INTERNAL LUNAR PILOT',
+    tagline: 'A little closer to the stars.',
+    description: 'An internal lunar driving pilot. Leave Earthview Base, circle Quiet Crater, and find Earth above the highland rim.',
+    hint: 'The broad pale circuit climbs to Earthrise Overlook. The eastern turn descends into Quiet Crater. Use a gentle throttle.',
+    welcomeEyebrow: 'MOON / EARTHVIEW PILOT', welcomeTitle: 'Home on the horizon.',
+    readyMessage: 'Earthview Base is ready. Take the crater loop in either direction.',
+    ambientLight: '#c6cbd4', groundLight: '#44464d', sunlight: '#fff8eb',
+    spawn: moonSpawn(), spawnHeading: 0, half: MOON_HALF, climbingPower: 1,
+    sky: '#000000', fogNear: 0, fogFar: 3200, fogDisabled: true, viewDistance: 3200,
+    gravity: MOON_GRAVITY, handling: MOON_HANDLING, ambientIntensity: 0.4, sunIntensity: 3.2,
+    sunOffset: [-38, 28, 15],
+    surfaceHeight: moonSurfaceHeight, surfaceAt: moonSurfaceAt, waterHeight: () => null,
+    build: (scene, world) => new MoonRuntime(scene, world),
+  },
   iceland: {
     id: 'iceland', name: 'Iceland', label: '06 / SOUTH COAST PILOT',
     tagline: 'Where the river meets the sea.',
@@ -144,6 +169,6 @@ export const AREAS: Record<AreaId, Area> = {
 };
 
 export function isAreaId(value: string | null): value is AreaId {
-  if (value === 'iceland') return import.meta.env?.DEV === true;
+  if (value === 'iceland' || value === 'moon') return import.meta.env?.DEV === true;
   return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village' || value === 'mars';
 }

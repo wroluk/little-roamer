@@ -6,7 +6,7 @@ import { HABITAT_PAD, HABITAT_START, MARS_STARTS } from '../src/game/mars-terrai
 
 test('Mars exclusively uses Scout; Earth rejects legacy Scout preferences and links', () => {
   for (const area of Object.keys(AREAS)) for (const model of ['modern', 'classic', 'mars-scout', 'invalid']) {
-    assert.equal(vehicleAvailable(area, model), area === 'mars' ? model === 'mars-scout' : ['modern', 'classic'].includes(model));
+    assert.equal(vehicleAvailable(area, model), area === 'mars' || area === 'moon' ? model === 'mars-scout' : ['modern', 'classic'].includes(model));
   }
   assert.equal(earthVehicle('classic', 'modern'), 'classic');
   assert.equal(earthVehicle('mars-scout', 'classic'), 'classic');

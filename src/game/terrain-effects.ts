@@ -35,6 +35,7 @@ export class TerrainEffects {
     water: new THREE.Color('#bcebed'), snow: new THREE.Color('#e8f4ef'),
     mud: new THREE.Color('#665744'), rock: new THREE.Color('#7b8582'),
     sand: new THREE.Color('#bca77e'), regolith: new THREE.Color('#bf7857'), 'mars-dust': new THREE.Color('#ae573d'), 'mars-glass': new THREE.Color('#596060'),
+    'lunar-regolith': new THREE.Color('#a6a6a0'),
   } satisfies Record<SurfaceId, THREE.Color>;
   private readonly emitDebt = [0, 0, 0, 0];
   private next = 0;

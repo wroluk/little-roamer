@@ -316,6 +316,24 @@ Vite's large-chunk notice is expected. Enable normal gzip/Brotli on a chosen
 static host. A harmless upstream Rapier initialization deprecation warning may
 appear in development; the public `RAPIER.init()` API is used.
 
+## Moon pilot (internal)
+
+With the development server running, open
+`http://localhost:5173/?area=moon` for Earthview Base,
+`?area=moon&start=earthrise-overlook` for the exposed rim, or
+`?area=moon&start=crater-floor` for Quiet Crater. Moon is not in the public
+picker and production ignores these development-only links.
+
+The pilot tests low-gravity Scout driving, a black sky with a fixed-direction
+procedural Earth, a two-way crater loop and a graded floor descent. All pilot
+terrain remains rendered at fixed detail; only the bounded terrain-collision
+core moves. It does not yet certify full-world streaming or physical-iPad
+performance. See [plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
+and [current progress](MOON_PROGRESS.md).
+
+Focused checks: `npx tsx --test tests/moon.test.ts` and
+`npx playwright test tests/browser/moon.spec.ts` (Chromium and WebKit).
+
 ## Checks
 
 The new Iceland world has an internal south-coast slice at `/?area=iceland` when

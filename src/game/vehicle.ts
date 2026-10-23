@@ -22,6 +22,15 @@ export const DEFAULT_VEHICLE_MODEL: VehicleModelId = 'modern';
 export const isVehicleModelId = (value: unknown): value is VehicleModelId =>
   typeof value === 'string' && VEHICLE_MODELS.includes(value as VehicleModelId);
 
+export type VehicleHandling = {
+  acceleration: number;
+  speed: number;
+  steering: number;
+  suspension: number;
+  damping: number;
+};
+const STANDARD_HANDLING: VehicleHandling = { acceleration: 1, speed: 1, steering: 1, suspension: 1, damping: 1 };
+
 export type WheelTerrainState = {
   readonly position: THREE.Vector3;
   surface: Surface;
@@ -63,7 +72,7 @@ export class Vehicle {
   private readonly wheelWaterDepth = [0, 0, 0, 0];
   private readonly surfaceCounts: Record<SurfaceId, number> = {
     asphalt: 0, dirt: 0, grass: 0, ash: 0, lava: 0, moss: 0, ice: 0, water: 0,
-    snow: 0, mud: 0, rock: 0, sand: 0, regolith: 0, 'mars-dust': 0, 'mars-glass': 0,
+    snow: 0, mud: 0, rock: 0, sand: 0, regolith: 0, 'mars-dust': 0, 'mars-glass': 0, 'lunar-regolith': 0,
   };
   private surface: Surface = SURFACES.dirt;
   private candidateSurface: SurfaceId = 'dirt';
@@ -81,6 +90,7 @@ export class Vehicle {
     private readonly waterHeight: (x: number, z: number) => number | null = () => null,
     private readonly softObstacleAt: (x: number, z: number) => number = () => 0,
     private vehicleModel: VehicleModelId = DEFAULT_VEHICLE_MODEL,
+    private readonly handling: VehicleHandling = STANDARD_HANDLING,
   ) {
     this.body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(spawn.x, spawn.y, spawn.z)
@@ -590,7 +600,7 @@ export class Vehicle {
     this.blended.speed += (speedScale / 4 - this.blended.speed) * blend;
     this.blended.steering += (steering / 4 - this.blended.steering) * blend;
     this.blended.feedback += (feedback / 4 - this.blended.feedback) * blend;
-    const forces = driveForces(input, speed);
+    const forces = driveForces(input, speed / this.handling.speed);
     // The authored trails top out near 29 degrees. Preserve their climb, but stop
     // the raycast motor from pulling the chassis up much steeper natural slopes.
     const horizontalForward = Math.hypot(this.forward.x, this.forward.z);
@@ -635,7 +645,7 @@ export class Vehicle {
     }
     this.terrainIntensity += (intensity / 4 - this.terrainIntensity) * blend;
     const steerLimit = THREE.MathUtils.lerp(0.51, 0.25, Math.min(1, Math.abs(speed) / 15))
-      * this.blended.steering * (1 + iceShare * iceTurnStrength * 0.21);
+      * this.blended.steering * this.handling.steering * (1 + iceShare * iceTurnStrength * 0.21);
     this.steering = THREE.MathUtils.damp(this.steering, -input.steer * steerLimit, 9, dt);
     for (let i = 0; i < 4; i++) {
       this.oldSuspension[i] = this.suspension[i];
@@ -643,7 +653,7 @@ export class Vehicle {
       this.oldRideBumps[i] = this.rideBumps[i];
       this.controller.setWheelSteering(i, i < 2 ? this.steering : 0);
       const wheelSurface = this.terrainWheels[i].surface;
-      this.controller.setWheelEngineForce(i, -forces.engine * this.climbingPower * this.blended.power * climbForce);
+      this.controller.setWheelEngineForce(i, -forces.engine * this.climbingPower * this.blended.power * climbForce * this.handling.acceleration);
       this.controller.setWheelBrake(i, forces.brake * wheelSurface.brakeEffect + wheelSurface.rollingBrake);
       this.controller.setWheelFrictionSlip(i, 2.4 * wheelSurface.longitudinalGrip);
       // On level or downhill ice, the rear follows a sudden turn more slowly.
@@ -651,9 +661,9 @@ export class Vehicle {
       const iceAxleGrip = wheelSurface.id === 'ice'
         ? THREE.MathUtils.lerp(1, i < 2 ? 1.75 : 0.32, iceTurnStrength) : 1;
       this.controller.setWheelSideFrictionStiffness(i, 0.85 * wheelSurface.lateralGrip * iceAxleGrip);
-      this.controller.setWheelSuspensionStiffness(i, wheelSurface.suspensionStiffness);
-      this.controller.setWheelSuspensionCompression(i, wheelSurface.suspensionCompression);
-      this.controller.setWheelSuspensionRelaxation(i, wheelSurface.suspensionRelaxation);
+      this.controller.setWheelSuspensionStiffness(i, wheelSurface.suspensionStiffness * this.handling.suspension);
+      this.controller.setWheelSuspensionCompression(i, wheelSurface.suspensionCompression * this.handling.damping);
+      this.controller.setWheelSuspensionRelaxation(i, wheelSurface.suspensionRelaxation * this.handling.damping);
       const wheel = this.terrainWheels[i];
       // Flat surface materials can suggest small irregularities without changing
       // the physical spring length. All four visual wheels sample the same field.
@@ -691,7 +701,7 @@ export class Vehicle {
   capture() {
     const velocity = this.body.linvel();
     const horizontalSpeed = Math.hypot(velocity.x, velocity.z);
-    const limit = (this.speed < -0.65 ? MAX_REVERSE_SPEED : MAX_FORWARD_SPEED) * this.blended.speed;
+    const limit = (this.speed < -0.65 ? MAX_REVERSE_SPEED : MAX_FORWARD_SPEED) * this.blended.speed * this.handling.speed;
     if (horizontalSpeed > limit) {
       const scale = limit / horizontalSpeed;
       this.body.setLinvel({ x: velocity.x * scale, y: velocity.y, z: velocity.z * scale }, true);

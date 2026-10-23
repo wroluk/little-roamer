@@ -1,6 +1,6 @@
 export type SurfaceId =
   | 'grass' | 'asphalt' | 'dirt' | 'ash' | 'lava' | 'moss' | 'ice' | 'water'
-  | 'snow' | 'mud' | 'rock' | 'sand' | 'regolith' | 'mars-dust' | 'mars-glass';
+  | 'snow' | 'mud' | 'rock' | 'sand' | 'regolith' | 'mars-dust' | 'mars-glass' | 'lunar-regolith';
 
 export type Surface = {
   id: SurfaceId;
@@ -26,6 +26,13 @@ export type Surface = {
 };
 
 export const SURFACES: Record<SurfaceId, Surface> = {
+  'lunar-regolith': {
+    id: 'lunar-regolith', label: 'Lunar regolith', trait: 'Low gravity · easy on the throttle',
+    longitudinalGrip: 1.1, lateralGrip: 1.08, uphillSlip: 0,
+    power: 1, rollingBrake: 0.1, brakeEffect: 1, drag: 0, speed: 1, steering: 1,
+    suspensionStiffness: 30, suspensionCompression: 4.4, suspensionRelaxation: 5.2,
+    roughness: 0.008, feedback: 0.01, particleColor: '#a6a6a0', particleRate: 0.16,
+  },
   regolith: {
     id: 'regolith', label: 'Packed regolith', trait: 'Firm & dusty', longitudinalGrip: 1, lateralGrip: 1, uphillSlip: 0,
     power: 1, rollingBrake: 0, brakeEffect: 1, drag: 0, speed: 1, steering: 1,

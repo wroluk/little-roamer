@@ -1,0 +1,93 @@
+{
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+  "loadMs": 4477,
+  "medianMs": 50,
+  "p95Ms": 66.70000000000073,
+  "state": {
+    "area": "moon",
+    "bounds": 384,
+    "spawn": {
+      "x": -140,
+      "y": 9.2,
+      "z": 80
+    },
+    "gravity": -3,
+    "fog": false,
+    "viewDistance": 3200,
+    "car": "mars-scout",
+    "surface": "lunar-regolith",
+    "wheelSurfaces": [
+      "lunar-regolith",
+      "lunar-regolith",
+      "lunar-regolith",
+      "lunar-regolith"
+    ],
+    "terrainFeedback": 0,
+    "waterDepth": 0,
+    "terrainParticles": 0,
+    "terrainTracks": 0,
+    "terrainRipples": 0,
+    "terrainParticleCapacity": 72,
+    "terrainEffectUsesInstanceColors": true,
+    "reducedMotion": false,
+    "cameraFeedbackApplied": 0,
+    "waterHeight": null,
+    "mode": "playing",
+    "position": {
+      "x": 40.001220703125,
+      "y": 2.782665967941284,
+      "z": -105
+    },
+    "rotation": {
+      "x": 0.0005420002853497863,
+      "y": 0.7071065902709961,
+      "z": -0.0005420002853497863,
+      "w": 0.7071065902709961
+    },
+    "velocity": {
+      "x": 0.000026466805138625205,
+      "y": -0.018700938671827316,
+      "z": -1.401298464324817e-45
+    },
+    "speed": -0.00005513546192084395,
+    "contacts": 4,
+    "input": {
+      "steer": 0,
+      "forward": false,
+      "reverse": false
+    },
+    "camera": [
+      53.54664560551684,
+      4.218445969774138,
+      -105.00000064392614
+    ],
+    "targetDistance": 13.621306838919695,
+    "wheelSteering": 0,
+    "suspension": [
+      0.3042307198047638,
+      0.3042307198047638,
+      0.3011339008808136,
+      0.3011339008808136
+    ],
+    "drawCalls": 24,
+    "triangles": 112494,
+    "pixelRatio": 1,
+    "graphicsReduced": true,
+    "geometries": 31,
+    "textures": 2,
+    "cameraObstructed": false,
+    "streaming": {
+      "activeRender": 64,
+      "activePhysics": 9,
+      "queued": 0,
+      "triangles": 91008,
+      "colliderCount": 31,
+      "lastActivationMs": 1.5
+    },
+    "navigation": {
+      "heading": 269.99999727627204,
+      "direction": "W",
+      "elevation": 2
+    }
+  }
+}

@@ -97,6 +97,16 @@ These five locations are concepts for future additions. Each offers an open-ende
 
 **Route shape:** Harbor Meadow → Needle Lighthouse → Seabird Cliffs → Whale's Back → Tide Gate → Saltgrass Islet → Weather Station → Tide Gate → Pebble Cove → Harbor Meadow. The causeway is the single link between islands, so its approaches remain easy and the second islet has its own complete loop. Overlook spurs end on level turn-around pads rather than exposed cliff tips.
 
+## Moon — internal pilot
+
+The user chose a compact lunar pilot on 2026-10-22: black sky, Earth above the
+horizon, reduced-gravity Scout driving, an Earthview base, a crater circuit and
+a floor descent. Its geography is invented, not a real-site replica. See the
+[pilot plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md) and
+[current evidence and remaining gates](MOON_PROGRESS.md). It is available only
+through the development URL `?area=moon`, not the public picker. Judge handling
+and the haze-free horizon before designing a larger lunar world.
+
 ## Mars Outpost — expanded concept
 
 The following was the early proposal that led to the built Mars Outpost. Its planned scale, some landmark details and vehicle availability were superseded during development. Use the current [build plan](MARS_BUILD_PLAN.md), [design record](artifacts/mars/DESIGN.md) and game for the released layout.
