@@ -46,6 +46,8 @@ test('production exposes Mars and all three exploration rovers and precaches the
   for (const [area, postcard] of [
     ['northern-reach', 'pine-hollows'], ['northern-reach', 'river-valley'], ['northern-reach', 'stone-circle'],
     ['mars', 'habitat-seven'], ['mars', 'shuttle-wreck'],
+    ['moon', 'first-landing'], ['moon', 'stranded-surveyor'],
+    ['moon', 'small-blue-home'], ['moon', 'window-into-darkness'], ['moon', 'sea-turned-to-stone'],
   ]) {
     expect(cached.some(url => url.includes(`/postcards/${area}/${postcard}.jpg`))).toBe(true);
   }
@@ -66,6 +68,35 @@ test('an unlocked postcard opens at full size while offline', async ({ page, con
     await page.locator('#journal-grid .journal-photo-button').first().click();
     await expect(page.locator('#postcard-detail-image')).toHaveJSProperty('naturalWidth', 800);
     await expect(page.locator('#postcard-detail')).toBeVisible();
+  } finally { await context.setOffline(false); }
+});
+
+test('Moon discovery keepsakes survive reload and open offline without a collection total', async ({ page, context, browserName }) => {
+  test.skip(browserName === 'webkit', 'Playwright WebKit offline navigation remains unreliable; keep iPad Safari offline review.');
+  await page.addInitScript(() => localStorage.setItem('little-roamer-postcards-v1', JSON.stringify([
+    { id: 'first-landing', discoveredAt: '2026-10-25T12:00:00.000Z' },
+    { id: 'stranded-surveyor', discoveredAt: '2026-10-25T12:00:00.000Z' },
+    { id: 'small-blue-home', discoveredAt: '2026-10-25T12:00:00.000Z' },
+    { id: 'window-into-darkness', discoveredAt: '2026-10-25T12:00:00.000Z' },
+    { id: 'sea-turned-to-stone', discoveredAt: '2026-10-25T12:00:00.000Z' },
+  ])));
+  await page.goto('/?area=moon');
+  await expect(page.locator('#offline-status')).toHaveText('Ready to play offline');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  await context.setOffline(true);
+  try {
+    await page.reload(); await expect(page.locator('#open-journal')).toBeEnabled();
+    await page.locator('#open-journal').click();
+    await expect(page.locator('#journal-grid .journal-card')).toHaveCount(5);
+    await expect(page.locator('#journal-count')).toHaveText('Keepsakes from your lunar travels.');
+    for (const name of ['A Small Blue Home', 'A Window into Darkness', 'A Sea That Turned to Stone', 'First Landing', 'Stranded Surveyor']) {
+      await page.getByRole('button', { name: `Enlarge ${name} postcard` }).click();
+      await expect(page.locator('#postcard-detail-image')).toHaveJSProperty('naturalWidth', 800);
+      await expect(page.locator('#postcard-detail-title')).toHaveText(name);
+      await page.locator('#close-postcard-detail').click();
+    }
   } finally { await context.setOffline(false); }
 });
 

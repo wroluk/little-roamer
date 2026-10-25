@@ -54,7 +54,7 @@ export class MoonRuntime implements AreaRuntime {
       finally { roof.dispose(); }
       this.shade(this.group);
       scenery.group.traverse(object => {
-        if (!(object instanceof THREE.Mesh) || !['Moon solid rocks', 'Moon hollow roof'].includes(object.name)) return;
+        if (!(object instanceof THREE.Mesh) || !['Moon solid rocks', 'Moon hollow roof', 'Moon discovery solids'].includes(object.name)) return;
         const positions = object.geometry.getAttribute('position').array;
         const vertices = Float32Array.from(positions);
         const indices = Uint32Array.from({ length: vertices.length / 3 }, (_, i) => i);

@@ -8,7 +8,8 @@ Read [WORLD_BUILD_GUIDE.md](WORLD_BUILD_GUIDE.md),
 and authorized a home-screen tile, commit and push to make physical-iPad testing
 easy. Moon is available in production as a preview. This supersedes the historical
 internal-only gate, not the unverified device-performance/offline/touch checks.
-Discuss discoveries next; this request does not authorize implementing them.
+The subsequent discovery authorization is recorded below; physical-device
+acceptance remains separate.
 
 The user accepted the pilot's visual direction and handling, and approved the
 staged continuation on 2026-10-23. The basalt–rille excursion and Broken Highlands
@@ -109,3 +110,37 @@ performance. Retain physical iPad Safari touch/frame-cadence acceptance before
 broad expansion. Do not conceal horizon or streaming problems with haze.
 Vehicle redesign, discoveries/postcards and public release come after the
 landscape, not alongside the first extension.
+
+## Two quiet discoveries — authorized 2026-10-25
+
+After discussing postcard density, the user authorized trying two carefully
+chosen discoveries, preferring human exploration history and suggesting original
+landing equipment. Implement a small Apollo-inspired descent stage/instrument
+scene and a disabled survey rover, not an exact reconstruction of a real site.
+Both remain inside the current terrain footprint, off the ordinary circuit,
+without signs, mission objectives, new regional spawns or navigation markers.
+Use the existing journal with close travel-triggered recognition and persistence,
+with anonymous empty secret slots like Mars/Northern Reach, as clarified by the
+user later that day. Discovery names stay hidden until found; no collection total.
+Ordinary scenic postcards, additional discoveries and alien mysteries remain
+deferred. This authorization does not include a new commit or push.
+
+## Three scenic postcards — authorized 2026-10-25
+
+The user subsequently approved **A Small Blue Home** at Earthrise Overlook,
+**A Window into Darkness** inside Skylight Hollow, and **A Sea That Turned to
+Stone** on the southern Basalt Reach plain. This supersedes the scenic-card
+deferral above, not the limit on additional hidden scenes or world expansion.
+Moon now has three scenic cards and the two existing secret discoveries.
+
+Reuse the existing travel gate, storage, ordinary empty slots and anonymous
+secret slots, keeping Moon's collection totals omitted. Earth and Hollow use
+narrow viewpoint circles; the user's later Basalt Sea request expands that
+card across the central flat plain using overlapping circles, not a whole-region
+unlock. Images must be vehicle/UI-free actual game
+captures; descriptions remain short reflections or geological history.
+No terrain, props, handling or lighting changes are needed.
+
+Mark all five exact trigger circles on a development reference map using the
+shared Mars/Northern Reach overlay renderer and live postcard definitions.
+This does not authorize in-game navigation markers, a commit or a push.

@@ -21,7 +21,8 @@ for (let j = 0; j < resolution; j++) for (let i = 0; i < resolution; i++) {
     - heights[j * resolution + Math.max(0, i - 1)];
   const dz = heights[Math.min(resolution - 1, j + 1) * resolution + i]
     - heights[Math.max(0, j - 1) * resolution + i];
-  const shade = Math.max(0.45, Math.min(1.3, 0.95 - (dx + dz) * 0.1));
+  // North-up map: northwest light brightens slopes rising toward the southeast.
+  const shade = Math.max(0.45, Math.min(1.3, 0.95 + (dx + dz) * 0.1));
   const color = moonColor(-MOON_HALF + (i + 0.5) * worldSize / resolution,
     -MOON_HALF + (j + 0.5) * worldSize / resolution);
   pixels.set([...color.map(value => Math.round(Math.min(255, 255 * Math.sqrt(value) * shade))), 255],

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import * as THREE from 'three';
-import { GroundEffects, TRACK_CAPACITY } from '../src/game/ground-effects';
+import { createStaticGroundTracks, GroundEffects, TRACK_CAPACITY } from '../src/game/ground-effects';
 import { TerrainEffects } from '../src/game/terrain-effects';
 import { SURFACES } from '../src/game/surfaces';
 import type { Vehicle } from '../src/game/vehicle';
@@ -107,4 +107,30 @@ test('black sand marks respond to steering, braking, and acceleration', () => {
   marks.update(0.1,car,{steer:0,forward:true,reverse:false});
   assert.equal(marks.trackCount,12);
   marks.dispose();
+});
+
+test('static lunar impressions match the live driving stamp geometry and palette', () => {
+  const scene = new THREE.Scene(), height = (x: number, z: number) => x * 0.1 + z * 0.2;
+  const effects = new GroundEffects(scene, height, () => null), car = vehicle();
+  car.terrainWheels.forEach(wheel => { wheel.surface = SURFACES['lunar-regolith']; });
+  effects.update(0.1, car);
+  car.terrainWheels.forEach(wheel => { wheel.position.z = 1; });
+  effects.update(0.1, car, { steer: 1, forward: false, reverse: false });
+  const fixed = createStaticGroundTracks([{
+    x: Math.sin(9.37) * 0.045, z: 1, angle: 0,
+    length: 0.45 + (0.5 + Math.sin(4.73) * 0.5) * 0.55 + 0.42, surface: 'lunar-regolith',
+  }], height);
+  scene.add(fixed);
+  try {
+    const live = scene.children.find(object => object instanceof THREE.Mesh && object.visible && object !== fixed);
+    assert.ok(live instanceof THREE.Mesh);
+    assert.deepEqual(fixed.geometry.getAttribute('position').array, live.geometry.getAttribute('position').array.slice(0, 36));
+    const a = fixed.geometry.getAttribute('color'), b = live.geometry.getAttribute('color');
+    for (let i = 0; i < 12; i++) {
+      assert.equal(a.getX(i), b.getX(i)); assert.equal(a.getY(i), b.getY(i)); assert.equal(a.getZ(i), b.getZ(i));
+      assert.ok(Math.abs(a.getW(i) * 2.15 - b.getW(i)) < 0.000001);
+    }
+  } finally {
+    effects.dispose(); fixed.geometry.dispose(); fixed.material.dispose(); scene.remove(fixed);
+  }
 });

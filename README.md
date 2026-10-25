@@ -390,6 +390,22 @@ small sunlight-depth atlases generated from their actual roof geometry. Real
 skylights stay open to sunlight; ambient fill and nearby dynamic rover shadows
 remain. This does not enlarge the global moving shadow map.
 
+Two unmarked discoveries reward leaving the usual routes: an Apollo-inspired
+descent stage with instruments, and a stranded robotic survey rover. The landing
+scene is original invented scenery, not an accurate reconstruction of Apollo 11.
+Moon's postcard journal has three scenic keepsakes: **A Small Blue Home** at
+Earthrise Overlook, **A Window into Darkness** inside Skylight Hollow, and
+**A Sea That Turned to Stone** in southern Basalt Reach, plus two hidden
+human-exploration discoveries. Earth and Hollow use narrow viewpoint triggers;
+Basalt Sea covers the central flat plain with overlapping zones rather than
+one tiny viewpoint or the whole southern region. Ordinary empty slots show their titles; secret slots
+stay anonymous until found, like Mars and Northern Reach. No collection total
+or in-game map markers are added. All five photos are vehicle-free actual-game
+captures and remain available offline once the updated game is cached.
+The development [postcard trigger map](artifacts/moon/postcard-trigger-map.png)
+([SVG](artifacts/moon/postcard-trigger-map.svg)) marks every exact recognition
+circle, including spoilers for the hidden discoveries.
+
 Focused checks: `npx tsx --test tests/moon.test.ts tests/static-sunlight.test.ts`
 and `npx playwright test tests/browser/moon.spec.ts tests/browser/static-sunlight.spec.ts`
 (Chromium and WebKit).
@@ -401,6 +417,9 @@ For only the complete base/Hollow and southern-return connector drives, use
 `npx playwright test tests/browser/moon.spec.ts --grep 'real browser Hollow'`.
 These record renderer/quality state; desktop hardware frame measurements are
 separate from software-renderer functional coverage and physical-iPad acceptance.
+For discoveries and their journal, use
+`node --import tsx --test tests/moon-discoveries.test.ts tests/postcards.test.ts`
+and `npx playwright test tests/browser/moon-discoveries.spec.ts`.
 
 ## Checks
 

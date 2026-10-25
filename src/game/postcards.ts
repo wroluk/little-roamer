@@ -16,8 +16,9 @@ import { PASS_LOOKOUT, PASS_BOWL } from './northern-pass';
 import { EMBER_LOOKOUT } from './northern-ember';
 import { MARSH_LOOKOUT } from './northern-marsh';
 import { FOREST_TRAILS } from './northern-forest';
+import { MOON_LANDING_SITE, MOON_SURVEY_ROVER } from './moon-discoveries';
 
-export type PostcardArea = Extract<AreaId, 'northern-reach' | 'mars'>;
+export type PostcardArea = Extract<AreaId, 'northern-reach' | 'mars' | 'moon'>;
 export type Postcard = {
   id: string; area: PostcardArea; name: string; note: string;
   x: number; z: number; radius: number; visitZones?: readonly { x: number; z: number; radius: number }[];
@@ -137,6 +138,23 @@ export const POSTCARDS: readonly Postcard[] = [
     x: WRECK_SITE.x, z: WRECK_SITE.z, radius: 41,
     visitZones: WRECK_PASSAGE.slice(1).map(point => ({ ...point, radius: 42 })),
     secret: true, image: image('mars', 'shuttle-wreck') },
+  { id: 'small-blue-home', area: 'moon', name: 'A Small Blue Home',
+    note: 'From here, every ocean and every familiar shore fits inside a small blue light. The journey away makes home feel closer.',
+    x: -45, z: -200, radius: 12, image: image('moon', 'small-blue-home') },
+  { id: 'window-into-darkness', area: 'moon', name: 'A Window into Darkness',
+    note: 'Long ago, lava flowed beneath a cooling crust and drained away, leaving this passage behind. A fallen section of roof lets sunlight back in.',
+    x: -246, z: 184, radius: 9, image: image('moon', 'window-into-darkness') },
+  { id: 'sea-turned-to-stone', area: 'moon', name: 'A Sea That Turned to Stone',
+    note: 'These dark plains began as lava flooding the low ground billions of years ago. Early observers called them seas, long before anyone could visit their shores.',
+    x: 65, z: 235, radius: 28,
+    visitZones: [25, 105].map(x => visitZone({ x, z: 235 }, 28)),
+    image: image('moon', 'sea-turned-to-stone') },
+  { id: 'first-landing', area: 'moon', name: 'First Landing',
+    note: 'The ascent stage is gone. Foil, a ladder and quiet instruments remain where an earlier journey began.',
+    ...MOON_LANDING_SITE, secret: true, image: image('moon', 'first-landing') },
+  { id: 'stranded-surveyor', area: 'moon', name: 'Stranded Surveyor',
+    note: 'Before Earthview Base was built, this surveyor searched for a safe crossing of Silver Rille. Its maps reached home; the rover never did.',
+    ...MOON_SURVEY_ROVER, secret: true, image: image('moon', 'stranded-surveyor') },
 ];
 
 export function readPostcardRecords(storage: Pick<Storage, 'getItem'>): PostcardRecord[] {
@@ -173,7 +191,7 @@ export class PostcardTracker {
     const before = this.previous;
     this.previous = { x, z };
     this.traveled += distance;
-    if (this.traveled < 8 || (area !== 'northern-reach' && area !== 'mars')) return [];
+    if (this.traveled < 8) return [];
     const visits = POSTCARDS.filter(card => card.area === area && !this.found.has(card.id)
       && [{ x: card.x, z: card.z, radius: card.radius }, ...(card.visitZones ?? [])].some(zone =>
         segmentDistanceSquared(before.x, before.z, x, z, zone.x, zone.z) <= zone.radius ** 2));

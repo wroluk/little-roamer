@@ -27,10 +27,14 @@ function drivePath(tracker: PostcardTracker, area: 'mars' | 'northern-reach', po
   }
 }
 
-test('journal covers every named region and keeps the two discoveries separate', () => {
+test('journal covers existing regions and keeps Moon to three scenic cards and two hidden discoveries', () => {
   assert.equal(POSTCARDS.filter(card => card.area === 'northern-reach').length, 17);
   assert.equal(POSTCARDS.filter(card => card.area === 'mars').length, 10);
-  assert.deepEqual(POSTCARDS.filter(card => card.secret).map(card => card.id), ['stone-circle', 'shuttle-wreck']);
+  assert.deepEqual(POSTCARDS.filter(card => card.secret).map(card => card.id),
+    ['stone-circle', 'shuttle-wreck', 'first-landing', 'stranded-surveyor']);
+  assert.equal(POSTCARDS.filter(card => card.area === 'moon').length, 5);
+  assert.equal(POSTCARDS.filter(card => card.area === 'moon' && !card.secret).length, 3);
+  assert.ok(POSTCARDS.filter(card => card.area === 'moon' && card.secret).every(card => card.radius <= 13));
   assert.equal(new Set(POSTCARDS.map(card => card.id)).size, POSTCARDS.length);
   assert.ok(POSTCARDS.every(card => card.note && card.image.endsWith(`${card.id}.jpg`)));
 });

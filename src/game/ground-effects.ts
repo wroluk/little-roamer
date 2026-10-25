@@ -12,6 +12,7 @@ const ACCELERATION_WINDOW = 1.2;
 type TrackSurface = Extract<SurfaceId, 'dirt' | 'mud' | 'ash' | 'sand' | 'regolith' | 'mars-dust' | 'lunar-regolith'>;
 type TrackMode = 'steady' | 'accelerating' | 'turning' | 'braking';
 type Mark = { x: number; z: number; y: number; angle: number; length: number; life: number; surface: TrackSurface; emphasis: number; mode: TrackMode };
+export type GroundTrackStamp = Pick<Mark, 'x' | 'z' | 'angle' | 'length' | 'surface'>;
 const TRACK_STYLES: Record<TrackSurface, { color: [number, number, number]; alpha: number; halfWidth: number }> = {
   dirt: { color: [0.24, 0.19, 0.13], alpha: 0.045, halfWidth: 0.125 },
   mud: { color: [0.16, 0.13, 0.1], alpha: 0.07, halfWidth: 0.14 },
@@ -22,6 +23,36 @@ const TRACK_STYLES: Record<TrackSurface, { color: [number, number, number]; alph
   'mars-dust': { color: [0.24, 0.055, 0.03], alpha: 0.06, halfWidth: 0.13 },
 };
 const isTrackSurface = (id: SurfaceId): id is TrackSurface => id in TRACK_STYLES;
+const sectionOpacity = (section: number) => section === 1 ? 1 : section === 0 ? 0.3 : 0.25;
+const groundMarkMaterial = () => new THREE.MeshBasicMaterial({
+  vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+});
+
+function writeTrackStamp(positions: THREE.BufferAttribute, colors: THREE.BufferAttribute, slot: number,
+  mark: GroundTrackStamp, heightAt: (x: number, z: number) => number, alpha: number) {
+  const sin = Math.sin(mark.angle), cos = Math.cos(mark.angle), style = TRACK_STYLES[mark.surface];
+  for (let v = 0; v < 12; v++) {
+    const corner = QUAD[v % 6];
+    const section = Math.floor(v / 6) + (corner < 2 ? 0 : 1);
+    const across = (corner % 2 ? 1 : -1) * style.halfWidth * (section === 1 ? 1 : section === 0 ? 0.65 : 0.55);
+    const along = (section - 1) * mark.length / 2;
+    const x = mark.x + across * cos + along * sin, z = mark.z - across * sin + along * cos;
+    positions.setXYZ(slot * 12 + v, x, heightAt(x, z) + 0.025, z);
+    colors.setXYZW(slot * 12 + v, ...style.color, alpha * sectionOpacity(section));
+  }
+}
+
+/** Fixed old impressions share the live tyre marks' footprint, palette and soft ends. */
+export function createStaticGroundTracks(stamps: readonly GroundTrackStamp[], heightAt: (x: number, z: number) => number,
+  opacityScale = 1) {
+  const geometry = new THREE.BufferGeometry();
+  const positions = new THREE.BufferAttribute(new Float32Array(stamps.length * 12 * 3), 3);
+  const colors = new THREE.BufferAttribute(new Float32Array(stamps.length * 12 * 4), 4);
+  stamps.forEach((stamp, i) => writeTrackStamp(positions, colors, i, stamp, heightAt,
+    TRACK_STYLES[stamp.surface].alpha * opacityScale));
+  geometry.setAttribute('position', positions); geometry.setAttribute('color', colors);
+  return new THREE.Mesh(geometry, groundMarkMaterial());
+}
 
 /** Bounded, transient ground marks. No physics changes or per-frame allocations. */
 export class GroundEffects {
@@ -55,7 +86,7 @@ export class GroundEffects {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices * 3), 3).setUsage(THREE.DynamicDrawUsage));
     geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(vertices * 4), 4).setUsage(THREE.DynamicDrawUsage));
-    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+    const mesh = new THREE.Mesh(geometry, groundMarkMaterial());
     mesh.frustumCulled = false;
     mesh.visible = false;
     return mesh;
@@ -138,7 +169,7 @@ export class GroundEffects {
         const alpha = style.alpha * (mark.mode === 'steady' ? 0.4 : 2.15) * Math.min(1, mark.life / 3);
         for (let v = 0; v < 12; v++) {
           const section = Math.floor(v / 6) + (QUAD[v % 6] < 2 ? 0 : 1);
-          colors.setW(i * 12 + v, alpha * (section === 1 ? 1 : section === 0 ? 0.3 : 0.25));
+          colors.setW(i * 12 + v, alpha * sectionOpacity(section));
         }
       });
       colors.needsUpdate = true;
@@ -150,17 +181,7 @@ export class GroundEffects {
   private writeTrack(mark: Mark, slot: number) {
     const positions = this.trackMesh.geometry.getAttribute('position') as THREE.BufferAttribute;
     const colors = this.trackMesh.geometry.getAttribute('color') as THREE.BufferAttribute;
-    const sin = Math.sin(mark.angle), cos = Math.cos(mark.angle);
-    const style = TRACK_STYLES[mark.surface];
-    for (let v = 0; v < 12; v++) {
-      const corner = QUAD[v % 6];
-      const section = Math.floor(v / 6) + (corner < 2 ? 0 : 1);
-      const across = (corner % 2 ? 1 : -1) * style.halfWidth * (section === 1 ? 1 : section === 0 ? 0.65 : 0.55);
-      const along = (section - 1) * mark.length / 2;
-      const x = mark.x + across * cos + along * sin, z = mark.z - across * sin + along * cos;
-      positions.setXYZ(slot * 12 + v, x, this.heightAt(x, z) + 0.025, z);
-      colors.setXYZW(slot * 12 + v, ...style.color, 0);
-    }
+    writeTrackStamp(positions, colors, slot, mark, this.heightAt, 0);
     positions.needsUpdate = true;
   }
 

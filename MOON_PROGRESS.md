@@ -3,6 +3,160 @@
 Read with [build plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
 and [shared guide](WORLD_BUILD_GUIDE.md).
 
+## Northwest illumination on both Moon maps — 2026-10-25
+
+- Applied the requested map-lighting correction: flipped the hillshade gradient
+  sign in `scripts/render-moon-map.ts` so the north-up map is illuminated from
+  northwest/upper-left rather than southeast/lower-right. This addresses the
+  user's crater-as-plateau illusion without changing the underlying heights.
+- Reference: the existing sampled Moon renderer and dependent trigger overlay;
+  retained terrain/material sampling, contrast limits, routes, labels and exact
+  trigger geometry. Regenerated both SVG/PNG pairs and visually compared Quiet
+  Crater, smaller impact bowls, ridges and Silver Rille against their previous
+  southeast-lit maps. Crater interiors now have dark northwest-facing image
+  edges and lit southeast edges consistent with a depression under upper-left
+  illumination; raised rims use the opposite shading.
+- **Nine focused Moon discovery/map tests and typecheck/build pass.** The map
+  generator's finite-height, route and start assertions also pass. No gameplay
+  browser/PWA rerun: this changes only the development-map generator and outputs,
+  not game lighting, terrain, handling, photos, postcard recognition or caching.
+- Basalt retains the requested three middle circles. Local only; no commit/push.
+  **Next:** user reviews the corrected [navigation map](artifacts/moon/moon-map.png)
+  and [trigger map](artifacts/moon/postcard-trigger-map.png).
+
+## Basalt Reach outer triggers removed — 2026-10-25
+
+- Removed the two outer Basalt Sea circles at **X=-15 and 145 / Z=235**
+  as requested. The three middle circles remain at **X=25, 65 and 105**,
+  all **Z=235, radius 28 m**. Other cards and existing discoveries are unchanged.
+- Reference: the preceding fitted-circle implementation and its coverage/map
+  regressions. Retained the same recognition code and adjusted only alternate
+  centres, interior/exclusion expectations and the existing far-end drives.
+- **24 focused units, typecheck/build and four Chromium/WebKit browser cases
+  pass.** Both engines drive through the removed outer centres without unlocking,
+  then continue into retained circles and discover the card. Central two-way
+  recognition, journal persistence, exact three-circle map geometry and
+  neighbouring-card separation remain covered. Inspected the regenerated
+  [trigger map](artifacts/moon/postcard-trigger-map.png) and actual driving-height
+  exclusion/arrival captures. No PWA/full-suite rerun for this trigger-only edit.
+- No terrain, handling, photo, caption, map-shading or game-lighting change.
+  Local only; no commit/push. **Next:** user review of the three-circle footprint;
+  the earlier map-lighting recommendation remains unapplied.
+
+## Basalt Sea flat-plain recognition — 2026-10-25
+
+- User requested a broader Basalt Sea trigger, approximately covering the flat
+  middle of the southern plain. Replaced its single 12 m circle with five
+  overlapping **28 m** circles at X=-15, 25, 65, 105 and 145, all at Z=235.
+  The central trigger remains 65 / 235; the other four reuse `visitZones`.
+  Earth/Hollow and both secret triggers, all photos/captions, terrain,
+  handling, routes and recognition/storage mechanics are unchanged.
+- Reference: Ochre Terraces' fitted union of circles and its full-coverage /
+  outer-slope exclusions. Adaptation: a low, wide chain along the existing
+  central flat corridor rather than a single large radius reaching into the
+  surrounding slopes. Regenerated and inspected the
+  [trigger map](artifacts/moon/postcard-trigger-map.png), including all four
+  alternate rings. Exact generated geometry is checked for every circle.
+- **24 focused units, typecheck/build and four Chromium/WebKit browser cases
+  pass.** Coverage includes a grid across X=-25..155, Z=218..252, excluded
+  outer approaches, both directions across the full plain, more than 100 m
+  clearance to every other card's zones, and actual far-west/far-east Nomad
+  drives unlocking well outside the old circle. Existing central
+  approach/return and persisted journal cases also pass. Inspected actual
+  driving-height captures from both ends. No repeated PWA or broad suite for
+  this trigger-only change; preceding offline/device limits remain recorded.
+- Also investigated the user's inverted-looking map relief: the height samples
+  are correct (Quiet Crater floor about 2 m, rims about 22-23 m), but the map
+  hillshade illuminates from southeast. Recommended northwest illumination;
+  **no map-shading or game-lighting change has been made**.
+- Local preview remains running and work remains uncommitted/unpushed.
+  **Next:** user reviews the wider Basalt trigger; map-shading correction awaits
+  direction.
+
+## User-selected Window postcard view — 2026-10-25
+
+- Replaced only **A Window into Darkness**'s photo with the user's exact
+  camera: position **-255.953 / 7.626 / 184.023**, target
+  **-248.639 / 10.103 / 194.9**, FOV **48**. Preserved the complete supplied
+  [view and car pose](artifacts/moon/discoveries/window-photo-view.json).
+  Actual game capture remains vehicle/UI-free and **800 x 600**, with no
+  terrain, lighting, caption, trigger or map changes.
+- Reference: the existing Moon photo capture script and exact user-camera
+  home-tile technique. The script now accepts a single capture name, retains
+  other captures' metadata, supports absolute camera height, and checks the
+  rendered position, direction, FOV and hidden vehicle. Inspected the
+  [replacement source](artifacts/moon/discoveries/window-into-darkness.png)
+  and refreshed tablet journal views. This selected camera is about one metre
+  beyond the existing 9 m trigger circle; the photograph is intentionally
+  independent of recognition, so the trigger was not moved or widened.
+- **Eight focused units, typecheck, build and both Chromium/WebKit Window
+  approach/return/journal cases pass.** The asset regression checks this
+  card against the exact saved user camera instead of requiring its photo
+  position inside the trigger. Focused production offline coverage passes
+  in Chromium; the documented WebKit offline-navigation skip remains.
+  No unrelated suites repeated or physical-iPad acceptance claimed.
+- Local preview stays running; work remains uncommitted/unpushed.
+  **Next:** user reviews the selected photo and continues assessing the
+  small scenic trigger areas.
+
+## Three scenic postcards and trigger map — 2026-10-25
+
+- User found and liked First Landing, then authorized three scenic postcards
+  and requested trigger areas marked like Mars/Northern Reach. Added
+  **A Small Blue Home** at Earthrise Overlook (-45 / -200, radius 12 m),
+  **A Window into Darkness** inside the northern Hollow passage
+  (-246 / 184, radius 9 m), and **A Sea That Turned to Stone** in southern
+  Basalt Reach (65 / 235, radius 12 m). Moon now has five cards: three ordinary
+  scenic slots and two anonymous secret slots, still without collection totals.
+  Existing discovered IDs/dates remain valid; no storage migration.
+- References: shared Mars/Northern ordinary postcard definitions/journal,
+  existing Moon real-Nomad discovery tests and photo-view captures, and
+  `artifacts/postcards/render-trigger-maps.mjs`. Adaptation: narrow viewpoint
+  circles rather than whole-region recognition. Every pair has more than
+  140 m clear separation between trigger edges. The Hollow surface bypass
+  stays outside the interior postcard. Existing movement/teleport/once-only
+  recognition is unchanged; no added props, terrain, physics, routes, lights
+  or per-frame effects.
+- Captured all three **800 x 600** photos in the actual game with vehicle/UI
+  hidden, retaining source PNGs and camera metadata in
+  [discoveries](artifacts/moon/discoveries/). Adjusted the Earth composition
+  southward after an initial ridge obscured part of Earth; the final globe
+  is fully clear of the ridge. Compared four interior angles and chose the
+  diagonal skylight view with its illuminated wall and pool of sunlight.
+  The southern image looks northwest across basalt slabs/lava relief, not
+  another Earth composition. Inspected source photos, driving-height arrivals
+  and tablet journal details.
+- Extended the **existing** Mars/Northern trigger renderer, keeping their
+  styles unchanged. The [Moon trigger PNG](artifacts/moon/postcard-trigger-map.png)
+  and [SVG](artifacts/moon/postcard-trigger-map.svg) read all five exact
+  centres/radii from `POSTCARDS`, with orange P1-P3 scenic badges and purple
+  secret stars. Offset badges leave the small rings visible and distinguish
+  cards from regional-start numbers. Refreshed the underlying navigation map;
+  trigger references are development spoilers, not in-game navigation markers.
+- **23 focused units, typecheck and production build pass.** Covers card
+  counts, separation, movement/teleport gates, persistence, unchanged Mars/NR
+  routes, bypass exclusion, exact generated map geometry, JPEG/source dimensions
+  and scenic camera positions inside their trigger circles.
+  **All 14 affected Chromium/WebKit browser cases pass after focused reruns:**
+  all five postcards have real Nomad approach/return and persisted journal
+  coverage, including 12 new scenic drive legs across both engines. Initial
+  Earth tests incorrectly approached straight up the ungraded crater wall;
+  replaced only that test path with the existing diagonal circuit approach.
+  No terrain/physics changes, wider triggers or weaker assertions. A concurrent
+  hot reload interrupted the Chromium Surveyor drive; its unchanged isolated
+  rerun passes.
+- Ran focused production/PWA checks sequentially after browser coverage:
+  **three passed, one existing WebKit offline-navigation skip**. Both engines
+  confirm precaching all five photos; Chromium opens every postcard offline
+  after reload. The build precaches 63 entries, versus 60 before these three
+  images. No unrelated full-suite run; physical-iPad sustained performance,
+  touch and Safari offline acceptance remain open.
+- Local preview remains running at `http://localhost:5173`. All postcard/map
+  work is uncommitted/unpushed. Unrelated recovery, perimeter and startup work
+  from the shared checkout is preserved.
+  **Next:** user reviews the three new photos, descriptions and trigger map;
+  no further cards, commit or publication is authorized.
+
 ## Shared initial-load logo flash — 2026-10-25
 
 - Reproduced the oversized initial SVG with game JavaScript disabled: it was
@@ -57,6 +211,189 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   repeated; physical-iPad acceptance remains open. **Next:** user review of the
   unchanged-looking boundary behavior. Duplicate shadow remains a known issue;
   a more selective terrain-occlusion solution needs separately authorized scope.
+
+## Stronger surveyor tracks — 2026-10-25
+
+- User requested stronger tracks after reviewing the soft-stamp revision.
+  Increased only the authored surveyor impressions to three times their
+  previous alpha: **0.18** at each centre, retaining tapered transparent
+  ends, varied gaps and the same footprint. Live driving marks are unchanged.
+  Reference: the shared static/live stamp helper and its equivalence test.
+- Regenerated the actual-game postcard/source views and inspected both the
+  low photo and Chromium driving-height arrival: the old trail is now clearly
+  readable beside the rover's fresh tracks without restoring solid ribbons.
+  **13 focused units, typecheck, production build and the Chromium real
+  surveyor approach/return/journal case pass.** No WebKit/PWA rerun for this
+  opacity-only change; their preceding coverage and physical-iPad gaps remain
+  recorded below.
+- User accepted the stronger surveyor tracks on 2026-10-25.
+  Local preview stays running; changes remain uncommitted/unpushed.
+  **Next:** landing discovery and overall discovery spacing remain for user
+  review; no additional cards or release action is authorized.
+
+## Surveyor tyre impressions and history — 2026-10-25
+
+- User found the surveyor but preferred the live driving tracks to its
+  continuous static ribbons, and requested a short history instead of a
+  description of visible props. Replaced the ribbons with 32 varied,
+  terrain-fitted impressions using the live marks' tapered footprint,
+  lunar palette, soft vertex alpha and transparent, non-depth-writing
+  material. The authored trail remains faint and permanent, without an
+  effect pool, update loop, collision or shadow casting. Live emission,
+  spacing, emphasis and fading are unchanged.
+- Reference: `ground-effects.ts`, its driving-feedback units and River
+  Valley's existing browser feedback scenario. Extracted the shared stamp
+  writer/material rather than approximating the live appearance again.
+  The trail retains 128 triangles in one batch; no terrain, handling,
+  route, hardware or discovery-trigger changes.
+- Surveyor postcard now reads: "Before Earthview Base was built, this
+  surveyor searched for a safe crossing of Silver Rille. Its maps reached
+  home; the rover never did." Regenerated the actual-game postcard and
+  source views. Preserved the
+  [previous ribbons](artifacts/moon/discoveries/stranded-surveyor-before-tracks.jpg)
+  for comparison; inspected the revised low photo, opposing side,
+  [driving-height arrival](artifacts/moon/discoveries/webkit-tablet/stranded-surveyor-arrival.png)
+  and [journal detail](artifacts/moon/discoveries/chromium-tablet/stranded-surveyor-journal.png).
+- **28 focused units, typecheck and production build pass.** Both engines
+  pass the real Nomad surveyor approach/return, persistence and exact new
+  history assertion. Both also pass the existing live-track browser case.
+  Its first WebKit run failed during trace cleanup because another run
+  removed shared Playwright artifacts; the isolated-output rerun passes
+  unchanged. Production Moon postcard offline coverage passes in Chromium;
+  the existing WebKit offline-navigation case remains explicitly skipped.
+  No broad suites repeated for this focused refinement.
+- Local server remains available at `http://localhost:5173`. Work remains
+  uncommitted/unpushed; unrelated concurrent vehicle-recovery edits are
+  preserved. Physical iPad performance/touch/offline acceptance remains
+  open. **Next:** user reviews the revised surveyor trail and postcard,
+  then the landing discovery and overall spacing; no further cards or
+  release action is authorized.
+
+## Revised home-tile camera — 2026-10-25
+
+- User replaced the earlier camera with position **-18.147 / 29.095 / -16.45**,
+  target **-19.801 / 29.109 / -29.912**, FOV **48**. Recaptured the actual
+  game with rover/UI hidden and updated the same **476 x 350** home JPEG.
+  This view naturally includes Earth over the crater; no scene or sky changes.
+- Reused the existing photo-view capture and exact-position assertion.
+  Updated the [source image](artifacts/moon/home-preview/moon-tile.png),
+  [pose metadata](artifacts/moon/home-preview/tile-camera.json) and both tablet
+  home screenshots. Inspected the large source and final thumbnail.
+  **Two Chromium/WebKit home-tile cases pass**. No runtime-code changes or
+  repeat production/PWA run for this image-only replacement.
+- Local server remains running. Changes remain uncommitted/unpushed.
+  **Next:** user reviews the revised local tile and discovery scenes.
+
+## Vehicle-free home tile — 2026-10-25
+
+- User requested the usual landscape-only location photo and supplied an
+  exact camera: position **-32.251 / 28.069 / -39.416**, target
+  **-33.196 / 24.748 / -52.23**, FOV **48**. Replaced
+  `public/locations/moon.jpg` with that actual game view, hiding the rover
+  and all UI through the existing photo-view hook/CSS capture technique.
+  No camera reinterpretation, Earth repositioning or scenery changes.
+- Reference: the actual-game Moon discovery capture flow and existing
+  home-tile browser case. Preserved the tile's **476 x 350** JPEG dimensions.
+  Retained the [larger source view](artifacts/moon/home-preview/moon-tile.png)
+  and [user pose/capture metadata](artifacts/moon/home-preview/tile-camera.json).
+  Inspected both source and thumbnail; actual camera matches the supplied
+  position and the vehicle is hidden.
+- **Two Chromium/WebKit home-tile cases and two production/PWA tile cases
+  pass**, with refreshed tablet home captures and a successful production
+  build. No runtime-code, physics or terrain change. Local server stays
+  running; this image change remains uncommitted/unpushed with the discoveries.
+  **Next:** user reviews the local tile and discovery scenes.
+
+## Empty journal slots restored — 2026-10-25
+
+- User clarified that Moon should retain the empty postcard slots used on
+  Mars and Northern Reach. Removed the found-only Moon filter: both secret
+  slots now appear immediately with the existing anonymous star, generic
+  title and hidden description. Finding one replaces that slot with its
+  actual photo/name while the other stays anonymous. Moon still omits
+  collection totals; no new cards, triggers or scenery are added.
+  This supersedes the initial found-only decision in the entry below.
+- Reference: the existing shared secret-card renderer and Mars journal
+  browser coverage. No new rendering/UI component or storage format.
+  Inspected [empty](artifacts/moon/discoveries/webkit-tablet/empty-journal.png)
+  and [partly discovered](artifacts/moon/discoveries/chromium-tablet/partly-discovered-journal.png)
+  actual tablet game captures. Updated plan/design/README/shared lesson and
+  both discovery-drive cases' expected slot counts.
+- **Four focused Chromium/WebKit journal cases, typecheck and build pass.**
+  Covers hidden names, empty/partly found slots, pause/reload and unchanged
+  Mars behavior. No physics/terrain changes or repeated driving suite.
+  No PWA rerun for this display-only correction; preceding offline coverage
+  and WebKit manual gaps remain recorded below.
+- Local server remains running at `http://localhost:5173`. Work remains
+  uncommitted/unpushed. **Next:** user reviews the two scenes and spacing;
+  no additional postcards or release action is authorized.
+
+## Two quiet discoveries — 2026-10-25
+
+- User authorized trying two sparse discoveries, preferred human exploration
+  history over an obligatory alien mystery, and suggested original Moon
+  landing equipment. Implemented **First Landing** and **Stranded Surveyor**;
+  ordinary regional/scenic postcards remain deferred. The landing scene is
+  Apollo-inspired original geometry, not an accurate Apollo 11 reconstruction.
+  This work has not been committed or pushed; the earlier home preview was
+  published separately as `417aef6`.
+- References read before implementation: Northern Stone Circle's hidden
+  recognition/layout; Mars wreck's real approach and persisted journal;
+  existing postcard units/browser cases; Moon's sampled foundations,
+  scenery/material batching, exact collision and real-input driving.
+  Adaptation: reuse existing terrain screening instead of sculpting another
+  hollow or widening the map. Retain the shared 8 m travel gate, teleport reset,
+  once-only records and existing notice/detail UI. Moon's journal shows only
+  found cards, with no locked slots or collection totals. Mars and Northern
+  Reach keep their established journals.
+- **First Landing, 78 / 44:** gold octagonal descent stage with the ascent
+  stage absent, four individually grounded legs/pads, ladder, reflector
+  array, seismometer/cable and aerial. An existing small crater hides the
+  scene from the southern circuit. **Stranded Surveyor, 290 / 235:** static
+  robotic rover with solar panel/camera mast, three attached spoked wheels,
+  one loose wheel and two faint tracks. The eastern bank hides it from the
+  Silver Rille floor. Sites are about **285 m apart**; close recognition is
+  **13 m / 11 m**, outside every normal authored route and regional start.
+  Exact approaches are recorded in [design](artifacts/moon/DESIGN.md#quiet-discoveries--2026-10-25),
+  not marked on the in-game landscape.
+- No terrain, physics, lighting, atlas, regional-start or main-route changes.
+  Existing rocks are excluded around the small scenes. Visible hardware
+  supplies exact triangle collision; terrain-fitted tracks are non-solid
+  and do not cast shadows. Total added geometry **3,274 triangles / seven
+  material batches / six static colliders**, with no animation, per-frame
+  generation or new texture. Terrain stays **91,008 triangles** and at most
+  **nine** moving terrain colliders. Eight complete new browser drives
+  peaked at **117,392 rendered triangles / 45 draw calls**. These are resource
+  bounds, not a fresh frame-cadence or physical-iPad benchmark.
+- Inspected [actual game images](artifacts/moon/discoveries/) from low arrival,
+  opposing side and screened-route views, plus actual Nomad approach/return
+  and journal detail in Chromium/WebKit. Initial open-ended wheels looked
+  incomplete; added annular sidewalls/spokes. Initial raised tread blocks
+  looked like debris; replaced with faint ground-fitted ribbons.
+  The two 800 x 600 postcard JPEGs are actual game captures, generated with
+  `node --import tsx scripts/render-moon-discoveries.ts` against a dev server.
+- **33 focused units, typecheck and production build pass.** Includes full
+  existing Moon two-way real-vehicle routes, foundation burial, exact rendered
+  collision, disposal, terrain screening, untouched-route trigger exclusion,
+  persistence/teleport/once-only handling and existing postcard behavior.
+  **Six new Chromium/WebKit browser cases pass**, including all eight actual
+  discovery approach/return drives; another **six existing journal browser
+  cases pass** for world selection, normal notice/reload and secret detail.
+  Initial Surveyor runs stopped just outside the 11 m recognition circle
+  because the test's waypoint tolerance exceeded its endpoint margin.
+  Moved the development test approach endpoint closer; did not enlarge the
+  trigger, change movement rules or weaken the discovery assertion.
+- Sequential **production/PWA: 20 passed, four skipped**. Both new images are
+  precached, and Chromium verifies Moon reload and both enlarged cards while
+  offline. Three historical WebKit offline skips remain; the new lunar
+  offline case uses the same documented skip because that automation gap
+  also applies here. WebKit online journal/driving/image coverage passes.
+  Build precaches **60 assets / about 4.11 MiB**. No broad unit/browser rerun
+  for this bounded Moon feature; the previous full-suite results and failed
+  broad browser attempt remain recorded below, not superseded as passing.
+- **Exact next step:** user reviews the two scenes and their spacing before
+  any additional scenic postcards. Physical-iPad sustained performance, touch
+  and Safari offline acceptance remain open. No new commit/push was requested.
 
 ## Home-screen preview publication — 2026-10-25
 

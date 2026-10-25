@@ -17,6 +17,13 @@ Pink leads southwest to **Skylight Hollow**; dashed pink is the western surface
 bypass. The dark roof overlay includes its actual daylight opening.
 Numbers match the seven regional starts.
 
+The separate [postcard trigger map](postcard-trigger-map.png)
+([zoomable SVG](postcard-trigger-map.svg)) marks all five live recognition
+circles, including the two secret discoveries. Orange P1-P3 are scenic
+postcards; purple stars are secrets. Badges are offset from the small circles
+so the exact trigger footprints remain visible. This is a spoiler-bearing
+development reference, not an in-game navigation feature.
+
 ![Current Moon terrain and driving routes](moon-map.png)
 
 This is sampled terrain relief with navigation overlays, not an aerial game
@@ -60,6 +67,108 @@ The shelter is centred at X=-165, Z=85 on the gentler western ground. Its level
 deck clears the highest point under the entire footprint; separate legs and
 feet support it without enclosing the open underside. Ground-contact footings
 extend below their lowest footprint sample, with matching solid collision.
+
+## Quiet discoveries — 2026-10-25
+
+The user initially authorized two sparse discoveries and suggested original
+landing equipment; three scenic postcards were subsequently approved below.
+These are original
+human-exploration scenes, not an exact Apollo 11 reconstruction or alien mystery.
+No landscape extension, new regional start, map marker or mission is added.
+
+- **First Landing, 78 / 44:** the existing small crater contains an octagonal
+  gold descent stage, four independently grounded legs/pads, an empty ascent
+  attachment, ladder, reflector array, seismometer/cable and a small aerial.
+  The crater rim screens it from the southern circuit at 75 / 105. Leave that
+  point north through 78 / 88 and over the lip at 78 / 72, descending toward
+  78 / 52. The unaltered lip is a short optional climb, steeper than the easy
+  main routes; both directions must work with the actual rover.
+- **Stranded Surveyor, 290 / 235:** a small open robotic rover with an angled
+  solar panel, camera mast, three attached spoked wheels and one loose wheel.
+  Two trails of broken tyre impressions end at the chassis, using the
+  live driving marks' tapered geometry, lunar palette and transparent material
+  rather than opaque painted ribbons. Authored impressions use three times the
+  base stamp opacity for readable contrast; live driving tracks are unchanged.
+  Its two-sentence postcard recalls the
+  surveyor's search for a crossing before Earthview Base was built.
+  The eastern rille bank
+  screens the scene from the channel at 250 / 140. From the rille mouth,
+  leave 220 / 235 southeast through 245 / 260, then east to 280 / 260 and
+  north through 290 / 253 to 290 / 242.
+
+The sites are about 285 m apart. Their close-recognition radii are 13 m and
+11 m, outside all ordinary authored routes and regional starts. Existing
+8 m travel/teleport-reset and once-only journal persistence rules are reused.
+Moon shows anonymous empty secret slots until found, like Northern Reach and
+Mars, following the user's clarification. It still omits the completion total;
+Northern Reach and Mars retain their established journals.
+
+References: Northern Stone Circle's narrow hidden recognition, Mars wreck's
+actual approach/return and journal persistence, and Moon's whole-footprint
+foundation sampling/material batching. Adaptation: use existing terrain
+screening rather than sculpting another hollow; bake the exact hardware
+triangles into six static colliders, with a separate non-solid/non-casting
+surface-track batch. Static impressions reuse `ground-effects.ts`'s stamp writer
+and material without a live effect pool, fading timer or update loop.
+No moving parts, textures, animation loop or larger shadow
+map. Default world/vehicle handling, all seven starts and all ten routes remain.
+See [actual game captures](discoveries/) and [progress](../../MOON_PROGRESS.md)
+for final geometry and driving evidence. Regenerate the two 800 x 600 postcard
+images and low-camera review frames with
+`node --import tsx scripts/render-moon-discoveries.ts` while a dev server runs.
+
+## Scenic postcards — 2026-10-25
+
+Three deliberately spaced viewpoints complement the two human-exploration
+discoveries, not a card for each region:
+
+| Card | Trigger X/Z | Radius | Actual-game composition |
+| --- | --- | --- | --- |
+| A Small Blue Home | -45 / -200 | 12 m | Earth fully above the pale northern ridge, photographed just south of the overlook at rover height. |
+| A Window into Darkness | -246 / 184 | 9 m | From the northern passage beneath the roof, looking diagonally toward the skylight's lit rim and pool of sunlight. The western surface bypass does not unlock it. |
+| A Sea That Turned to Stone | 65 / 235, plus two flat-plain zones | 28 m each | Angular basalt slabs and lava relief on the southern plain, looking northwest toward the pale distant slopes rather than framing Earth again. |
+
+Each postcard has a vehicle/UI-free **800 x 600** actual game image and a
+two-sentence note: distance from home, the drained lava passage, or the dark
+lunar "seas." Ordinary card titles appear on empty slots; both secret names
+stay anonymous until found. Moon still omits collection totals. The existing
+8 m travel gate, teleport reset, segment recognition and stored card IDs
+remain unchanged. No added geometry, props, routes, animation or frame work.
+
+References: existing Mars/Northern Reach ordinary cards, photo-mode captures,
+travel-trigger tests and `artifacts/postcards/render-trigger-maps.mjs`.
+Adaptation: compact 9-12 m viewpoint zones for Earth and Hollow. Following the
+user's later request, Basalt Sea instead covers the central flat plain with
+three overlapping 28 m circles at X=25, 65 and 105, all at Z=235.
+The two former outer circles at X=-15 and 145 were removed at the user's request.
+This includes the flat corridor without one large enclosing circle extending
+across the surrounding lava lobes and outer approaches.
+Regenerate all five photos and review frames with the existing Moon capture
+script above. Rebuild the base navigation map first, then the trigger overlay:
+
+```sh
+node --import tsx scripts/render-moon-map.ts
+node --import tsx artifacts/postcards/render-trigger-maps.mjs moon
+```
+
+Both Moon maps use northwest (upper-left) hillshade so craters read as depressions,
+independently of the game's sun direction. Terrain heights and route positions
+are unchanged.
+
+The overlay reads every centre/radius directly from `POSTCARDS`; no hand-drawn
+approximation or separate trigger-coordinate list. Scenic approaches and
+returns are checked with the real Nomad in both engines.
+
+**Window photo revision:** the user selected the exact camera retained in
+[window-photo-view.json](discoveries/window-photo-view.json): position
+-255.953 / 7.626 / 184.023, target -248.639 / 10.103 / 194.9, FOV 48.
+Use that framing without terrain-height adjustment, with the rover/UI hidden.
+The 9 m recognition circle is unchanged even though the chosen camera sits
+about one metre beyond it. Regenerate only this postcard and its source with:
+
+```sh
+node --import tsx scripts/render-moon-discoveries.ts http://127.0.0.1:5173 window-into-darkness
+```
 
 ## Sky and lighting
 
