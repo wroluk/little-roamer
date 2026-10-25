@@ -1,0 +1,28 @@
+{
+  "area": "moon",
+  "escape": {
+    "car": {
+      "position": { "x": -383.139, "y": 32.264, "z": -149.002 },
+      "rotation": [0.017, -0.817, -0.032, -0.575]
+    },
+    "camera": {
+      "position": { "x": -371.701, "y": 36.443, "z": -142.893 },
+      "target": { "x": -383.139, "y": 33.464, "z": -149.002 },
+      "fov": 48
+    },
+    "note": "The old escaped pose is restored only for a paused scenery capture, outside the new guard."
+  },
+  "duplicateShadow": {
+    "car": {
+      "position": { "x": -216.047, "y": 35.233, "z": -141.188 },
+      "rotation": [-0.015, 0.125, -0.006, -0.992]
+    },
+    "camera": {
+      "position": { "x": -222.773, "y": 46.775, "z": -138.529 },
+      "target": { "x": -216.047, "y": 36.433, "z": -141.188 },
+      "fov": 48
+    },
+    "experiment": "Alternate existing terrain.castShadow=false and true with shadowSide=DoubleSide; retain the existing 1024 shadow map, light direction, camera and all other scenery. Warm shaders, force completion with one-pixel readback, disable render-info autoReset to include the shadow pass. Four alternating rounds of ten samples each. No lighting change retained.",
+    "limitation": "Headless Chromium SwiftShader comparison, not physical-iPad or hardware-GPU acceptance. Full terrain casting also introduces visible self-shadow striping."
+  }
+}

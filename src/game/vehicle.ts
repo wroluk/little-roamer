@@ -766,9 +766,60 @@ export class Vehicle {
     }
   }
 
-  reset(destination = this.spawn) {
+  tryRight() {
+    const position = this.body.translation();
+    const rotation = this.body.rotation();
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(rotation);
+    if (up.y > 0.35 || this.waterDepth >= 0.85) return false;
+    const forward = FORWARD.clone().applyQuaternion(rotation);
+    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(rotation);
+    // Near vertical, the forward projection can reverse with a tiny pitch change.
+    const heading = Math.hypot(forward.x, forward.z) < 0.5
+      ? Math.atan2(-right.z, right.x) : Math.atan2(-forward.x, -forward.z);
+    const upright = new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(0, 1, 0), heading,
+    );
+    let highestGround = -Infinity;
+    let lowestGround = Infinity;
+    for (const point of CONNECTIONS) {
+      const offset = new THREE.Vector3(point.x, 0, point.z).applyQuaternion(upright);
+      const x = position.x + offset.x, z = position.z + offset.z;
+      // Probe only the current level, never from above a cliff, bridge or cave roof.
+      const origin = { x, y: position.y + 0.25, z };
+      const hit = this.world.castRayAndGetNormal(new RAPIER.Ray(origin, { x: 0, y: -1, z: 0 }),
+        2.5, true, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC | RAPIER.QueryFilterFlags.EXCLUDE_SENSORS,
+        undefined, undefined, this.body);
+      if (!hit || hit.normal.y < 0.8) return false;
+      const ground = origin.y - hit.timeOfImpact;
+      const water = this.waterHeight(x, z);
+      if (water !== null && water - ground >= 0.85) return false;
+      highestGround = Math.max(highestGround, ground);
+      lowestGround = Math.min(lowestGround, ground);
+    }
+    if (highestGround - lowestGround > 1.2) return false;
+    const destination = { x: position.x, y: highestGround + REST_LENGTH + WHEEL_RADIUS + 0.12, z: position.z };
+    if (Math.abs(destination.y - position.y) > 1.25) return false;
+    const blocked = (center: RAPIER.Vector, shape: RAPIER.Shape) =>
+      this.world.intersectionWithShape(center, upright, shape, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS,
+        undefined, undefined, this.body) !== null;
+    // Include the cabin and wheel space, not just the chassis's collision box.
+    if (blocked({ ...destination, y: destination.y + 0.48 }, new RAPIER.Cuboid(1.12, 0.8, 1.55))) return false;
+    for (const point of CONNECTIONS) {
+      const offset = new THREE.Vector3(point.x, -REST_LENGTH, point.z).applyQuaternion(upright);
+      if (blocked({ x: destination.x + offset.x, y: destination.y + offset.y, z: destination.z + offset.z },
+        new RAPIER.Ball(WHEEL_RADIUS + 0.02))) return false;
+    }
+    const lift = destination.y - position.y;
+    if (Math.abs(lift) > 0.01 && this.world.castShape(position, upright,
+      { x: 0, y: Math.sign(lift), z: 0 }, new RAPIER.Ball(0.15), 0, Math.abs(lift), true,
+      RAPIER.QueryFilterFlags.EXCLUDE_SENSORS, undefined, undefined, this.body)) return false;
+    this.reset(destination, upright);
+    return true;
+  }
+
+  reset(destination = this.spawn, rotation: RAPIER.Rotation = { x: 0, y: 0, z: 0, w: 1 }) {
     this.body.setTranslation(destination, true);
-    this.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
+    this.body.setRotation(rotation, true);
     this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
     this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
     this.body.resetForces(true);
@@ -777,6 +828,8 @@ export class Vehicle {
     this.lastStepDt = 0;
     this.freeWheelDirection = 0;
     this.freeWheelSpeeds.fill(0);
+    this.oldSuspension.fill(REST_LENGTH);
+    this.suspension.fill(REST_LENGTH);
     this.oldRideBumps.fill(0);
     this.rideBumps.fill(0);
     this.surface = SURFACES[this.surfaceAt(destination.x, destination.z)];

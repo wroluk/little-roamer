@@ -1,5 +1,4 @@
 import { lagoonWaterRegion, lagoonRadius } from './game/iceland-lagoon';
-import './styles.css';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import {
@@ -7,6 +6,7 @@ import {
 } from './game/vehicle';
 import { earthVehicle, explorationVehicle, vehicleAvailable } from './game/vehicle-selection';
 import { FollowCamera, horizontalDragDirection } from './game/camera';
+import { SCENERY_QUERY_GROUPS } from './game/collision-groups';
 import { FixedClock } from './game/driving';
 import { NORTHERN_STARTS, nearestNorthernStart, regionalSpawn } from './game/regional-starts';
 import { MARS_STARTS, nearestMarsStart, marsSpawn } from './game/mars-terrain';
@@ -272,7 +272,8 @@ async function boot() {
     element('surface-trait').textContent = vehicle.currentSurface.trait;
     element('loading-status').textContent = area.readyMessage;
     element<HTMLButtonElement>('reset').title = area.id === 'northern-reach' || area.id === 'mars' || area.id === 'iceland' || area.id === 'moon'
-      ? 'Return to the nearest regional start (R)' : `Return to the ${area.name} starting area (R)`;
+      ? 'Right an overturned car here, or return to the nearest regional start (R)'
+      : `Right an overturned car here, or return to the ${area.name} starting area (R)`;
   }
   presentArea();
   const journal = element('journal');
@@ -637,34 +638,40 @@ async function boot() {
   const reset = async () => {
     if (mode !== 'playing') return;
     controls?.clear();
-    const start = area.id === 'northern-reach' ? nearestNorthernStart(vehicle.position.x, vehicle.position.z)
-      : area.id === 'mars' ? nearestMarsStart(vehicle.position.x, vehicle.position.z) : null;
-    const icelandResetStart = area.id === 'iceland' ? nearestIcelandStart(vehicle.position.x, vehicle.position.z) : null;
-    const moonResetStart = area.id === 'moon' ? nearestMoonStart(vehicle.position.x, vehicle.position.z) : null;
-    const destination = moonResetStart ? moonSpawn(moonResetStart.position) : icelandResetStart ? icelandStartSpawn(icelandResetStart)
-      : start ? (area.id === 'mars' ? marsSpawn(start.position) : regionalSpawn(start)) : area.spawn;
-    if (runtime) {
-      mode = 'loading';
-      resetInProgress = true;
-      pauseAfterReset = false;
-      controls?.setEnabled(false);
-      setHomeControlsEnabled(false);
-      element<HTMLButtonElement>('pause').disabled = true;
-      element<HTMLButtonElement>('reset').disabled = true;
-      vehicle.model.visible = false;
-      element('travelling').hidden = false;
-      element('travel-status').textContent = 'Preparing terrain around the starting point...';
-      await runtime.ensureReady(destination.x, destination.z);
-      if (hasFailed()) {
-        resetInProgress = false;
-        return;
+    const righted = vehicle.tryRight();
+    let message = 'Back on your wheels. Off you go.';
+    if (!righted) {
+      const start = area.id === 'northern-reach' ? nearestNorthernStart(vehicle.position.x, vehicle.position.z)
+        : area.id === 'mars' ? nearestMarsStart(vehicle.position.x, vehicle.position.z) : null;
+      const icelandResetStart = area.id === 'iceland' ? nearestIcelandStart(vehicle.position.x, vehicle.position.z) : null;
+      const moonResetStart = area.id === 'moon' ? nearestMoonStart(vehicle.position.x, vehicle.position.z) : null;
+      const destination = moonResetStart ? moonSpawn(moonResetStart.position) : icelandResetStart ? icelandStartSpawn(icelandResetStart)
+        : start ? (area.id === 'mars' ? marsSpawn(start.position) : regionalSpawn(start)) : area.spawn;
+      if (runtime) {
+        mode = 'loading';
+        resetInProgress = true;
+        pauseAfterReset = false;
+        controls?.setEnabled(false);
+        setHomeControlsEnabled(false);
+        element<HTMLButtonElement>('pause').disabled = true;
+        element<HTMLButtonElement>('reset').disabled = true;
+        vehicle.model.visible = false;
+        element('travelling').hidden = false;
+        element('travel-status').textContent = 'Preparing terrain around the starting point...';
+        await runtime.ensureReady(destination.x, destination.z);
+        if (hasFailed()) {
+          resetInProgress = false;
+          return;
+        }
+        world.step();
       }
-      world.step();
+      vehicle.reset(destination);
+      const resetHeading = moonResetStart?.heading ?? icelandResetStart?.heading ?? area.spawnHeading;
+      if (resetHeading !== undefined) vehicle.body.setRotation(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), resetHeading), true);
+      message = moonResetStart ? `Back at ${moonResetStart.name}` : icelandResetStart ? `Back at ${icelandResetStart.name}`
+        : start ? `Back at ${start.name}` : 'Back at the starting area. Off you go.';
     }
-    vehicle.reset(destination);
-    const resetHeading = moonResetStart?.heading ?? icelandResetStart?.heading ?? area.spawnHeading;
-    if (resetHeading !== undefined) vehicle.body.setRotation(
-      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), resetHeading), true);
     for (let i = 0; i < 30; i++) {
       vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
       world.step();
@@ -674,9 +681,10 @@ async function boot() {
     postcardTracker.reset(vehicle.position.x, vehicle.position.z);
     terrainEffects.clear();
     clock.reset();
-    follow.reset();
+    if (righted) follow.preserveView();
+    else follow.reset();
     vehicle.model.visible = true;
-    if (runtime) {
+    if (!righted && runtime) {
       mode = 'playing';
       resetInProgress = false;
       element('travelling').hidden = true;
@@ -689,7 +697,7 @@ async function boot() {
         pause();
       }
     }
-    toast(moonResetStart ? `Back at ${moonResetStart.name}` : start ? `Back at ${start.name}` : 'Back on your wheels. Off you go.');
+    toast(message);
   };
   controls = new Controls(pause, () => { void reset().catch(showError); });
   canvas.addEventListener('pointerdown', event => {
@@ -706,6 +714,7 @@ async function boot() {
       camera.far,
       true,
       RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC,
+      SCENERY_QUERY_GROUPS,
     );
     cameraHorizontalDirection = horizontalDragDirection(
       terrainHit?.timeOfImpact ?? null,
@@ -889,7 +898,7 @@ async function boot() {
           pixelRatio: renderer.getPixelRatio(), graphicsReduced,
           geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures,
           cameraObstructed: world.intersectionWithShape(camera.position, camera.quaternion,
-            cameraProbe, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC) !== null,
+            cameraProbe, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC, SCENERY_QUERY_GROUPS) !== null,
           streaming: runtime?.stats ?? null,
           navigation: updateNavigation(),
         }),

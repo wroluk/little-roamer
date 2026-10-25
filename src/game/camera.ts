@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import type { Vehicle } from './vehicle';
 import { surfaceHeight } from './terrain';
+import { SCENERY_QUERY_GROUPS } from './collision-groups';
 
 export function horizontalDragDirection(terrainDistance: number | null, vehicleDistance: number) {
   return terrainDistance !== null && terrainDistance < vehicleDistance ? -1 : 1;
@@ -38,6 +39,16 @@ export class FollowCamera {
   }
 
   reset() { this.initialized = false; this.feedbackTime = 0; this.avoidingCabin = false; }
+
+  preserveView() {
+    this.forward.set(0, 0, -1).applyQuaternion(this.vehicle.model.quaternion);
+    this.heading = Math.atan2(-this.forward.x, -this.forward.z);
+    const offset = this.camera.position.clone().sub(this.vehicle.model.position);
+    const yaw = Math.atan2(offset.x, offset.z) - this.heading;
+    this.orbitYaw = Math.atan2(Math.sin(yaw), Math.cos(yaw));
+    this.smoothed.copy(this.camera.position);
+    this.feedbackTime = 0;
+  }
 
   orbit(yaw: number, pitch: number) {
     this.orbitYaw = Math.atan2(
@@ -96,7 +107,7 @@ export class FollowCamera {
     const distanceToCamera = this.direction.length();
     this.direction.normalize();
     const hit = this.world.castShape(this.origin, this.identity, this.direction, this.shape,
-      0.1, distanceToCamera, true, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC);
+      0.1, distanceToCamera, true, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC, SCENERY_QUERY_GROUPS);
     const allowedDistance = hit ? Math.max(0, hit.time_of_impact - 0.12) : distanceToCamera;
     this.camera.position.copy(this.origin).addScaledVector(this.direction, allowedDistance);
     // A shortened boom must not become an accidental view from inside the cabin.
@@ -111,7 +122,7 @@ export class FollowCamera {
           this.escapeDirection.set(Math.sin(azimuth + yaw) * Math.cos(elevation), Math.sin(elevation),
             Math.cos(azimuth + yaw) * Math.cos(elevation));
           const escapeHit = this.world.castShape(this.origin, this.identity, this.escapeDirection, this.shape,
-            0.1, 7, true, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC);
+            0.1, 7, true, RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC, SCENERY_QUERY_GROUPS);
           const clear = escapeHit ? Math.max(0, escapeHit.time_of_impact - 0.12) : 7;
           if (clear > bestDistance) {
             bestDistance = clear; this.escapePosition.copy(this.origin).addScaledVector(this.escapeDirection, clear);

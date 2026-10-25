@@ -1,0 +1,65 @@
+{
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+  "shadowSize": [
+    1024,
+    1024
+  ],
+  "samples": [
+    {
+      "casting": false,
+      "medianMs": 45.20000000298023,
+      "p95Ms": 48.29999999701977,
+      "calls": 48,
+      "triangles": 115568
+    },
+    {
+      "casting": true,
+      "medianMs": 51.69999999925494,
+      "p95Ms": 55.70000000298023,
+      "calls": 49,
+      "triangles": 206576
+    },
+    {
+      "casting": true,
+      "medianMs": 51.100000001490116,
+      "p95Ms": 52.80000000074506,
+      "calls": 49,
+      "triangles": 206576
+    },
+    {
+      "casting": false,
+      "medianMs": 48.30000000074506,
+      "p95Ms": 51.69999999925494,
+      "calls": 48,
+      "triangles": 115568
+    },
+    {
+      "casting": false,
+      "medianMs": 50.399999998509884,
+      "p95Ms": 66.69999999925494,
+      "calls": 48,
+      "triangles": 115568
+    },
+    {
+      "casting": true,
+      "medianMs": 52.30000000074506,
+      "p95Ms": 54.599999997764826,
+      "calls": 49,
+      "triangles": 206576
+    },
+    {
+      "casting": true,
+      "medianMs": 52.30000000074506,
+      "p95Ms": 61.79999999701977,
+      "calls": 49,
+      "triangles": 206576
+    },
+    {
+      "casting": false,
+      "medianMs": 49.5,
+      "p95Ms": 55,
+      "calls": 48,
+      "triangles": 115568
+    }
+  ]
+}

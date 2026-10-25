@@ -127,6 +127,23 @@ Globally evaluated normals avoid a separate coarse/fine shading seam.
 Terrain collision uses those exact fine triangles in a moving 3 x 3 core.
 Most scenery is batched; small rocks do not cast individual shadows.
 
+Four permanent, invisible, frictionless vehicle guards have inner faces at
+X/Z = +/-378 m, six metres inside the solid terrain limit. They back up the
+unchanged natural perimeter and keep the vehicle/predicted-motion probe on
+supported ground. Camera boom/escape sweeps, camera obstruction probes and
+pointer ground rays ignore their collision group; vehicle safety queries do not.
+They share scenery collision ownership/disposal, not the streamed terrain pool.
+No extra visible geometry, frame updater, handling change or UI is added.
+
+Terrain still receives, rather than casts, dynamic shadows. At a steep shelf,
+the same rover silhouette can project onto both upper and lower surfaces.
+Full terrain casting removes this duplicate but adds 91,008 shadow-pass triangles,
+slows the software-renderer probe and produces self-shadow striping. That
+experiment is **not retained**, respecting the user's simple/no-performance-loss
+condition. Keep the existing roof-only permanent sunlight atlas; do not enlarge
+it or introduce terrain shadow proxies without separate scope. The
+[reported views and comparison](perimeter-shadow/) retain the unresolved issue.
+
 This buys a clean horizon without fog or render activation spikes at pilot
 scale. It does not establish that a larger, more detailed Moon can avoid LOD.
 Physical iPad performance remains separate from landscape acceptance and desktop
@@ -134,6 +151,9 @@ frame measurements.
 
 ## Current driving-height evidence
 
+- [West perimeter, camera outside the hidden guard](perimeter-shadow/webkit-tablet/west-edge.png)
+- [Northeast corner, unchanged landscape](perimeter-shadow/webkit-tablet/northeast-corner.png)
+- [Original escaped pose, scenery comparison only](perimeter-shadow/reported-escape-view.png)
 - [Earth above the rim](earth-texture/webkit-tablet/driving.png)
 - [Current Earth detail](earth-texture/webkit-tablet/close.png)
 - [Exposed texture seam](earth-texture/webkit-tablet/seam.png)

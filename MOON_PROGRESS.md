@@ -3,6 +3,61 @@
 Read with [build plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
 and [shared guide](WORLD_BUILD_GUIDE.md).
 
+## Shared initial-load logo flash — 2026-10-25
+
+- Reproduced the oversized initial SVG with game JavaScript disabled: it was
+  1,064 px wide instead of 37 px. Moved the unchanged stylesheet from the
+  JavaScript import to a render-blocking HTML-head link, styling the page before
+  its first paint. Reference: the existing HTML asset loading and browser/PWA
+  checks; no new splash screen, duplicated CSS or lunar scenery changes.
+- Inspected before/after first-load captures. The no-JavaScript regression and
+  normal driving/reset/pause pass in Chromium and WebKit; production/typecheck
+  pass. Full PWA run: 19 pass, four existing WebKit offline skips, one 45-second
+  timeout in the complete multi-world offline journey. That journey passes
+  unchanged alone in 43.4 seconds; no assertion or physics changes made.
+- Work remains uncommitted/unpushed. Next: user review of initial page loading
+  and the perimeter change; the duplicate-shadow decision remains as below.
+
+## Perimeter safety and duplicate-shadow investigation — 2026-10-25
+
+- User authorized hidden collision protection only if the accepted scenery
+  remains intact, and a shadow fix only if simple and without performance loss.
+  The reported west-edge centre was X=-383.139, just inside the +/-384 m solid
+  footprint; the existing predicted-position readiness gate can freeze physics
+  there. Added four invisible, frictionless guards at +/-378 m, retaining six
+  metres of supported margin. Terrain, mountains, routes, scenery, lighting,
+  handling and controls are unchanged; no render geometry or frame loop added.
+- References: existing Moon scenery collider ownership/disposal, the original
+  valley's physical boundary and `tests/physics.test.ts`, and shared camera
+  obstruction sweeps. Adaptation: a dedicated collision group excludes only
+  hidden guards from both camera sweeps, pointer ground picks and development
+  obstruction probes; they still physically stop the vehicle and block unsafe
+  local recovery. Existing <=9 streamed terrain colliders and 91,008 rendered
+  terrain triangles are unchanged; the four guards dispose with the scenery.
+- **54 focused unit/physics cases, typecheck and production build pass.**
+  These include both lunar models driving full-throttle into all sides/corners
+  and reversing without loss of collision readiness, all ten lunar routes both
+  ways, local recovery, and existing Earth camera/ford checks. **Eight affected
+  Chromium/WebKit browser cases pass**: real west-edge/corner approach, stop,
+  camera orbit beyond the guard and reverse, plus both Moon recovery cases.
+  Final explicit model-selection assertions also pass in both engines.
+  Inspected driving-height captures in both engines and the restored original
+  escape camera; no visible barrier or scenery change.
+- Reproduced the duplicate shadow at the exact supplied pose. The upper shelf
+  does not cast terrain shadows, allowing the rover's silhouette onto lower
+  ground too. Full terrain casting removes it, but introduces visible striping
+  and adds **91,008 depth-pass triangles**: total rendered work rises from
+  115,568 to 206,576 triangles. Isolated Chromium SwiftShader/readback round
+  medians were 45.2–50.4 ms before and 51.1–52.3 ms with terrain casting.
+  These are comparative software-renderer samples, not physical-device frame
+  acceptance. **No shadow change retained** under the user's condition.
+  Preserved the [user image, exact poses, baseline/rejected view and costs](artifacts/moon/perimeter-shadow/).
+- Work remains uncommitted/unpushed; concurrent discoveries/tracks and accepted
+  local-reset/camera work are preserved. No unrelated broad browser/PWA suites
+  repeated; physical-iPad acceptance remains open. **Next:** user review of the
+  unchanged-looking boundary behavior. Duplicate shadow remains a known issue;
+  a more selective terrain-occlusion solution needs separately authorized scope.
+
 ## Home-screen preview publication — 2026-10-25
 
 - User accepted **Broken Highlands** and requested a home-screen tile, commit

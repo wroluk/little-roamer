@@ -1,15 +1,17 @@
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { generateMoonChunk, MOON_CHUNK, type MoonChunk } from './moon-terrain';
+import { generateMoonChunk, MOON_CHUNK, MOON_HALF, type MoonChunk } from './moon-terrain';
 import { buildMoonScenery, buildMoonSky } from './moon-scenery';
 import { disposeScene } from './dispose';
 import type { AreaRuntime } from './areas';
 import type { VehicleHandling } from './vehicle';
 import { moonHollowGeometry } from './moon-hollow';
 import { StaticSunlight } from './static-sunlight';
+import { BOUNDARY_COLLISION_GROUPS } from './collision-groups';
 
 export const MOON_GRAVITY = -3;
+export const MOON_DRIVE_HALF = MOON_HALF - 6;
 export const MOON_SUN_OFFSET: [number, number, number] = [-38, 28, 15];
 export const MOON_HANDLING: VehicleHandling = {
   acceleration: 0.38, speed: 0.46, steering: 0.78, suspension: 0.3, damping: 0.65,
@@ -61,6 +63,16 @@ export class MoonRuntime implements AreaRuntime {
       for (const solid of scenery.solids) this.sceneryColliders.push(this.world.createCollider(
         RAPIER.ColliderDesc.cuboid(solid.hx, solid.hy, solid.hz).setTranslation(solid.x, solid.y, solid.z).setFriction(0.9),
       ));
+      // Keep the rover on solid terrain without changing the visible mountain perimeter.
+      for (const side of [-1, 1]) for (const axis of ['x', 'z'] as const) {
+        const alongX = axis === 'x';
+        this.sceneryColliders.push(this.world.createCollider(
+          RAPIER.ColliderDesc.cuboid(alongX ? 0.5 : MOON_DRIVE_HALF + 1, 128, alongX ? MOON_DRIVE_HALF + 1 : 0.5)
+            .setTranslation(alongX ? side * (MOON_DRIVE_HALF + 0.5) : 0, 64,
+              alongX ? 0 : side * (MOON_DRIVE_HALF + 0.5))
+            .setFriction(0).setRestitution(0).setCollisionGroups(BOUNDARY_COLLISION_GROUPS),
+        ));
+      }
       this.scene.add(this.group);
     } catch (error) {
       this.dispose(); throw error;

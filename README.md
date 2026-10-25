@@ -274,7 +274,7 @@ acceptance.**
 | Forward | Hold the orange forward pedal | W or Up |
 | Reverse | Hold the cream reverse pedal | S or Down |
 | Brake | Hold both pedals, or the opposite direction while moving | Up + Down or W + S |
-| Reset upright at the nearest regional start | Reset car | R |
+| Right an overturned car here, or return to a safe start | Reset car | R |
 | Pause | Pause button | Escape |
 | Resume | Keep roaming | Focus the button and press Enter |
 | Enter photo mode | — | P |
@@ -294,11 +294,23 @@ Press P or Escape to return to driving.
 Switching tabs keeps the photo setup in place; returning to regular driving still
 uses the normal automatic pause.
 
-If the car gets wedged or rolls over, **Reset car** clears its motion and
-returns it to the nearest established regional start in Northern Reach or Mars, including
-unvisited starts. Other worlds use their original starting area. A brief message
-names the destination; regional resets cost journey progress without returning
-you across the whole world. Tree trunks/canopies, boulders, ramps,
+If the car rolls onto its side or roof, **Reset car** puts it back on its wheels
+at the same location and heading, clearing its motion and preserving your camera
+view rather than swinging it behind the car. Near-vertical cars use their sideways
+axis to choose a stable heading instead of reversing as they tip past vertical.
+This is manual recovery,
+not automatic assistance during driving. Local recovery requires solid, reasonably
+level support beneath all four wheels, room for the car, and no deep water.
+It only makes a small vertical adjustment; it never searches above a bridge or cliff.
+If the car is already upright, submerged, or cannot safely be righted locally,
+reset returns it to the nearest established regional start in Northern Reach,
+Mars, Iceland or Moon, including unvisited starts. Other worlds use their original
+starting area. If righting leaves you wedged, press Reset again while upright to
+return to a start. A brief message distinguishes local righting from returning;
+regional resets cost journey progress without returning you across the whole
+world.
+
+Tree trunks/canopies, boulders, ramps,
 signposts/boards, and the visible sandstone perimeter are solid. Tiny flowers,
 painted ramp stripes, and distant scenery are decorative.
 
@@ -349,6 +361,11 @@ core moves. It does not yet certify full-world streaming or physical-iPad
 performance. See [plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
 and [current progress](MOON_PROGRESS.md).
 
+The existing perimeter mountains are backed by invisible vehicle-only guards,
+six metres inside the solid terrain limit. They prevent climbing out onto the
+non-collidable distant landscape without changing its appearance or blocking
+the camera. The car can reverse away instead of freezing at the terrain edge.
+
 Moon defaults to the **Lunar Rover**; **Mars Scout** and **Lunar Nomad** are also
 available from the home-screen car picker. Nomad is a separate, newly authored
 faceted pressure-cabin vehicle with a large sloping amber windshield, enclosed
@@ -376,6 +393,10 @@ remain. This does not enlarge the global moving shadow map.
 Focused checks: `npx tsx --test tests/moon.test.ts tests/static-sunlight.test.ts`
 and `npx playwright test tests/browser/moon.spec.ts tests/browser/static-sunlight.spec.ts`
 (Chromium and WebKit).
+For perimeter safety, use `node --import tsx --test tests/moon-boundary.test.ts`
+and `npx playwright test tests/browser/moon-boundary.spec.ts`: both lunar models
+stop and reverse at all four sides/corners in physics, with real browser driving
+and camera checks at the reported western edge and a corner in both engines.
 For only the complete base/Hollow and southern-return connector drives, use
 `npx playwright test tests/browser/moon.spec.ts --grep 'real browser Hollow'`.
 These record renderer/quality state; desktop hardware frame measurements are
@@ -410,7 +431,8 @@ their own colours. There is no colour-preview toggle.
 The approaches connect back to the western ascent. The main ice-cap passage
 remains the higher alternative; northern Askja and Lakagígar connectors are
 not implemented yet.
-Reset returns to the nearest completed Iceland regional start. Iceland is
+When local righting is not applicable, Reset returns to the nearest completed
+Iceland regional start. Iceland is
 separate from Iceland Highlands and stays out of the production picker/direct
 links until the coastal pilot is ready. See
 [Iceland progress](ICELAND_PROGRESS.md) and [build plan](ICELAND_BUILD_PLAN.md).
@@ -443,12 +465,22 @@ and pushes use focused checks; they do not trigger the full suites by themselves
 | Startup, storage, caching, or offline change | Affected browser cases plus `npm run test:pwa`. |
 | Every three completed post-pilot Mars regions, broad shared-system change, or public release | Full unit and browser suites; include PWA before release. |
 
+The page loads its stylesheet directly from the HTML head so the initial logo
+and home layout are styled before game JavaScript downloads. The no-JavaScript
+regression is `npx playwright test tests/browser/startup.spec.ts` (both engines).
+
 For example, test a navigation change without running every terrain simulation:
 
 ```sh
 node --import tsx --test tests/navigation.test.ts
 ./node_modules/.bin/playwright test tests/browser/game.spec.ts -g 'compass follows'
 ```
+
+For context-sensitive car recovery, use
+`node --import tsx --test tests/vehicle-recovery.test.ts` and
+`npx playwright test tests/browser/vehicle-recovery.spec.ts`. These cover
+side/roof recovery, safe-placement rejection, deep-water fallback, and unchanged
+regional resets through both the button and R shortcut.
 
 Playwright runs both configured browser projects unless `--project` is given.
 Use `--project=chromium-tablet` for quick visual iteration. Check WebKit when
