@@ -5,6 +5,11 @@ import { buildMarsDecor, attachMarsSolids, type MarsDecor } from './mars-landmar
 import type { NorthernStreamingStats } from './northern-streaming';
 import { buildMarsHorizonLandmarks } from './mars-horizon-landmarks';
 import { MARS_MIN_CHUNK, MARS_MAX_CHUNK } from './mars-layout';
+import { LAVA_TUBES } from './mars-tubes-layout';
+import { lavaTubeGeometry } from './mars-tubes-landmarks';
+import { StaticSunlight } from './static-sunlight';
+
+export const MARS_SUN_OFFSET: [number, number, number] = [-25, 45, 20];
 
 export interface MarsTransport { generate(cx: number, cz: number): Promise<MarsChunk>; dispose(): void }
 export class MarsWorkerTransport implements MarsTransport {
@@ -52,8 +57,12 @@ export class MarsStreamingRuntime {
   private horizonSourceIndices: Uint32Array;
   private horizonTriangleCount = 0;
   private distantLandmarks = buildMarsHorizonLandmarks();
+  private sunlight: StaticSunlight;
   constructor(private scene: THREE.Scene, private world: RAPIER.World, private transport: MarsTransport,
     private onError: (error: Error) => void = () => {}) {
+    const roofs = LAVA_TUBES.map(tube => lavaTubeGeometry(tube));
+    try { this.sunlight = new StaticSunlight(roofs, new THREE.Vector3(...MARS_SUN_OFFSET), 0.3); }
+    finally { for (const roof of roofs) roof.dispose(); }
     // A coarse, non-colliding horizon keeps the Great Ring visible. Detailed active chunks
     // replace its corresponding tiles, so no coincident surfaces or distant physics load.
     const vertices: number[] = [], colors: number[] = [], indices: number[] = [];
@@ -71,8 +80,10 @@ export class MarsStreamingRuntime {
     this.horizonTriangleCount = indices.length / 3;
     this.horizon = new THREE.Mesh(g, this.material); this.horizon.name = 'Mars · distant basin'; this.scene.add(this.horizon);
     this.scene.add(this.distantLandmarks.group);
+    this.shade(this.horizon); this.shade(this.distantLandmarks.group);
     this.refreshHorizon();
   }
+  shade(object: THREE.Object3D) { this.sunlight.applyTo(object); }
   private refreshHorizon() {
     for (const anchor of this.distantLandmarks.anchors) anchor.group.visible = !this.entries.get(key(anchor.cx, anchor.cz))?.mesh;
     const index = this.horizon.geometry.index!;
@@ -119,6 +130,7 @@ export class MarsStreamingRuntime {
       try {
         next.mesh = new THREE.Mesh(meshGeometry(next.chunk!), this.material); next.mesh.receiveShadow = true; this.scene.add(next.mesh);
         next.decor = buildMarsDecor(next.cx, next.cz); this.scene.add(next.decor.group);
+        this.shade(next.mesh); this.shade(next.decor.group);
         this.setPhysics(next, this.physics.has(key(next.cx, next.cz))); this.refreshHorizon();
       } catch (error) { next.error = error instanceof Error ? error : new Error(String(error)); this.onError(next.error); }
       this.lastActivationMs = performance.now() - start;
@@ -160,6 +172,7 @@ export class MarsStreamingRuntime {
   }
   dispose() {
     if (this.disposed) return; this.disposed = true; this.transport.dispose();
+    this.sunlight.dispose();
     for (const e of this.entries.values()) this.remove(e); this.entries.clear();
     this.scene.remove(this.horizon); this.horizon.geometry.dispose(); this.material.dispose();
     this.scene.remove(this.distantLandmarks.group); this.distantLandmarks.dispose();

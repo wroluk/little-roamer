@@ -42,7 +42,7 @@ test('Modern bonnet and sloping cabin expose their exterior faces on both sides'
   }
 });
 
-test('Lunar Rover has distinct batched details within the Scout envelope and switching disposes old visuals', async () => {
+test('exploration rovers have distinct batched details within the Scout envelope and switching disposes old visuals', async () => {
   await RAPIER.init();
   const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -3, z: 0 });
   try {
@@ -56,7 +56,7 @@ test('Lunar Rover has distinct batched details within the Scout envelope and swi
       return count;
     };
     const scoutTriangles = triangles(), bodyHandle = car.body.handle;
-    for (const model of ['lunar-rover', 'mars-scout', 'lunar-rover'] as const) {
+    for (const model of ['lunar-rover', 'lunar-nomad', 'mars-scout', 'lunar-nomad', 'lunar-rover'] as const) {
       const oldResources = new Set<THREE.BufferGeometry | THREE.Material>();
       car.model.traverse(object => {
         if (object instanceof THREE.Mesh) {
@@ -79,14 +79,14 @@ test('Lunar Rover has distinct batched details within the Scout envelope and swi
         assert.ok(bounds.max[axis] <= scoutBounds.max[axis] + 0.000001);
       }
       if (model === 'mars-scout') assert.equal(triangles(), scoutTriangles);
-      else assert.ok(triangles() < scoutTriangles + 200, 'keep the redesign within the existing small model budget');
+      else assert.ok(triangles() < scoutTriangles + 200, `keep ${model} within the existing small model budget`);
       const colors = new Set<string>();
       car.bodyVisual.traverse(object => {
         if (object instanceof THREE.Mesh && object.material instanceof THREE.MeshStandardMaterial)
           colors.add(object.material.color.getHexString());
       });
-      assert.ok(colors.has(model === 'lunar-rover' ? 'b4a36c' : 'cc7739'));
-      assert.equal(colors.has(model === 'lunar-rover' ? 'cc7739' : 'b4a36c'), false);
+      assert.ok(colors.has(model === 'lunar-nomad' ? '4b8c8d' : model === 'lunar-rover' ? 'b4a36c' : 'cc7739'));
+      assert.equal(colors.has(model === 'mars-scout' ? 'b4a36c' : 'cc7739'), false);
       if (model === 'lunar-rover') {
         car.model.updateMatrixWorld(true);
         const glazing: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>[] = [];
@@ -173,10 +173,10 @@ test('Lunar Rover has distinct batched details within the Scout envelope and swi
   } finally { disposeScene(scene); world.free(); }
 });
 
-test('both exploration rovers have identical wheel contacts and driving under Earth and Moon gravity', async () => {
+test('all exploration rovers have identical wheel contacts and driving under Earth and Moon gravity', async () => {
   await RAPIER.init();
   for (const gravity of [-18, -3]) {
-    const simulations = (['mars-scout', 'lunar-rover'] as const).map(model => {
+    const simulations = (['mars-scout', 'lunar-rover', 'lunar-nomad'] as const).map(model => {
       const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: gravity, z: 0 });
       world.createCollider(RAPIER.ColliderDesc.cuboid(100, 0.5, 100).setTranslation(0, -0.5, 0));
       const car = new Vehicle(scene, world, { x: 0, y: 1.2, z: 0 }, 1, undefined, undefined, undefined,
@@ -189,13 +189,56 @@ test('both exploration rovers have identical wheel contacts and driving under Ea
           car.beforeStep({ steer: frame > 180 && frame < 240 ? 0.3 : 0, forward: frame >= 90 && frame < 300, reverse: false }, 1 / 60);
           world.step(); car.capture(); car.syncVisuals(1);
         }
-        const [a, b] = simulations.map(s => s.car);
-        assert.ok(a.position.distanceTo(b.position) < 0.000001);
-        assert.deepEqual(a.body.linvel(), b.body.linvel());
-        assert.deepEqual(a.body.rotation(), b.body.rotation());
-        assert.deepEqual(a.terrainWheels.map(w => w.grounded), b.terrainWheels.map(w => w.grounded));
+        const a = simulations[0].car;
+        for (const { car: b } of simulations.slice(1)) {
+          assert.ok(a.position.distanceTo(b.position) < 0.000001);
+          assert.deepEqual(a.body.linvel(), b.body.linvel());
+          assert.deepEqual(a.body.rotation(), b.body.rotation());
+          assert.deepEqual(a.terrainWheels.map(w => w.grounded), b.terrainWheels.map(w => w.grounded));
+        }
       }
       assert.ok(simulations[0].car.position.length() > 2, 'actually drive rather than only compare parked models');
     } finally { for (const { scene, world } of simulations) { disposeScene(scene); world.free(); } }
   }
+});
+
+test('Lunar Nomad has a full-length faceted hull, exposed amber glazing and exactly two axles', async () => {
+  await RAPIER.init();
+  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -3, z: 0 });
+  try {
+    const car = new Vehicle(scene, world, { x: 0, y: 0, z: 0 }, 1, undefined, undefined, undefined, 'lunar-nomad');
+    car.model.updateMatrixWorld(true);
+    const hit = (origin: number[], direction: number[]) => {
+      const result = new THREE.Raycaster(new THREE.Vector3(...origin), new THREE.Vector3(...direction))
+        .intersectObject(car.bodyVisual, true)[0];
+      assert.ok(result, 'exterior face remains visible');
+      return result;
+    };
+    const color = (result: THREE.Intersection) => {
+      const material = (result.object as THREE.Mesh).material;
+      assert.ok(material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshBasicMaterial);
+      return material.color.getHexString();
+    };
+    for (const x of [-0.45, 0, 0.45]) for (const y of [0.7, 0.9, 1.04]) {
+      const pane = hit([x, y, -3], [0, 0, 1]);
+      assert.equal(color(pane), '513c28', 'single broad windshield stays ahead of the actual convex hull');
+      assert.ok(Math.abs(pane.face!.normal.y / pane.face!.normal.z) > 1.1, 'distinctly raked wedge front');
+    }
+    for (const side of [-1, 1]) {
+      for (const [y, z] of [[0.8, -0.65], [1, 0.1], [1, 0.55]]) {
+        const pane = hit([side * 2, y, z], [-side, 0, 0]);
+        assert.equal(color(pane), '513c28', 'forward and clerestory side glazing remains exterior');
+        assert.ok((pane.object as THREE.Mesh).material instanceof THREE.MeshBasicMaterial);
+      }
+      assert.equal(color(hit([side * 2, 0.8, -0.17], [-side, 0, 0])), 'bcc6c3', 'integrated side access door');
+      assert.equal(color(hit([side * 2, 0.8, 0.8], [-side, 0, 0])), 'e5e4d9', 'enclosed rear hull, not a Scout deck');
+      assert.equal(color(hit([side * 2, 0.6, 1.18], [-side, 0, 0])), '4b8c8d', 'rear band faces out on both sides');
+    }
+    for (const z of [-0.3, 0.3, 0.85]) assert.ok(hit([0, 3, z], [0, -1, 0]).point.y >= 1.15,
+      'continuous high roof without a stepped equipment bed');
+    assert.equal(car.wheels.length, 4); assert.equal(car.tires.length, 4);
+    assert.deepEqual([...new Set(car.wheels.map(wheel => wheel.position.z))].sort(), [-1.02, 1]);
+    assert.deepEqual([...new Set(car.wheels.map(wheel => wheel.position.x))].sort(), [-0.91, 0.91]);
+    assert.equal(car.controller.numWheels(), 4); assert.equal(car.body.numColliders(), 2);
+  } finally { disposeScene(scene); world.free(); }
 });

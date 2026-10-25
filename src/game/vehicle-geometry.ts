@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /** Closed, outward-facing panels, with independent normals at each crease. */
 export function solidPanel(points: number[][]) {
@@ -19,6 +20,62 @@ export function beveledBox(width: number, height: number, depth: number, bevel =
     }
   }
   return solidPanel(points);
+}
+
+export function roverWheel(radius: number, rim: 'spoked' | 'vented' | 'capped',
+  rubber: THREE.Material, dark: THREE.Material, hub: THREE.Material) {
+  const spinner = new THREE.Group();
+  const add = (geometry: THREE.BufferGeometry, material: THREE.Material) => spinner.add(new THREE.Mesh(geometry, material));
+  const profile = [[0.3, -0.205], [0.4, -0.205], [radius - 0.025, -0.15], [radius - 0.02, 0.15], [0.4, 0.205], [0.3, 0.205]];
+  add(new THREE.LatheGeometry(profile.map(([r, y]) => new THREE.Vector2(r, y)), 24).rotateZ(Math.PI / 2), rubber);
+  add(new THREE.CylinderGeometry(0.31, 0.31, 0.4, 16).rotateZ(Math.PI / 2), dark);
+  for (const side of [-1, 1]) {
+    if (rim === 'vented') {
+      const dish = new THREE.Shape();
+      dish.absarc(0, 0, 0.285, 0, Math.PI * 2, false);
+      for (let i = 0; i < 6; i++) {
+        const a = i * Math.PI / 3, hole = new THREE.Path();
+        hole.moveTo(Math.cos(a - 0.2) * 0.14, Math.sin(a - 0.2) * 0.14);
+        for (const [r, angle] of [[0.235, a - 0.2], [0.235, a + 0.2], [0.14, a + 0.2]])
+          hole.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+        hole.closePath(); dish.holes.push(hole);
+      }
+      add(new THREE.ExtrudeGeometry(dish, { depth: 0.026, bevelEnabled: false, curveSegments: 12, steps: 1 })
+        .rotateY(side * Math.PI / 2).translate(side * 0.205, 0, 0), hub);
+    } else if (rim === 'capped') {
+      add(new THREE.CylinderGeometry(0.282, 0.282, 0.028, 24).rotateZ(Math.PI / 2).translate(side * 0.2, 0, 0), hub);
+      add(new THREE.TorusGeometry(0.285, 0.012, 4, 16).rotateY(Math.PI / 2).translate(side * 0.212, 0, 0), hub);
+      add(new THREE.BoxGeometry(0.006, 0.34, 0.045).rotateX(0.6).translate(side * 0.218, 0, 0), dark);
+    } else {
+      add(new THREE.TorusGeometry(0.285, 0.023, 4, 16).rotateY(Math.PI / 2).translate(side * 0.208, 0, 0), hub);
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4;
+        add(new THREE.BoxGeometry(0.018, 0.19, 0.037).rotateX(a).translate(side * 0.211, Math.cos(a) * 0.17, Math.sin(a) * 0.17), hub);
+      }
+    }
+  }
+  add(new THREE.CylinderGeometry(0.1, 0.1, 0.45, 8).rotateZ(Math.PI / 2), dark);
+  for (let i = 0; i < 24; i++) for (const side of [-1, 1]) {
+    const a = (i + (side > 0 ? 0.45 : 0)) * Math.PI / 12;
+    add(new THREE.BoxGeometry(0.19, 0.038, 0.095).rotateY(side * 0.3).rotateX(a)
+      .translate(side * 0.1, Math.cos(a) * (radius - 0.012), Math.sin(a) * (radius - 0.012)), rubber);
+  }
+  return spinner;
+}
+
+export function batchVehicleMeshes(group: THREE.Group) {
+  const batches = new Map<THREE.Material, THREE.BufferGeometry[]>();
+  for (const child of [...group.children]) {
+    if (!(child instanceof THREE.Mesh) || Array.isArray(child.material)) continue;
+    const geometry = child.geometry.index ? child.geometry.toNonIndexed() : child.geometry.clone();
+    geometry.deleteAttribute('uv');
+    const parts = batches.get(child.material) ?? []; parts.push(geometry); batches.set(child.material, parts);
+    child.geometry.dispose(); group.remove(child);
+  }
+  for (const [material, parts] of batches) {
+    const mesh = new THREE.Mesh(mergeGeometries(parts)!, material); parts.forEach(geometry => geometry.dispose());
+    mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh);
+  }
 }
 
 /** Wheel axis is X; both faces are finished, including the rear-mounted spare. */

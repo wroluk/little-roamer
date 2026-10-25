@@ -3,19 +3,21 @@ import { before, test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import {
-  generateMoonChunk, MOON_BASE, MOON_BASALT, MOON_BASALT_FLOWS, MOON_CELL, MOON_CELLS, MOON_HIGHLANDS, MOON_RILLE, MOON_RILLE_PATH, MOON_ROUTES, MOON_STARTS,
-  moonBasaltRelief, moonColor, moonHeightAt, moonSpawn, moonSurfaceAt, moonSurfaceHeight, moonTrailSample, nearestMoonStart,
+  generateMoonChunk, MOON_BASE, MOON_BASALT, MOON_BASALT_FLOWS, MOON_CELL, MOON_CELLS, MOON_HIGHLANDS, MOON_HOLLOW, MOON_HOLLOW_ROOF, MOON_RILLE, MOON_RILLE_PATH, MOON_ROUTES, MOON_STARTS,
+  moonBasaltRelief, moonColor, moonHeightAt, moonHollowCentreX, moonSpawn, moonSurfaceAt, moonSurfaceHeight, moonTrailSample, nearestMoonStart,
 } from '../src/game/moon-terrain';
 import { MOON_GRAVITY, MOON_HANDLING, MoonRuntime } from '../src/game/moon';
 import { Vehicle } from '../src/game/vehicle';
 import { AREAS, isAreaId } from '../src/game/areas';
 import { disposeScene } from '../src/game/dispose';
 import { buildMoonScenery, buildMoonSky, MOON_BASALT_ROCKS, MOON_HIGHLAND_ROCKS, MOON_EARTH_DIRECTION, moonSlabGeometry } from '../src/game/moon-scenery';
+import { moonHollowGeometry } from '../src/game/moon-hollow';
 
 before(async () => { await RAPIER.init(); });
 
-test('Moon is internal, haze-free and isolated from existing world gravity and handling', () => {
-  assert.equal(isAreaId('moon'), false, 'Node/production must not publish the internal pilot');
+test('Moon preview is available, haze-free and isolated from existing world gravity and handling', () => {
+  assert.equal(isAreaId('moon'), true, 'the preview must be reachable from the production home tile');
+  assert.equal(isAreaId('iceland'), false, 'Iceland remains an internal development entry');
   assert.equal(AREAS.moon.fogDisabled, true);
   assert.equal(AREAS.moon.gravity, -3);
   assert.equal(AREAS.mars.gravity, undefined);
@@ -275,6 +277,80 @@ test('Moon has bounded collision, fixed render buffers, explicit invalid destina
     await assert.rejects(runtime.ensureReady(0, 0), /disposed/);
   } finally { runtime.dispose(); world.free(); disposeScene(scene); }
 });
+
+test('Skylight Hollow is connected, short, closed and grounded with matching roof collision and actual daylight', async () => {
+  const passage = MOON_ROUTES[8], bypass = MOON_ROUTES[9];
+  assert.deepEqual(passage.points[0], MOON_BASE);
+  assert.deepEqual(passage.points.at(-1), MOON_ROUTES[2].points[2]);
+  assert.deepEqual(bypass.points[0], MOON_HOLLOW);
+  assert.equal(bypass.points[1].y, MOON_HOLLOW.y, 'retain a level departure before the bypass climb');
+  assert.deepEqual(bypass.points.at(-1), passage.points[8]);
+  assert.equal(nearestMoonStart(MOON_HOLLOW.x, MOON_HOLLOW.z).id, 'skylight-hollow');
+  assert.ok(MOON_HOLLOW_ROOF.south - MOON_HOLLOW_ROOF.north < 65);
+  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: MOON_GRAVITY, z: 0 });
+  const runtime = new MoonRuntime(scene, world);
+  const roof = scene.getObjectByName('Moon hollow roof') as THREE.Mesh;
+  try {
+    assert.equal(roof.castShadow, false, 'permanent roof occlusion avoids a redundant moving shadow pass');
+    assert.deepEqual(roof.geometry.getAttribute('position').array, hollowPositions());
+    const vertices = roof.geometry.getAttribute('position'), edges = new Map<string, number>(), winding = new Map<string, number>();
+    assert.ok(vertices.count / 3 < 650, 'small immutable roof, no additional terrain triangles');
+    const key = (i: number) => [vertices.getX(i), vertices.getY(i), vertices.getZ(i)].map(n => n.toFixed(4)).join(',');
+    for (let i = 0; i < vertices.count; i += 3) for (const [a, b] of [[i, i + 1], [i + 1, i + 2], [i + 2, i]]) {
+      const edge = [key(a), key(b)].sort().join('/');
+      edges.set(edge, (edges.get(edge) ?? 0) + 1);
+      winding.set(edge, (winding.get(edge) ?? 0) + (key(a) < key(b) ? 1 : -1));
+    }
+    assert.ok([...edges.values()].every(count => count === 2), 'both skins and all exposed rims close into a solid volume');
+    assert.ok([...winding.values()].every(value => value === 0), 'shared edges face opposite ways, including both portals and all skylight rims');
+    scene.updateMatrixWorld(true);
+    for (const z of [174, 180, 186, 216, 222, 228]) {
+      const x = moonHollowCentreX(z), floor = moonSurfaceHeight(x, z);
+      await runtime.ensureReady(x, z); world.step();
+      for (const dx of [-4, 0, 4]) {
+        const from = new THREE.Vector3(x + dx, floor + 1, z);
+        const underside = new THREE.Raycaster(from, new THREE.Vector3(0, 1, 0)).intersectObject(roof)[0];
+        const solid = world.castRay(new RAPIER.Ray(from, { x: 0, y: 1, z: 0 }), 40, true);
+        assert.ok(underside && solid, 'real ceiling remains above the entire clear driving lane');
+        assert.ok(underside.point.y - floor > 4.5, 'headroom for the rover and normal driving camera');
+        assert.ok(Math.abs(solid.timeOfImpact - (underside.point.y - from.y)) < 0.001, 'visible ceiling and collision match');
+        const top = new THREE.Raycaster(new THREE.Vector3(x + dx, 70, z), new THREE.Vector3(0, -1, 0)).intersectObject(roof)[0];
+        const roofHit = world.castRay(new RAPIER.Ray({ x: x + dx, y: 70, z }, { x: 0, y: -1, z: 0 }), 80, true);
+        assert.ok(top && roofHit);
+        assert.ok(Math.abs(70 - roofHit.timeOfImpact - top.point.y) < 0.001, 'roof is equally solid from above');
+      }
+    }
+    for (const z of [160, 196, 200, 204, 242]) {
+      const x = moonHollowCentreX(z), floor = moonSurfaceHeight(x, z);
+      await runtime.ensureReady(x, z); world.step();
+      const from = new THREE.Vector3(x, floor + 1, z);
+      assert.equal(new THREE.Raycaster(from, new THREE.Vector3(0, 1, 0)).intersectObject(roof).length, 0);
+      assert.equal(world.castRay(new RAPIER.Ray(from, { x: 0, y: 1, z: 0 }), 60, true), null,
+        'open portals and skylight have no hidden lid or box collider');
+    }
+    for (let z = 173; z <= 229; z += 2) for (const side of [-1, 1]) {
+      const x = moonHollowCentreX(z) + side * MOON_HOLLOW_ROOF.halfWidth;
+      const adjacent = new THREE.Raycaster(new THREE.Vector3(x - side * 0.01, 70, z), new THREE.Vector3(0, -1, 0))
+        .intersectObject(roof)[0];
+      assert.ok(adjacent && adjacent.point.y < moonSurfaceHeight(x, z), 'roof margins are embedded in the actual shoulders');
+    }
+    await runtime.ensureReady(moonHollowCentreX(200), 200); world.step();
+    for (const side of [-1, 1]) {
+      const from = new THREE.Vector3(moonHollowCentreX(200), 15, 200), direction = new THREE.Vector3(side, 0, 0);
+      const rim = new THREE.Raycaster(from, direction).intersectObject(roof)[0];
+      const solid = world.castRay(new RAPIER.Ray(from, direction), 30, true);
+      assert.ok(rim && solid, 'the skylight has visible, outward-facing rock thickness on both sides');
+      assert.ok(Math.abs(rim.distance - solid.timeOfImpact) < 0.001);
+    }
+    assert.equal(runtime.stats.triangles, 91_008);
+    assert.ok(runtime.stats.activePhysics <= 9);
+  } finally { runtime.dispose(); world.free(); disposeScene(scene); }
+});
+
+function hollowPositions() {
+  const geometry = moonHollowGeometry();
+  try { return geometry.getAttribute('position').array.slice(); } finally { geometry.dispose(); }
+}
 
 test('real lunar rover completes every old and new lunar route in both directions without reset', async () => {
   const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: MOON_GRAVITY, z: 0 });

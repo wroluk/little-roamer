@@ -2,7 +2,7 @@ import { DEFAULT_VEHICLE_MODEL, type VehicleModelId } from './vehicle';
 
 export function vehicleAvailable(area: string, model: string): model is VehicleModelId {
   return area === 'mars' || area === 'moon'
-    ? model === 'mars-scout' || model === 'lunar-rover' : model === 'modern' || model === 'classic';
+    ? model === 'mars-scout' || model === 'lunar-rover' || model === 'lunar-nomad' : model === 'modern' || model === 'classic';
 }
 
 export function explorationVehicle(area: 'mars' | 'moon', requested: string | null): VehicleModelId {

@@ -97,15 +97,17 @@ These five locations are concepts for future additions. Each offers an open-ende
 
 **Route shape:** Harbor Meadow → Needle Lighthouse → Seabird Cliffs → Whale's Back → Tide Gate → Saltgrass Islet → Weather Station → Tide Gate → Pebble Cove → Harbor Meadow. The causeway is the single link between islands, so its approaches remain easy and the second islet has its own complete loop. Overlook spurs end on level turn-around pads rather than exposed cliff tips.
 
-## Moon — internal pilot
+## Moon — playable preview
 
 The user chose a compact lunar pilot on 2026-10-22: black sky, Earth above the
 horizon, reduced-gravity Scout driving, an Earthview base, a crater circuit and
 a floor descent. Its geography is invented, not a real-site replica. See the
 [pilot plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md) and
-[current evidence and remaining gates](MOON_PROGRESS.md). It is available only
-through the development URL `?area=moon`, not the public picker. Judge handling
-and the haze-free horizon before designing a larger lunar world.
+[current evidence and remaining gates](MOON_PROGRESS.md). The compact landscape
+now includes Basalt Reach, Silver Rille, Broken Highlands and Skylight Hollow.
+On 2026-10-24 the user accepted Highlands and authorized a home-screen preview
+tile for iPad testing. `?area=moon` and regional links work in production.
+Physical-device acceptance remains open before designing a larger lunar world.
 
 ## Mars Outpost — expanded concept
 

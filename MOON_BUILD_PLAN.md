@@ -1,15 +1,25 @@
-# Moon pilot and staged expansion
+# Moon preview and staged expansion
 
-Internal development entry only: `http://localhost:5173/?area=moon`.
+Home-screen **Moon / Low-gravity preview** tile, or `?area=moon`.
 Read [WORLD_BUILD_GUIDE.md](WORLD_BUILD_GUIDE.md),
 [design](artifacts/moon/DESIGN.md) and [progress](MOON_PROGRESS.md) before extending.
 
+**Current availability decision — 2026-10-24:** the user accepted Broken Highlands
+and authorized a home-screen tile, commit and push to make physical-iPad testing
+easy. Moon is available in production as a preview. This supersedes the historical
+internal-only gate, not the unverified device-performance/offline/touch checks.
+Discuss discoveries next; this request does not authorize implementing them.
+
 The user accepted the pilot's visual direction and handling, and approved the
 staged continuation on 2026-10-23. The basalt–rille excursion and Broken Highlands
-are implemented inside the existing footprint; Skylight Hollow remains planned.
-Moon remains internal; this approval is not a public-release gate.
+and Skylight Hollow are implemented inside the existing footprint.
+Hollow's corrected roof/shade was accepted on 2026-10-24. Its base and southern
+return connectors now have complete two-way browser-driving coverage, with a
+fresh desktop hardware frame probe; physical-iPad acceptance remains separate.
 The user subsequently requested a separate Lunar Rover: it is now the default
-Moon vehicle, with both exploration rovers selectable on Moon and Mars.
+Moon vehicle. Mars Scout, Lunar Rover and the reference-inspired Lunar Nomad
+alternative are selectable on Moon and Mars; Nomad does not replace either
+existing design or change the world's handling.
 
 ## Purpose and scope
 
@@ -31,6 +41,9 @@ mechanics, extensive caves or completed larger region roster in the pilot checkp
   +/-1,152 m, at most nine terrain colliders around the rover, and explicit
   generation/resource budgets. All pilot terrain stays rendered at fixed
   resolution: this pilot does not certify a future full-world render-LOD system.
+- Skylight Hollow's fixed roof casts permanent geometry-derived sunlight
+  occlusion without enlarging the rover-centred shadow map. Ambient lighting,
+  real skylights/portals and nearby dynamic rover shadows are preserved.
 
 ## References and adaptations
 
@@ -55,8 +68,8 @@ and solid rocks. Earth is generated locally; there is no external artwork.
 3. Measure construction, frame cadence, draw/triangle counts and collision work.
    Repeat on physical iPad Safari before claiming device-performance acceptance.
 4. Verify regional direct links/reset, home travel and restoration of normal
-   Earth gravity/handling. Check production keeps the pilot out of the picker
-   and ignores its development URL.
+   Earth gravity/handling. Check the production preview tile, direct regional
+   links, rover choices and offline travel; Iceland remains development-only.
 
 ## Approved continuation — 2026-10-23
 
@@ -69,8 +82,8 @@ Grow the existing pilot rather than replacing it or recreating a real lunar site
 | Quiet Crater and Earthrise Overlook | Bowl descent, rim circuit and signature Earth view. | Pilot implemented. |
 | Basalt Reach | Open dark lava plain, overlapping low flow lobes, pressure ridges and sparse angular basalt clusters. | Excursion and identity pass accepted by user; physical-device acceptance pending. |
 | Silver Rille | Winding channel floor, broad crossing breach and an upper-bank route. | Excursion accepted by user; physical-device acceptance pending. |
-| Broken Highlands | Pale fractured uplands, broad graded traverse, optional 43 m western ridge and return to Earthrise Overlook. | Implemented; user/physical-device acceptance pending. |
-| Skylight Hollow | Short daylight-visible collapsed-tube passage with an easy surface bypass. | Planned last, not an extensive cave system. |
+| Broken Highlands | Pale fractured uplands, broad graded traverse, optional 43 m western ridge and return to Earthrise Overlook. | Implemented; accepted by user 2026-10-24. Physical-device acceptance pending. |
+| Skylight Hollow | Short daylight-visible collapsed-tube passage with an easy western surface bypass and southern return to the basalt approach. | Implemented; visuals and corrected permanent roof shade accepted 2026-10-24. Physical-device acceptance pending. Not an extensive cave system. |
 
 1. Save the accepted pilot after correcting the structure footings.
 2. Sketch connected routes, landmark sightlines and natural boundaries. Use
@@ -84,6 +97,11 @@ Grow the existing pilot rather than replacing it or recreating a real lunar site
 5. Complete the bounded Broken Highlands loop with a safe regional clearing,
    a broad main climb and optional higher ridge. Inspect both directions and
    compare current performance before proceeding to Skylight Hollow.
+6. Add Skylight Hollow in the southwest, retaining the existing terrain budget.
+   Fit a closed solid roof to the trench shoulders, cut a genuine daylight
+   opening, and keep the surface bypass outside the roof's whole footprint.
+   Verify portal/skylight winding, clear headroom, two-way passage and bypass,
+   regional entry/reset and an updated navigation map.
 
 Use the current detailed footprint where practical. Establish the next terrain
 budget before widening it; the fixed pilot mesh does not prove larger-world

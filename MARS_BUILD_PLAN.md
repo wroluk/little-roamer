@@ -15,12 +15,16 @@ for current results.
 - A **1,536 × 1,536 m** continuous world, matching Northern Reach's footprint, with nine distinct regions and the Great Ring as a varied, solid perimeter.
 - An outer circuit in both directions, shorter spokes through Habitat Seven, and cross-country choices. Routes invite exploration; there are no objectives, timers, survival systems, or mandatory puzzles.
 - Each region has an unmistakable silhouette, a named landmark, a gentle route, an optional driving challenge or discovery, a useful view, and a visible connection to its neighbors. The full region roster and landmarks are in `LOCATION_IDEAS.md`.
-- **Mars Scout** and **Lunar Rover** are selectable on Mars and the internal Moon;
+- **Mars Scout**, **Lunar Rover** and **Lunar Nomad** are selectable on Mars and the internal Moon;
   Modern and Classic remain exclusive to Earth. Mars defaults to Scout and Moon
   to Lunar Rover. Earth preference survives extraterrestrial visits, and URLs
-  and legacy storage are normalized. All four use the established four-wheel
+  and legacy storage are normalized. All five vehicles use the established four-wheel
   physics, with each world's surfaces and handling supplying its driving feel.
 - Procedural scenery and geometry remain local and deterministic, preserving static hosting and offline play. Spend detail on driveable landmarks and nearby silhouettes; use instancing and distant scenery for scale.
+- Lava Tubes' fixed roofs use permanent geometry-derived sunlight occlusion,
+  approved 2026-10-24, while nearby rover shadows remain dynamic. Preserve the
+  accepted sun/fog and real skylight openings; do not enlarge global shadow
+  coverage or bake every scenery object as part of this local correction.
 
 ## 1. Design the world before generating it
 

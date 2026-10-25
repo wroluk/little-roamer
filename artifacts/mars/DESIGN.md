@@ -24,6 +24,16 @@ their detailed owners load. The experimental extra landmark silhouettes and fadi
 were removed after visual review. Fog is 65–250 m; rendering remains 5 x 5 chunks
 and collision remains 3 x 3 chunks.
 
+Lava Tubes use permanent roof-derived sunlight occlusion, approved on
+2026-10-24 after shadows were seen appearing only near the rover. A one-time
+light-space depth atlas samples the actual roofs and holes, attenuating direct
+sunlight on terrain, scenery and rover bodies while retaining ambient fill.
+The roofs are excluded from the redundant moving-shadow pass; nearby rover
+shadows remain dynamic. This is a local lighting correction, not distance fading,
+a broader scenery bake or a change to Mars's accepted sun/fog.
+See [actual near/far/disabled-shadow captures](static-tube-shadows/) and current
+progress for exact budgets and coverage.
+
 ## Unmarked shuttle wreck in the Delta / Dunes transition — 2026-10-14
 
 The user selected the shuttle stern from six temporary geometry studies. It now
@@ -55,7 +65,7 @@ records describe superseded geometry.
 
 ## Geometry and visual review rules
 
-Mars offers both Mars Scout and Lunar Rover, defaulting to Scout. The Lunar
+Mars offers Mars Scout, Lunar Rover and Lunar Nomad, defaulting to Scout. The Lunar
 Rover's upright three-pane forward cabin, rectangular lamps, low bumper,
 exposed wheels, rear solar deck and six-opening silver dish rims give it
 a separate silhouette without changing established four-wheel physics or route
@@ -64,6 +74,11 @@ Modern/Classic choices. [Current lunar body on Mars](../moon/lunar-rover/webkit-
 Its side glazing follows the cabin faces with common front/corner/side window
 heights and a parallel corner pillar. Cabin panes share one light-independent
 dark-blue finish; solar and body lighting remain separate.
+Lunar Nomad is an additional original pressure-cabin alternative with a long
+faceted ivory/teal hull, sloping amber windshield, narrow side panes, solar roof
+and capped silver wheels. Its two axles, contacts, collision and handling match
+the existing cars. Use `?area=mars&car=lunar-nomad`; the older designs remain
+selectable. [Nomad design/reference](../moon/DESIGN.md#lunar-nomad-alternative).
 
 Hero forms use authored profiles, ribs, bevels, strata, and asymmetric silhouettes. Scattered rocks support these forms and stay outside the easy route. A landmark must read from the car's camera, not just an overhead map. Keep routes at least 7 m wide in the pilot, widen switchbacks and junctions, and grade both shoulders. Sample actual triangle heights, then drive in both directions.
 

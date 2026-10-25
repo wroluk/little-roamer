@@ -1,7 +1,10 @@
-# Moon: Earthview, basalt–rille and Broken Highlands
+# Moon: Earthview, basalt–rille, Broken Highlands and Skylight Hollow
 
 North is -Z; east is +X. Coordinates are invented, in world metres.
 This is a compact playable experiment, not a completed Moon world.
+The user accepted Broken Highlands and authorized the **Moon / Low-gravity
+preview** home tile on 2026-10-24 for easy iPad testing. The tile and regional
+links work in production; physical-device acceptance remains open.
 
 ## Navigation map
 
@@ -10,7 +13,9 @@ North is up. Orange leads south across **Basalt Reach**; cyan follows
 **Silver Rille** north to the crater circuit. Dashed purple marks the optional
 bank and crossing breach. Green leads into **Broken Highlands** and returns
 to Earthrise Overlook; dashed green marks its optional western ridge.
-Numbers match the six regional starts.
+Pink leads southwest to **Skylight Hollow**; dashed pink is the western surface
+bypass. The dark roof overlay includes its actual daylight opening.
+Numbers match the seven regional starts.
 
 ![Current Moon terrain and driving routes](moon-map.png)
 
@@ -28,6 +33,7 @@ Regenerate from current terrain/routes/starts:
 | Basalt Reach | 80 / 235 | Dark southern lava plain with overlapping low flow lobes, pressure ridges and sparse angular basalt clusters. Open approach to the rille mouth; regional entry `basalt-reach`. |
 | Silver Rille | 250 / 140 | Winding eastern channel floor, higher western-bank alternative and a crossing breach. Regional entry `silver-rille`. |
 | Broken Highlands | -264 / -65 | Pale fractured shelves, a broad climb and optional 43 m western ridge, returning east to Earthrise Overlook. Regional entry `broken-highlands`. |
+| Skylight Hollow | -248 / 150 | Short partly buried lava passage, central daylight collapse and easy western bypass. Both reconnect south and return east to the basalt approach. Regional entry `skylight-hollow`. |
 
 The western circuit climbs gradually from the base to the overlook. The northern
 arc passes the crater rim and meets the eastern descent. The eastern and southern
@@ -89,6 +95,30 @@ the wide central pane, narrow corner panes and paired rectangular lamps.
 [Side-window profile](lunar-rover/webkit-tablet/moon-rover-side.png) shows
 the fitted glazing and identification bars below the glass.
 
+### Lunar Nomad alternative
+
+Available separately with `?area=moon&car=lunar-nomad`, and on Mars using the
+same `car` parameter. The existing Lunar Rover and Mars Scout remain available;
+neither world's default changes.
+The user accepted Nomad as a separate choice on 2026-10-24.
+
+The user's [body-geometry inspiration](https://media.sketchfab.com/models/7392236a94e24114a3f28e780fbb437b/thumbnails/3256b6ac1f474c9da63982fb28e2fafa/247d309cce424afd92a88a4f7ed7b4d8.jpeg)
+suggests a single long faceted pressure hull, a large sloping windshield, narrow
+side glazing, side access and roof equipment. Nomad is original local geometry,
+not an imported model: it adapts those broad forms to the game's **two axles and
+four unchanged wheel contacts**, shortening the three-axle reference's rear body.
+No source texture, logo, decal or remote asset is loaded by the game.
+
+Warm ivory hull, muted teal rear bands/side equipment, charcoal chassis and
+uniform dark-amber glazing distinguish it from the existing blue-glazed Rover.
+An actual chamfered hull supports the front glass; side panes follow its face
+equations. A continuous high roof covers the rear compartment, with a solar
+array and four small forward lamps. Capped silver rims have diagonal dark
+inserts. Reused tire shape/tread and mesh batching keep the visual budget small.
+Mass, colliders, wheelbase, suspension and world-specific handling are unchanged.
+The [new builder](../../src/game/lunar-nomad.ts) does not call the Scout body
+builder. [Actual game views](lunar-nomad/) retain front, profile and driving angles.
+
 ## Pilot performance contract
 
 The rendered ground is one fixed mesh: 4 m lattice in the 768 m-wide pilot,
@@ -99,7 +129,8 @@ Most scenery is batched; small rocks do not cast individual shadows.
 
 This buys a clean horizon without fog or render activation spikes at pilot
 scale. It does not establish that a larger, more detailed Moon can avoid LOD.
-Physical iPad performance and user acceptance remain separate gates.
+Physical iPad performance remains separate from landscape acceptance and desktop
+frame measurements.
 
 ## Current driving-height evidence
 
@@ -128,6 +159,15 @@ Physical iPad performance and user acceptance remain separate gates.
 - [Northern return](broken-highlands/webkit-tablet/northern-return.png)
 - [Terrain fracture, eastern-bank photo view](broken-highlands/webkit-tablet/fracture.png)
 - [Actual Highlands drive](broken-highlands/webkit-tablet/real-drive.png)
+- [Skylight Hollow arrival](skylight-hollow/webkit-tablet/arrival.png)
+- [Northern portal](skylight-hollow/webkit-tablet/north-portal.png)
+- [Passage interior](skylight-hollow/webkit-tablet/interior.png)
+- [Daylight opening from inside](skylight-hollow/webkit-tablet/daylight-from-inside.png)
+- [Southern portal](skylight-hollow/webkit-tablet/south-portal.png)
+- [Roof and surface bypass](skylight-hollow/webkit-tablet/roof-and-bypass.png)
+- [Actual Hollow drive](skylight-hollow/webkit-tablet/real-drive.png)
+- [Base connector, actual portal arrival](hollow-connectors/webkit-tablet/base-connector-forward-arrival.png)
+- [Southern return, reverse approach](hollow-connectors/webkit-tablet/basalt-return-reverse-arrival.png)
 
 The default base start looks toward the crater; the shelter sits west of the
 rover, not in that forward view. These are actual game captures, not concept
@@ -135,7 +175,7 @@ artwork. Earlier hardware-probe images predate the footing correction.
 The basalt–rille captures show the current extension. Its separate
 [hardware frame probe](basalt-rille/hardware-chromium/performance.json) retains
 16.7 ms median / 16.8 ms p95 desktop cadence at five views/driving samples,
-with the same terrain budget. Physical iPad and user acceptance remain open;
+with the same terrain budget. Physical iPad acceptance remains open;
 see [current progress](../../MOON_PROGRESS.md) for exact coverage and limits.
 The later basalt-identity pass adds 240 scenery triangles and one batched
 rock material/collider, not terrain triangles. Its
@@ -146,12 +186,62 @@ material/collider. Its [hardware probe](broken-highlands/hardware-chromium/perfo
 also retains 16.7 ms median / 16.7–16.8 ms p95 across the clearing, climb,
 ridge, northern return and an actual collision-boundary crossing. Construction
 is somewhat more expensive; see progress for measured samples and coverage.
-Highlands awaits user and physical-device acceptance; Skylight Hollow is unbuilt.
+The Skylight Hollow roof uses 592 scenery triangles, one mesh/material and one exact
+static triangle collider, without enlarging the terrain mesh or moving core.
+Highlands and Hollow's corrected permanent roof shade were accepted by the user
+on 2026-10-24. Both retain physical-device acceptance
+as a separate gate. The [current Hollow hardware probe](skylight-hollow/hardware-chromium/performance.json)
+uses Nomad and the corrected sunlight filter: seven 240-frame desktop Metal
+samples retain 16.7 ms median / 16.7–16.8 ms p95, including the passage's
+collision-boundary crossing. This is not iPad acceptance. Both full connectors
+now have actual two-way driving evidence in Chromium/WebKit, in addition to
+the earlier passage/bypass coverage; see [connector evidence](hollow-connectors/).
 
 ## Approved staged layouts
 
 The user approved a compact connected expansion on 2026-10-23. See the
 [staged plan](../../MOON_BUILD_PLAN.md#approved-continuation--2026-10-23).
+
+### Skylight Hollow layout — 2026-10-24
+
+After accepting Lunar Nomad, the user authorized continuing the Moon plan.
+The southwest uses the existing footprint, lighting and low-gravity handling.
+From Earthview Base, leave south through -145 / 115, then turn west through
+-205 / 135 to the clearing at **-248 / 150**, facing south.
+Direct entry: `http://localhost:5173/?area=moon&start=skylight-hollow&car=lunar-nomad`.
+
+The slightly bending trench carries the passage south through Z=172–230.
+A roughly 24 m-long central collapse is genuinely open to the black sky.
+The roof has irregular thick exposed portals and closed upper/lower skins;
+its lateral margins are buried in the actual Float32 terrain shoulders.
+Rendered vertices also provide solid collision, including the skylight rims,
+instead of an invisible box over the opening. A weak local material bounce
+keeps the shaded rock distinguishable from the black sky without fog, lamps
+or changing the accepted global lighting.
+
+The roof's sunlight occlusion is now permanent: a small fixed-direction depth
+atlas blocks direct sunlight on terrain, scenery and the rover regardless of
+the rover-centred shadow map. Real roof triangles determine the shaded areas
+and skylight/portal light patches. Ambient fill remains unchanged. The roof no
+longer needs dynamic shadow casting; nearby rover shadows remain dynamic.
+Filtered comparisons follow the receiving face's slope at each texel, avoiding
+the false repeated teeth previously visible on the southern portal wall.
+The user accepted the corrected roof face and shade on 2026-10-24.
+See [near/far/disabled comparisons](static-tube-shadows/) and the latest progress
+entry for texture budgets, exact pixel evidence and device limits.
+
+The bypass leaves the clearing west on a level departure, reaches -282 / 158
+**before** turning south outside the whole roof, then climbs gently to 18 m.
+Both alternatives meet at -220 / 250 and return east through -165 / 250
+to the existing basalt approach at -95 / 195. There is no mandatory jump,
+deep cave, new building or enlarged terrain/collision ring.
+
+References: Mars's `lavaTubeGeometry`, terrain trench and real-driving checks,
+plus Moon's existing full-width route grading, exact scenery collision and
+disposal. Adaptations: one bounded roof, neutral lunar materials, thicker
+irregular portals, consistent outward-facing rims and a genuine surface bypass.
+Moon's single-sided material deliberately exposes winding mistakes rather
+than masking them with double-sided rendering.
 
 ### Broken Highlands layout — 2026-10-23
 

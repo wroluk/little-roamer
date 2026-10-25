@@ -12,17 +12,18 @@ import {
 } from './northern-streaming';
 import type { SurfaceId } from './surfaces';
 import { MARS_HALF, HABITAT_PAD, marsSpawn, marsSurfaceAt, marsSurfaceHeight } from './mars-terrain';
-import { MarsStreamingRuntime, MarsWorkerTransport } from './mars-streaming';
+import { MarsStreamingRuntime, MarsWorkerTransport, MARS_SUN_OFFSET } from './mars-streaming';
 import { tubesWeight } from './mars-tubes-layout';
 import type { ParticleColors } from './terrain-effects';
 import { ICELAND_HALF, icelandSpawn, icelandDrivingHeight, icelandSurfaceAt, icelandWaterHeight } from './iceland-terrain';
 import { IcelandStreamingRuntime, IcelandWorkerTransport } from './iceland-streaming';
-import { MoonRuntime, MOON_GRAVITY, MOON_HANDLING } from './moon';
+import { MoonRuntime, MOON_GRAVITY, MOON_HANDLING, MOON_SUN_OFFSET } from './moon';
 import { MOON_HALF, moonSpawn, moonSurfaceAt, moonSurfaceHeight } from './moon-terrain';
 import type { VehicleHandling } from './vehicle';
 
 export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars' | 'iceland' | 'moon';
 export type AreaRuntime = {
+  shade?: (object: THREE.Object3D) => void;
   update: (x: number, z: number) => void;
   animate?: (dt: number, reducedMotion: boolean) => void;
   ensureReady: (x: number, z: number) => Promise<void>;
@@ -72,17 +73,17 @@ export type Area = {
 
 export const AREAS: Record<AreaId, Area> = {
   moon: {
-    id: 'moon', name: 'Moon', label: '07 / INTERNAL LUNAR PILOT',
+    id: 'moon', name: 'Moon', label: '07 / LUNAR PREVIEW',
     tagline: 'A little closer to the stars.',
-    description: 'An internal lunar playground. Circle Quiet Crater, cross Basalt Reach, follow Silver Rille, and climb the pale Broken Highlands.',
-    hint: 'From the crater circuit, head south to Basalt Reach, east to Silver Rille, or west into Broken Highlands. Use a gentle throttle.',
-    welcomeEyebrow: 'MOON / EARTHVIEW PILOT', welcomeTitle: 'Home on the horizon.',
+    description: 'A low-gravity lunar playground. Circle Quiet Crater, cross Basalt Reach, follow Silver Rille, climb Broken Highlands or explore Skylight Hollow.',
+    hint: 'From the base, head southwest to Skylight Hollow. Its short roofed passage has a daylight opening and an easy western bypass. Use a gentle throttle.',
+    welcomeEyebrow: 'MOON / EARTHVIEW PREVIEW', welcomeTitle: 'Home on the horizon.',
     readyMessage: 'Earthview Base is ready. Take the crater loop in either direction.',
     ambientLight: '#c6cbd4', groundLight: '#44464d', sunlight: '#fff8eb',
     spawn: moonSpawn(), spawnHeading: 0, half: MOON_HALF, climbingPower: 1,
     sky: '#000000', fogNear: 0, fogFar: 3200, fogDisabled: true, viewDistance: 3200,
     gravity: MOON_GRAVITY, handling: MOON_HANDLING, ambientIntensity: 0.4, sunIntensity: 3.2,
-    sunOffset: [-38, 28, 15],
+    sunOffset: MOON_SUN_OFFSET,
     surfaceHeight: moonSurfaceHeight, surfaceAt: moonSurfaceAt, waterHeight: () => null,
     build: (scene, world) => new MoonRuntime(scene, world),
   },
@@ -108,6 +109,7 @@ export const AREAS: Record<AreaId, Area> = {
     readyMessage: 'Habitat Seven is ready. Follow the crater road north.', ambientLight: '#f3d8c8',
     spawn: marsSpawn(HABITAT_PAD), half: MARS_HALF, climbingPower: 1.45,
     sky: '#bb8f80', fogNear: 65, fogFar: 250, groundLight: '#6d4540', sunlight: '#fff0d6',
+    sunOffset: MARS_SUN_OFFSET,
     surfaceHeight: marsSurfaceHeight, surfaceAt: marsSurfaceAt, waterHeight: () => null,
     particleColors: { rock: (x, z) => tubesWeight(x, z) > 0.4 ? '#514640' : '#b76b49' },
     build: (scene, world, onError) => new MarsStreamingRuntime(scene, world, new MarsWorkerTransport(), onError),
@@ -169,6 +171,6 @@ export const AREAS: Record<AreaId, Area> = {
 };
 
 export function isAreaId(value: string | null): value is AreaId {
-  if (value === 'iceland' || value === 'moon') return import.meta.env?.DEV === true;
-  return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village' || value === 'mars';
+  if (value === 'iceland') return import.meta.env?.DEV === true;
+  return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village' || value === 'mars' || value === 'moon';
 }

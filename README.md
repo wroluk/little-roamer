@@ -143,7 +143,8 @@ Use `?area=mars&start=crown-crater` to begin at the crater entrance,
 `?area=mars&start=rust-dunes` for the crescent,
 `?area=mars&start=lava-tubes` for the passage. Reset chooses the nearest
 of the nine regional starts. Mars defaults to the Scout; use `car=lunar-rover`
-or the home-screen car picker for the Lunar Rover. Both share the same physics.
+or `car=lunar-nomad` for the two lunar alternatives, or choose them in the
+home-screen car picker. All three share the same physics.
 Incompatible `car` parameters are corrected to the world's default car.
 Returning to Earth restores your Modern or Classic preference (legacy saved
 extraterrestrial selections fall back to Modern).
@@ -321,16 +322,18 @@ Vite's large-chunk notice is expected. Enable normal gzip/Brotli on a chosen
 static host. A harmless upstream Rapier initialization deprecation warning may
 appear in development; the public `RAPIER.init()` API is used.
 
-## Moon pilot (internal)
+## Moon (preview)
 
-With the development server running, open
-`http://localhost:5173/?area=moon` for Earthview Base,
+Choose **Moon / Low-gravity preview** on the home screen for Earthview Base.
+The preview is available in the production/PWA build for iPad testing.
+Direct links also work: `?area=moon` for Earthview Base,
 `?area=moon&start=earthrise-overlook` for the exposed rim, or
 `?area=moon&start=crater-floor` for Quiet Crater,
 `?area=moon&start=basalt-reach` for the southern lava plain,
 `?area=moon&start=silver-rille` for the eastern channel, or
-`?area=moon&start=broken-highlands` for the western uplands. Moon is not in the public
-picker and production ignores these development-only links.
+`?area=moon&start=broken-highlands` for the western uplands, or
+`?area=moon&start=skylight-hollow` for the southwestern passage. Physical-iPad
+touch/offline/performance acceptance remains open despite desktop coverage.
 
 The pilot tests low-gravity rover driving, a black sky with a fixed-direction
 procedural Earth, a two-way crater loop and a graded floor descent. The first
@@ -338,28 +341,45 @@ extension adds a basalt excursion, winding rille floor, higher-bank alternative
 and a crossing breach, all connected back to the original circuit. Basalt Reach
 has low lava lobes, pressure ridges and sparse grounded angular slabs around
 its open through line. Broken Highlands adds pale fractured shelves, a broad
-climb, an optional 43 m western ridge and a return to Earthrise Overlook. All pilot
+climb, an optional 43 m western ridge and a return to Earthrise Overlook.
+Skylight Hollow adds a short solid-roof passage with a real daylight opening
+and an easy western surface bypass; both return east to the basalt approach. All pilot
 terrain remains rendered at fixed detail; only the bounded terrain-collision
 core moves. It does not yet certify full-world streaming or physical-iPad
 performance. See [plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
 and [current progress](MOON_PROGRESS.md).
 
-Moon defaults to the **Lunar Rover**; both it and **Mars Scout** are available
-from the home-screen car picker. Add `&car=mars-scout` or `&car=lunar-rover` to
+Moon defaults to the **Lunar Rover**; **Mars Scout** and **Lunar Nomad** are also
+available from the home-screen car picker. Nomad is a separate, newly authored
+faceted pressure-cabin vehicle with a large sloping amber windshield, enclosed
+rear body, teal trim, roof solar array and capped wheels. All have two axles.
+Add `&car=mars-scout`, `&car=lunar-rover` or `&car=lunar-nomad` to
 any Moon/Mars link to select one explicitly. The chosen rover survives a URL
 reload and direct Moon-to-Mars travel without overwriting your saved Earth car.
 The visual differences do not change wheel contacts, collision or handling;
-Moon's existing low-gravity tuning applies equally to both.
+Moon's existing low-gravity tuning applies equally to all three.
 
 Use the [Moon navigation map](artifacts/moon/moon-map.png) to find the new areas:
 orange is the southern Basalt approach, cyan the eastern Silver Rille floor,
 and dashed purple the optional bank/breach routes. Green leads west into Broken
-Highlands and returns east to the overlook; dashed green is its higher ridge. A
+Highlands and returns east to the overlook; dashed green is its higher ridge.
+Pink leads southwest to Skylight Hollow; dashed pink is the surface bypass.
+The dark roof outline includes its daylight opening. A
 [zoomable SVG](artifacts/moon/moon-map.svg) is also available. Regenerate with
 `node --import tsx scripts/render-moon-map.ts`.
 
-Focused checks: `npx tsx --test tests/moon.test.ts` and
-`npx playwright test tests/browser/moon.spec.ts` (Chromium and WebKit).
+Hollow and Mars's Lava Tubes retain roof shade even far from the rover, using
+small sunlight-depth atlases generated from their actual roof geometry. Real
+skylights stay open to sunlight; ambient fill and nearby dynamic rover shadows
+remain. This does not enlarge the global moving shadow map.
+
+Focused checks: `npx tsx --test tests/moon.test.ts tests/static-sunlight.test.ts`
+and `npx playwright test tests/browser/moon.spec.ts tests/browser/static-sunlight.spec.ts`
+(Chromium and WebKit).
+For only the complete base/Hollow and southern-return connector drives, use
+`npx playwright test tests/browser/moon.spec.ts --grep 'real browser Hollow'`.
+These record renderer/quality state; desktop hardware frame measurements are
+separate from software-renderer functional coverage and physical-iPad acceptance.
 
 ## Checks
 

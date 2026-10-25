@@ -4,6 +4,112 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Shared lunar preview publication checks — 2026-10-25
+
+- The user authorized committing/pushing Nomad and the accepted permanent
+  Moon/Mars tube lighting with Moon's home-screen testing preview. No Mars
+  terrain, handling, palette or fog changes in the publication step.
+- Full units completed: **386 passed**. Full browser attempt did not pass:
+  **213 passed / 140 failed / one skipped**, including existing selector errors,
+  Iceland timeouts and later WebKit launch failures. No full-browser success
+  claim. On 2026-10-25 the user selected focused preview checks instead.
+- Fresh **23 focused units / 22 dual-engine browser cases pass**, including
+  Moon/Mars rover swaps/reload/driving, resource cleanup, real GPU tube shade
+  and corrected roof filtering. Sequential production/PWA: **19 passed /
+  three existing WebKit offline skips**. Typecheck/build pass. Full-unit record
+  advances to 2026-10-25; successful full-browser coverage remains historical.
+  Physical-iPad acceptance remains open. Next: preserve accepted Mars lighting
+  while the user evaluates the Moon preview and discusses discoveries.
+
+### Tube roof-face filtering correction — 2026-10-24
+
+- User confirmed **Mars Tubes shadows look good**. The separate Moon report
+  exposed false self-shadowing on steep roof walls in the shared four-tap
+  sunlight filter. Corrected each tap's comparison to use the receiver plane's
+  depth at that texel, rather than the fragment centre depth. Reused the
+  existing static-sunlight helper and GPU comparisons; no change to Mars
+  geometry, sun, fog, material colours, atlas size, bias or render-pass count.
+- **Four focused units and eight Chromium/WebKit browser cases pass**, with
+  typecheck/build. Mars's real floor shade remains stable with the dynamic
+  shadow map near, 600 m away and disabled; car swaps and Earth isolation
+  remain covered. Moon's reported roof-face pattern now has zero mismatching
+  pixels among 953 verified samples in each engine. Full cause, before/after
+  captures and scope are in the latest `MOON_PROGRESS.md` entry.
+- No full-suite/PWA rerun or new device benchmark for this shader-only fix.
+  Last full-suite record remains 2026-10-11. **Exact next step:** retain the
+  accepted Mars shadows while the user reviews Moon's corrected roof; keep
+  physical-iPad/offline acceptance open. Uncommitted; no new push requested.
+
+### Permanent Lava Tubes sunlight — 2026-10-24
+
+- **User acceptance:** confirmed that the Mars Tubes shadows look good.
+  Preserve this lighting while correcting the separately reported Moon roof-face
+  pattern; physical-iPad/offline checks remain separate acceptance items.
+- User reported that tube shadows appeared only near the rover, including in
+  Moon's new Hollow, and approved static geometry-derived sunlight occlusion
+  for both worlds. Kept Mars's accepted sunlight, fog, palette, terrain,
+  collision, streaming rings and handling unchanged. No blanket scenery bake
+  or reintroduction of the rejected experimental distance fades.
+- Reused actual `lavaTubeGeometry`, current material/streaming/disposal
+  patterns and Iceland's existing shader-hook technique. The shared
+  [static sunlight atlas](src/game/static-sunlight.ts) rasterizes both complete
+  roofs once along the fixed sun direction. Streamed terrain/scenery and
+  all selected rovers sample actual world positions. Only direct sunlight
+  is occluded, not ambient fill or surface colour; actual holes and portals
+  determine the light patches. Static/dynamic coverage uses `min` rather than
+  multiplying the same shadow twice. Shade survives reduced graphics mode.
+- Mars uses one **908 x 571 RGBA8 texture, 2,073,872 bytes** at 0.3 m spacing,
+  with four bilinearly weighted depth comparisons inside its projected bounds.
+  No extra render pass, larger moving shadow map or per-frame geometry work.
+  Roof materials stop redundant dynamic shadow casting; rover/other existing
+  casters remain. Material hooks release with streamed chunks/swapped cars,
+  and world exit disposes the atlas. Earth worlds have no static tube shader.
+- **28 focused units pass**, covering roof-ray parity and genuine sunlight,
+  lit roof faces, shader/lifecycle checks, lunar routes, all existing short
+  tube/rubble/roof/junction simulations and Mars streaming failure/cleanup.
+  Typecheck/build pass. **14 unique affected browser cases passed across
+  Chromium/WebKit**, including targeted reruns: approaches, short Mars
+  floor/roof driving, Hollow views, car swaps/Earth isolation and actual GPU
+  near/far/disabled-shadow comparisons. **88 shaded Mars samples change by
+  zero RGB levels** in each engine when moving shadows are far away or off.
+  [Current approach](artifacts/mars/static-tube-shadows/webkit-tablet/far.png);
+  near/far/disabled images and numeric evidence remain beside it.
+- One Chromium multi-view case timed out during concurrent CPU work, then
+  passed alone in 39.1 s with its original 45 s timeout and unchanged physics.
+  The new swap test's exact-name selector was corrected and passed in both
+  engines. An overbroad Mars-unit run was stopped, not counted as a full pass.
+  Final focused static/Hollow/lifecycle browser rerun: eight passed.
+  Sequential PWA: **17 passed / three existing WebKit offline skips**.
+  No new hardware/iPad benchmark or full-project unit/browser run; last
+  full-suite record stays 2026-10-11. **Exact next step:** preserve the accepted
+  tube shadows through the shared Moon roof-face correction; retain manual
+  iPad/offline acceptance. Uncommitted, no new push requested.
+
+### Lunar Nomad alternative vehicle — 2026-10-23
+
+- Added the user's reference-inspired **Lunar Nomad** as a separate Mars/Moon
+  choice, retaining both older rovers and defaults. Its newly authored faceted
+  pressure hull has a large sloping amber windshield, narrow side panes, enclosed
+  rear body, ivory/teal tint, solar roof and capped silver wheels. The source
+  image's three-axle proportions are adapted to two unchanged axles. No model,
+  logos or textures were imported.
+- Reused existing convex/beveled vehicle geometry, tire/tread and batching
+  techniques; the body builder is independent of Scout. **6,830 triangles /
+  21 meshes**, within Scout's overall visual envelope. An initial rim-budget
+  failure was corrected by reducing only decorative ring segmentation.
+  Shared mass, collision, suspension and handling remain unchanged.
+- **21 focused unit checks**, typecheck/build and **ten dual-engine browser cases
+  pass**. Includes genuine driving, exact physics/contact identity, disposal,
+  glass visibility/tint, three-choice picker, URL and inter-world retention.
+  Inspected actual Moon/Mars body views in Chromium/WebKit and generated the new
+  thumbnail. **PWA: 17 passed, three existing WebKit offline cases skipped**;
+  Nomad is precached and reloads/drives offline in Chromium. Full detail/reference:
+  [Moon progress](MOON_PROGRESS.md#lunar-nomad-reference-inspired-alternative--2026-10-23).
+- No terrain or release-gate change, full terrain suites or fresh hardware
+  benchmark; last full-suite record remains 2026-10-11. Existing WebKit automation
+  gaps and physical-iPad acceptance remain open. **Exact next step:** user
+  reviews `?area=mars&car=lunar-nomad` against both older cars. Uncommitted.
+
 ### Lunar Rover window fit and matching tint — 2026-10-23
 
 - Derived lunar side-window edges from the existing cabin faces, sharing the

@@ -109,7 +109,7 @@ test('Northern Reach is the default and first location', async ({ page }) => {
   await expect(page.locator('body')).toHaveAttribute('data-area', 'northern-reach');
   await expect(page.locator('.area-options input').first()).toHaveValue('northern-reach');
   await expect(page.locator('input[name="area"][value="northern-reach"]')).toBeChecked();
-  await expect(page.locator('.area-options input').last()).toHaveValue('mars');
+  await expect(page.locator('.area-options input').last()).toHaveValue('moon');
 });
 
 test('home logo scrolls with content and stays visible after a portrait resize', async ({ page }) => {
@@ -137,10 +137,10 @@ test('location tiles and start remain usable on portrait and landscape phones', 
   for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 375, height: 667 }]) {
     await page.setViewportSize(viewport);
     await expect(page.locator('#area-picker')).toBeVisible();
-    await expect(page.locator('#area-picker input')).toHaveCount(5);
+    await expect(page.locator('#area-picker input')).toHaveCount(6);
     expect(await page.locator('.area-thumbnail').evaluateAll(images => images.every(image => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0))).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
-    for (const value of ['valley', 'highlands', 'northern-reach', 'samurai-village', 'mars']) {
+    for (const value of ['valley', 'highlands', 'northern-reach', 'samurai-village', 'mars', 'moon']) {
       const choice = page.locator(`input[name="area"][value="${value}"]`);
       await choice.scrollIntoViewIfNeeded();
       const box = (await choice.locator('..').boundingBox())!;

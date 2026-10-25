@@ -5,6 +5,7 @@ import { driveForces, MAX_FORWARD_SPEED, MAX_REVERSE_SPEED, type DriveInput } fr
 import { START } from './terrain';
 import { SURFACES, type Surface, type SurfaceId } from './surfaces';
 import { buildMarsScout } from './mars-scout';
+import { buildLunarNomad } from './lunar-nomad';
 import { beveledBox, detailedWheel, solidPanel } from './vehicle-geometry';
 
 const WHEEL_RADIUS = 0.48;
@@ -16,7 +17,7 @@ const CONNECTIONS = [
 const FORWARD = new THREE.Vector3(0, 0, -1);
 const SURFACE_BLEND_SECONDS = 0.26;
 
-export const VEHICLE_MODELS = ['modern', 'classic', 'mars-scout', 'lunar-rover'] as const;
+export const VEHICLE_MODELS = ['modern', 'classic', 'mars-scout', 'lunar-rover', 'lunar-nomad'] as const;
 export type VehicleModelId = typeof VEHICLE_MODELS[number];
 export const DEFAULT_VEHICLE_MODEL: VehicleModelId = 'modern';
 export const isVehicleModelId = (value: unknown): value is VehicleModelId =>
@@ -123,6 +124,10 @@ export class Vehicle {
   }
 
   private createModel() {
+    if (this.vehicleModel === 'lunar-nomad') {
+      buildLunarNomad(this.bodyVisual, this.model, this.wheels, this.tires, CONNECTIONS, WHEEL_RADIUS, REST_LENGTH);
+      return;
+    }
     if (this.vehicleModel === 'mars-scout' || this.vehicleModel === 'lunar-rover') {
       buildMarsScout(this.bodyVisual, this.model, this.wheels, this.tires, CONNECTIONS, WHEEL_RADIUS, REST_LENGTH,
         this.vehicleModel === 'lunar-rover');

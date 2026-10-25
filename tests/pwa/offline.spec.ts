@@ -20,12 +20,13 @@ test('installs a standalone manifest and completes the offline cache', async ({ 
   expect(manifest.icons).toHaveLength(3);
 });
 
-test('production exposes Mars and both exploration rovers and precaches their assets', async ({ page }) => {
+test('production exposes Mars and all three exploration rovers and precaches their assets', async ({ page }) => {
   await page.goto('/?area=mars&car=mars-scout');
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
   await expect(page.locator('#mars-car-option')).toBeVisible();
   await expect(page.locator('#lunar-car-option')).toBeVisible();
+  await expect(page.locator('#nomad-car-option')).toBeVisible();
   await expect(page.locator('input[name="area"][value="mars"]')).toBeChecked();
   await expect(page.locator('input[name="area"][value="mars"] + .area-choice')).toContainText('Mars Outpost');
   await expect(page.locator('input[name="car"][value="mars-scout"]')).toBeChecked();
@@ -38,7 +39,8 @@ test('production exposes Mars and both exploration rovers and precaches their as
   expect(cached.some(url => /mars-worker-.*\.js/.test(url))).toBe(true);
   expect(cached.some(url => url.includes('/cars/mars-scout.png'))).toBe(true);
   expect(cached.some(url => url.includes('/cars/lunar-rover.png'))).toBe(true);
-  for (const area of ['northern-reach', 'valley', 'highlands', 'samurai-village', 'mars']) {
+  expect(cached.some(url => url.includes('/cars/lunar-nomad.png'))).toBe(true);
+  for (const area of ['northern-reach', 'valley', 'highlands', 'samurai-village', 'mars', 'moon']) {
     expect(cached.some(url => url.includes(`/locations/${area}.jpg`))).toBe(true);
   }
   for (const [area, postcard] of [
@@ -85,6 +87,7 @@ test('production home picker restricts cars by world and remembers the Earth car
   await expect(page.locator('input[name="car"][value="classic"]')).toBeChecked();
   await expect(page.locator('#mars-car-option')).toBeHidden();
   await expect(page.locator('#lunar-car-option')).toBeHidden();
+  await expect(page.locator('#nomad-car-option')).toBeHidden();
   await page.goto('/?area=mars&start=lava-tubes&car=classic');
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
@@ -129,7 +132,7 @@ test('the cached Mars worker generates all four new regions without network acce
   } finally { await context.setOffline(false); }
 });
 
-test('reloads and travels through Highlands, Valley and Mars with no network', async ({ page, context, browserName }) => {
+test('reloads and travels through Highlands, Valley, Mars and Moon with no network', async ({ page, context, browserName }) => {
   test.skip(browserName === 'webkit', 'Playwright WebKit cannot navigate after context.setOffline; iPad Safari supports service workers.');
 
   await page.goto('/?area=highlands');
@@ -161,8 +164,28 @@ test('reloads and travels through Highlands, Valley and Mars with no network', a
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.locator('input[name="car"][value="lunar-rover"]')).toBeChecked();
   await expect(page.locator('#lunar-car-option img')).toHaveJSProperty('naturalWidth', 360);
+  await page.locator('input[name="car"][value="lunar-nomad"]').check();
+  await page.reload();
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('input[name="car"][value="lunar-nomad"]')).toBeChecked();
+  await expect(page.locator('#nomad-car-option img')).toHaveJSProperty('naturalWidth', 360);
   await page.locator('#start').click();
   await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
+  await expect(page.locator('#controls')).toBeVisible();
+  await page.keyboard.down('KeyW');
+  await page.waitForTimeout(800);
+  await page.keyboard.up('KeyW');
+  await expect(page.locator('#error')).toBeHidden();
+  await page.locator('#pause').click();
+  await page.locator('#home').click();
+  await page.locator('input[name="area"][value="moon"]').check();
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'moon');
+  await page.reload();
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('input[name="car"][value="lunar-nomad"]')).toBeChecked();
+  await expect(page.locator('input[name="area"][value="moon"] + .area-choice img')).toHaveJSProperty('naturalWidth', 476);
+  await page.locator('#start').click();
   await expect(page.locator('#controls')).toBeVisible();
   await page.keyboard.down('KeyW');
   await page.waitForTimeout(800);

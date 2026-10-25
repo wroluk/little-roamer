@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { solidPanel } from './vehicle-geometry';
+import { batchVehicleMeshes, roverWheel, solidPanel } from './vehicle-geometry';
 
 /** Angular expedition rover built around the established four wheel contact positions. */
 export function buildMarsScout(body: THREE.Group, model: THREE.Group,
@@ -136,50 +135,8 @@ export function buildMarsScout(body: THREE.Group, model: THREE.Group,
   box(1.4, 0.12, 0.13, 0, 0.06, 1.4, dark);
   bar([lunar ? 0.4 : 0.55, 0.91, 0.86], [lunar ? 0.4 : 0.55, 1.53, 0.86], 0.013, dark);
   for (const connection of connections) {
-    const wheel = new THREE.Group(), spinner = new THREE.Group();
-    const tireProfile = [[0.3, -0.205], [0.4, -0.205], [radius - 0.025, -0.15], [radius - 0.02, 0.15], [0.4, 0.205], [0.3, 0.205]];
-    add(new THREE.LatheGeometry(tireProfile.map(([r, y]) => new THREE.Vector2(r, y)), 24).rotateZ(Math.PI / 2), rubber, spinner);
-    add(new THREE.CylinderGeometry(0.31, 0.31, 0.4, 16).rotateZ(Math.PI / 2), dark, spinner);
-    for (const side of [-1, 1]) {
-      if (lunar) {
-        const dish = new THREE.Shape();
-        dish.absarc(0, 0, 0.285, 0, Math.PI * 2, false);
-        for (let i = 0; i < 6; i++) {
-          const a = i * Math.PI / 3, hole = new THREE.Path();
-          hole.moveTo(Math.cos(a - 0.2) * 0.14, Math.sin(a - 0.2) * 0.14);
-          for (const [r, angle] of [[0.235, a - 0.2], [0.235, a + 0.2], [0.14, a + 0.2]])
-            hole.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
-          hole.closePath(); dish.holes.push(hole);
-        }
-        add(new THREE.ExtrudeGeometry(dish, { depth: 0.026, bevelEnabled: false, curveSegments: 12, steps: 1 })
-          .rotateY(side * Math.PI / 2).translate(side * 0.205, 0, 0), hub, spinner);
-      } else {
-        add(new THREE.TorusGeometry(0.285, 0.023, 4, 16).rotateY(Math.PI / 2).translate(side * 0.208, 0, 0), hub, spinner);
-        for (let i = 0; i < 8; i++) {
-          const a = i * Math.PI / 4;
-          add(new THREE.BoxGeometry(0.018, 0.19, 0.037).rotateX(a).translate(side * 0.211, Math.cos(a) * 0.17, Math.sin(a) * 0.17), hub, spinner);
-        }
-      }
-    }
-    add(new THREE.CylinderGeometry(0.1, 0.1, 0.45, 8).rotateZ(Math.PI / 2), dark, spinner);
-    for (let i = 0; i < 24; i++) for (const side of [-1, 1]) {
-      const a = (i + (side > 0 ? 0.45 : 0)) * Math.PI / 12;
-      add(new THREE.BoxGeometry(0.19, 0.038, 0.095).rotateY(side * 0.3).rotateX(a)
-        .translate(side * 0.1, Math.cos(a) * (radius - 0.012), Math.sin(a) * (radius - 0.012)), rubber, spinner);
-    }
+    const wheel = new THREE.Group(), spinner = roverWheel(radius, lunar ? 'vented' : 'spoked', rubber, dark, hub);
     wheel.add(spinner); wheel.position.set(connection.x, -rest, connection.z); model.add(wheel); wheels.push(wheel); tires.push(spinner);
   }
-  for (const group of [body, ...tires]) {
-    const batches = new Map<THREE.Material, THREE.BufferGeometry[]>();
-    for (const child of [...group.children]) {
-      if (!(child instanceof THREE.Mesh) || Array.isArray(child.material)) continue;
-      const g = child.geometry.index ? child.geometry.toNonIndexed() : child.geometry.clone(); g.deleteAttribute('uv');
-      const parts = batches.get(child.material) ?? []; parts.push(g); batches.set(child.material, parts);
-      child.geometry.dispose(); group.remove(child);
-    }
-    for (const [material, parts] of batches) {
-      const mesh = new THREE.Mesh(mergeGeometries(parts)!, material); parts.forEach(g => g.dispose());
-      mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh);
-    }
-  }
+  for (const group of [body, ...tires]) batchVehicleMeshes(group);
 }

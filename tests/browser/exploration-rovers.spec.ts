@@ -11,8 +11,10 @@ type Game = {
   vehicle: { bodyVisual: Group };
 };
 
-for (const area of ['moon', 'mars'] as const) {
-  test(`${area} offers both exploration rovers with stable switching, URL reload and driving`, async ({ page }, info) => {
+for (const area of ['moon', 'mars'] as const) for (const model of ['lunar-rover', 'lunar-nomad'] as const) {
+  const name = model === 'lunar-rover' ? 'Lunar Rover' : 'Lunar Nomad';
+  const prefix = model === 'lunar-rover' ? 'rover' : 'nomad';
+  test(`${area} ${name} supports three exploration choices, stable switching, URL reload and driving`, async ({ page }, info) => {
     test.setTimeout(120_000);
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(() => localStorage.setItem('little-roamer-car', 'classic'));
@@ -20,29 +22,35 @@ for (const area of ['moon', 'mars'] as const) {
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
     const state = () => page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
     expect((await state()).car).toBe(area === 'moon' ? 'lunar-rover' : 'mars-scout');
-    await expect(page.locator('#car-picker').getByRole('radio')).toHaveCount(2);
+    await expect(page.locator('#car-picker').getByRole('radio')).toHaveCount(3);
     await expect(page.getByRole('radio', { name: 'Mars Scout' })).toBeVisible();
     await expect(page.getByRole('radio', { name: 'Lunar Rover' })).toBeVisible();
+    await expect(page.getByRole('radio', { name: 'Lunar Nomad' })).toBeVisible();
     await expect(page.locator('#lunar-car-option img')).toHaveJSProperty('naturalWidth', 360);
-    const folder = `artifacts/moon/lunar-rover/${info.project.name}`;
+    await expect(page.locator('#nomad-car-option img')).toHaveJSProperty('naturalWidth', 360);
+    const folder = `artifacts/moon/${model}/${info.project.name}`;
     await mkdir(folder, { recursive: true });
     for (const name of ['Mars Scout', 'Lunar Rover']) {
       await page.getByRole('radio', { name, exact: false }).check();
       await page.waitForTimeout(200);
       await page.screenshot({ path: `${folder}/${area}-${name === 'Mars Scout' ? 'scout' : 'rover'}-home.png` });
     }
+    await page.getByRole('radio', { name }).check();
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: `${folder}/${area}-${prefix}-home.png` });
     const baseline = await state();
     for (let i = 0; i < 3; i++) {
       await page.getByRole('radio', { name: 'Mars Scout' }).check();
-      await page.getByRole('radio', { name: 'Lunar Rover' }).check();
+      await page.getByRole('radio', { name: model === 'lunar-rover' ? 'Lunar Nomad' : 'Lunar Rover' }).check();
+      await page.getByRole('radio', { name }).check();
     }
     await page.waitForTimeout(200);
     expect((await state()).geometries).toBe(baseline.geometries);
-    await expect(page).toHaveURL(/car=lunar-rover/);
+    await expect(page).toHaveURL(new RegExp(`car=${model}`));
     await page.reload();
     await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
-    await expect(page.getByRole('radio', { name: 'Lunar Rover' })).toBeChecked();
-    expect((await state()).car).toBe('lunar-rover');
+    await expect(page.getByRole('radio', { name })).toBeChecked();
+    expect((await state()).car).toBe(model);
     expect(await page.evaluate(() => localStorage.getItem('little-roamer-car'))).toBe('classic');
     await page.locator('#start').click();
     await expect.poll(async () => (await state()).contacts).toBeGreaterThanOrEqual(2);
@@ -53,11 +61,11 @@ for (const area of ['moon', 'mars'] as const) {
     expect(Math.hypot(driven.position.x - from.x, driven.position.z - from.z)).toBeGreaterThan(1);
     expect(driven.gravity).toBe(area === 'moon' ? -3 : -18);
     expect(driven.cameraObstructed).toBe(false);
-    await page.screenshot({ path: `${folder}/${area}-rover-driving.png` });
+    await page.screenshot({ path: `${folder}/${area}-${prefix}-driving.png` });
     await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.follow.orbit(Math.PI * 0.7, 0.15));
     await page.waitForTimeout(1000);
-    await page.screenshot({ path: `${folder}/${area}-rover-front.png` });
-    const paneColors = await page.evaluate(() => new Promise<number[][]>((resolve, reject) => {
+    await page.screenshot({ path: `${folder}/${area}-${prefix}-front.png` });
+    const paneColors = await page.evaluate(nomad => new Promise<number[][]>((resolve, reject) => {
       requestAnimationFrame(() => {
         try {
           const game = (window as unknown as { __ROAMER__: Game }).__ROAMER__;
@@ -66,8 +74,10 @@ for (const area of ['moon', 'mars'] as const) {
           if (!gl) throw new Error('Missing game WebGL context');
           const side = Math.sign(game.vehicle.bodyVisual.worldToLocal(game.camera.position.clone()).x);
           const front = -1.27 + (0.85 - 0.58) * 0.1 / 0.52 - 0.006;
-          resolve([[0, 0.85, front], [side * 0.58, 0.85, front + 0.11 * 0.26 / 0.23],
-            [side * 0.707, 0.85, -0.4]].map(([x, y, z]) => {
+          const nomadFront = -1.33 + (0.85 - 0.52) * 0.81 / 0.64 - 0.008;
+          const samples = nomad ? [[0, 0.85, nomadFront], [side * 0.43, 0.85, nomadFront], [side * 0.707, 0.8, -0.65]]
+            : [[0, 0.85, front], [side * 0.58, 0.85, front + 0.11 * 0.26 / 0.23], [side * 0.707, 0.85, -0.4]];
+          resolve(samples.map(([x, y, z]) => {
             const point = game.vehicle.bodyVisual.localToWorld(game.camera.position.clone().set(x, y, z))
               .project(game.camera);
             if (Math.abs(point.x) >= 1 || Math.abs(point.y) >= 1) throw new Error('Window sample outside camera');
@@ -78,26 +88,26 @@ for (const area of ['moon', 'mars'] as const) {
           }));
         } catch (error) { reject(error); }
       });
-    }));
+    }), model === 'lunar-nomad');
     expect(paneColors[0][0]).toBeGreaterThan(5);
-    expect(paneColors[0][2]).toBeGreaterThan(paneColors[0][0]);
+    expect(paneColors[0][model === 'lunar-nomad' ? 0 : 2]).toBeGreaterThan(paneColors[0][model === 'lunar-nomad' ? 2 : 0]);
     for (const color of paneColors.slice(1)) for (let channel = 0; channel < 3; channel++)
-      expect(Math.abs(color[channel] - paneColors[0][channel]), 'front, corner and side glass share the rendered tint')
+      expect(Math.abs(color[channel] - paneColors[0][channel]), 'visible cabin panes share the rendered tint')
         .toBeLessThanOrEqual(2);
     await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.follow.orbit(Math.PI * 0.3, -0.15));
     await page.waitForTimeout(1000);
-    await page.screenshot({ path: `${folder}/${area}-rover-head-on.png` });
+    await page.screenshot({ path: `${folder}/${area}-${prefix}-head-on.png` });
     await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.follow.orbit(-Math.PI * 0.5, 0));
     await page.waitForTimeout(1000);
-    await page.screenshot({ path: `${folder}/${area}-rover-side.png` });
+    await page.screenshot({ path: `${folder}/${area}-${prefix}-side.png` });
     await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.follow.orbit(Math.PI, 0));
     await page.waitForTimeout(1000);
-    await page.screenshot({ path: `${folder}/${area}-rover-other-side.png` });
+    await page.screenshot({ path: `${folder}/${area}-${prefix}-other-side.png` });
     await page.locator('#pause').click(); await page.locator('#home').click();
     if (area === 'moon') {
       await page.locator('input[name="area"][value="mars"]').check();
       await expect(page.locator('#start')).toBeEnabled();
-      await expect(page.getByRole('radio', { name: 'Lunar Rover' })).toBeChecked();
+      await expect(page.getByRole('radio', { name })).toBeChecked();
       expect((await state()).gravity).toBe(-18);
     }
     await page.locator('input[name="area"][value="valley"]').check();
@@ -105,6 +115,7 @@ for (const area of ['moon', 'mars'] as const) {
     await expect(page.getByRole('radio', { name: 'Classic' })).toBeChecked();
     await expect(page.locator('#mars-car-option')).toBeHidden();
     await expect(page.locator('#lunar-car-option')).toBeHidden();
+    await expect(page.locator('#nomad-car-option')).toBeHidden();
     expect(errors).toEqual([]);
   });
 }

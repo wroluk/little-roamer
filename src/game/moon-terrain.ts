@@ -11,6 +11,9 @@ export const MOON_FLOOR = { x: 40, y: 2, z: -105 };
 export const MOON_BASALT = { x: 80, y: 5, z: 235 };
 export const MOON_RILLE = { x: 250, y: 4, z: 140 };
 export const MOON_HIGHLANDS = { x: -264, y: 24, z: -65 };
+export const MOON_HOLLOW = { x: -248, y: 8, z: 150 };
+export const MOON_HOLLOW_ROOF = { north: 172, south: 230, skylight: 200, halfWidth: 23 };
+export const moonHollowCentreX = (z: number) => -248 + Math.max(0, Math.min(60, z - 170)) * 8 / 60;
 export const MOON_RILLE_PATH = [
   { x: 220, y: 5, z: 215 }, { x: 242, y: 4, z: 185 }, MOON_RILLE,
   { x: 238, y: 5, z: 85 }, { x: 266, y: 7, z: 25 },
@@ -55,6 +58,16 @@ export const MOON_ROUTES = [
     { x: -298, y: 37, z: -135 }, { x: -300, y: 43, z: -160 },
     { x: -270, y: 43, z: -208 }, { x: -205, y: 34, z: -225 },
   ] },
+  { name: 'Skylight Hollow passage', blend: 30, points: [
+    MOON_BASE, { x: -145, y: 8, z: 115 }, { x: -205, y: 9, z: 135 }, MOON_HOLLOW,
+    { x: -248, y: 7.2, z: 166 }, { x: moonHollowCentreX(190), y: 6, z: 190 },
+    { x: moonHollowCentreX(208), y: 6, z: 208 }, { x: -240, y: 7.5, z: 238 },
+    { x: -220, y: 8, z: 250 }, { x: -165, y: 6, z: 250 }, { x: -95, y: 6, z: 195 },
+  ] },
+  { name: 'Skylight Hollow surface bypass', blend: 30, points: [
+    MOON_HOLLOW, { x: -260, y: 8, z: 150 }, { x: -282, y: 13, z: 158 }, { x: -292, y: 18, z: 198 },
+    { x: -291, y: 18, z: 228 }, { x: -265, y: 14, z: 259 }, { x: -220, y: 8, z: 250 },
+  ] },
 ] as const;
 export const MOON_STARTS = [
   { id: 'earthview-base', name: 'Earthview Base', position: MOON_BASE, heading: 0 },
@@ -63,6 +76,7 @@ export const MOON_STARTS = [
   { id: 'basalt-reach', name: 'Basalt Reach', position: MOON_BASALT, heading: -Math.PI / 2 },
   { id: 'silver-rille', name: 'Silver Rille', position: MOON_RILLE, heading: 0 },
   { id: 'broken-highlands', name: 'Broken Highlands', position: MOON_HIGHLANDS, heading: 0 },
+  { id: 'skylight-hollow', name: 'Skylight Hollow', position: MOON_HOLLOW, heading: Math.PI },
 ];
 export const nearestMoonStart = (x: number, z: number) => MOON_STARTS.reduce((a, b) =>
   Math.hypot(x - a.position.x, z - a.position.z) <= Math.hypot(x - b.position.x, z - b.position.z) ? a : b);
@@ -160,6 +174,14 @@ export function moonHeightAt(x: number, z: number) {
     const upland = Math.max(shelf + westernSpine, northernShelf, easternSpur) - cleft - fracture
       + (noise(x, z, 22, 70) - 0.5) * 1.8;
     h += (upland - h) * highland;
+  }
+  if (x > -305 && x < -185 && z > 150 && z < 265) {
+    const distance = Math.abs(x - moonHollowCentreX(z));
+    const weight = smooth((z - 153) / 20) * (1 - smooth((z - 238) / 24))
+      * (1 - smooth((distance - 27) / 20));
+    const trench = 6.5 + 10 * smooth((distance - 6) / 14)
+      + (noise(x, z, 23, 81) - 0.5) * 1.6;
+    h += (trench - h) * weight;
   }
   // A broken highland perimeter stays solid; its far continuation is visual only.
   const edge = Math.pow(Math.abs(x) ** 8 + Math.abs(z) ** 8, 1 / 8);

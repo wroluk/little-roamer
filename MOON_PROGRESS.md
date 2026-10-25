@@ -3,6 +3,293 @@
 Read with [build plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
 and [shared guide](WORLD_BUILD_GUIDE.md).
 
+## Home-screen preview publication — 2026-10-25
+
+- User accepted **Broken Highlands** and requested a home-screen tile, commit
+  and push for convenient physical-iPad testing. This supersedes the historical
+  internal-only restriction. Moon now appears as **Moon / Low-gravity preview**
+  in development and production, with all regional links and three exploration
+  rover choices. Northern Reach remains the default; Iceland stays hidden.
+  Discoveries are discussion-only at this point.
+- Reference: the existing Mars tile, area validation, rover selection and
+  production/offline travel tests. Added a 476 x 350 thumbnail rendered from
+  the actual Earthrise game view, not a concept image. Updated picker-count,
+  responsive-layout, regional-link and asset-cache coverage. Inspected the
+  actual home screen in Chromium and WebKit. No terrain, handling or lighting
+  change in this availability step.
+- **Full unit suite: 386 passed**, completed overnight on 2026-10-24/25 in
+  about 34 minutes. The subsequent full browser attempt was **not successful:
+  213 passed, 140 failed, one skipped**. Failures include an existing ambiguous
+  `.wordmark` selector, long Iceland timeouts, and many later WebKit launch
+  failures. Do not count that run as full-browser acceptance or silently
+  attribute every failure to the environment. The raw logs are retained in
+  the session artifacts.
+- On 2026-10-25 the user explicitly chose **focused checks for this testing
+  preview** instead of another full run. Fresh typecheck and **23 focused units,
+  22 Chromium/WebKit browser cases** pass: lunar routes/collision/gravity,
+  Nomad geometry and identical handling, swaps/reload/driving in both worlds,
+  home tile/small-screen layout and exact GPU tube-shade/roof-face regressions.
+  Sequential production/PWA: **19 passed, three existing WebKit offline
+  scenarios skipped**. Includes production Moon tile and regional links,
+  cached thumbnail/rovers, and offline reload/travel/driving on Moon in Chromium.
+  Production build passes; 58 precache entries, about 4.16 MiB.
+- Physical-iPad sustained performance, touch and Safari offline acceptance
+  remain open. This is a user-authorized testing preview, not a declaration
+  that those checks passed. The prior successful full-browser record remains
+  historical; current full-unit evidence is 2026-10-25.
+- **Publication:** user authorized committing and pushing the accumulated
+  Nomad, Hollow, Moon/Mars static-sunlight and preview-tile work to `main`.
+  **Exact next step:** install/update the preview on iPad, then discuss a small
+  set of optional discoveries without adding them automatically.
+
+## Hollow acceptance, connectors and current performance — 2026-10-24
+
+- User accepted the corrected Hollow roof and requested continuing. Recorded
+  acceptance in the plan/design without inferring physical-iPad approval or
+  explicit Broken Highlands review. Finished the two remaining Hollow
+  browser-driving coverage gaps rather than widening the approved footprint.
+- Reference: the existing Nomad passage/bypass browser driver, exported
+  `MOON_ROUTES` and earlier hardware-backed Highlands probe. Adaptation:
+  drive the **complete base-to-northern-portal connector** and **southern
+  portal-to-basalt-approach return**, each in both directions, with real Nomad
+  input and no mid-leg repositioning. Record resource peaks throughout each
+  drive, not only at the endpoint.
+- **Four dual-engine cases pass: eight complete connector drives**. All
+  waypoints reached, queues empty and cameras clear at the endpoints. Peak
+  terrain colliders **9**, rendered triangles **114,042**, draw calls **38**.
+  Retained departure/arrival captures and per-direction evidence in
+  [connector evidence](artifacts/moon/hollow-connectors/). Inspected the actual
+  portal arrival and reverse southern return alongside current interior and
+  southern-roof views. Existing passage/bypass two-way coverage is unchanged.
+- Fresh [hardware-backed Hollow probe](artifacts/moon/skylight-hollow/hardware-chromium/performance.json):
+  **Apple M1 Pro / ANGLE Metal**, 1080 x 810, pixel ratio 1, current Nomad and
+  corrected static sunlight. Seven views/runs, **240 frames each**: arrival,
+  northern portal, interior, skylight, southern roof, surface bypass and actual
+  passage driving across Z=192. Median **16.7 ms**, p95 **16.7–16.8 ms**.
+  No reduced graphics, at most **9** terrain colliders, **113,426** rendered
+  triangles, **34** draw calls; collision activation peak **2.2 ms**.
+  Terrain remains **91,008 triangles**. Local load-to-driving was **1,452 ms**,
+  including browser/server work, not a pure terrain-generation measurement.
+- The first Chromium connector runs failed a newly added full-graphics
+  assertion, despite completing their forward drives. Reproduced alone:
+  default headless Chromium uses **SwiftShader**, activates the existing
+  adaptive quality reduction, and does the same on committed **main 547959b**.
+  Confirmed with a separately served read-only main snapshot; stopped and
+  removed that temporary snapshot afterward. Current Metal Chromium does not
+  reduce quality. Functional connector evidence now records renderer and
+  quality state; the separate hardware probe retains its full-graphics
+  assertion. No physics, rendering or adaptive-quality thresholds changed.
+- Typecheck/build pass. No new runtime geometry, handling, footprint, light,
+  shader, public-picker or release change. No full-project suite or PWA rerun
+  for these focused coverage/documentation additions; last full-suite record
+  remains **2026-10-11**. Desktop cadence is not a sustained iPad benchmark.
+- **Exact next step:** explicit Broken Highlands user review and physical-iPad
+  touch/driving/frame-cadence acceptance before broad terrain expansion.
+  All approved compact landscape slices are implemented; retain Moon's
+  internal release gate. Work remains uncommitted; no new push requested.
+
+## Southern roof-face pattern correction — 2026-10-24
+
+- Reproduced the user's exact camera position **-253.213 / 16.214 / 269.189**,
+  target **-249.582 / 13.952 / 256.524**, FOV **48**. Preserved the
+  [user image](artifacts/moon/static-tube-shadows/roof-pattern-user.png) and
+  [actual before capture](artifacts/moon/static-tube-shadows/chromium-tablet/reported-before.png).
+  Disabling only the roof material's static depth comparison removed the teeth:
+  **370 of 953 visible, ray-verified sunlit samples** were incorrectly darkened,
+  by up to **27 RGB levels**. This was atlas self-shadowing, not roof geometry.
+- Reference: the existing shared static-sunlight filter and its actual GPU
+  near/far/disabled comparisons. Adaptation: calculate the receiver plane's
+  depth gradient from fragment derivatives and evaluate its depth at each of
+  the four filter taps. The old filter compared all four neighbours against
+  the centre depth, which fails on steep walls. Derivatives run before the
+  atlas-bounds branch. No larger bias, texture, extra render pass, geometry,
+  collision, handling, global lighting or material-colour changes.
+- The [corrected Chromium view](artifacts/moon/static-tube-shadows/chromium-tablet/reported-current.png)
+  and [WebKit view](artifacts/moon/static-tube-shadows/webkit-tablet/reported-current.png)
+  are clean. Both retain **953 verified samples, zero patterned samples and
+  zero RGB difference** against the unoccluded roof reference. Inspected both
+  captures; genuine floor shade and the skylight patch remain.
+- **Four focused static-sunlight units, eight dual-engine browser cases,
+  typecheck and production build pass.** Includes dense sub-texel sampling of
+  a steep lit wall, floor occlusion, both worlds' near/far/disabled shading,
+  vehicle swaps and Earth isolation. The initial exact-camera regression
+  failed on the original shader before the correction. No full-project suite,
+  PWA rerun or new device benchmark for this shader-only correction.
+- User also confirmed **Mars Tubes shadows look good**; recorded acceptance
+  in `MARS_PROGRESS.md`. **Exact next step:** user reviews the corrected Moon
+  roof side; keep physical-iPad acceptance and Moon's internal release gate
+  open. Changes remain uncommitted; no new commit/push was requested.
+
+## Permanent tube sunlight occlusion — 2026-10-24
+
+- User liked Hollow, then reported the same problem seen in Mars's Lava Tubes:
+  roof shadows appeared only when the rover approached. Approved a fixed,
+  geometry-derived sunlight mask for **both** worlds, not a larger global
+  shadow map or a rollout to all rocks/trees.
+- The moving sun shadow camera covers 48 x 48 m. Added a one-time CPU depth
+  rasterization of the actual roof triangles, projected along each world's
+  unchanged sun direction. One packed 16-bit-depth RGBA8 texture feeds the lit
+  terrain, scenery and rover materials, including after car swaps. It blocks
+  only direct sunlight; ambient fill, materials, skylights and portals retain
+  their lighting. Static and dynamic coverage combine with `min`, avoiding
+  double-darkening. The mask remains active when adaptive quality disables
+  moving shadows. Roofs no longer render into the redundant dynamic shadow pass;
+  rover and other existing moving shadows remain.
+- References: Moon/Mars's actual closed roof geometry, exact roof/rim raycasts,
+  current area/streaming/disposal lifecycle and Iceland's existing
+  `onBeforeCompile` material customization. Adaptation:
+  [shared static sunlight](src/game/static-sunlight.ts) uses a small fixed
+  light-space atlas, not terrain colour darkening, a ground overlay, a second
+  light or a continuously rendered shadow map. Four depth comparisons use
+  bilinear weights to soften texel edges. The dynamic map stays **1024 x 1024,
+  48 m wide**, and terrain/collision geometry and handling are unchanged.
+- Moon's atlas is **379 x 181 / 274,396 bytes** at 0.2 m spacing; Mars's is
+  **908 x 571 / 2,073,872 bytes** at 0.3 m. Generated once per world creation,
+  with no per-frame geometry generation or extra draw pass. Materials unhook
+  on disposal; streamed scenery and car swaps release their references; the
+  atlas is disposed once on world exit. This is a bounded cost, not a claim
+  of improved device frame cadence.
+- **28 focused unit checks pass**, including actual roof-ray comparisons
+  (Moon: 130 shaded / 233 open floor samples; Mars: 261 / 206), sun-facing
+  roofs remaining lit, shader composition, swaps/disposal, lunar two-way
+  routes, Mars tube/rubble/roof/junction driving and streaming lifecycle.
+  Typecheck and final production build pass.
+- **14 unique affected browser cases have passing results** across Chromium
+  and WebKit, including targeted reruns: fixed-camera near/far/disabled shadow
+  comparisons, car swaps and Earth isolation, Hollow presentation, Mars tube
+  views and short floor/roof drives. In both engines, **87 shaded Moon
+  samples and 88 shaded Mars samples change by zero RGB levels** when the
+  moving shadow map is relocated 600 m away or disabled; real sunlit patches
+  remain. Final static/Hollow/lifecycle rerun: eight passed. An initial
+  Chromium multi-view Mars case hit its 45 s timeout while CPU checks ran;
+  it passed alone in 39.1 s without changing assertions, timeout or physics.
+  Corrected an exact-name selector in the new swap test, then both engines
+  passed. An overbroad Mars-unit invocation was stopped; only completed
+  change-focused results are counted.
+- Inspected actual approach views in both engines and the current Hollow
+  interior. [Moon distant-map view](artifacts/moon/static-tube-shadows/webkit-tablet/far.png),
+  [Mars distant-map view](artifacts/mars/static-tube-shadows/webkit-tablet/far.png).
+  The capture folders retain near/far/disabled renders and pixel evidence.
+  Sequential production/PWA run: **17 passed, three pre-existing WebKit
+  offline cases skipped**. No full-project unit/browser run or new hardware
+  frame benchmark; last full-suite record remains 2026-10-11.
+- **Exact next step:** user approaches Hollow and the Mars tubes to review
+  continuous shade and skylight patches. Keep physical-iPad acceptance and
+  Moon's internal release gate open. Do not extend this bake to all scenery
+  without separately evaluating memory, generation and moving foliage.
+  Changes remain uncommitted; no commit/push was requested.
+
+## Skylight Hollow and Nomad acceptance — 2026-10-24
+
+- The user accepted **Lunar Nomad** as a separate vehicle and requested continuing.
+  Returned to the approved Moon landscape plan rather than adding more vehicle
+  detailing. Existing vehicle choices/defaults, lighting, Earth, black sky and
+  low-gravity handling are unchanged.
+- Added **Skylight Hollow** in the southwest, inside the existing footprint.
+  Direct entry: `http://localhost:5173/?area=moon&start=skylight-hollow&car=lunar-nomad`.
+  From Earthview Base, leave south and turn west to the level clearing at
+  **-248 / 150**. The short roofed trench runs south, with a genuine central
+  daylight opening; an easy western surface bypass climbs to 18 m.
+  Both meet at -220 / 250 and return east to the existing basalt approach.
+- References: Mars's `lavaTubeGeometry`, tube trench and real-driving tests,
+  plus Moon's exact terrain sampling, full-width grade checks, solid scenery
+  and disposal. Adapted the technique to one bounded neutral-grey roof with
+  actual thick, irregular portal/skylight walls and single-sided rendering.
+  Rendered Float32 vertices also provide collision; no invisible box covers
+  the opening. Lateral margins are buried between authored rows, not only
+  at the geometry's vertices. Random rocks are excluded from the passage.
+- Corrected three issues exposed during implementation: the first otherwise
+  graded bypass crossed the solid roof edge, so its turn now occurs outside
+  the whole roof; a thin straight-edged roof read as a board and disappeared
+  into the black sky, so it now has thicker irregular portals and a restrained
+  local material bounce; undirected manifold counts missed inward-facing
+  rim/portal walls, so regressions now check directed edge cancellation and
+  visible inner-rim raycasts. No physics or grade thresholds were relaxed.
+- **34 focused unit checks pass**, including all ten lunar routes in both
+  directions with the real rover, full-width grades, level starts, exact roof
+  render/collision parity from above/below/inside, real open portals/skylight,
+  headroom, buried shoulders, resource disposal and unchanged vehicle handling.
+  Typecheck and final production build pass. The roof is **592 triangles,
+  one mesh/material and one static triangle collider**; the fixed terrain
+  remains **91,008 triangles**, with at most nine moving terrain colliders.
+  The browser views retain fewer than 90 draw calls and 120,000 triangles.
+- **Six focused browser cases pass** across Chromium and WebKit: retained
+  Earth/base presentation and Earth visibility, Hollow regional entry/reset
+  and actual views, plus Nomad driving through the entire roofed section
+  and along the **complete bypass, both directions**. All ten complete
+  routes are covered in simulation; the new base connector and southern
+  basalt return were not separately driven end-to-end in the browser.
+  Inspected real arrival, portals, interior, skylight, daylight-from-inside
+  and bypass/roof captures in both engines, including the corrected rim faces.
+  [Northern portal](artifacts/moon/skylight-hollow/webkit-tablet/north-portal.png),
+  [daylight from inside](artifacts/moon/skylight-hollow/chromium-tablet/daylight-from-inside.png),
+  [roof/bypass](artifacts/moon/skylight-hollow/chromium-tablet/roof-and-bypass.png),
+  [actual drive](artifacts/moon/skylight-hollow/webkit-tablet/real-drive.png).
+- Regenerated and inspected the [navigation map](artifacts/moon/moon-map.png):
+  **seven starts, ten routes**, pink Hollow connection, dashed western bypass
+  and a distinct roof/opening overlay. Updated the plan, design, README and
+  transferable shared-guide lessons.
+- No new hardware frame-cadence or physical-iPad benchmark. No full-project
+  unit/browser or PWA rerun for this bounded internal geometry addition.
+  Last full-suite record remains **2026-10-11**; the prior Nomad PWA result
+  remains 17 passed / three pre-existing WebKit offline skips. Physical-iPad
+  touch/offline acceptance and the internal-world publication gate remain open.
+- **Exact next step:** user drives/reviews Skylight Hollow with Nomad from the
+  direct entry, comparing the roofed line with the western surface bypass.
+  Explicit Broken Highlands review is also still pending. Do not widen the
+  footprint or mark either region user-approved based on automated coverage.
+  Nomad and Hollow remain uncommitted; no new commit/push was requested.
+
+## Lunar Nomad reference-inspired alternative — 2026-10-23
+
+- User requested another lunar vehicle authored from scratch using a supplied
+  Sketchfab thumbnail for body-geometry inspiration, retaining all handling and
+  two axles. Added **Lunar Nomad** as a separate choice, preserving Lunar Rover,
+  Mars Scout and both world defaults. Direct entry:
+  `http://localhost:5173/?area=moon&car=lunar-nomad`.
+- References: the user's [image](artifacts/moon/DESIGN.md#lunar-nomad-alternative),
+  existing rover tire/tread construction and batching, `solidPanel`/`beveledBox`,
+  vehicle selection and exterior-glass/disposal/real-driving tests. The new
+  `lunar-nomad.ts` builder authors a continuous chamfered pressure hull, large
+  raked windshield, small forward/clerestory side panes, access doors and roof
+  equipment rather than modifying the Scout body. Shortened the reference's
+  three-axle proportions around the unchanged four existing contacts.
+  Ivory/teal bodywork, uniform amber glazing, capped silver rims with diagonal
+  inserts, four roof lamps and a solar roof distinguish the alternative.
+  No imported model, source textures/logos or runtime external requests.
+- Extracted the unchanged rover tire/tread and batching technique for reuse;
+  Scout's 6,990 triangles and existing Rover's 6,278 are unchanged. Nomad has
+  **6,830 triangles / 21 batched meshes** versus Scout's 19 meshes. The first
+  capped-rim ring exceeded the strict relative triangle check; matching the
+  established 16-segment ring resolution saved 512 triangles without changing
+  tire shape, radius or contact. All body bounds remain within Scout's overall
+  visual envelope; mass, two colliders, wheelbase, suspension and handling are
+  unchanged.
+- **21 focused unit checks pass**, plus typecheck/build. Tests cover actual
+  front/side first-hit glass, rear hull/roof and outward-facing trim, two axles,
+  clearance/triangle budgets, repeated swapping/disposal and identical vehicle
+  position, rotation, velocity and wheel contacts under Earth and lunar gravity.
+  **Ten focused browser cases pass** in Chromium/WebKit, including both lunar
+  models on both worlds, actual driving, three-choice picker, URL reload,
+  cross-world selection, saved Earth preference and stable geometry counts.
+  Actual rendered glazing samples match across visible panes.
+- Inspected current front, head-on, both profiles, home and driving views in both
+  engines; the lit opposite-side Moon profile confirms hull/rim colours rather
+  than judging only the shaded side. Refreshed only the Nomad thumbnail.
+  [Moon front](artifacts/moon/lunar-nomad/chromium-tablet/moon-nomad-front.png),
+  [lit Moon profile](artifacts/moon/lunar-nomad/webkit-tablet/moon-nomad-other-side.png),
+  [Mars front](artifacts/moon/lunar-nomad/webkit-tablet/mars-nomad-front.png),
+  [driving](artifacts/moon/lunar-nomad/chromium-tablet/moon-nomad-driving.png).
+- Sequential production/PWA checks: **17 passed, three existing WebKit offline
+  cases skipped**. Nomad's asset is precached in both engines; Chromium selects,
+  reloads and drives it offline. Internal Moon publication gate and Earth-only
+  car restrictions remain intact. Full unit/browser terrain suites and new
+  hardware/device benchmarks were not run for this cosmetic addition; the last
+  full-suite record remains 2026-10-11. Physical-iPad acceptance remains open.
+- **Exact next step:** user compares Nomad with the existing Rover in the
+  running preview before further detailing. Broken Highlands review remains
+  pending and Skylight Hollow is unbuilt. This alternative is uncommitted.
+
 ## Lunar Rover window fit and matching tint — 2026-10-23
 
 - Corrected the broad side panes after the user spotted their mismatched front

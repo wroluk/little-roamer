@@ -1,8 +1,8 @@
 {
   "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
-  "loadMs": 3834,
-  "medianMs": 50.099999999998545,
-  "p95Ms": 83.29999999999927,
+  "loadMs": 3602,
+  "medianMs": 50,
+  "p95Ms": 50.099999999998545,
   "state": {
     "area": "moon",
     "bounds": 384,
@@ -45,11 +45,11 @@
       "w": 0.7071065902709961
     },
     "velocity": {
-      "x": 0.00002648622466949746,
+      "x": 0.000026486226488486864,
       "y": -0.018700886517763138,
       "z": -1.401298464324817e-45
     },
-    "speed": -0.00005515481379257759,
+    "speed": -0.00005515481561156495,
     "contacts": 4,
     "input": {
       "steer": 0,
@@ -58,10 +58,10 @@
     },
     "camera": [
       53.54664560551684,
-      4.21844596977414,
-      -105.00000064392594
+      4.218445969774074,
+      -105.00000064392403
     ],
-    "targetDistance": 13.621306838919695,
+    "targetDistance": 13.621306838919688,
     "wheelSteering": 0,
     "suspension": [
       0.3042304813861847,
@@ -69,20 +69,20 @@
       0.3011339008808136,
       0.3011339008808136
     ],
-    "drawCalls": 25,
-    "triangles": 110284,
+    "drawCalls": 26,
+    "triangles": 109110,
     "pixelRatio": 1,
     "graphicsReduced": true,
-    "geometries": 33,
-    "textures": 2,
+    "geometries": 35,
+    "textures": 3,
     "cameraObstructed": false,
     "streaming": {
       "activeRender": 64,
       "activePhysics": 9,
       "queued": 0,
       "triangles": 91008,
-      "colliderCount": 33,
-      "lastActivationMs": 1.3999999910593033
+      "colliderCount": 34,
+      "lastActivationMs": 1.300000011920929
     },
     "navigation": {
       "heading": 269.9999972762431,

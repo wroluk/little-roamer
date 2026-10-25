@@ -6,8 +6,11 @@ import { buildMoonScenery, buildMoonSky } from './moon-scenery';
 import { disposeScene } from './dispose';
 import type { AreaRuntime } from './areas';
 import type { VehicleHandling } from './vehicle';
+import { moonHollowGeometry } from './moon-hollow';
+import { StaticSunlight } from './static-sunlight';
 
 export const MOON_GRAVITY = -3;
+export const MOON_SUN_OFFSET: [number, number, number] = [-38, 28, 15];
 export const MOON_HANDLING: VehicleHandling = {
   acceleration: 0.38, speed: 0.46, steering: 0.78, suspension: 0.3, damping: 0.65,
 };
@@ -22,6 +25,7 @@ export class MoonRuntime implements AreaRuntime {
   private centre = '';
   private activationMs = 0;
   private triangleCount = 0;
+  private sunlight?: StaticSunlight;
   constructor(private readonly scene: THREE.Scene, private readonly world: RAPIER.World) {
     this.group.name = 'Moon pilot';
     const geometries: THREE.BufferGeometry[] = [];
@@ -43,8 +47,12 @@ export class MoonRuntime implements AreaRuntime {
       terrain.name = 'Moon continuous landscape'; terrain.receiveShadow = true; this.group.add(terrain);
       const scenery = buildMoonScenery();
       this.group.add(scenery.group, buildMoonSky());
+      const roof = moonHollowGeometry();
+      try { this.sunlight = new StaticSunlight([roof], new THREE.Vector3(...MOON_SUN_OFFSET), 0.2); }
+      finally { roof.dispose(); }
+      this.shade(this.group);
       scenery.group.traverse(object => {
-        if (!(object instanceof THREE.Mesh) || object.name !== 'Moon solid rocks') return;
+        if (!(object instanceof THREE.Mesh) || !['Moon solid rocks', 'Moon hollow roof'].includes(object.name)) return;
         const positions = object.geometry.getAttribute('position').array;
         const vertices = Float32Array.from(positions);
         const indices = Uint32Array.from({ length: vertices.length / 3 }, (_, i) => i);
@@ -60,6 +68,7 @@ export class MoonRuntime implements AreaRuntime {
       for (const geometry of geometries) geometry.dispose();
     }
   }
+  shade(object: THREE.Object3D) { this.sunlight?.applyTo(object); }
   update(x: number, z: number) {
     if (this.disposed) return;
     const cx = Math.floor(x / MOON_CHUNK), cz = Math.floor(z / MOON_CHUNK), centre = `${cx},${cz}`;
@@ -97,6 +106,7 @@ export class MoonRuntime implements AreaRuntime {
     for (const collider of [...this.colliders.values(), ...this.sceneryColliders]) this.world.removeCollider(collider, true);
     this.colliders.clear(); this.sceneryColliders.length = 0; this.chunks.clear();
     this.scene.remove(this.group);
+    this.sunlight?.dispose();
     const owned = new THREE.Scene(); owned.add(this.group); disposeScene(owned);
   }
 }

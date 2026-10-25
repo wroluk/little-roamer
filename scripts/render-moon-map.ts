@@ -3,10 +3,11 @@
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
-import { MOON_HALF, MOON_ROUTES, MOON_STARTS, moonColor, moonSurfaceHeight } from '../src/game/moon-terrain';
+import { MOON_HALF, MOON_HOLLOW_ROOF, MOON_ROUTES, MOON_STARTS, moonColor, moonHollowCentreX, moonSurfaceHeight } from '../src/game/moon-terrain';
+import { moonHollowOpening } from '../src/game/moon-hollow';
 
 const resolution = 384, worldSize = MOON_HALF * 2;
-const width = 1600, height = 1150, left = 50, top = 170, mapSize = 900;
+const width = 1600, height = 1300, left = 50, top = 170, mapSize = 900;
 const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 const heights = new Float32Array(resolution * resolution);
 const pixels = new Uint8ClampedArray(heights.length * 4);
@@ -26,14 +27,15 @@ for (let j = 0; j < resolution; j++) for (let i = 0; i < resolution; i++) {
   pixels.set([...color.map(value => Math.round(Math.min(255, 255 * Math.sqrt(value) * shade))), 255],
     (j * resolution + i) * 4);
 }
-const colors = ['#fff1c3', '#fff1c3', '#ffb45f', '#72e1df', '#d7afff', '#d7afff', '#c8e883', '#c8e883'];
+const colors = ['#fff1c3', '#fff1c3', '#ffb45f', '#72e1df', '#d7afff', '#d7afff', '#c8e883', '#c8e883', '#edc3e4', '#edc3e4'];
 const labels: Record<string, { dx: number; dy: number; color: string; detail: string }> = {
   'earthview-base': { dx: -190, dy: -25, color: colors[0], detail: 'Home start / shelter to the west' },
   'earthrise-overlook': { dx: -150, dy: -25, color: colors[0], detail: 'Northern rim / Earth above the horizon' },
   'crater-floor': { dx: -100, dy: 45, color: colors[0], detail: 'Quiet Crater / return via the graded descent' },
   'basalt-reach': { dx: -105, dy: 55, color: colors[2], detail: 'Dark lava lobes in the south' },
   'silver-rille': { dx: 25, dy: 0, color: colors[3], detail: 'Winding channel in the east' },
-  'broken-highlands': { dx: -125, dy: -25, color: colors[6], detail: 'NEW / pale uplands and optional western ridge' },
+  'broken-highlands': { dx: -125, dy: -25, color: colors[6], detail: 'Pale uplands and optional western ridge' },
+  'skylight-hollow': { dx: 25, dy: -20, color: colors[8], detail: 'NEW / short passage and easy western bypass' },
 };
 const x = (v: number) => left + (v + MOON_HALF) / worldSize * mapSize;
 const y = (v: number) => top + (v + MOON_HALF) / worldSize * mapSize;
@@ -71,8 +73,15 @@ try {
     svg += `<path d="M ${p} ${top} V ${top + mapSize} M ${left} ${q} H ${left + mapSize}" stroke="#fff" stroke-opacity=".13" fill="none"/>`;
   }
   svg += `<rect x="${left}" y="${top}" width="${mapSize}" height="${mapSize}" fill="none" stroke="#acb8b9"/>`;
+  const roofRows = Array.from({ length: 30 }, (_, i) => MOON_HOLLOW_ROOF.north + i * 2);
+  const roofBoundary = [-1, 1].flatMap(side => (side < 0 ? roofRows : [...roofRows].reverse())
+    .map(z => ({ x: moonHollowCentreX(z) + side * MOON_HOLLOW_ROOF.halfWidth, z })));
+  const openingRows = Array.from({ length: 13 }, (_, i) => MOON_HOLLOW_ROOF.skylight - 12 + i * 2);
+  const openingBoundary = [-1, 1].flatMap(side => (side < 0 ? openingRows : [...openingRows].reverse())
+    .map(z => ({ x: moonHollowCentreX(z) + side * moonHollowOpening(z), z })));
+  svg += `<path d="M ${path(roofBoundary)} Z M ${path(openingBoundary)} Z" fill="#25272b" fill-rule="evenodd" stroke="${colors[8]}" stroke-width="1.5"/>`;
   MOON_ROUTES.forEach((route, i) => {
-    const points = path(route.points), dash = [4, 5, 7].includes(i) ? ' stroke-dasharray="10 7"' : '';
+    const points = path(route.points), dash = [4, 5, 7, 9].includes(i) ? ' stroke-dasharray="10 7"' : '';
     svg += `<polyline points="${points}" fill="none" stroke="#161c20" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>`;
     svg += `<polyline points="${points}" fill="none" stroke="${colors[i]}" stroke-width="4"${dash} stroke-linejoin="round" stroke-linecap="round"/>`;
   });
@@ -93,21 +102,22 @@ try {
   });
   svg += '<path d="M 915 125 V 65 m -9 14 9 -14 9 14" fill="none" stroke="#fff1c3" stroke-width="3"/>';
   svg += text(905, 52, 'N', 22, '#fff1c3', 700);
-  svg += text(1000, 680, 'FROM EARTHVIEW BASE', 23, '#fff1c3', 700);
-  svg += text(1000, 717, 'Basalt / rille: take the southern orange', 21);
-  svg += text(1000, 747, 'branch, then cyan north through the channel.', 21);
-  svg += text(1000, 787, 'Highlands: take the western circuit north,', 21);
-  svg += text(1000, 817, 'then the green branch west. Return east', 21);
-  svg += text(1000, 847, 'from the uplands to Earthrise Overlook.', 21);
-  for (const [i, label] of ['Crater circuit / floor descent', 'Basalt approach', 'Silver Rille floor', 'Optional bank / crossing breach', 'Broken Highlands traverse', 'Optional highland ridge'].entries()) {
-    const py = 907 + i * 33, color = colors[[0, 2, 3, 4, 6, 7][i]];
-    svg += `<path d="M 1000 ${py - 6} h 38" stroke="${color}" stroke-width="4"${[3, 5].includes(i) ? ' stroke-dasharray="8 5"' : ''}/>`;
+  svg += text(1000, 750, 'FROM EARTHVIEW BASE', 23, '#fff1c3', 700);
+  svg += text(1000, 787, 'Basalt / rille: orange south, then cyan', 21);
+  svg += text(1000, 817, 'north through the channel.', 21);
+  svg += text(1000, 857, 'Highlands: circuit north, green branch west;', 21);
+  svg += text(1000, 887, 'return east to Earthrise Overlook.', 21);
+  svg += text(1000, 927, 'Hollow: pink southwest; dashed bypass west.', 21);
+  svg += text(1000, 957, 'Both rejoin the basalt approach to the east.', 21);
+  for (const [i, label] of ['Crater circuit / floor descent', 'Basalt approach', 'Silver Rille floor', 'Optional bank / crossing breach', 'Broken Highlands traverse', 'Optional highland ridge', 'Skylight Hollow passage', 'Hollow surface bypass'].entries()) {
+    const py = 1007 + i * 33, color = colors[[0, 2, 3, 4, 6, 7, 8, 9][i]];
+    svg += `<path d="M 1000 ${py - 6} h 38" stroke="${color}" stroke-width="4"${[3, 5, 7].includes(i) ? ' stroke-dasharray="8 5"' : ''}/>`;
     svg += text(1050, py, label, 20);
   }
   svg += `<path d="M 50 1100 h ${100 * mapSize / worldSize} m 0 -6 v 12 M 50 1094 v 12" stroke="#eae8df" stroke-width="3"/>`;
   svg += text(50, 1130, '0', 16) + text(145, 1130, '100 m', 16);
   svg += text(250, 1105, '768 m detailed footprint / grid: 96 m / west = left, east = right', 18);
-  svg += text(250, 1133, 'Individual props omitted. Skylight Hollow is not built or mapped.', 17, '#acb8b9');
+  svg += text(250, 1133, 'Individual props omitted. Dark Hollow roof and its daylight opening shown.', 17, '#acb8b9');
   svg += '</svg>';
   const folder = 'artifacts/moon';
   await mkdir(folder, { recursive: true });

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MOON_BASE, MOON_OVERLOOK, moonRandom, moonSurfaceHeight, moonTrailSample } from './moon-terrain';
+import { moonHollowGeometry } from './moon-hollow';
 
 export type MoonSolid = { x: number; y: number; z: number; hx: number; hy: number; hz: number };
 export const MOON_EARTH_DIRECTION = new THREE.Vector3(0.16, 0.28, -1).normalize();
@@ -122,6 +123,10 @@ export function buildMoonSky() {
 
 export function buildMoonScenery() {
   const group = new THREE.Group(); group.name = 'Moon pilot scenery';
+  const roof = new THREE.Mesh(moonHollowGeometry(),
+    new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true,
+      emissive: '#585652', emissiveIntensity: 0.16 }));
+  roof.name = 'Moon hollow roof'; roof.receiveShadow = true; group.add(roof);
   const solids: MoonSolid[] = [];
   const batches = new Map<string, THREE.BufferGeometry[]>();
   const part = (color: string, geometry: THREE.BufferGeometry, x: number, y: number, z: number,
@@ -169,6 +174,7 @@ export function buildMoonScenery() {
   for (let z = -280; z <= 260; z += 22) for (let x = -270; x <= 270; x += 22) {
     if (moonRandom(x, z, 20) < 0.46) continue;
     const px = x + (moonRandom(x, z, 21) - 0.5) * 16, pz = z + (moonRandom(x, z, 22) - 0.5) * 16;
+    if (px > -285 && px < -205 && pz > 160 && pz < 240) continue;
     if (moonTrailSample(px, pz).distance < 13 || Math.hypot(px - MOON_BASE.x, pz - MOON_BASE.z) < 43) continue;
     const width = 0.7 + moonRandom(x, z, 23) ** 2 * 3.4, height = width * (0.45 + moonRandom(x, z, 24) * 0.4);
     const geometry = new THREE.DodecahedronGeometry(1, 0);

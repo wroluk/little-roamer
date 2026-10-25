@@ -118,6 +118,7 @@ async function boot() {
         selectedModel,
         area.handling,
       );
+      runtime?.shade?.(vehicle.model);
       if (area.spawnHeading !== undefined) vehicle.body.setRotation(
         new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), area.spawnHeading), true);
       const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight,
@@ -749,6 +750,7 @@ async function boot() {
       || !vehicleAvailable(area.id, input.value)) return;
     selectedModel = input.value;
     vehicle.setModel(selectedModel);
+    runtime?.shade?.(vehicle.model);
     follow.reset();
     follow.update(1 / 60, true);
     syncCarPicker();
@@ -938,7 +940,7 @@ async function boot() {
         get vehicle() { return vehicle; },
         get world() { return world; },
         get follow() { return follow; },
-        camera, pause, reset,
+        camera, renderer, pause, reset,
       },
     });
   }

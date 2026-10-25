@@ -27,6 +27,15 @@ Rim rocks sit back from the openings with embedded, slope-following bases; suppo
 sample their base edges against the actual roof triangles, preventing hovering overhangs.
 Rock particles are dark basalt here; Mars's rusty rock-particle palette remains elsewhere.
 
+Roof shade is permanent rather than tied to the rover's 48 m moving shadow
+camera. The actual roof triangles are rasterized once along the fixed sunlight
+direction into a 908 x 571 depth atlas. Lit terrain, scenery and vehicles sample
+it without changing their surface colours or ambient fill; portals and roof
+holes remain real sunlight paths. Static and nearby dynamic shadow coverage
+combine without double-darkening. Roofs no longer cast redundant dynamic
+shadows. [Approach comparisons](static-tube-shadows/) retain identical shaded
+pixels with the moving map near, distant and disabled in both browser engines.
+
 Reference inspiration: the user's Surtshellir entrance and collapsed-roof photographs.
 These are visual references only, not shipped textures or assets.
 

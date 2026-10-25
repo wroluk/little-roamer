@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { MOON_BASE, MOON_BASALT, MOON_FLOOR, MOON_HIGHLANDS, MOON_OVERLOOK, MOON_RILLE, MOON_ROUTES, moonSurfaceHeight } from '../../src/game/moon-terrain';
+import { MOON_BASE, MOON_BASALT, MOON_FLOOR, MOON_HIGHLANDS, MOON_HOLLOW, MOON_OVERLOOK, MOON_RILLE, MOON_ROUTES, moonHollowCentreX, moonSurfaceHeight } from '../../src/game/moon-terrain';
 import { MOON_SHELTER } from '../../src/game/moon-scenery';
 
 test.use({ deviceScaleFactor: 1 });
@@ -20,8 +20,8 @@ type Game = {
   camera: import('three').PerspectiveCamera;
 };
 const state = (page: Page) => page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
-async function boot(page: Page, start = '') {
-  await page.goto(`/?area=moon${start ? `&start=${start}` : ''}`);
+async function boot(page: Page, start = '', car = '') {
+  await page.goto(`/?area=moon${start ? `&start=${start}` : ''}${car ? `&car=${car}` : ''}`);
   await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
   await page.locator('#start').click();
   await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
@@ -34,11 +34,14 @@ async function drive(page: Page, points: readonly Point[]) {
       if (down) keys.add(code); else keys.delete(code);
       window.dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', { code, bubbles: true }));
     };
-    let next = 1, peakAirborne = 0, airborne = 0;
+    let next = 1, peakAirborne = 0, airborne = 0, peakPhysics = 0, peakTriangles = 0, peakDrawCalls = 0;
     const deadline = performance.now() + 155_000;
     try {
       while (next < path.length && performance.now() < deadline) {
         const s = game.snapshot(), target = path[next], dx = target.x - s.position.x, dz = target.z - s.position.z;
+        peakPhysics = Math.max(peakPhysics, s.streaming.activePhysics);
+        peakTriangles = Math.max(peakTriangles, s.triangles);
+        peakDrawCalls = Math.max(peakDrawCalls, s.drawCalls);
         if (Math.hypot(dx, dz) < 4.5) { next++; continue; }
         const q = s.rotation, fx = -2 * (q.x * q.z + q.y * q.w), fz = -(1 - 2 * (q.x * q.x + q.y * q.y));
         const angle = Math.atan2(dx, -dz) - Math.atan2(fx, -fz), error = Math.atan2(Math.sin(angle), Math.cos(angle));
@@ -47,12 +50,14 @@ async function drive(page: Page, points: readonly Point[]) {
         airborne = s.contacts === 0 ? airborne + 1 : 0; peakAirborne = Math.max(peakAirborne, airborne);
         await new Promise(requestAnimationFrame);
       }
-      return { next, total: path.length, state: game.snapshot(), peakAirborne };
+      return { next, total: path.length, state: game.snapshot(), peakAirborne, peakPhysics, peakTriangles, peakDrawCalls };
     } finally { for (const key of [...keys]) press(key, false); }
   }, points);
   expect(result.next, JSON.stringify(result)).toBe(result.total);
   expect(result.state.streaming.activePhysics).toBeLessThanOrEqual(9);
+  expect(result.peakPhysics).toBeLessThanOrEqual(9);
   expect(result.state.cameraObstructed).toBe(false);
+  return result;
 }
 
 test('Moon pilot has Earth, crisp terrain, bounded frame work, regional reset and safe return to Earth', async ({ page }, info) => {
@@ -135,7 +140,7 @@ test('Moon pilot has Earth, crisp terrain, bounded frame work, regional reset an
   await page.locator('#pause').click(); await page.locator('#home').click();
   await expect(page.getByRole('radio', { name: 'Lunar Rover' })).toBeChecked();
   await expect(page.getByRole('radio', { name: 'Mars Scout' })).toBeVisible();
-  await expect(page.locator('input[name="area"][value="moon"]')).toHaveCount(0);
+  await expect(page.locator('input[name="area"][value="moon"]')).toBeChecked();
   await page.locator('input[name="area"][value="valley"]').check();
   await expect(page.locator('#start')).toBeEnabled();
   expect((await state(page)).gravity).toBe(-18);
@@ -143,6 +148,29 @@ test('Moon pilot has Earth, crisp terrain, bounded frame work, regional reset an
   expect((await state(page)).car).toBe('classic');
   await page.getByRole('radio', { name: 'Classic' }).check();
   expect((await state(page)).car).toBe('classic');
+  expect(errors).toEqual([]);
+});
+
+test('Moon preview home tile opens the lunar world with its rover choices', async ({ page }, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
+  const tile = page.locator('input[name="area"][value="moon"]');
+  await expect(tile.locator('..')).toContainText('Low-gravity preview');
+  await expect(tile.locator('..').locator('img')).toHaveJSProperty('naturalWidth', 476);
+  await tile.check();
+  await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'moon');
+  await expect(page.getByRole('radio', { name: 'Lunar Rover' })).toBeChecked();
+  await expect(page.locator('#car-picker').getByRole('radio')).toHaveCount(3);
+  expect((await state(page)).gravity).toBe(-3);
+  const folder = `artifacts/moon/home-preview/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  await page.screenshot({ path: `${folder}/home.png` });
+  await page.locator('#start').click();
+  await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+  await expect(page.locator('#controls')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -365,6 +393,102 @@ test('real browser highland climb and exposed ridge stay driveable both ways', a
   const folder = `artifacts/moon/broken-highlands/${info.project.name}`;
   await mkdir(folder, { recursive: true });
   await page.screenshot({ path: `${folder}/real-drive.png` });
+});
+
+test('Skylight Hollow has daylight, open portals, safe Nomad entry and reset', async ({ page }, info) => {
+  test.setTimeout(90_000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await boot(page, 'skylight-hollow', 'lunar-nomad');
+  const folder = `artifacts/moon/skylight-hollow/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  expect((await state(page)).car).toBe('lunar-nomad');
+  expect((await state(page)).position.x).toBeCloseTo(MOON_HOLLOW.x, 0);
+  await page.locator('#reset').click();
+  await expect(page.locator('#toast')).toHaveText('Back at Skylight Hollow');
+  for (const [name, x, z, heading] of [
+    ['arrival', MOON_HOLLOW.x, MOON_HOLLOW.z, Math.PI],
+    ['north-portal', moonHollowCentreX(169), 169, Math.PI],
+    ['interior', moonHollowCentreX(184), 184, Math.PI],
+    ['skylight', moonHollowCentreX(200), 200, Math.PI],
+    ['south-portal', moonHollowCentreX(235), 235, 0],
+    ['bypass', -292, 198, -Math.PI / 2],
+  ] as const) {
+    await page.evaluate(({ x, z, heading }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(x, z, heading),
+      { x, z, heading });
+    await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+    await page.waitForTimeout(800);
+    const s = await state(page);
+    expect(s.fog).toBe(false); expect(s.gravity).toBe(-3);
+    expect(s.cameraObstructed).toBe(false);
+    expect(s.streaming.activePhysics).toBeLessThanOrEqual(9);
+    expect(s.triangles).toBeLessThan(120_000); expect(s.drawCalls).toBeLessThan(90);
+    await page.screenshot({ path: `${folder}/${name}.png` });
+  }
+  for (const [name, position, target] of [
+    ['daylight-from-inside', { x: moonHollowCentreX(185), y: 9, z: 185 }, { x: moonHollowCentreX(200), y: 15, z: 200 }],
+    ['roof-and-bypass', { x: -280, y: 28, z: 155 }, { x: -252, y: 14, z: 199 }],
+  ] as const) {
+    await page.evaluate(view => (window as unknown as { __ROAMER__: Game }).__ROAMER__.setPhotoView(view),
+      { position, target, fov: 65 });
+    await page.getByRole('button', { name: 'Hide UI', exact: true }).click();
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: `${folder}/${name}.png` });
+    await page.keyboard.press('Escape');
+  }
+  expect(errors).toEqual([]);
+});
+
+test('real browser Nomad drives Skylight Hollow passage and surface bypass both ways', async ({ page }, info) => {
+  test.setTimeout(420_000);
+  await boot(page, 'skylight-hollow', 'lunar-nomad');
+  for (const points of [MOON_ROUTES[8].points.slice(4, 8), MOON_ROUTES[9].points]) {
+    for (const reversed of [false, true]) {
+      const path = reversed ? [...points].reverse() : [...points], first = path[0], second = path[1];
+      await page.evaluate(({ first, second }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(
+        first.x, first.z, Math.atan2(-(second.x - first.x), -(second.z - first.z))), { first, second });
+      await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+      await drive(page, path);
+    }
+  }
+  const folder = `artifacts/moon/skylight-hollow/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  await page.screenshot({ path: `${folder}/real-drive.png` });
+});
+
+for (const [name, points] of [
+  ['base-connector', MOON_ROUTES[8].points.slice(0, 5)],
+  ['basalt-return', MOON_ROUTES[8].points.slice(7)],
+] as const) test(`real browser Hollow ${name} connects both ways with Nomad`, async ({ page }, info) => {
+  test.setTimeout(360_000);
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await boot(page, 'skylight-hollow', 'lunar-nomad');
+  const folder = `artifacts/moon/hollow-connectors/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  const renderer = await page.evaluate(() => {
+    const gl = document.querySelector<HTMLCanvasElement>('#game')!.getContext('webgl2')!;
+    const debug = gl.getExtension('WEBGL_debug_renderer_info');
+    return debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) as string : 'unavailable';
+  });
+  const runs = [];
+  for (const reversed of [false, true]) {
+    const path = reversed ? [...points].reverse() : [...points], first = path[0], second = path[1];
+    await page.evaluate(({ first, second }) => (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(
+      first.x, first.z, Math.atan2(-(second.x - first.x), -(second.z - first.z))), { first, second });
+    await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
+    const direction = reversed ? 'reverse' : 'forward';
+    await page.screenshot({ path: `${folder}/${name}-${direction}-departure.png` });
+    const result = await drive(page, path);
+    expect(result.state.car).toBe('lunar-nomad');
+    expect(result.peakTriangles).toBeLessThan(120_000);
+    expect(result.peakDrawCalls).toBeLessThan(90);
+    expect(result.state.streaming.activeRender).toBe(64);
+    expect(result.state.streaming.queued).toBe(0);
+    await page.screenshot({ path: `${folder}/${name}-${direction}-arrival.png` });
+    runs.push({ direction, path, ...result });
+  }
+  await writeFile(`${folder}/${name}.json`, JSON.stringify({ renderer, runs }, null, 2));
+  expect(errors).toEqual([]);
 });
 
 test('real browser lunar excursion crosses basalt, rille bends and the crossing breach both ways', async ({ page }, info) => {

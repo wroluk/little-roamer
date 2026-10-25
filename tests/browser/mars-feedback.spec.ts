@@ -14,7 +14,7 @@ test('world car restrictions, saved Earth preference and shared driving camera',
   const snapshot = () => page.evaluate(() => (window as unknown as { __ROAMER__: { snapshot(): {
     car: string; position: { x: number; y: number; z: number }; camera: number[]; cameraObstructed: boolean;
   } } }).__ROAMER__.snapshot());
-  await expect(page.locator('#car-picker').getByRole('radio')).toHaveCount(2);
+  await expect(page.locator('#car-picker').getByRole('radio')).toHaveCount(3);
   await expect(page.getByRole('radio', { name: 'Mars Scout' })).toBeChecked();
   await expect(page).toHaveURL(/car=mars-scout/);
   expect(await page.evaluate(() => localStorage.getItem('little-roamer-car'))).toBe('classic');

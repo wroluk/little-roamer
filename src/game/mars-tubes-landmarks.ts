@@ -127,6 +127,7 @@ export function addTubesDecor(cx: number, cz: number, add: (g: THREE.BufferGeome
     const roof = lavaTubeGeometry(tube, cx, cz);
     if (roof.getAttribute('position').count) {
       roofMaterial ??= new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true, side: THREE.DoubleSide });
+      roofMaterial.userData.castShadow = false;
       add(roof, roofMaterial, true);
     } else roof.dispose();
     for (const stone of tubeFloorRubble(tube)) if (owns(stone.x, stone.z)) rock(tubeFloorRockGeometry(stone));
