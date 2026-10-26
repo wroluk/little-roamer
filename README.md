@@ -334,10 +334,11 @@ Vite's large-chunk notice is expected. Enable normal gzip/Brotli on a chosen
 static host. A harmless upstream Rapier initialization deprecation warning may
 appear in development; the public `RAPIER.init()` API is used.
 
-## Moon (preview)
+## Moon
 
-Choose **Moon / Low-gravity preview** on the home screen for Earthview Base.
-The preview is available in the production/PWA build for iPad testing.
+Choose **Moon / Low-gravity exploration** on the home screen for Earthview Base.
+Moon was accepted as complete on 2026-10-26 and is available in the production/PWA
+build, with seven starts, ten routes, five postcards and three rover choices.
 Direct links also work: `?area=moon` for Earthview Base,
 `?area=moon&start=earthrise-overlook` for the exposed rim, or
 `?area=moon&start=crater-floor` for Quiet Crater,
@@ -347,7 +348,7 @@ Direct links also work: `?area=moon` for Earthview Base,
 `?area=moon&start=skylight-hollow` for the southwestern passage. Physical-iPad
 touch/offline/performance acceptance remains open despite desktop coverage.
 
-The pilot tests low-gravity rover driving, a black sky with a fixed-direction
+The world combines low-gravity rover driving, a black sky with a fixed-direction
 procedural Earth, a two-way crater loop and a graded floor descent. The first
 extension adds a basalt excursion, winding rille floor, higher-bank alternative
 and a crossing breach, all connected back to the original circuit. Basalt Reach
@@ -399,8 +400,9 @@ Earthrise Overlook, **A Window into Darkness** inside Skylight Hollow, and
 human-exploration discoveries. Earth and Hollow use narrow viewpoint triggers;
 Basalt Sea covers the central flat plain with overlapping zones rather than
 one tiny viewpoint or the whole southern region. Ordinary empty slots show their titles; secret slots
-stay anonymous until found, like Mars and Northern Reach. No collection total
-or in-game map markers are added. All five photos are vehicle-free actual-game
+stay anonymous until found, like Mars and Northern Reach. Home and pause journal
+tiles show the discovered count out of five; the journal retains its relaxed
+Moon-specific introductory text. No in-game map markers are added. All five photos are vehicle-free actual-game
 captures and remain available offline once the updated game is cached.
 The development [postcard trigger map](artifacts/moon/postcard-trigger-map.png)
 ([SVG](artifacts/moon/postcard-trigger-map.svg)) marks every exact recognition

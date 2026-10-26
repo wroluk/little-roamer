@@ -71,7 +71,7 @@ test('an unlocked postcard opens at full size while offline', async ({ page, con
   } finally { await context.setOffline(false); }
 });
 
-test('Moon discovery keepsakes survive reload and open offline without a collection total', async ({ page, context, browserName }) => {
+test('Moon discovery keepsakes and tile count survive reload and open offline', async ({ page, context, browserName }) => {
   test.skip(browserName === 'webkit', 'Playwright WebKit offline navigation remains unreliable; keep iPad Safari offline review.');
   await page.addInitScript(() => localStorage.setItem('little-roamer-postcards-v1', JSON.stringify([
     { id: 'first-landing', discoveredAt: '2026-10-25T12:00:00.000Z' },
@@ -88,6 +88,7 @@ test('Moon discovery keepsakes survive reload and open offline without a collect
   await context.setOffline(true);
   try {
     await page.reload(); await expect(page.locator('#open-journal')).toBeEnabled();
+    await expect(page.locator('#home-journal-count')).toHaveText('5/5');
     await page.locator('#open-journal').click();
     await expect(page.locator('#journal-grid .journal-card')).toHaveCount(5);
     await expect(page.locator('#journal-count')).toHaveText('Keepsakes from your lunar travels.');

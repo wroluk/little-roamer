@@ -332,8 +332,8 @@ async function boot() {
     element('journal-count').textContent = lunar
       ? collected ? 'Keepsakes from your lunar travels.' : 'Your discoveries will be kept here. Take your time exploring.'
       : `${collected} of ${cards.length} places visited`;
-    element('home-journal-count').textContent = lunar ? '' : `${collected}/${cards.length}`;
-    element('pause-journal-count').textContent = lunar ? '' : `${collected}/${cards.length}`;
+    element('home-journal-count').textContent = `${collected}/${cards.length}`;
+    element('pause-journal-count').textContent = `${collected}/${cards.length}`;
   };
   const openJournal = (focusCardId?: string) => {
     if (area.id !== 'northern-reach' && area.id !== 'mars' && area.id !== 'moon') return;

@@ -151,17 +151,19 @@ test('Moon pilot has Earth, crisp terrain, bounded frame work, regional reset an
   expect(errors).toEqual([]);
 });
 
-test('Moon preview home tile opens the lunar world with its rover choices', async ({ page }, info) => {
+test('completed Moon home tile opens the lunar world with its rover choices', async ({ page }, info) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
   await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
   const tile = page.locator('input[name="area"][value="moon"]');
-  await expect(tile.locator('..')).toContainText('Low-gravity preview');
+  await expect(tile.locator('..')).toContainText('Low-gravity exploration');
+  await expect(tile.locator('..')).not.toContainText('preview');
   await expect(tile.locator('..').locator('img')).toHaveJSProperty('naturalWidth', 476);
   await tile.check();
   await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
   await expect(page.locator('body')).toHaveAttribute('data-area', 'moon');
+  await expect(page.locator('#welcome-eyebrow')).toHaveText('MOON / EARTHVIEW BASE');
   await expect(page.getByRole('radio', { name: 'Lunar Rover' })).toBeChecked();
   await expect(page.locator('#car-picker').getByRole('radio')).toHaveCount(3);
   expect((await state(page)).gravity).toBe(-3);

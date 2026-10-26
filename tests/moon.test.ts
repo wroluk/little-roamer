@@ -15,8 +15,10 @@ import { moonHollowGeometry } from '../src/game/moon-hollow';
 
 before(async () => { await RAPIER.init(); });
 
-test('Moon preview is available, haze-free and isolated from existing world gravity and handling', () => {
-  assert.equal(isAreaId('moon'), true, 'the preview must be reachable from the production home tile');
+test('completed Moon is available, haze-free and isolated from existing world gravity and handling', () => {
+  assert.equal(isAreaId('moon'), true, 'Moon must be reachable from the production home tile');
+  assert.equal(AREAS.moon.label, '07 / LUNAR EXPLORATION');
+  assert.equal(AREAS.moon.welcomeEyebrow, 'MOON / EARTHVIEW BASE');
   assert.equal(isAreaId('iceland'), false, 'Iceland remains an internal development entry');
   assert.equal(AREAS.moon.fogDisabled, true);
   assert.equal(AREAS.moon.gravity, -3);

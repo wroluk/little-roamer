@@ -73,11 +73,11 @@ export type Area = {
 
 export const AREAS: Record<AreaId, Area> = {
   moon: {
-    id: 'moon', name: 'Moon', label: '07 / LUNAR PREVIEW',
+    id: 'moon', name: 'Moon', label: '07 / LUNAR EXPLORATION',
     tagline: 'A little closer to the stars.',
     description: 'A low-gravity lunar playground. Circle Quiet Crater, cross Basalt Reach, follow Silver Rille, climb Broken Highlands or explore Skylight Hollow.',
     hint: 'From the base, head southwest to Skylight Hollow. Its short roofed passage has a daylight opening and an easy western bypass. Use a gentle throttle.',
-    welcomeEyebrow: 'MOON / EARTHVIEW PREVIEW', welcomeTitle: 'Home on the horizon.',
+    welcomeEyebrow: 'MOON / EARTHVIEW BASE', welcomeTitle: 'Home on the horizon.',
     readyMessage: 'Earthview Base is ready. Take the crater loop in either direction.',
     ambientLight: '#c6cbd4', groundLight: '#44464d', sunlight: '#fff8eb',
     spawn: moonSpawn(), spawnHeading: 0, half: MOON_HALF, climbingPower: 1,

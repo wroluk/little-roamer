@@ -1,10 +1,12 @@
 # Moon: Earthview, basalt–rille, Broken Highlands and Skylight Hollow
 
 North is -Z; east is +X. Coordinates are invented, in world metres.
-This is a compact playable experiment, not a completed Moon world.
-The user accepted Broken Highlands and authorized the **Moon / Low-gravity
-preview** home tile on 2026-10-24 for easy iPad testing. The tile and regional
-links work in production; physical-device acceptance remains open.
+**Complete, accepted by the user on 2026-10-26.** The agreed scope is this compact
+world with seven starts, ten routes, five postcards and three rover choices,
+not an open-ended expansion. The **Moon / Low-gravity exploration** home tile
+and regional links work in production. Physical-iPad performance and manual
+Safari touch/offline evidence remain separate from the user's completion
+decision; no new device results are claimed.
 
 ## Navigation map
 
@@ -100,8 +102,9 @@ The sites are about 285 m apart. Their close-recognition radii are 13 m and
 11 m, outside all ordinary authored routes and regional starts. Existing
 8 m travel/teleport-reset and once-only journal persistence rules are reused.
 Moon shows anonymous empty secret slots until found, like Northern Reach and
-Mars, following the user's clarification. It still omits the completion total;
-Northern Reach and Mars retain their established journals.
+Mars, following the user's clarification. Home and pause journal tiles now show
+discovered/total like Mars, following the user's 2026-10-26 correction; the open
+journal retains its Moon-specific introductory text.
 
 References: Northern Stone Circle's narrow hidden recognition, Mars wreck's
 actual approach/return and journal persistence, and Moon's whole-footprint
@@ -131,7 +134,8 @@ discoveries, not a card for each region:
 Each postcard has a vehicle/UI-free **800 x 600** actual game image and a
 two-sentence note: distance from home, the drained lava passage, or the dark
 lunar "seas." Ordinary card titles appear on empty slots; both secret names
-stay anonymous until found. Moon still omits collection totals. The existing
+stay anonymous until found. Home and pause journal tiles show discovered/total;
+the open journal keeps its relaxed Moon-specific introductory text. The existing
 8 m travel gate, teleport reset, segment recognition and stored card IDs
 remain unchanged. No added geometry, props, routes, animation or frame work.
 

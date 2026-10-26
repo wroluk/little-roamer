@@ -64,7 +64,7 @@ test('Moon journal shows empty secret slots without names or totals and stays se
   await mkdir(folder, { recursive: true });
   await page.screenshot({ path: `${folder}/empty-journal.png` });
   await page.locator('#close-journal').click();
-  await expect(page.locator('#home-journal-count')).toBeEmpty();
+  await expect(page.locator('#home-journal-count')).toHaveText('0/5');
   await page.locator('input[name="area"][value="mars"]').check();
   await expect(page.locator('#open-journal')).toBeEnabled();
   await page.locator('#open-journal').click();
@@ -89,14 +89,34 @@ test('Moon retains the empty slot after finding one discovery, pausing and reloa
   const folder = `artifacts/moon/discoveries/${info.project.name}`;
   await mkdir(folder, { recursive: true });
   await page.screenshot({ path: `${folder}/partly-discovered-journal.png` });
-  await page.locator('#close-journal').click(); await page.locator('#start').click();
+  await page.locator('#close-journal').click();
+  await expect(page.locator('#home-journal-count')).toHaveText('1/5');
+  await page.locator('#open-journal').screenshot({ path: info.outputPath('moon-journal-tile.png') });
+  await page.locator('#start').click();
   await page.locator('#pause').click(); await page.locator('#pause-journal').click();
   await expect(grid.locator('.secret.locked')).toHaveCount(1);
-  await expect(page.locator('#pause-journal-count')).toBeEmpty();
+  await expect(page.locator('#pause-journal-count')).toHaveText('1/5');
   await page.reload(); await expect(page.locator('#open-journal')).toBeEnabled();
+  await expect(page.locator('#home-journal-count')).toHaveText('1/5');
   await page.locator('#open-journal').click();
   await expect(grid.locator('.journal-card')).toHaveCount(5);
   await expect(grid.locator('.secret.locked')).toHaveCount(1);
+});
+
+test('Moon journal tile counts all five postcards independently of Mars', async ({ page }) => {
+  const cards = POSTCARDS.filter(card => card.area === 'moon');
+  const marsCard = POSTCARDS.find(card => card.area === 'mars')!;
+  await page.addInitScript(({ key, records }) => localStorage.setItem(key, JSON.stringify(records)), {
+    key: POSTCARD_STORAGE_KEY,
+    records: [...cards, marsCard].map(card => ({ id: card.id, discoveredAt: '2026-10-26T09:00:00.000Z' })),
+  });
+  await page.goto('/?area=moon');
+  await expect(page.locator('#open-journal')).toBeEnabled();
+  await expect(page.locator('#home-journal-count')).toHaveText('5/5');
+  await page.locator('input[name="area"][value="mars"]').check();
+  await expect(page.locator('#home-journal-count')).toHaveText('1/10');
+  await page.locator('input[name="area"][value="moon"]').check();
+  await expect(page.locator('#home-journal-count')).toHaveText('5/5');
 });
 
 for (const [index, id, name] of [

@@ -3,6 +3,57 @@
 Read with [build plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
 and [shared guide](WORLD_BUILD_GUIDE.md).
 
+## Moon complete — accepted 2026-10-26
+
+- User explicitly marked Moon complete and authorized commit/push, including the
+  postcard tile-counter correction. The agreed world is complete: **seven starts,
+  ten routes, five postcards and three rover choices** inside the existing
+  compact footprint. No further expansion is planned.
+- Removed preview wording from the home tile, area label and welcome eyebrow.
+  Home now says **Low-gravity exploration**; welcome identifies **Earthview Base**.
+  Updated the plan, design and README to make completion the current status,
+  preserving earlier pilot decisions as history.
+- Reference: the existing Moon home/production-picker tests and shared Mars
+  journal count. Reused existing rendering, availability, vehicle selection and
+  saved discoveries; no new game systems, terrain or handling changes.
+- **37 focused units, typecheck/build and eight Chromium/WebKit home/journal
+  browser cases pass.** Inspected both refreshed home captures, including the
+  completed-world wording and visible 0/5 journal badge.
+- Ran the complete production/PWA suite: **20 distinct cases pass, four known
+  WebKit offline cases remain skipped**, combining 18 initial passes with two
+  successful targeted home-tile reruns. The initial two failures were stale
+  assertions for "Low-gravity preview"; updated those assertions to the new
+  exact copy and reran both engines. Chromium covered offline Moon photos and
+  the persisted 5/5 tile counter, offline travel, and confirmed update flow.
+  Broad unrelated unit/driving browser suites were not repeated for this
+  copy/counter closeout, retaining the user's focused-check preference.
+- Completion records the user's acceptance, not new physical-device evidence.
+  Sustained physical-iPad performance, manual touch/Safari offline coverage and
+  the deferred steep-slope shadow artifact remain documented limitations, not
+  newly claimed passes. Existing accepted terrain, lighting and driving stay intact.
+- **Next:** no planned Moon implementation work; reopen only for new user-directed
+  changes or specific bug reports.
+
+## Moon journal tile counter restored — 2026-10-26
+
+- User reported the Moon home journal tile's empty badge compared with Mars.
+  Removed the Moon-only suppression from home and pause journal badges: both
+  now show **discovered/5**, including hidden discoveries in the total without
+  revealing their names. The open journal retains its relaxed Moon-specific
+  introductory text and anonymous locked secret slots.
+- Reference: the existing shared Mars/Northern Reach `renderJournal` count and
+  Moon's partial-discovery/reload browser cases. Reused the same area-filtered
+  count with no new state, styles, storage or recognition changes.
+- **15 postcard units, typecheck/build and six Chromium/WebKit browser cases
+  pass.** Covered 0/5, 1/5, pause, reload, 5/5, and switching to Mars with 1/10
+  without mixing records. Inspected actual cropped home-tile captures from both
+  engines: the formerly empty badge now visibly reads 1/5. Captures are retained
+  in the session's `moon-journal-counter-browser` output.
+- No driving/terrain, startup, caching or storage behavior changed; broad
+  driving/PWA suites were not repeated. Earlier changes through `87d5bd6` were
+  committed/pushed on 2026-10-25; this correction remains local and uncommitted.
+  **Next:** user review of the restored tile counter.
+
 ## Northwest illumination on both Moon maps — 2026-10-25
 
 - Applied the requested map-lighting correction: flipped the hillshade gradient

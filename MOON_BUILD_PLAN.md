@@ -1,15 +1,19 @@
-# Moon preview and staged expansion
+# Moon — complete
 
-Home-screen **Moon / Low-gravity preview** tile, or `?area=moon`.
+Home-screen **Moon / Low-gravity exploration** tile, or `?area=moon`.
 Read [WORLD_BUILD_GUIDE.md](WORLD_BUILD_GUIDE.md),
 [design](artifacts/moon/DESIGN.md) and [progress](MOON_PROGRESS.md) before extending.
 
-**Current availability decision — 2026-10-24:** the user accepted Broken Highlands
-and authorized a home-screen tile, commit and push to make physical-iPad testing
-easy. Moon is available in production as a preview. This supersedes the historical
-internal-only gate, not the unverified device-performance/offline/touch checks.
-The subsequent discovery authorization is recorded below; physical-device
-acceptance remains separate.
+**Complete — 2026-10-26:** the user accepted Moon as complete and authorized commit
+and push, including the restored postcard tile counter. The completed scope is
+the existing compact world: seven starts, ten routes, five postcards and three
+rover choices. Home and welcome copy no longer label it a preview. No further
+regions or features are scheduled. The historical pilot/expansion decisions
+below remain as implementation history, not outstanding scope.
+
+User acceptance does not manufacture physical-device evidence: sustained iPad
+performance and manual Safari touch/offline checks remain separately unverified.
+The documented deferred steep-slope shadow artifact is not changed by closeout.
 
 The user accepted the pilot's visual direction and handling, and approved the
 staged continuation on 2026-10-23. The basalt–rille excursion and Broken Highlands
@@ -134,7 +138,10 @@ deferral above, not the limit on additional hidden scenes or world expansion.
 Moon now has three scenic cards and the two existing secret discoveries.
 
 Reuse the existing travel gate, storage, ordinary empty slots and anonymous
-secret slots, keeping Moon's collection totals omitted. Earth and Hollow use
+secret slots. Following the user's 2026-10-26 correction, home and pause journal
+tiles show discovered/total like Mars; the open journal keeps its Moon-specific
+introductory text. This supersedes the earlier omission of all Moon counters.
+Earth and Hollow use
 narrow viewpoint circles; the user's later Basalt Sea request expands that
 card across the central flat plain using overlapping circles, not a whole-region
 unlock. Images must be vehicle/UI-free actual game
