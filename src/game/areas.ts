@@ -20,8 +20,13 @@ import { IcelandStreamingRuntime, IcelandWorkerTransport } from './iceland-strea
 import { MoonRuntime, MOON_GRAVITY, MOON_HANDLING, MOON_SUN_OFFSET } from './moon';
 import { MOON_HALF, moonSpawn, moonSurfaceAt, moonSurfaceHeight } from './moon-terrain';
 import type { VehicleHandling } from './vehicle';
+import { IslandRuntime } from './island';
+import { ISLAND_HALF, ISLAND_STARTS, islandSpawn, islandDrivingHeight, islandSurfaceAt, islandWaterHeight } from './island-terrain';
+import { DEMO_AREAS } from './location-demos';
+import { isDemoId, type DemoId } from './location-demo-terrain';
+import { TIDAL_AREA } from './tidal-tracks';
 
-export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars' | 'iceland' | 'moon';
+export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars' | 'iceland' | 'moon' | 'island' | 'tidal-islands' | DemoId;
 export type AreaRuntime = {
   shade?: (object: THREE.Object3D) => void;
   update: (x: number, z: number) => void;
@@ -72,6 +77,22 @@ export type Area = {
 };
 
 export const AREAS: Record<AreaId, Area> = {
+  ...DEMO_AREAS,
+  'tidal-islands': TIDAL_AREA,
+  island: {
+    id: 'island', name: 'Island', label: '08 / LOST ISLAND PILOT',
+    tagline: 'A little lost. A long way from ordinary.',
+    description: 'A warm-water cove, a shaded jungle climb and an old aqueduct. Drive beneath its arches, find the way across, and follow the ocean home.',
+    hint: 'From the beach, follow the sandy track inland beneath the arches. The jungle trail climbs west to the crossing; the eastern descent loops home. Deep sea needs Reset.',
+    welcomeEyebrow: 'ISLAND / CASTAWAY COVE PILOT', welcomeTitle: 'Somewhere greener.',
+    readyMessage: 'Castaway Cove is ready. The arches wait inland.',
+    get spawn() { return islandSpawn(); }, spawnHeading: ISLAND_STARTS[0].heading, half: ISLAND_HALF, climbingPower: 1.45,
+    ambientLight: '#e1f5e3', groundLight: '#667e54', sunlight: '#fff0ce',
+    sky: '#a8dce1', fogNear: 180, fogFar: 650, ambientIntensity: 1.65, sunIntensity: 2.6,
+    surfaceHeight: islandDrivingHeight, surfaceAt: islandSurfaceAt, waterHeight: islandWaterHeight,
+    particleColors: { dirt: '#a28a59', sand: '#ead6a0', water: '#9de5cd' },
+    build: (scene, world) => new IslandRuntime(scene, world),
+  },
   moon: {
     id: 'moon', name: 'Moon', label: '07 / LUNAR EXPLORATION',
     tagline: 'A little closer to the stars.',
@@ -171,6 +192,6 @@ export const AREAS: Record<AreaId, Area> = {
 };
 
 export function isAreaId(value: string | null): value is AreaId {
-  if (value === 'iceland') return import.meta.env?.DEV === true;
+  if (value === 'iceland' || value === 'island' || value === 'tidal-islands' || value !== null && isDemoId(value)) return import.meta.env?.DEV === true;
   return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village' || value === 'mars' || value === 'moon';
 }

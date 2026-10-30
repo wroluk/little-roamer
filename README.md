@@ -83,6 +83,76 @@ Direct links:
 - Northern Reach: `http://127.0.0.1:5173/?area=northern-reach`
 - Mars Outpost: https://wroluk.github.io/little-roamer/?area=mars
 
+### Compare the next location
+
+The development home screen includes five small, separate pilots from
+[LOCATION_IDEAS.md](LOCATION_IDEAS.md). Each has an easy connected circuit,
+an optional harder line, a dry starting/reset clearing and the existing Earth
+cars. They are samples for choosing the next location, not full eight-region
+worlds, and are excluded from production selection and direct entry.
+
+| Open on the local development server | Sample |
+| --- | --- |
+| [Red Canyon](http://127.0.0.1:5173/?area=red-canyon) | Split Spire, Echo Arch, sandstone wash and mesa return |
+| [Old Quarry](http://127.0.0.1:5173/?area=old-quarry) | Terraced pit, excavator and an optional deep tunnel with solid rubble crossings |
+| [Dune Sea](http://127.0.0.1:5173/?area=dune-sea) | Firm White Pan, soft crescent climb and Stone Window |
+| [Autumn Woods](http://127.0.0.1:5173/?area=autumn-woods) | Golden grove, ford, covered bridge and a high ridge with solid logs, roots and stones |
+| [Island Tracks](http://127.0.0.1:5173/?area=island-tracks) | Lighthouse, grass headland, rock ridge and raised two-islet causeway |
+
+Pause and choose **Back to home screen** to switch pilots. The tropical
+[Island](http://127.0.0.1:5173/?area=island), with its jungle and aqueduct,
+remains a different pilot. See [scope, references and comparison evidence](LOCATION_DEMOS.md).
+
+For the new optional challenges, follow **pale posts** from the quarry's eastern
+pit floor into Deep Cut: a bent descent to a turning chamber and a second exit,
+about 55 m below the starting yard. In the woods, take the **golden posts**
+outward from Cathedral Grove: fallen timber leads up to a 43 m ridge and two
+mossy stone crossings, then back down before the ford. Approach obstacles slowly
+and try different wheel lines; the original easy circuits remain available.
+
+### Island Tracks — Rock Passage
+
+The selected direction is a **fresh crossing-first build**, separate from the
+old lighthouse/causeway sample:
+**[drive Rock Passage](http://127.0.0.1:5173/?area=tidal-islands)** on the
+development server. Leave Harbor Cove and follow the cairns through a winding
+basalt chain: four solid stone ribs, narrow rock gates and three shallow sea
+channels lead to Saltgrass Landing. Climb the eastern island to the 30 m
+Windward Lookout and look back over the passage. Both Earth cars keep their
+normal handling; slow wheel placement matters. There is no bridge, easy dry
+bypass or tide timer.
+
+For the next demanding ride, continue north from Windward Lookout onto
+**Seabird Climb**: another 180 m of exposed cliff ledges, four solid offset
+stone crossings and an upper switchback. Pause at the 47 m **Wind Notch**,
+then reach the 67 m **Seabird Summit**, with a clear turning area and a view
+back toward the islands. The way down follows the same physical trail.
+[Start at the foot of the climb](http://127.0.0.1:5173/?area=tidal-islands&start=windward-lookout).
+
+Pale turquoise reveals the shallow bed; dark blue is deep sea, not an alternate
+route. If the car sinks, the driving camera stays at least 1 m above the sea
+instead of exposing a dry-looking underwater landscape. Shallow-water driving,
+the freely positioned photo camera and other worlds are unchanged.
+Gull Rock, Split Saddle and Wind Notch are resting places, not checkpoints.
+**Reset car** always restarts the entire current challenge at its departure,
+even if the car could be righted locally. Rock Passage starts at Harbor Cove
+and ends on the safe far shore after the landing rib: Reset then stays on the
+earned island at **Saltgrass Landing**, including after the first inland turn.
+The approach from the landing to Windward Lookout is a separate leg;
+Seabird Climb starts at that lookout. Completed journeys allow return
+attempts from the opposite end. Direction follows ordered route progress, not
+the car's heading or gear; backing up cannot move the retry point forward.
+Reaching an exit out of sequence cannot unlock it. Development
+inspection links also accept `&start=harbor-cove`, `&start=gull-rock`,
+`&start=split-saddle`, `&start=saltgrass-landing`, `&start=windward-lookout`,
+`&start=wind-notch` or `&start=seabird-summit`. Gull Rock, Split Saddle and Wind
+Notch inspection entries still retry from their full challenge's entrance.
+Saltgrass Landing starts on the earned island; the summit entry starts a descent.
+
+This connected development build is not the full eight-region world and stays
+out of production selection/direct entry. The old comparison and tropical
+Island pilots remain intact. See [current scope and evidence](LOCATION_DEMOS.md#fresh-island-tracks-earned-shore-recovery-and-game-dna--2026-10-30).
+
 In the highlands, follow the **amber posts** for broad, shallow river crossings.
 Drive down the bank, through the water, and up the opposite side. The riverbed
 is solid terrain, not an invisible bridge; the wheels kick up a little spray.
@@ -310,6 +380,10 @@ return to a start. A brief message distinguishes local righting from returning;
 regional resets cost journey progress without returning you across the whole
 world.
 
+The development **Island Tracks** world deliberately differs: both Reset and R
+restart the whole active challenge from its departure, without local righting
+or intermediate-shelf checkpoints. Other worlds retain the behavior above.
+
 Tree trunks/canopies, boulders, ramps,
 signposts/boards, and the visible sandstone perimeter are solid. Tiny flowers,
 painted ramp stripes, and distant scenery are decorative.
@@ -424,6 +498,49 @@ For discoveries and their journal, use
 and `npx playwright test tests/browser/moon-discoveries.spec.ts`.
 
 ## Checks
+
+The **Island pilot** is development-only: run `npm run dev` and open
+**http://127.0.0.1:5173/?area=island** (or choose Island on the development home
+screen). Drive from Castaway Cove beneath the Old Aqueduct, climb Rootwood Trail,
+cross the same arches above, and follow the eastern descent back to the beach.
+A rough western shortcut rejoins the easy climb. The turquoise sea is scenery
+with solid submerged ground, not a required crossing; Reset recovers from deep
+water. Earth cars and normal gravity are retained.
+Regional links use `start=castaway-cove`, `start=rootwood-trail` and
+`start=aqueduct`; Reset returns to the nearest of these when local righting is
+not appropriate. The pilot stays out of production home/direct entry.
+See [Island scope](ISLAND_BUILD_PLAN.md), [design](artifacts/island/DESIGN.md)
+and [current progress](ISLAND_PROGRESS.md).
+Focused checks: `node --import tsx --test tests/island.test.ts tests/vehicle-selection.test.ts`
+and `npx playwright test tests/browser/island.spec.ts`.
+Production exclusion is covered by `tests/pwa/island.spec.ts`.
+
+For the five comparison pilots, use
+`node --import tsx --test tests/location-demos.test.ts tests/vehicle-selection.test.ts`
+and `npx playwright test tests/browser/location-demos.spec.ts tests/browser/location-demo-adventures.spec.ts`.
+Units drive complete circuits with both Earth cars and every optional line
+in both directions. Browser scenarios capture actual driving-height views,
+drive the signature sections both ways in Chromium and WebKit, and cover
+reset, selection, Earth/Moon transitions and resource disposal.
+Adventure checks also measure actual independent wheel lift and suspension
+movement over solid obstacles, underground clearance/recovery and turning,
+and the full optional climbs/descents. To check only the refined pair, add
+`--grep 'old-quarry|autumn-woods'` to the browser command.
+Production exclusion is covered by `tests/pwa/location-demos.spec.ts`.
+
+For the fresh Island Tracks crossing, run
+`node --import tsx --test tests/tidal-tracks.test.ts`
+and `npx playwright test tests/browser/tidal-tracks.spec.ts`.
+Units drive the entire cove-to-lookout journey with both Earth cars in both
+directions and measure individual solid steps. Both browser engines drive the
+complete passage using keyboard controls, require all three actual wet-wheel
+crossings, and check contact movement, camera clearance, direction-aware challenge retries,
+earned-shore recovery before/after the first inland turn, above-water fall/orbit
+views, regional entries, photo-mode isolation and switching/disposal.
+Shared camera collision, optional waterline floors and unchanged recovery are
+covered by `node --import tsx --test tests/physics.test.ts tests/vehicle-recovery.test.ts`.
+Production exclusion is covered by `tests/pwa/tidal-tracks.spec.ts`; run PWA checks after
+browser checks, not concurrently.
 
 The new Iceland world has an internal south-coast slice at `/?area=iceland` when
 running `npm run dev`. Start at Skógafoss with

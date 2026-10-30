@@ -1,6 +1,11 @@
 # New location ideas
 
-These five locations are concepts for future additions. Each offers an open-ended drive, a continuous easy route in both directions, optional harder lines, and landmarks that help players find their way without objectives or timers. Each named region should have a safe starting and reset clearing. The loop order below describes geography, not a required journey.
+These five locations began as concepts for future additions, with open-ended
+driving, easy circuits and optional harder lines. After trying their pilots,
+the user selected a fresh **Island Tracks** build with a genuinely technical
+inter-island crossing rather than an easy causeway. Landmarks help players
+navigate without objectives or timers. The older region lists below describe
+proposed geography, not completed worlds or required journeys.
 
 | Location | Driving features | Distinct landmarks |
 | --- | --- | --- |
@@ -8,9 +13,52 @@ These five locations are concepts for future additions. Each offers an open-ende
 | **Old Quarry** | Terraced switchbacks connect a level gravel floor to higher ledges, with short rock-crawling detours. | **Spiral Cut:** the quarry's stepped central pit. **Iron Giant:** a retired excavator beside the main route. **Blue Seam:** a mineral band visible across several terraces. |
 | **Dune Sea** | Soft dunes reward momentum, while a firm salt pan offers open, easy driving and a route home. | **Crescent Crown:** a tall curved dune. **White Pan:** the pale dry lake bed. **Stone Window:** a wind-carved opening on the desert edge. |
 | **Autumn Woods** | Gentle leaf-covered lanes wind through trees, with a shallow creek crossing and a narrower ridge path. | **Cathedral Grove:** a circle of towering golden trees. **Copper Falls:** a small cascade beside the ford. **Foxglove Bridge:** a covered wooden bridge on the return loop. |
-| **Island Tracks** | Compact headland loops offer grassy climbs, a sheltered shore road, and a fixed causeway to a second islet. | **Needle Lighthouse:** visible from most of the island. **Whale's Back:** a smooth rock ridge to drive over. **Tide Gate:** the stone causeway framed by tide pools. |
+| **Island Tracks** | Fresh grassy islands joined by a winding, technical basalt/wading passage instead of a causeway. | **Harbor Cove:** sheltered departure. **Rock Passage:** narrow gates, solid ribs and shallow channels. **Windward Lookout:** a climb with a view back across the journey. |
 
-**Suggested first addition:** Red Canyon. Its open wash supports relaxed exploration, while the shelf and rim trails give players more demanding routes. Mars Outpost is already available; its current design is documented in [MARS_BUILD_PLAN.md](MARS_BUILD_PLAN.md) and [artifacts/mars/DESIGN.md](artifacts/mars/DESIGN.md).
+**Selected direction:** Island Tracks, rebuilt independently around an earned
+crossing to the second island. The original Red Canyon recommendation and the
+five comparison pilots remain useful alternatives, not the current selection.
+Mars Outpost is already available; its current design is documented in
+[MARS_BUILD_PLAN.md](MARS_BUILD_PLAN.md) and [artifacts/mars/DESIGN.md](artifacts/mars/DESIGN.md).
+
+## Try the comparison pilots
+
+Small development-only pilots now sample each of the five concepts below.
+Run `npm run dev`, then use the development home picker or these links:
+[Red Canyon](http://127.0.0.1:5173/?area=red-canyon),
+[Old Quarry](http://127.0.0.1:5173/?area=old-quarry),
+[Dune Sea](http://127.0.0.1:5173/?area=dune-sea),
+[Autumn Woods](http://127.0.0.1:5173/?area=autumn-woods), and
+[Island Tracks](http://127.0.0.1:5173/?area=island-tracks).
+Each is one connected sample with signature landmarks and an optional harder
+line, not the full eight-region concept. Island Tracks is the grassy,
+lighthouse-and-causeway idea; the separate tropical
+[Island pilot](http://127.0.0.1:5173/?area=island) has a jungle and aqueduct.
+See [pilot design, implementation references and current evidence](LOCATION_DEMOS.md).
+
+The selected fresh build is a separate development entry:
+**[Island Tracks — Rock Passage](http://127.0.0.1:5173/?area=tidal-islands)**.
+Its first slice connects Harbor Cove, three real wading channels, two dry
+resting rocks, Saltgrass Landing and a 30 m lookout. Follow the cairns, read the
+pale shallow bed and avoid dark offshore water. Reset returns to the last
+earned challenge departure, not an intermediate shelf: Harbor Cove during
+the crossing, then Saltgrass Landing after its safe far-shore arrival.
+The old causeway comparison above is preserved, not reused as this world's
+geography.
+
+The selected next ride adds **Seabird Climb** beyond the 30 m lookout:
+exposed ledges, four physical stone crossings, the 47 m Wind Notch resting
+shelf and a 67 m summit. This is a connected 180 m extension, not a second
+world or a return to the causeway concept. Use
+[`&start=windward-lookout`](http://127.0.0.1:5173/?area=tidal-islands&start=windward-lookout)
+to inspect the climb without repeating the crossing.
+
+The first tactile refinement pair is **Old Quarry** (a deep, covered descent
+with a turning chamber, second exit and solid rubble) and **Autumn Woods**
+(fallen logs, exposed roots and mossy stones on a high woodland ridge).
+Their relaxed main circuits remain open. Pale quarry posts and golden woodland
+posts lead onto these optional challenges; the other pilots have not received
+this refinement yet.
 
 ## Red Canyon
 
@@ -81,6 +129,13 @@ These five locations are concepts for future additions. Each offers an open-ende
 **Route shape:** Orchard Gate → Cathedral Grove → Fern Hollow → Copper Falls → Amber Ridge → Mirror Pond → Old Mill → Foxglove Bridge → Orchard Gate. The creek ties the middle regions together; crossings and ridge links form smaller loops. Thicker woodland, rising hills and stream-cut banks define the edge, while openings keep the next landmark legible.
 
 ## Island Tracks
+
+**Current direction:** the fresh Rock Passage slice described above supersedes
+the fixed-causeway connection below. It has no easy bypass or changing-tide
+timer. See [current design, references and progress](LOCATION_DEMOS.md#fresh-island-tracks-build--2026-10-28).
+The following is the **earlier eight-region concept**, retained as idea history;
+its lighthouse, causeway and complete island loops are not claims about the
+new build.
 
 **Character:** Windy grass, basalt headlands, sheltered coves and ocean views. The land is compact but folded into distinct coastal and upland drives. Water and solid cliffs make the outer limit clear.
 

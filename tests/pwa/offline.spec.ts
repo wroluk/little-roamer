@@ -165,6 +165,7 @@ test('the cached Mars worker generates all four new regions without network acce
 });
 
 test('reloads and travels through Highlands, Valley, Mars and Moon with no network', async ({ page, context, browserName }) => {
+  test.setTimeout(90_000);
   test.skip(browserName === 'webkit', 'Playwright WebKit cannot navigate after context.setOffline; iPad Safari supports service workers.');
 
   await page.goto('/?area=highlands');

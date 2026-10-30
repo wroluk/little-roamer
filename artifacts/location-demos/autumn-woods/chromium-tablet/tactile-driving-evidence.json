@@ -1,0 +1,220 @@
+[
+  {
+    "reverse": false,
+    "next": 7,
+    "total": 7,
+    "maxWater": 0,
+    "maxCalls": 41,
+    "maxTriangles": 173634,
+    "minimumUp": 0.8221898396129745,
+    "low": 14.653339385986328,
+    "high": 43.829097747802734,
+    "wheelLift": 0.3285560607910156,
+    "articulation": 0.3285560607910156,
+    "suspensionDifference": 0.22029930353164673,
+    "obstructedFrames": 0,
+    "frames": 671,
+    "state": {
+      "area": "autumn-woods",
+      "bounds": 200,
+      "spawn": {
+        "x": -65,
+        "y": 7.2,
+        "z": 65
+      },
+      "gravity": -18,
+      "fog": true,
+      "viewDistance": 900,
+      "car": "modern",
+      "surface": "rock",
+      "wheelSurfaces": [
+        "rock",
+        "rock",
+        "rock",
+        "rock"
+      ],
+      "terrainFeedback": 0.03177039226666002,
+      "waterDepth": 0,
+      "terrainParticles": 4,
+      "terrainTracks": 0,
+      "terrainRipples": 0,
+      "terrainParticleCapacity": 72,
+      "terrainEffectUsesInstanceColors": true,
+      "reducedMotion": false,
+      "cameraFeedbackApplied": 0.03177039226666002,
+      "waterHeight": null,
+      "mode": "playing",
+      "position": {
+        "x": -37.405372619628906,
+        "y": 33.31155014038086,
+        "z": -83.45349884033203
+      },
+      "rotation": {
+        "x": -0.06718279421329498,
+        "y": -0.8668959736824036,
+        "z": -0.11583317071199417,
+        "w": 0.4801673889160156
+      },
+      "velocity": {
+        "x": 4.336389064788818,
+        "y": -1.4712814092636108,
+        "z": 2.9914896488189697
+      },
+      "speed": 5.464774978814157,
+      "contacts": 4,
+      "input": {
+        "steer": 0,
+        "forward": false,
+        "reverse": false
+      },
+      "camera": [
+        -49.9731904441051,
+        38.69845961899132,
+        -90.31694598497944
+      ],
+      "targetDistance": 15.264165896376992,
+      "wheelSteering": -0.10070890933275223,
+      "suspension": [
+        0.2358059585094452,
+        0.23556384444236755,
+        0.29339101910591125,
+        0.29011639952659607
+      ],
+      "wheelContactLift": [
+        0.0000013102107914164662,
+        7.183043635450304e-7,
+        0.000001258711563423276,
+        -1.705921022221446e-7
+      ],
+      "drawCalls": 40,
+      "triangles": 172782,
+      "pixelRatio": 1,
+      "graphicsReduced": true,
+      "geometries": 40,
+      "textures": 1,
+      "cameraObstructed": false,
+      "streaming": {
+        "activeRender": 1,
+        "activePhysics": 1,
+        "queued": 0,
+        "triangles": 140052,
+        "colliderCount": 9,
+        "lastActivationMs": 0
+      },
+      "navigation": {
+        "heading": 122.0785963960343,
+        "direction": "ESE",
+        "elevation": 33
+      }
+    }
+  },
+  {
+    "reverse": true,
+    "next": 7,
+    "total": 7,
+    "maxWater": 0,
+    "maxCalls": 38,
+    "maxTriangles": 173462,
+    "minimumUp": 0.8442389606364258,
+    "low": 14.713892936706543,
+    "high": 43.828285217285156,
+    "wheelLift": 0.3303260803222656,
+    "articulation": 0.3303260803222656,
+    "suspensionDifference": 0.27181264758110046,
+    "obstructedFrames": 0,
+    "frames": 568,
+    "state": {
+      "area": "autumn-woods",
+      "bounds": 200,
+      "spawn": {
+        "x": -65,
+        "y": 7.2,
+        "z": 65
+      },
+      "gravity": -18,
+      "fog": true,
+      "viewDistance": 900,
+      "car": "modern",
+      "surface": "rock",
+      "wheelSurfaces": [
+        "rock",
+        "rock",
+        "rock",
+        "rock"
+      ],
+      "terrainFeedback": 0.025141886906900505,
+      "waterDepth": 0,
+      "terrainParticles": 0,
+      "terrainTracks": 0,
+      "terrainRipples": 0,
+      "terrainParticleCapacity": 72,
+      "terrainEffectUsesInstanceColors": true,
+      "reducedMotion": false,
+      "cameraFeedbackApplied": 0.025141886906900505,
+      "waterHeight": null,
+      "mode": "playing",
+      "position": {
+        "x": -109.76265716552734,
+        "y": 14.763731002807617,
+        "z": 1.370500922203064
+      },
+      "rotation": {
+        "x": 0.008997459895908833,
+        "y": 0.9620704650878906,
+        "z": 0.003301085904240608,
+        "w": -0.27263274788856506
+      },
+      "velocity": {
+        "x": 1.5908790826797485,
+        "y": -0.38587138056755066,
+        "z": 2.8427419662475586
+      },
+      "speed": 3.258885112408218,
+      "contacts": 4,
+      "input": {
+        "steer": 0,
+        "forward": false,
+        "reverse": false
+      },
+      "camera": [
+        -117.09916879699831,
+        19.64593927872043,
+        -10.240391590735316
+      ],
+      "targetDistance": 14.555493429291053,
+      "wheelSteering": 0.0005863880505785346,
+      "suspension": [
+        0.26150354743003845,
+        0.2945326864719391,
+        0.2822190225124359,
+        0.31524816155433655
+      ],
+      "wheelContactLift": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "drawCalls": 36,
+      "triangles": 171626,
+      "pixelRatio": 1,
+      "graphicsReduced": true,
+      "geometries": 40,
+      "textures": 1,
+      "cameraObstructed": false,
+      "streaming": {
+        "activeRender": 1,
+        "activePhysics": 1,
+        "queued": 0,
+        "triangles": 140052,
+        "colliderCount": 9,
+        "lastActivationMs": 0
+      },
+      "navigation": {
+        "heading": 148.36153259337368,
+        "direction": "SSE",
+        "elevation": 14
+      }
+    }
+  }
+]

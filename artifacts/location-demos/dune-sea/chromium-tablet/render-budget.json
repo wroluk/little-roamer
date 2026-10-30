@@ -1,0 +1,87 @@
+{
+  "area": "dune-sea",
+  "bounds": 200,
+  "spawn": {
+    "x": -70,
+    "y": 3.2,
+    "z": 70
+  },
+  "gravity": -18,
+  "fog": true,
+  "viewDistance": 900,
+  "car": "classic",
+  "surface": "dirt",
+  "wheelSurfaces": [
+    "dirt",
+    "dirt",
+    "dirt",
+    "dirt"
+  ],
+  "terrainFeedback": 0,
+  "waterDepth": 0,
+  "terrainParticles": 0,
+  "terrainTracks": 0,
+  "terrainRipples": 0,
+  "terrainParticleCapacity": 72,
+  "terrainEffectUsesInstanceColors": true,
+  "reducedMotion": false,
+  "cameraFeedbackApplied": 0,
+  "waterHeight": null,
+  "mode": "ready",
+  "position": {
+    "x": -69.99921417236328,
+    "y": 2.726560354232788,
+    "z": 70.00203704833984
+  },
+  "rotation": {
+    "x": 0.001448892173357308,
+    "y": 0.18910743296146393,
+    "z": -0.0002793653111439198,
+    "w": 0.981955349445343
+  },
+  "velocity": {
+    "x": 0.000018750737581285648,
+    "y": -0.11223854124546051,
+    "z": 0.00004665817687055096
+  },
+  "speed": -0.0003815179872888876,
+  "contacts": 4,
+  "input": {
+    "steer": 0,
+    "forward": false,
+    "reverse": false
+  },
+  "camera": [
+    -57.99921417236328,
+    10.726560354232788,
+    83.00203704833984
+  ],
+  "targetDistance": 19.4164878389476,
+  "wheelSteering": 0,
+  "suspension": [
+    0.24957427382469177,
+    0.24957314133644104,
+    0.2436130940914154,
+    0.24361196160316467
+  ],
+  "drawCalls": 34,
+  "triangles": 122448,
+  "pixelRatio": 1.5,
+  "graphicsReduced": false,
+  "geometries": 34,
+  "textures": 1,
+  "cameraObstructed": false,
+  "streaming": {
+    "activeRender": 1,
+    "activePhysics": 1,
+    "queued": 0,
+    "triangles": 81200,
+    "colliderCount": 7,
+    "lastActivationMs": 0
+  },
+  "navigation": {
+    "heading": 338.1985757413971,
+    "direction": "NNW",
+    "elevation": 2
+  }
+}

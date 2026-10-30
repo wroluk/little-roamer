@@ -1,0 +1,96 @@
+{
+  "next": 22,
+  "total": 22,
+  "under": true,
+  "over": true,
+  "maxWater": 0,
+  "maxCalls": 48,
+  "maxTriangles": 327980,
+  "state": {
+    "area": "island",
+    "bounds": 240,
+    "spawn": {
+      "x": -70,
+      "y": 3.9999999523162844,
+      "z": 132
+    },
+    "gravity": -18,
+    "fog": true,
+    "viewDistance": 900,
+    "car": "classic",
+    "surface": "sand",
+    "wheelSurfaces": [
+      "sand",
+      "sand",
+      "sand",
+      "sand"
+    ],
+    "terrainFeedback": 0.012336577477110585,
+    "waterDepth": 0,
+    "terrainParticles": 12,
+    "terrainTracks": 256,
+    "terrainRipples": 0,
+    "terrainParticleCapacity": 72,
+    "terrainEffectUsesInstanceColors": true,
+    "reducedMotion": false,
+    "cameraFeedbackApplied": 0.012336577477110585,
+    "waterHeight": null,
+    "mode": "playing",
+    "position": {
+      "x": -66.97593688964844,
+      "y": 3.4721028804779053,
+      "z": 132.61709594726562
+    },
+    "rotation": {
+      "x": 0.01084943674504757,
+      "y": 0.6551091074943542,
+      "z": -0.009578512981534004,
+      "w": 0.7553957104682922
+    },
+    "velocity": {
+      "x": -5.6982011795043945,
+      "y": -0.10874388366937637,
+      "z": -0.8135949969291687
+    },
+    "speed": 5.750433168923737,
+    "contacts": 4,
+    "input": {
+      "steer": 0,
+      "forward": false,
+      "reverse": false
+    },
+    "camera": [
+      -52.60207644888855,
+      8.343414609585839,
+      134.99491309278142
+    ],
+    "targetDistance": 15.361471558234818,
+    "wheelSteering": 0.000044713859097100794,
+    "suspension": [
+      0.22789815068244934,
+      0.22740694880485535,
+      0.1582772433757782,
+      0.1577605903148651
+    ],
+    "drawCalls": 45,
+    "triangles": 326144,
+    "pixelRatio": 1,
+    "graphicsReduced": true,
+    "geometries": 47,
+    "textures": 1,
+    "cameraObstructed": false,
+    "streaming": {
+      "activeRender": 1,
+      "activePhysics": 1,
+      "queued": 0,
+      "triangles": 282964,
+      "colliderCount": 10,
+      "lastActivationMs": 0
+    },
+    "navigation": {
+      "heading": 278.1339567227258,
+      "direction": "W",
+      "elevation": 3
+    }
+  }
+}
