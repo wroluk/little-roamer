@@ -10,6 +10,8 @@ type State = {
   position: { x: number; y: number; z: number }; rotation: { x: number; y: number; z: number; w: number };
   contacts: number; speed: number; drawCalls: number; triangles: number; geometries: number;
   graphicsReduced: boolean; cameraObstructed: boolean; streaming: { activeRender: number; activePhysics: number; queued: number };
+  terrainParticles: number; terrainParticleCapacity: number; wheelSurfaces: string[];
+  wheels: { load: number; slipRatio: number; slipSpeed: number; gripMultiplier: number }[];
 };
 type Game = {
   snapshot(): State; placeVehicle(x: number, z: number, heading: number): Promise<void>;
@@ -26,6 +28,48 @@ async function boot(page: Page, start = '', car = '') {
   await page.locator('#start').click();
   await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
 }
+
+test('lunar wheelspin ejects sparse grains and lift-off leaves no hanging cloud', async ({ page }, info) => {
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await boot(page, 'broken-highlands', 'lunar-rover');
+  const samples: State[] = [], coast: State[] = [];
+  let spinning: State;
+  try {
+    await page.evaluate(async () => {
+      const game = (window as unknown as { __ROAMER__: Game }).__ROAMER__;
+      await game.placeVehicle(-295, -120, 0.2);
+      game.follow.orbit(-1.1, 0.18);
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW', bubbles: true }));
+    });
+    await expect.poll(async () => {
+      const current = await state(page); samples.push(current);
+      return current.contacts >= 2 && current.terrainParticles >= 2
+        && current.wheels.some(w => w.load > 0 && w.slipRatio > 0.45 && w.slipSpeed > 2);
+    }, { timeout: 15_000, intervals: [50] }).toBe(true);
+    spinning = samples.at(-1)!;
+    expect(spinning.gravity).toBe(-3);
+    expect(spinning.fog).toBe(false);
+    expect(spinning.terrainParticleCapacity).toBe(72);
+    expect(spinning.terrainParticles).toBeLessThanOrEqual(72);
+    expect(spinning.wheelSurfaces.every(id => id === 'lunar-regolith')).toBe(true);
+    expect(spinning.wheels.every(w => w.gripMultiplier === 1)).toBe(true);
+    await page.screenshot({ path: info.outputPath('lunar-grains-side.png') });
+    await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.follow.orbit(1.1, -0.18));
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: info.outputPath('lunar-grains-driving.png') });
+  } finally { await page.keyboard.up('KeyW'); }
+  await expect.poll(async () => {
+    const current = await state(page); coast.push(current);
+    return Math.max(...current.wheels.map(w => Math.abs(w.slipSpeed))) < 0.7
+      && current.terrainParticles < spinning.terrainParticles;
+  }, { timeout: 8_000, intervals: [100] }).toBe(true);
+  await page.screenshot({ path: info.outputPath('lunar-grains-lift-off.png') });
+  await info.attach('lunar-wheelspin-and-release', {
+    body: JSON.stringify({ spinning, released: coast.at(-1), samples, coast }), contentType: 'application/json',
+  });
+  expect(errors).toEqual([]);
+});
+
 async function drive(page: Page, points: readonly Point[]) {
   const result = await page.evaluate(async path => {
     const game = (window as unknown as { __ROAMER__: Game }).__ROAMER__, keys = new Set<string>();

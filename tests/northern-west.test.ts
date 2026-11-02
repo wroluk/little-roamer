@@ -106,9 +106,10 @@ test('the real vehicle feels scattered logs on the western beaches',async()=>{
     try {
       await runtime.ensureReady(start.x,start.z);world.step();
       const car=new Vehicle(scene,world,{...start,y:sampledHeightAt(start.x,start.z)+1.25},1.45,northernSurfaceAt,waterHeightAt);
-      let lift=0,maxBody=-Infinity,minBody=Infinity;
+      let lift=0,maxBody=-Infinity,minBody=Infinity,maxDeviation=0;
       for(let tick=0;tick<2400 && car.position.z>log.z-9;tick++) {
         car.beforeStep({steer:0,forward:tick>90,reverse:false},1/60);world.step();car.capture();
+        maxDeviation=Math.max(maxDeviation,Math.abs(car.position.x-start.x));
         if(Math.abs(car.position.z-log.z)>=3)continue;
         const body=car.position.y-sampledHeightAt(car.position.x,car.position.z);
         maxBody=Math.max(maxBody,body);minBody=Math.min(minBody,body);
@@ -121,6 +122,8 @@ test('the real vehicle feels scattered logs on the western beaches',async()=>{
       assert.ok(car.position.z<log.z-9,`car stuck at scattered log ${log.z}: ${car.position.z}`);
       assert.ok(lift>0.2,`scattered log ${log.z} wheel lift=${lift}`);
       assert.ok(maxBody-minBody>0.15,`scattered log ${log.z} chassis motion=${maxBody-minBody}`);
+      if(log.z===625) assert.ok(maxDeviation<2.5,
+        `the high-centering reference log must be crossed without a sideways escape: ${maxDeviation}`);
     } finally {runtime.dispose();world.free();disposeScene(scene);}
   }
 });

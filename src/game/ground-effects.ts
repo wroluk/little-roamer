@@ -10,7 +10,7 @@ const TRACK_LIFE = 18;
 const WAKE_LIFE = 0.75;
 const ACCELERATION_WINDOW = 1.2;
 type TrackSurface = Extract<SurfaceId, 'dirt' | 'mud' | 'ash' | 'sand' | 'regolith' | 'mars-dust' | 'lunar-regolith'>;
-type TrackMode = 'steady' | 'accelerating' | 'turning' | 'braking';
+type TrackMode = 'steady' | 'accelerating' | 'turning' | 'braking' | 'spinning';
 type Mark = { x: number; z: number; y: number; angle: number; length: number; life: number; surface: TrackSurface; emphasis: number; mode: TrackMode };
 export type GroundTrackStamp = Pick<Mark, 'x' | 'z' | 'angle' | 'length' | 'surface'>;
 const TRACK_STYLES: Record<TrackSurface, { color: [number, number, number]; alpha: number; halfWidth: number }> = {
@@ -63,6 +63,7 @@ export class GroundEffects {
   private readonly trackSpacing = [2.4, 3.1, 2.8, 3.6];
   private readonly connected = [false, false, false, false];
   private readonly wet = [false, false, false, false];
+  private readonly churnSerial = [-1, -1, -1, -1];
   private lastSpeed = 0;
   private hasSpeed = false;
   private lastDriveDirection = 0;
@@ -96,6 +97,7 @@ export class GroundEffects {
     for (const mark of this.tracks) mark.life = 0;
     for (const mark of this.wakes) mark.life = 0;
     this.connected.fill(false); this.wet.fill(false);
+    this.churnSerial.fill(-1);
     this.trackSpacing.splice(0, 4, 2.4, 3.1, 2.8, 3.6);
     this.hasSpeed = false;
     this.lastDriveDirection = 0;
@@ -125,6 +127,22 @@ export class GroundEffects {
       const p = wheel.position;
       const surface = wheel.surface.id;
       const trackable = trackDensity > 0 && wheel.grounded && isTrackSurface(surface);
+      const churning = trackable && surface === 'sand' && wheel.slip > 0.25
+        && Math.abs(wheel.slipSpeed) > 0.7 && Math.abs(p.y - this.heightAt(p.x, p.z)) < 0.15;
+      if (churning) {
+        const serial = this.churnSerial[i];
+        const previous = serial >= 0 && this.nextTrack - serial <= TRACK_CAPACITY
+          ? this.tracks[serial % TRACK_CAPACITY] : null;
+        if (previous && previous.mode === 'spinning' && Math.hypot(p.x - previous.x, p.z - previous.z) < 0.35) {
+          previous.life = TRACK_LIFE;
+        } else {
+          const serial = this.nextTrack++, mark = this.tracks[serial % TRACK_CAPACITY];
+          this.churnSerial[i] = serial;
+          Object.assign(mark, { x: p.x, z: p.z, angle: Math.atan2(vehicle.forward.x, vehicle.forward.z),
+            length: 0.65 + wheel.slip * 0.35, life: TRACK_LIFE, surface, emphasis: 1, mode: 'spinning' });
+          this.writeTrack(mark, serial % TRACK_CAPACITY);
+        }
+      } else this.churnSerial[i] = -1;
       if (trackable) {
         const previous = this.last[i];
         const distance = Math.hypot(p.x - previous.x, p.z - previous.z);
@@ -166,7 +184,8 @@ export class GroundEffects {
       const colors = this.trackMesh.geometry.getAttribute('color') as THREE.BufferAttribute;
       this.tracks.forEach((mark, i) => {
         const style = TRACK_STYLES[mark.surface];
-        const alpha = style.alpha * (mark.mode === 'steady' ? 0.4 : 2.15) * Math.min(1, mark.life / 3);
+        const alpha = style.alpha * (mark.mode === 'steady' ? 0.4 : mark.mode === 'spinning' ? 4 : 2.15)
+          * Math.min(1, mark.life / 3);
         for (let v = 0; v < 12; v++) {
           const section = Math.floor(v / 6) + (QUAD[v % 6] < 2 ? 0 : 1);
           colors.setW(i * 12 + v, alpha * sectionOpacity(section));

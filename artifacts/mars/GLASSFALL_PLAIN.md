@@ -30,7 +30,15 @@ Preview locally: `http://127.0.0.1:5173/?area=mars&start=glassfall-plain`.
 - [Lookout](glassfall-review/lookout.png)
 - Equivalent WebKit views are in `glassfall-review/webkit/`.
 
-The glass uses continuous lava-like raised black flows with rounded edges and subdued highlights, without gray streaks. Sand-filled plate fractures and roadside shard clusters have been removed. Lower lateral grip creates a sliding challenge, with a firm perimeter alternative. No vehicle physics algorithms were changed.
+The glass uses continuous lava-like raised black flows with rounded edges and subdued highlights, without gray streaks. Sand-filled plate fractures and roadside shard clusters have been removed. Lower lateral grip creates a sliding challenge, with a firm perimeter alternative.
+
+**Handling follow-up — 2026-11-02:** the user requested extremely slippery glass
+and accepted the result in play. Glass now uses the existing ice-style turn
+response with a stronger glass-specific rear multiplier, plus weaker glass-only
+braking and rolling drag. Normal controls, firm roads, geometry and the accepted
+ice/sand tune remain unchanged. Current checks and open gates are tracked in
+`TRACTION_PROGRESS.md` and `MARS_PROGRESS.md`; the historical verification below
+is not fresh acceptance of this handling change.
 
 The expanded terrain is 1.45 times wider, centred at (500, -30), while roads and rocks retain their scale. Following feedback, the northern approach is low and open, with a broader transition into pale ground and 55–220 m haze. The added screening peaks are gone. Glass uses a uniform 1.2 m clipped lattice, avoiding adaptive-mesh cracks and keeping the whole field below 18,000 triangles; rendering and collision share it. The user approved the quieter landscape; latest changes remove the crossing and trail posts, increase haze and reduce repeated terrain sampling. See `wild-terrain-review/` for current close/approach views in both engines. The original captures, terrain map and regional browser evidence below are historical, not validation of the latest layout.
 

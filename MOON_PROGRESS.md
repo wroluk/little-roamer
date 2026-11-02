@@ -3,6 +3,39 @@
 Read with [build plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
 and [shared guide](WORLD_BUILD_GUIDE.md).
 
+## Lunar tyre ejecta — accepted 2026-11-02
+
+- User accepted the shared near-tread particle correction and authorized trying
+  the corresponding lunar effect. This reopens presentation only, not the
+  completed geography, handling or release scope. User subsequently approved
+  the result and authorized a commit when ready; no push was requested.
+- Reference: the accepted sand/Mars real-slip emitter, its small-grain departure
+  and tyre-clearance checks, plus Moon's existing -3 game gravity. Reused the
+  same contact/slip gates and 72-instance pool, with smaller grey fragments,
+  1.1–1.3 s lifetime and constant lunar gravity rather than extra spray gravity.
+  Horizontal velocity is undamped; there is no atmospheric cloud or new terrain
+  deformation. Ordinary rolling retains the existing low emission rate.
+- 76 focused unit checks pass, including every lunar route in both directions,
+  unchanged handling, true ballistic acceleration, signed-slip/contact gates,
+  full-grain clearance and a near-tread birth-gap regression. Product typecheck
+  passes. Standalone strict checking of `moon.spec.ts` reports the existing
+  missing `node:fs/promises` declarations; no new dependency was installed.
+- Actual early probes confirm sparse normal-driving grains and stronger
+  transient throw on a loaded slipping wheel. A very steep off-route face tips
+  the rover, so that probe is not presented as ordinary driving acceptance.
+  These observations are separate from the final normal-driving captures.
+- **18/18 fresh browser cases pass** in Chromium/WebKit: two actual Moon
+  launches/lift-off, four side-angle tyre-clearance cases and twelve existing
+  sand/ash/dust/dirt/regolith/actual Rust Dunes fan/lift-off regressions.
+  Product build and strict traction-browser typing pass. Both Moon launch
+  samples contain two grains, with zero/one at release: sparse presentation,
+  not a dense plume. Inspected side and ordinary driving captures in both
+  engines. Evidence: `artifacts/moon/tyre-ejecta-response.json` and
+  `artifacts/moon/tyre-ejecta-views/`.
+- **Next:** retain the accepted source and lunar presentation; no further
+  Moon expansion or tuning is scheduled by this change. No new PWA/full-suite/
+  physical-device acceptance; prior manual gaps remain.
+
 ## Moon complete — accepted 2026-10-26
 
 - User explicitly marked Moon complete and authorized commit/push, including the

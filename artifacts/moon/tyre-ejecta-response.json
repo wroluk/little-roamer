@@ -1,0 +1,677 @@
+{
+  "date": "2026-11-02",
+  "userAccepted": true,
+  "commitAuthorized": true,
+  "sources": {
+    "src/game/terrain-effects.ts": "c5a9fac5784edce50cd9205f19686d771ae4ec38205c354641842f610c07f8c0",
+    "src/game/vehicle.ts": "c68f3c337caf4c2c6bee92590621e890b684eb06ee4c64c0428d64e62fee89b8",
+    "src/game/moon.ts": "3a6372dcfe6a38294645774ae315f4b968ba8cd127c4cd9ab4607369d49e4e35",
+    "src/game/surfaces.ts": "c9255592e2d0000af0ade4b2583088055b1cb5e36611d6cfee778f7d232762d5",
+    "src/game/traction-ground.ts": "4e43409527751f8761bf1bd0491cc61075546c25dfc1fb92e37e7fe8f7363349",
+    "src/game/ground-effects.ts": "341553483848aeb1a011c402d0034d170c0917878be8395e71e0d97b3bb1dd3c",
+    "src/game/driving.ts": "52ddcc3cea3d6b488aa33ce3a80521866a61c7a10dbc8ab5a5c4583f6985f91b",
+    "src/game/wheel-drive.ts": "5289acf020dc23cbd24984b0d48de2163bfcc6a5e3e2c3dd16764ffc2396e5a8",
+    "tests/driving-feedback.test.ts": "9dca1719a71851851c66e2380f770cf1519465b08c02e60a7d2f2aa949064eaf",
+    "tests/browser/traction-ground.spec.ts": "cf532c3f6c361d480cb8c85976e769474dca28fff0ca31df8c659d6743b47028",
+    "tests/browser/moon.spec.ts": "2da18b5529379b4cb45c8e8a9871071e5fef3c70a808fe8b0f98c63a22ab602f"
+  },
+  "checks": {
+    "focusedUnits": 76,
+    "additionalChangedRouteUnits": 21,
+    "additionalRouteRun": "Separate passing run of northern-coast, northern-west and mars-glassfall tests; 546 s. Not a full-suite result.",
+    "typecheck": "passed",
+    "build": "passed",
+    "strictTractionBrowserTyping": "passed",
+    "standaloneMoonBrowserTyping": "Existing node:fs/promises declarations unavailable; Playwright execution and production typing pass. No dependency added.",
+    "fullSuite": "not rerun",
+    "pwa": "not rerun",
+    "physicalIpad": "not tested"
+  },
+  "timing": "Wall-time render observations and event-based snapshots, not matched native-step handling measurements.",
+  "physics": {
+    "reference": "artifacts/traction/loose-spray-response.json",
+    "vehicleNormalizedWithoutRadiusExport": "fdf5f117349360eda9fc97786fe8bf2867a5c14ef9bc79db23ead7f4743bef4f",
+    "vehicleChange": "Existing radius constant exported; normalized content matches reference exactly.",
+    "otherVerifiedUnchanged": [
+      "src/game/surfaces.ts",
+      "src/game/traction-ground.ts",
+      "src/game/ground-effects.ts"
+    ]
+  },
+  "scope": "User-accepted lunar particle presentation. Small sparse grey fragments use real grounded slip, -3 ballistic gravity, no horizontal drag, 1.1–1.3 s lifetime and existing quiet rolling rate. No terrain, lighting, handling or traction changes.",
+  "browser": {
+    "stats": {
+      "startTime": "2026-11-02T20:21:44.369Z",
+      "duration": 164406.52300000002,
+      "expected": 18,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "title": "lunar wheelspin ejects sparse grains and lift-off leaves no hanging cloud",
+        "engine": "chromium-tablet",
+        "status": "passed",
+        "data": {
+          "spinning": {
+            "area": "moon",
+            "bounds": 384,
+            "spawn": {
+              "x": -264,
+              "y": 25.2,
+              "z": -65
+            },
+            "gravity": -3,
+            "fog": false,
+            "viewDistance": 3200,
+            "car": "lunar-rover",
+            "tractionLab": false,
+            "wheels": [
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 127.02740390371378,
+                "slipRatio": 0.6618079703145155,
+                "slipSpeed": 4.2257059300155495,
+                "angularSpeed": 13.302278630282974,
+                "lateralSpeed": -0.018755928152236867,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 9.528698094810048,
+                "forwardImpulse": -0.1359163373708725,
+                "sideImpulse": -0.01633448153734207
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 77.3620896146071,
+                "slipRatio": 0.43661916367639253,
+                "slipSpeed": 1.6978559490061076,
+                "angularSpeed": 8.101339079986829,
+                "lateralSpeed": -0.018704002131698205,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 17.297122659161687,
+                "forwardImpulse": -1.281827449798584,
+                "sideImpulse": -0.09717000275850296
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 43.78778551072812,
+                "slipRatio": 0.018878397258671322,
+                "slipSpeed": 0.0415516197682515,
+                "angularSpeed": 4.585446175915635,
+                "lateralSpeed": 0.0161203398711231,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 137.25085514970124,
+                "forwardImpulse": -1.2354216575622559,
+                "sideImpulse": 0.15582118928432465
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 44.107917863975686,
+                "slipRatio": 0.012002368017516704,
+                "slipSpeed": 0.026610519404812294,
+                "angularSpeed": 4.618970357553594,
+                "lateralSpeed": 0.01659625694953837,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 127.32898648642004,
+                "forwardImpulse": -1.1952675580978394,
+                "sideImpulse": 0.13428597152233124
+              }
+            ],
+            "surface": "lunar-regolith",
+            "wheelSurfaces": [
+              "lunar-regolith",
+              "lunar-regolith",
+              "lunar-regolith",
+              "lunar-regolith"
+            ],
+            "terrainFeedback": 0.0032883852544160768,
+            "waterDepth": 0,
+            "terrainParticles": 2,
+            "terrainTracks": 3,
+            "terrainRipples": 0,
+            "terrainParticleCapacity": 72,
+            "terrainEffectUsesInstanceColors": true,
+            "reducedMotion": false,
+            "cameraFeedbackApplied": 0.0032883852544160768,
+            "waterHeight": null,
+            "mode": "playing",
+            "position": {
+              "x": -295.2306823730469,
+              "y": 34.45256805419922,
+              "z": -121.17577362060547
+            },
+            "rotation": {
+              "x": 0.11202891170978546,
+              "y": 0.09795822948217392,
+              "z": -0.018726401031017303,
+              "w": 0.9886875748634338
+            },
+            "velocity": {
+              "x": -0.43330812454223633,
+              "y": 0.3555312752723694,
+              "z": -2.1189684867858887
+            },
+            "speed": 2.1872904796594015,
+            "contacts": 4,
+            "input": {
+              "steer": 0,
+              "forward": true,
+              "reverse": false
+            },
+            "camera": [
+              -305.4383118060383,
+              38.236574848041975,
+              -112.71589449291213
+            ],
+            "targetDistance": 13.786918063180439,
+            "wheelSteering": 0,
+            "suspension": [
+              0.37931177020072937,
+              0.36337020993232727,
+              0.226930171251297,
+              0.25175848603248596
+            ],
+            "drawCalls": 29,
+            "triangles": 112562,
+            "pixelRatio": 1,
+            "graphicsReduced": false,
+            "geometries": 28,
+            "textures": 3,
+            "cameraObstructed": false,
+            "streaming": {
+              "activeRender": 64,
+              "activePhysics": 6,
+              "queued": 0,
+              "triangles": 91008,
+              "colliderCount": 41,
+              "lastActivationMs": 0.8999999985098839
+            },
+            "navigation": {
+              "heading": 348.784470402238,
+              "direction": "N",
+              "elevation": 34
+            }
+          },
+          "released": {
+            "area": "moon",
+            "bounds": 384,
+            "spawn": {
+              "x": -264,
+              "y": 25.2,
+              "z": -65
+            },
+            "gravity": -3,
+            "fog": false,
+            "viewDistance": 3200,
+            "car": "lunar-rover",
+            "tractionLab": false,
+            "wheels": [
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 0,
+                "slipRatio": 0.008250830243763869,
+                "slipSpeed": 0.008250830243763869,
+                "angularSpeed": 0,
+                "lateralSpeed": 0.0008505641766773583,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 72.92891018403073,
+                "forwardImpulse": -0.03636732049434071,
+                "sideImpulse": 0.022899558767676353
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 0,
+                "slipRatio": 0.0072168594960895695,
+                "slipSpeed": 0.0072168594960895695,
+                "angularSpeed": 0,
+                "lateralSpeed": -0.00036211912244055004,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 79.14949933315317,
+                "forwardImpulse": -0.02821841853055731,
+                "sideImpulse": -0.008381599560379982
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 0,
+                "slipRatio": 0.007750670072859168,
+                "slipSpeed": 0.007750670072859168,
+                "angularSpeed": 0,
+                "lateralSpeed": 0.00023083043888355733,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 67.38993970180552,
+                "forwardImpulse": -0.0323830640280142,
+                "sideImpulse": -0.00201967335306108
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 0,
+                "slipRatio": 0.0072169628735826805,
+                "slipSpeed": 0.0072169628735826805,
+                "angularSpeed": 0,
+                "lateralSpeed": 0.00023091400418722417,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 61.25452176357309,
+                "forwardImpulse": -0.028216796837065055,
+                "sideImpulse": -0.0020187965128570795
+              }
+            ],
+            "surface": "lunar-regolith",
+            "wheelSurfaces": [
+              "lunar-regolith",
+              "lunar-regolith",
+              "lunar-regolith",
+              "lunar-regolith"
+            ],
+            "terrainFeedback": 0.0005744854484892655,
+            "waterDepth": 0,
+            "terrainParticles": 0,
+            "terrainTracks": 19,
+            "terrainRipples": 0,
+            "terrainParticleCapacity": 72,
+            "terrainEffectUsesInstanceColors": true,
+            "reducedMotion": false,
+            "cameraFeedbackApplied": 0.0005744854484892655,
+            "waterHeight": null,
+            "mode": "playing",
+            "position": {
+              "x": -297.53302001953125,
+              "y": 37.53676986694336,
+              "z": -133.0740203857422
+            },
+            "rotation": {
+              "x": 0.052964337170124054,
+              "y": 0.09436957538127899,
+              "z": -0.0062821051105856895,
+              "w": 0.9941075444221497
+            },
+            "velocity": {
+              "x": 0.014750594273209572,
+              "y": -0.03499345853924751,
+              "z": 0.07714810222387314
+            },
+            "speed": -0.08182541797300187,
+            "contacts": 4,
+            "input": {
+              "steer": 0,
+              "forward": false,
+              "reverse": false
+            },
+            "camera": [
+              -294.97740316353713,
+              38.96274170471796,
+              -119.70971474730976
+            ],
+            "targetDistance": 13.681016201198716,
+            "wheelSteering": 0,
+            "suspension": [
+              0.2817477285861969,
+              0.2746451795101166,
+              0.34713032841682434,
+              0.3544868528842926
+            ],
+            "drawCalls": 26,
+            "triangles": 110906,
+            "pixelRatio": 1,
+            "graphicsReduced": false,
+            "geometries": 28,
+            "textures": 3,
+            "cameraObstructed": false,
+            "streaming": {
+              "activeRender": 64,
+              "activePhysics": 6,
+              "queued": 0,
+              "triangles": 91008,
+              "colliderCount": 41,
+              "lastActivationMs": 0.8999999985098839
+            },
+            "navigation": {
+              "heading": 349.16211689602903,
+              "direction": "N",
+              "elevation": 37
+            }
+          }
+        }
+      },
+      {
+        "title": "lunar wheelspin ejects sparse grains and lift-off leaves no hanging cloud",
+        "engine": "webkit-tablet",
+        "status": "passed",
+        "data": {
+          "spinning": {
+            "area": "moon",
+            "bounds": 384,
+            "spawn": {
+              "x": -264,
+              "y": 25.2,
+              "z": -65
+            },
+            "gravity": -3,
+            "fog": false,
+            "viewDistance": 3200,
+            "car": "lunar-rover",
+            "tractionLab": false,
+            "wheels": [
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 114.42241554671315,
+                "slipRatio": 0.640295051304292,
+                "slipSpeed": 3.6826556566598714,
+                "angularSpeed": 11.982287336251725,
+                "lateralSpeed": 0.028896315465842204,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 17.723483689750232,
+                "forwardImpulse": -1.373023271560669,
+                "sideImpulse": 0.3167725205421448
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 66.9056522039576,
+                "slipRatio": 0.3931759335697634,
+                "slipSpeed": 1.3222683131466981,
+                "angularSpeed": 7.006343514919558,
+                "lateralSpeed": 0.028996455792431874,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 9.004456223919988,
+                "forwardImpulse": -0.792392147704959,
+                "sideImpulse": 0
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 41.411314856185044,
+                "slipRatio": 0.005560522207979323,
+                "slipSpeed": 0.011574559052758282,
+                "angularSpeed": 4.336582750922823,
+                "lateralSpeed": -0.0024812887562022934,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 127.89659997572501,
+                "forwardImpulse": -1.2130608558654785,
+                "sideImpulse": -0.1288483589887619
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 40.89169613669499,
+                "slipRatio": 0.006783140972510926,
+                "slipSpeed": 0.013942344943198126,
+                "angularSpeed": 4.282168405862261,
+                "lateralSpeed": 0.0008123332393782379,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 127.43156369589269,
+                "forwardImpulse": -1.2291676998138428,
+                "sideImpulse": -0.05704016238451004
+              }
+            ],
+            "surface": "lunar-regolith",
+            "wheelSurfaces": [
+              "lunar-regolith",
+              "lunar-regolith",
+              "lunar-regolith",
+              "lunar-regolith"
+            ],
+            "terrainFeedback": 0.0025983667816710534,
+            "waterDepth": 0,
+            "terrainParticles": 2,
+            "terrainTracks": 3,
+            "terrainRipples": 0,
+            "terrainParticleCapacity": 72,
+            "terrainEffectUsesInstanceColors": true,
+            "reducedMotion": false,
+            "cameraFeedbackApplied": 0.0025983667816710534,
+            "waterHeight": null,
+            "mode": "playing",
+            "position": {
+              "x": -295.19537353515625,
+              "y": 34.4226188659668,
+              "z": -121.00389862060547
+            },
+            "rotation": {
+              "x": 0.1123853549361229,
+              "y": 0.09781525284051895,
+              "z": -0.019502677023410797,
+              "w": 0.9886462688446045
+            },
+            "velocity": {
+              "x": -0.4285030961036682,
+              "y": 0.3090554177761078,
+              "z": -1.9658304452896118
+            },
+            "speed": 2.029409449743144,
+            "contacts": 4,
+            "input": {
+              "steer": 0,
+              "forward": true,
+              "reverse": false
+            },
+            "camera": [
+              -305.42544389756307,
+              38.21401549693141,
+              -112.63422067432089
+            ],
+            "targetDistance": 13.741183922631652,
+            "wheelSteering": 0,
+            "suspension": [
+              0.37887880206108093,
+              0.359374076128006,
+              0.22789040207862854,
+              0.2529166638851166
+            ],
+            "drawCalls": 29,
+            "triangles": 112562,
+            "pixelRatio": 1,
+            "graphicsReduced": false,
+            "geometries": 28,
+            "textures": 3,
+            "cameraObstructed": false,
+            "streaming": {
+              "activeRender": 64,
+              "activePhysics": 6,
+              "queued": 0,
+              "triangles": 91008,
+              "colliderCount": 41,
+              "lastActivationMs": 1
+            },
+            "navigation": {
+              "heading": 348.8108952468009,
+              "direction": "N",
+              "elevation": 34
+            }
+          },
+          "released": {
+            "area": "moon",
+            "bounds": 384,
+            "spawn": {
+              "x": -264,
+              "y": 25.2,
+              "z": -65
+            },
+            "gravity": -3,
+            "fog": false,
+            "viewDistance": 3200,
+            "car": "lunar-rover",
+            "tractionLab": false,
+            "wheels": [
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 38.5822265912788,
+                "slipRatio": 0.03000471035481796,
+                "slipSpeed": -0.05998973673844077,
+                "angularSpeed": 4.040321320609912,
+                "lateralSpeed": -0.0031169036015237794,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 108.46487487169604,
+                "forwardImpulse": 0.7272570925972234,
+                "sideImpulse": -0.016611779108643532
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 38.57480009044046,
+                "slipRatio": 0.03008077998779512,
+                "slipSpeed": -0.060134965644939475,
+                "angularSpeed": 4.03954361926075,
+                "lateralSpeed": 0.0005776906226243606,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 103.72197026200593,
+                "forwardImpulse": 0.7274787363033058,
+                "sideImpulse": 0.019263021647930145
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 38.58224543290407,
+                "slipRatio": 0.030004635193828046,
+                "slipSpeed": -0.05998961111332468,
+                "angularSpeed": 4.040323293700314,
+                "lateralSpeed": 0.0023949128275627674,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 29.156843789542712,
+                "forwardImpulse": 0.7272708947500273,
+                "sideImpulse": 0.051962245255708694
+              },
+              {
+                "surface": "lunar-regolith",
+                "grounded": true,
+                "visualRpm": 38.73466757648357,
+                "slipRatio": 0.028892080517867718,
+                "slipSpeed": -0.05792699625341524,
+                "angularSpeed": 4.056284903250751,
+                "lateralSpeed": -0.004372121256680184,
+                "lateralFriction": 2.64,
+                "gripMultiplier": 1,
+                "longitudinalFriction": 2.64,
+                "load": 36.11113294027746,
+                "forwardImpulse": 0.7280237896230041,
+                "sideImpulse": -0.04894472286105156
+              }
+            ],
+            "surface": "lunar-regolith",
+            "wheelSurfaces": [
+              "lunar-regolith",
+              "lunar-regolith",
+              "lunar-regolith",
+              "lunar-regolith"
+            ],
+            "terrainFeedback": 0.0025954902458944873,
+            "waterDepth": 0,
+            "terrainParticles": 1,
+            "terrainTracks": 3,
+            "terrainRipples": 0,
+            "terrainParticleCapacity": 72,
+            "terrainEffectUsesInstanceColors": true,
+            "reducedMotion": false,
+            "cameraFeedbackApplied": 0.0025954902458944873,
+            "waterHeight": null,
+            "mode": "playing",
+            "position": {
+              "x": -295.4499206542969,
+              "y": 34.6351203918457,
+              "z": -122.2325439453125
+            },
+            "rotation": {
+              "x": 0.0883559137582779,
+              "y": 0.09841205924749374,
+              "z": -0.011603125371038914,
+              "w": 0.9911476969718933
+            },
+            "velocity": {
+              "x": -0.43741968274116516,
+              "y": 0.3380807340145111,
+              "z": -2.109675407409668
+            },
+            "speed": 2.1802936049191897,
+            "contacts": 4,
+            "input": {
+              "steer": 0,
+              "forward": false,
+              "reverse": false
+            },
+            "camera": [
+              -293.90446208688354,
+              36.2148566058144,
+              -108.97518326187634
+            ],
+            "targetDistance": 13.418781184026948,
+            "wheelSteering": 0,
+            "suspension": [
+              0.3397655189037323,
+              0.3373763859272003,
+              0.27887073159217834,
+              0.2849874198436737
+            ],
+            "drawCalls": 27,
+            "triangles": 112346,
+            "pixelRatio": 1,
+            "graphicsReduced": false,
+            "geometries": 28,
+            "textures": 3,
+            "cameraObstructed": false,
+            "streaming": {
+              "activeRender": 64,
+              "activePhysics": 6,
+              "queued": 0,
+              "triangles": 91008,
+              "colliderCount": 41,
+              "lastActivationMs": 1
+            },
+            "navigation": {
+              "heading": 348.6884666017956,
+              "direction": "NNW",
+              "elevation": 34
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "Both selected lunar launch samples contain two grains, not a dense plume. Chromium release has zero and WebKit one. A steeper probe tipped the rover and is not normal-driving acceptance.",
+  "captures": [
+    "artifacts/moon/tyre-ejecta-views/final-chromium-lunar-lunar-grains-driving.png",
+    "artifacts/moon/tyre-ejecta-views/final-chromium-lunar-lunar-grains-lift-off.png",
+    "artifacts/moon/tyre-ejecta-views/final-chromium-lunar-lunar-grains-side.png",
+    "artifacts/moon/tyre-ejecta-views/final-webkit-lunar-lunar-grains-driving.png",
+    "artifacts/moon/tyre-ejecta-views/final-webkit-lunar-lunar-grains-lift-off.png",
+    "artifacts/moon/tyre-ejecta-views/final-webkit-lunar-lunar-grains-side.png"
+  ]
+}

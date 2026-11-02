@@ -34,6 +34,7 @@ latest instructions. Historical screenshots are not proof of the current code.
 | Landmark silhouettes, natural rock forms and real solid passages | [Mars design](artifacts/mars/DESIGN.md), [Keyhole card](artifacts/mars/KEYHOLE_BADLANDS.md), [Lava Tubes card](artifacts/mars/LAVA_TUBES.md) | [Keyhole tests](tests/mars-keyhole.test.ts), [tube tests](tests/mars-tubes.test.ts), corresponding browser scenarios |
 | Exact terrain sampling, worker lifecycle, coarse/detailed seams | [Northern terrain](src/game/northern-terrain.ts), [Northern streaming](src/game/northern-streaming.ts), [Mars build plan](MARS_BUILD_PLAN.md) | [Northern streaming tests](tests/northern-streaming.test.ts), [Mars tests](tests/mars.test.ts) |
 | Surface appearance, labels and per-wheel handling | [Surface profiles](src/game/surfaces.ts), [vehicle](src/game/vehicle.ts), [terrain effects](src/game/terrain-effects.ts) | [Surface regressions](tests/surfaces.test.ts), actual region drives |
+| Repeatable traction trials without authoring another world | [Development proving ground](src/game/traction-ground.ts), [measurement runner](scripts/measure-traction.ts) | [Geometry tests](tests/traction-ground.test.ts), [browser trials](tests/browser/traction-ground.spec.ts), [baseline and remaining work](TRACTION_PROGRESS.md). Its ramps are wide enough for a full oblique line; select the offset oblique start rather than driving onto a ramp's shoulder. |
 | Current Iceland river, sea join and connected road ribbon | [River geometry](src/game/iceland-river.ts), [terrain](src/game/iceland-terrain.ts), [road geometry](src/game/iceland-road-scenery.ts) | [Iceland tests](tests/iceland.test.ts), [browser checks](tests/browser/iceland.spec.ts), [current progress](ICELAND_PROGRESS.md). Recent revisions remain subject to user review. |
 | Regional entry and reset shortcuts | [Northern starts](src/game/regional-starts.ts), [Mars starts](src/game/mars-terrain.ts), [Iceland starts](src/game/iceland-starts.ts), [URL and reset wiring](src/main.ts) | Give each completed region a unique `?area=<world>&start=<region>` ID, a dry level spawn, a useful heading, and nearest-region reset. Reset first tries safe local righting for an overturned car; upright, submerged or obstructed cars retain the regional fallback. Check direct URL entry, initial vehicle position, and reset in a real browser. Document the exact URL when a region is completed. |
 | Safe local car recovery around stacked terrain and water | `tryRight` and `reset` in [vehicle](src/game/vehicle.ts), shape-query filtering and `preserveView` in [camera](src/game/camera.ts) | Probe actual nearby collision beneath all four wheels, not a global height sampler that may describe a cave roof or bridge above the car. Bound vertical correction, preserve heading, exclude the car and sensors, check cabin/wheel clearance and the vertical path, and reject deep water. Near vertical, derive heading from the sideways axis instead of an unstable forward projection. Rebase the camera orbit from its actual position after local righting, rather than resetting it behind the car and reversing the player's view. Retain regional fallback rather than searching up through geometry. [Physics cases](tests/vehicle-recovery.test.ts) and [dual-engine controls/fallback cases](tests/browser/vehicle-recovery.spec.ts) cover these constraints. |
@@ -42,6 +43,195 @@ latest instructions. Historical screenshots are not proof of the current code.
 | Haze-free pilot and reduced-gravity driving | [Moon terrain](src/game/moon-terrain.ts), [runtime](src/game/moon.ts), [pilot plan](MOON_BUILD_PLAN.md) | [Moon unit checks](tests/moon.test.ts), [browser views and drives](tests/browser/moon.spec.ts), [current evidence](MOON_PROGRESS.md). A compact fixed render mesh can avoid LOD pop-in while collision stays bounded; this is not proof of full-world render streaming or iPad performance. |
 
 ## Earlier world-building feedback ledger
+
+For physics experiments, preserve the unmodified model's measurements before
+changing torque or grip. Label inferred/visual wheelspin separately from actual
+contact and suspension load. A friction-ellipse prototype can look plausible on
+flat ground yet break oblique climbs, countersteer or shallow fords; reject it
+at those existing behavior gates instead of relaxing assertions. Keep a dev
+track behind explicit build-time guards at **every** dynamic import, verify its
+code is absent from production assets, and dispose its panel when leaving it.
+See [traction progress](TRACTION_PROGRESS.md) for the 2026-10-30 experiment.
+
+When adding wheel inertia to an existing massless raycast drivetrain, preserve
+the motor's acceleration calibration for the new rotating mass. Check actual
+authored climbs as well as uniform test slopes: a small yaw change can put the
+same unsteered input onto a steeper part of a glacier. Compare the original
+revision without switching another checkout, and do not soften the route test.
+Initialise a freely rolling wheel from its actual contact velocity, not the
+previous controller-angle delta; injected velocity or placement otherwise
+creates artificial wheel braking on the next throttle application. Keep a held
+uphill drive intent distinct from a new direction-change braking request.
+When bounding tyre force by normal load exposes high-centering on an existing
+log, inspect hull support/friction rather than restoring zero-load traction.
+A low-friction underside plate can retain the car's dimensions and tyre budget;
+lowering the entire hull's friction can instead let it escape sideways.
+Reject that detour as a false pass, and preserve the hull bounds, mass and cabin/
+side material contracts alongside actual obstacle driving.
+Splitting a hull also changes its mass distribution unless the original centre
+of mass and inertia are supplied explicitly. Test both a high-centering log and
+nearby scattered obstacles: an excessively slippery plate can clear the first
+log but yaw the car into the next rock. Narrowing the plate or adding rails is
+not automatically safer; rails can carry the load and reintroduce the snag.
+Calibrate the underside material against both routes, retain lateral-corridor
+guards, and never replace the missing loaded-tyre force with unloaded traction.
+When adding inertial coast/brake wheels, use the contact lever arm and inverse
+inertia for locked-wheel stopping reactions, sharing the correction across
+contacts; a quarter-chassis-mass approximation can make a stopped car rock and
+creep. Separate explicit pose/velocity initialization from normal simulation
+capture so equal-speed fixtures start with rolling wheels without snapping a
+spinning wheel to road speed on lift-off.
+Do not infer a locked tyre from its surface or low RPM alone: a weak inherited
+pad-torque budget may produce rolling brake slip even on ice. Compare rim and
+contact speed, normal load and actual brake reaction before claiming a lock.
+An inherited raycast controller's large longitudinal allowance is not evidence
+that tyres should support the same lateral acceleration. Separate the two ellipse
+axes while retaining one combined budget, and return the bounded longitudinal
+reaction to wheel inertia. Assess understeer using actual yaw divided by the
+rolling yaw implied by speed, wheelbase and steering: low body sideslip can
+still mean that the front is pushing a much wider path. Compare held throttle
+with lift-off at unchanged steering, including wheel loads and contact slip;
+an RPM change or stronger debris alone does not establish a driving improvement.
+Do not classify obstacle-induced chassis roll as sustained tyre scrub: sample
+the suspended wheel centre along its actual axle, and discard history after
+contact/normal changes or unloading. A permanently reduced static side allowance
+can strand the vehicle on an otherwise passable high-centering log.
+If adding wheel-weight support to a massless raycast suspension, apply its
+normal reaction physically and use the same total load in both native and final
+tyre budgets. Check that equilibrium spring load falls by that contribution,
+the total still equals vehicle weight, and free fall is unchanged. Otherwise a
+numerical load floor invents traction, or a spring-only native cap silently
+removes the intended ice response. Recheck service-brake pitch/load transfer:
+the drivetrain's rotating-mass acceleration compensation is not automatically
+an appropriate brake-torque multiplier. Keep both engine-driven reference-log
+trials: passing a headless approach five centimetres higher is not sufficient.
+When intentional understeer exposes an always-full-throttle route driver,
+measure its distance from the authored line before altering tyres or terrain.
+The coastal reverse-loop driver reached a rock more than eight metres off its
+route. Brake ahead of corners with the existing controls, keep every waypoint,
+time/streaming limit and obstacle assertion, and add a corridor guard rather
+than widening tolerances or moving the obstacle.
+For playful traction feedback, judge a short real-driving episode without
+telemetry before broadening the physical model. Sand wheelspin was already
+measurable but its sparse, short-lived debris hid it from the driving camera.
+Drive amplification from both actual rim/contact speed and slip ratio, keep
+rolling quiet, and throw from the slipping contact in the correct direction.
+Reuse bounded particles and terrain-fitted marks; refresh a stationary churn
+footprint rather than stacking decals. Prefer small directional clods to giant
+round puffs. Stronger presentation is not proof of improved throttle technique
+or new physical digging; disclose what stayed unchanged.
+For small user-authorized grip variation, reuse a pure positional-noise field,
+not per-frame randomness or independent wheel-ID offsets. Sample each wheel's
+contact once per fixed step and carry that coefficient through uphill coupling,
+coast/brakes, native friction and both final ellipse axes, including the sliding
+ceiling. Otherwise the lowest unmodified limit can hide the intended variation.
+Expose the applied coefficient in telemetry and test the actual dynamic budget.
+Sand's two-metre 90–110% patches replay exactly; larger RPM differences occur
+near breakaway, not when every rotor is near its motor-speed ceiling. Do not
+silently inflate the amplitude or fake rotation to make a saturated demo diverge.
+Before retuning an ice slide, compare body velocity with body heading and
+inspect a driving-camera episode against fixed ground references. A uniform
+light surface and following camera can hide an existing sideways velocity.
+The ice demonstration reused the measured model and added only a DEV pad grid
+and contrasting ice lines. Schedule a short input sequence inside one page
+evaluation through the existing keyboard handlers: separate automation round
+trips or screenshots between phases can unintentionally lengthen a held turn.
+Record phase times, use comparable entry speeds, and require recovery while
+still moving; an aligned stationary car does not prove controllability.
+For a user-authorized stronger ice slide, first tune the existing rear-axle
+turn response inside its speed, steering and uphill safeguards, rather than
+weakening global ice grip. Compare the same input sequence against the preserved
+mild reference. Keep an upper sideslip bound, recovery distance and remaining
+speed as acceptance gates: larger yaw alone can disguise a nearly stopped car.
+Check the full deterministic trial objects, including per-wheel reactions.
+The stronger-ice increment changes only the ice pad turn in the 44-trial set;
+the other 43, including accepted sand and straight ice braking/climbs, remain
+byte-for-byte identical. This bounded tune does not complete the general
+breakaway model or replace actual-world driving checks.
+Do not run heavy headless route trials alongside short browser handling
+measurements. The game's five-step catch-up cap discards time beyond about
+83 ms per frame; a Chromium attempt with 140–170 ms frame gaps therefore
+applied less simulated steering despite the correct wall-clock sequence.
+Preserve failed phase data, separate the workloads and rerun before adjusting
+physics or weakening angle/recovery assertions.
+Compare recovery over a fixed time window, not a fixed number of render frames:
+ten samples span very different durations in software Chromium and WebKit.
+Keep the physical angle/speed limits and require actual samples in that window.
+When carrying a slippery-material response into another world, reuse the
+existing tyre mechanism and material parameters rather than copying a solver
+or assuming lower base grip automatically creates readable breakaway.
+Glassfall's low base grip alone produced only about 4.5 degrees of Scout sideslip;
+material-specific rear response makes the user-approved strong slide visible.
+Preserve accepted materials and separate the unchanged steep-glacier curve.
+Verify the actual selected car too: an Earth lab normalizes a Scout URL rather
+than making it a Mars test. A lab comparison cannot replace an actual-ribbon
+Scout drive. Also distinguish general contact particles from an amplified
+wheelspin fan: at the glass stage that fan was sand-only. The later authorized
+extension covers ash/Martian dust and weaker packed dirt/Martian regolith;
+stationary churn footprints remain sand-only. Wheelspin on another material
+does not prove equal visual debris coverage.
+Schedule short comparison inputs at completed native physics steps, not render
+frames, when the catch-up cap can discard wall time. A test-only observer of
+`Vehicle.capture` can count real steps and dispatch normal keys before the next
+step; it must not manually advance the world or inject forces. Keep both wall
+and simulated durations in the evidence. Assert against the captured end sample:
+a later automation round trip can carry the still-moving car over a material
+boundary after the intended trial has already ended.
+Fit an actual-world manoeuvre and the whole wheel footprint inside its surface.
+Blue Hollow's graded eastern exit and snowy rim are not a flat ice reference;
+use a shorter westward trial with a measured start offset rather than changing
+physics or accepting recovery caused by leaving the ice. Keep the full lab
+manoeuvre as a separate regression, with distinct entry speeds/timings disclosed.
+For related loose-material effects, transfer the existing slip-driven emitter,
+not the traction parameters. A small explicit material-strength table preserves
+the accepted sand amplification while distinguishing loose ash/dust from packed
+dirt/regolith. Keep area/position-dependent palettes, real contact/slip gates,
+reverse throw direction, reduced settings and the existing bounded particle
+pool/disposal. Do not blanket-enable the fan on snow, mud or lunar soil merely
+because they already emit particles. Verify normal-camera actual-world footage,
+not only a single-colour lab. See `artifacts/traction/loose-spray-*`.
+When a trial places a stopped car on a slope, issue the intended initial pedal
+in the same page evaluation: an intervening automation round trip can let the
+car roll backwards first, making forward input select direction-change braking.
+The failed Chromium Dunes trial had forward input but zero wheel angular speed,
+not missing debris from spinning tyres. Correct the fixture, preserve the
+slip/contact/decay limits, and do not alter physics to obtain a particle test.
+
+An actual physics contact point is not sufficient to keep full-sized fragments
+outside a rendered tyre. Read the interpolated wheel pose, individual steering
+and contact-plane direction; allow for the complete grain volume when fitting
+its lower trailing departure point. Keep the initial velocity tangent/outward,
+and retire old fragments whose swept path meets a conservative visual tyre
+envelope. This is presentation clearance, not another physical collider or a
+reason to alter grip. Test forward/reverse, steered wheels, slopes and grains
+crossing a second tyre; inspect the user's reported side angle as well as a
+normal driving capture. Preserve both the original image and the failing
+before-run. See `artifacts/traction/tyre-clearance-*`.
+Non-intersection alone is not enough: moving full-sized grains outside their
+bounding sphere detached the source visibly and was rejected by the user.
+Keep small newborn grains against the tread, grow only into available clearance,
+and show their source before integrating a whole render-frame movement. Check
+both source continuity and rubber clearance, not just the latter.
+For explicitly authorized lunar ejecta, transfer those contact/slip and source
+constraints but not Earth's fragment scale, short life or extra spray gravity.
+Use Moon's actual game gravity and preserve horizontal ballistic velocity, a
+sparse existing emission rate and bounded solid grains rather than haze.
+Keep ordinary-rolling and real-slip observations separate; a wheelie on an
+off-route cliff is not proof of good normal-driving presentation.
+Do not assume a material ID has one visual hue everywhere. Mars uses the same
+dust/regolith IDs on rust, pale and golden ground; one rusty particle tint was
+visibly wrong on the pale terrain. Reuse local terrain/material colour sources
+and existing positional palette callbacks. Keep linear albedo comparisons
+separate from screenshot colour: lit terrain and unlit particles respond
+differently even under the same tone mapper. Verify hue and contrast in game
+before accepting a global palette edit.
+For a limited pale-region correction, share the terrain's existing region weight
+and sample its colour at the emitting wheel contact; smoothly blend back to the
+accepted tint outside that region. Mars's pale dust fix preserves Rust Dunes,
+other materials and all sampled terrain colours. A good-looking HUD dot can be
+a fixed CSS fallback, not a local terrain sample: do not make particle emission
+depend on DOM styling. See `artifacts/traction/color-review/` for the reproduced
+red mismatch and corrected actual-game views.
 
 This ledger covers more than shoreline work. The Mars entries come from the
 user's preserved [first](artifacts/mars/Mars-feedback1/Mars%20feedback.md) and

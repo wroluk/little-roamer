@@ -170,6 +170,10 @@ export function marsSurfaceAt(x: number, z: number): SurfaceId {
   return r > 58 && r < 98 || Math.max(Math.abs(x), Math.abs(z)) > MARS_HALF - 54 ? 'rock' : 'mars-dust';
 }
 const linear = (n: number) => n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+export function marsPaleGroundWeight(x: number, z: number): number {
+  const paleApproach = 0.45 * Math.exp(-(((x - 525) / 65) ** 2 + ((z + 195) / 95) ** 2));
+  return Math.max(glassfallWeight(x, z), paleApproach);
+}
 export function marsColor(x: number, z: number, height: number): number[] {
   const trail = marsTrailSample(x, z).distance;
   const r = Math.hypot(x, z + 195);
@@ -187,11 +191,10 @@ export function marsColor(x: number, z: number, height: number): number[] {
     [dunesWeight(x, z), [0.76, 0.41, 0.24]],
     [tubesWeight(x, z), [0.36, 0.30, 0.28]],
   ] as const) for (let i = 0; i < 3; i++) base[i] += (palette[i] - base[i]) * weight;
-  const glassfall = glassfallWeight(x, z);
-  const paleApproach = 0.45 * Math.exp(-(((x - 525) / 65) ** 2 + ((z + 195) / 95) ** 2));
+  const paleGround = marsPaleGroundWeight(x, z);
   const ironApproach = 0.45 * Math.exp(-(((x - 455) / 90) ** 2 + ((z - 260) / 100) ** 2));
   for (let i = 0; i < 3; i++) {
-    base[i] += ([0.77, 0.65, 0.48][i] - base[i]) * Math.max(glassfall, paleApproach);
+    base[i] += ([0.77, 0.65, 0.48][i] - base[i]) * paleGround;
     base[i] += ([0.55, 0.31, 0.22][i] - base[i]) * ironApproach;
   }
   const dish = dishRegionWeight(x, z);

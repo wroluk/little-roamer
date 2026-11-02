@@ -4,6 +4,371 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Pale Mars dust colour corrected — 2026-11-02
+
+- User chose the limited pale-Mars fix and explicitly requested a commit once
+  corrected. Reused the existing contact-position particle callback from Mars
+  rock fragments, with `marsColor` as the local hue source. Shared the existing
+  Glassfall/pale-approach weight rather than inventing a second regional map.
+  Fade smoothly from the original rusty dust into the local pale terrain hue.
+- Only `mars-dust` in this pale region changes. Rust Dunes retains its exact
+  original tint; packed regolith, other worlds, HUD, physics and accepted
+  near-tread emission/ballistics are unchanged. The HUD dot is a fixed fallback,
+  not a terrain sampler; a wider cross-world/HUD colour system remains deferred.
+- New actual-Scout scenario on the existing pale slope at (545, -150) reproduces
+  the old rusty mismatch before the fix: its colour assertion fails after the
+  real loaded-slip/contact/count checks succeed. Inspected before/after side
+  captures and normal driving views in both engines; the grains now match the
+  golden terrain rather than forming red trails. Rust Dunes stays rusty.
+- Fresh checks: **21/21 driving-feedback units**, **4/4 Chromium/WebKit cases**
+  (pale dust and Rust Dunes, including lift-off), product typecheck/build and
+  strict traction-browser typing pass. All 961 sampled terrain colours match
+  the pre-fix fingerprint exactly; the DEV lab is absent from production JS.
+  Current evidence: `artifacts/traction/color-review/pale-mars-response.json`.
+  The earlier 76 units, 18 browser cases and 21 additional route units are
+  separate pre-colour runs, not fresh full-suite acceptance.
+- Commit scope: the authorized traction/effects work with this correction; no
+  push. Next: keep accepted handling fixed. Full-suite/PWA/physical-iPad gaps remain
+  as previously recorded; no additional region or general breakaway-model
+  completion is claimed.
+
+### Particle palette review; commit paused — 2026-11-02
+
+- After accepting the lunar effect and authorizing a commit, the user requested
+  a colour review before committing. No commit/push has been made. Preserve
+  accepted handling, emitter geometry and ballistics; this is a review, not
+  authorization to change every world's palette.
+- Preserved the new image in `artifacts/traction/color-review/user-reported.png`.
+  Rust-red particles over golden terrain expose a real mapping gap: Mars
+  dust/regolith retain one material-wide hue despite regional ground palettes.
+  At (-570, 12), dust terrain albedo is `#c76e43`; at (560, -100), the same
+  dust material is `#c1a277`, but both emit `#ae573d`. Packed ground at
+  (525, -195) is `#cea477` versus particles `#bf7857`.
+- These are linear-to-sRGB albedo comparisons, not screenshot pixel matches.
+  Terrain is lit MeshStandardMaterial; particles are unlit MeshBasicMaterial
+  and their amplified fan is additionally shaded by 0.65–0.95 in linear space.
+  Merely brightening one global red or copying a screen pixel is insufficient.
+- Existing position-aware particle callbacks already support a local solution
+  (used for dark Mars tube fragments and Iceland overrides). Review recommends
+  local material hue first, starting with Mars dust and packed regolith; retain
+  restrained contrast/variation and inspect actual rendered results.
+  No production colour, physics or geometry edits were made by this review.
+
+### Near-tread particle source — accepted 2026-11-02
+
+- User rejected the first clearance correction: full-sized birth was visibly
+  detached from the tyre despite passing non-intersection checks. Preserved the
+  correct follow-up image as `tyre-clearance-views/user-reported-detached.png`.
+- Quick replacement for user assessment: small grains originate against the
+  lower tread and grow into available tyre clearance. Newly emitted grains are
+  shown at their source before advancing, avoiding a frame-duration-sized gap.
+  Handling and material amplification parameters remain unchanged.
+- User accepted this source correction before authorizing a lunar equivalent.
+  Previous clearance numbers below describe the rejected full-sized variant,
+  not this accepted revision.
+- 76 focused units, including near-tread birth proximity and all Moon routes,
+  pass. Product typecheck/build and strict traction-browser typing pass.
+  **18/18 fresh Chromium/WebKit cases pass**: four side-angle clearance cases,
+  twelve sand/expanded-material/actual Scout fan/lift-off cases and two lunar
+  launches. Current full-fragment overlap count is zero in every recorded
+  side-angle sample. Inspected side and normal-camera captures.
+- Current evidence: `artifacts/traction/tyre-clearance-response.json` and
+  `tyre-clearance-views/`, preserving the original user images, failing baseline
+  and rejected detached-source views separately. Render/wall-time observations
+  are not matched native-step handling measurements.
+- Next: keep accepted traction, source and material effects fixed. User
+  authorized a commit after accepting the lunar result, not a push. No new
+  full-suite/PWA/physical-device claim; earlier unrelated gaps remain.
+
+### Keep thrown grains outside the tyres — 2026-11-02
+
+- User reported particles apparently coming from the rim and crossing the tyre.
+  Preserved the original image in `artifacts/traction/tyre-clearance-views/`.
+  Reference: the existing real-contact emitter, detailed/rover wheel geometry
+  and material fan regressions. The contact was correct, but full-sized grains
+  were born inside the lower rubber and followed chassis rather than wheel
+  steering.
+- Dry-material fragments now depart just outside the lower trailing tread,
+  accounting for their full size, the interpolated visual wheel, steering,
+  contact plane and signed rim slip. Remove inward launch velocity and retire
+  any later grain whose swept segment meets a visual tyre envelope. No impulses,
+  physics colliders, handling, terrain or control changes. Amplification gains,
+  palettes, particle sizes/lifetimes and the 72-instance pool remain fixed.
+  Snow, water, mud and lunar particles keep their prior paths.
+- Chromium before-run detected 772 conservative grain/tyre overlap observations
+  in 14 render samples, not 772 distinct grains. Both forward dust and reverse
+  steered sand now have zero overlaps in Chromium/WebKit: **4/4 pass**.
+  Existing sand plus ash/dust/dirt/regolith/actual Rust Dunes Scout fan and
+  lift-off regressions also pass in both engines: **12/12** in a separate run.
+  Render samples are wall-time observations, not matched native-step handling
+  measurements. Inspected before/after side views and normal driving captures.
+- **61 focused units pass**, including full-fragment geometry across five
+  materials, both slip signs/ordinary rolling, steered slopes and a swept
+  second-tyre interception. Typecheck/build, strict browser typing and diff
+  formatting pass. Only the radius constant's export changes in `vehicle.ts`;
+  normalized source matches the accepted physical baseline. See
+  `artifacts/traction/tyre-clearance-response.json`.
+- Next: assess the corrected emission in normal play; do not retune accepted
+  sand/ice/glass or expand material scope here. No full-suite/PWA/physical-iPad
+  rerun; previous broad-suite gaps and manual WebKit touch/offline gates remain.
+  No new region completion, commits or pushes.
+
+### Loose-material wheelspin spray extension — 2026-11-02
+
+- The user accepted the latest stronger ice (“jest super”) and authorized the
+  proposed particle extension. Ice/glass/sand handling and accepted sand spray
+  remain fixed. No Iceland remapping, new controls or terrain changes.
+- Reference: the existing sand emitter and `driving-feedback` fan tests.
+  Reused that exact real-slip/contact emitter with material strength:
+  sand 1, ash 0.8, Martian dust 1, packed dirt/Martian regolith 0.35.
+  Ash's larger existing particles need less added amplification. Palettes,
+  reduced effects, 72-instance pool, expiry and disposal are retained.
+  Snow, mud and lunar regolith are not extended; stationary churn stays sand-only.
+- DEV selector now includes Martian dust without changing geometry. Actual
+  Scout views use an existing Rust Dunes slope at (-570, 12), facing east;
+  lab packed-surface trials start on the existing 32-degree ramp.
+- **36 focused units pass**, covering per-wheel localization, both signed-slip
+  directions, ratio/speed/contact gates, weaker packed profiles, excluded
+  materials, palette overrides, reduced mode and bounded cleanup. Typecheck/
+  production build and strict browser typing pass. Five physics-source hashes
+  exactly match accepted v7; no new physics measurement version is claimed.
+- **10/10 final new-material browser cases pass** in Chromium/WebKit, plus
+  both unchanged-sand cases from the initial run: 12 distinct passing cases,
+  not one fresh 12-case green run. Inspected normal driving captures, including
+  actual Scout wheelspin/lift-off. Evidence:
+  `artifacts/traction/loose-spray-response.json` and `loose-spray-views/`.
+- Initial browser run was 10/12. Chromium regolith/Dunes had delayed throttle
+  after slope placement, allowing rollback/direction-change braking before the
+  intended launch. Atomic placement plus ordinary KeyW fixes the fixture;
+  thresholds, effect parameters and physics were not loosened. Failed reports
+  and traces remain in session files. A new unit's first-particle warm-up
+  assumption was also corrected for the deliberately sparser packed profile.
+- Next: user reviews the four expanded materials. Full-suite/PWA/physical-iPad
+  acceptance and previous unrelated gaps are unchanged, not passed by these
+  focused checks. No Mars region completion, commits or pushes.
+
+### Playful ice follow-up; accepted glass unchanged — 2026-11-02
+
+- After driving Blue Hollow, the user authorized stronger ice and explicitly
+  deferred Vatnajökull until Iceland work resumes. Changing that glacier to
+  `snow` is a possible later choice, not a change made here.
+- Only `ice.rearTurnResponse` changes **0.25 → 0.2**. Ice brakes, motor, slow/
+  gentle/steep safeguards, terrain and all glass/sand parameters are unchanged.
+  Standard lab turn now reaches **43.7–43.8 degrees / 5.75 m/s sideways**;
+  moving recovery retains about 3.3 m/s rather than the previous 6 m/s.
+  Greater speed loss during this stronger slide is intentional.
+- **56 focused units + two selected High Pass geometry units pass**, with
+  typecheck/build and strict browser typing. Of 44 deterministic trials only
+  `ice/pad` changes; all other 43 match v6 exactly. New records:
+  `artifacts/traction/ice-playful-{response,slide-response}.json`.
+- Six distinct dual-engine browser cases have passing coverage across runs:
+  lab ice, actual Blue Hollow manoeuvre and the existing High Pass climb/
+  lookout/reset. Blue Hollow's shorter, bowl-sized trial stays on ice at every
+  wheel, peaks near 21.5 degrees / 4 m/s and recovers at about 8.3 m/s. These
+  are not the same input timings as the lab. Actual views are in
+  `artifacts/traction/ice-playful-views/`; user review of this new tune is pending.
+- The preceding glass/traverse follow-up is closed separately: final targeted
+  4/4 pass, including both actual-glass recovery and fixed-step mud cases.
+  Pre-v7 fixed-step coverage totals 15 distinct passing cases across runs,
+  with Chromium Vatnajökull still unaccepted/deferred. Kept every failed
+  attempt and the new glass evidence in `artifacts/traction/glass-slide-response.json`.
+- No new full-suite/PWA/device or Iceland-route acceptance; earlier full-run
+  evidence is unchanged. No commits/pushes. Next: user drives the stronger ice;
+  preserve accepted glass/sand and do not revisit Vatnajökull in this scope.
+
+### User-accepted very slippery Glassfall glass — 2026-11-02
+
+- The user requested “super super śliskie” glass and then confirmed
+  **“Glass jest super :)”** after driving it. Keep this tune, accepted sand
+  and ice fixed; no additional strength increase or debris changes authorized.
+- Reused the ice turn-response mechanism as optional material
+  `rearTurnResponse`: ice remains 0.25, glass uses 0.1, with the same front
+  response and speed/steering/uphill fades. Only glass also has weaker neutral
+  rolling brake, service braking and drag. No geometry, controls, motor,
+  shared tyre-budget, firm-road or Mars-gravity changes; the existing steep
+  glacier curve stays ice-only.
+- Flat Scout calibration: roughly **50 degrees / 8.2 m/s sideways**, versus
+  old glass 4.5 degrees / 0.9 m/s. Countersteer and straight coast recover while
+  moving, with a longer recovery allowance than ice. The tested straight
+  profile needs about 7.4 m to brake from 8 m/s instead of 2.7 m.
+- Both focused runs: **56/56 units**, typecheck/build and strict browser typing
+  pass. All **44 non-glass trial objects match v5 exactly** in
+  `artifacts/traction/glass-response.json`. First flat browser run: **3/4**, with a Chromium frame-count-based
+  recovery assertion failure despite its final 2.03-degree slip. Corrected
+  this to a fixed 150 ms window, keeping the angle/speed limits. Final expanded
+  Glassfall browser validation finished **11/12**: both engines pass the firm
+  circuit, glass crossing out/back, no-climb lip and flat comparisons; actual
+  Glassfall WebKit also passes. Chromium's real-ribbon recovery remains above
+  3 degrees, including an isolated rerun; this gate is open, not accepted.
+- DEV selector now includes glass/regolith; lab scenarios use Modern because
+  it remains an Earth entry. The actual-ribbon scenario uses Scout.
+  Earlier pre-glass traverse browser assessment was 14/16; its Chromium ice
+  measurement and Vatnajökull timeout remain open. See `TRACTION_PROGRESS.md`
+  and session `files/glass-*`, `files/traverse-*` for evidence and limitations.
+- The user asked about material throw. Only ordinary sand has the amplified
+  directional fan/churn; other loose materials still have older subtle debris.
+  Recorded the difference without changing effects. Inspected actual Scout
+  ribbon captures/footage and removed the temporary recording config.
+  A 16-case follow-up measures native fixed steps, not lost render time, without
+  manually stepping physics or changing inputs/thresholds; its final report is
+  still pending, with early real-world/timing failures retained.
+  Next: collect that report and finish its evidence record. The user's interest
+  in stronger ice is discussion; no ice retune has been made. No fresh full-suite/PWA/device
+  acceptance, region-completion claim, commits or pushes.
+
+### Stronger accepted ice-slide tuning — 2026-11-02
+
+- The user requested and then accepted the stronger ice variant. Retain it
+  without further amplification. One existing rear-axle turn multiplier changes
+  0.32 to 0.25, keeping the front response, speed/steering/uphill fades and
+  shared tyre budgets. No global material, braking, motor, controls, geometry,
+  accepted sand or Mars content changes.
+- The matched manoeuvre now peaks at **26.3–26.7 degrees** instead of about 16,
+  with moving recovery at 6.0–6.7 m/s. More momentum is lost during the stronger
+  slide. All **43 non-ice-pad deterministic trials remain exactly identical**
+  to v4, including accepted sand and straight ice braking/coast/climbs.
+- **47 focused units plus seven actual-world unit cases pass**, covering both
+  cars on the ice cave, cap through-route and glacier viewpoints as well as the
+  Highlands oblique climb. **Eight distinct affected browser cases have passing
+  coverage:** six final dual-engine lab cases and both earlier Highlands
+  climb cases, not one fresh eight-case run. An initial Chromium lab attempt
+  failed under concurrent headless-route load; its preserved frame gaps exceed
+  the game's catch-up cap. The isolated final lab run passes without retuning
+  physics, changing inputs or weakening assertions.
+- Typecheck/build, strict browser typing and diff checks pass. Measurements,
+  hashes and actual driving views are in `artifacts/traction/ice-strong-*`;
+  the inspected old/new video is in session files. No fresh full-suite/PWA,
+  physical-iPad or Iceland browser-route acceptance, and no new Mars region
+  completion. Prior full-run evidence and unresolved browser gates remain
+  unchanged. See `TRACTION_PROGRESS.md` for exact runs and remaining scope.
+  No commits or pushes.
+
+### Existing ice-slide demonstration — 2026-11-02
+
+- The user authorized a short ice-slide/recovery comparison before broader
+  physics work. Existing ice already shows about 16 degrees sideslip and
+  3.3 m/s side speed versus about 6.5 degrees / 1.3 m/s on packed dirt.
+  Countersteer followed by straight coasting restores direction while the
+  car still travels about 8–9 m/s, not only after stopping.
+- No shared physics, sand variation, Mars material, content or route changes.
+  Only DEV lab reference lines/grid changed; the ground mesh and production
+  bundle content are unchanged. Corrected automation phase timing rather
+  than retuning tyres to fit protocol delays.
+- **46 focused units and six affected dual-engine browser cases pass**,
+  including accepted sand feedback; typecheck/build and strict browser typing
+  pass. Actual images/traces are under `artifacts/traction/ice-*`; the inspected
+  side-by-side video is in session artifacts. No new full-suite, PWA, route or
+  physical-device result; prior full-run evidence and unresolved browser gates
+  remain unchanged. No Mars region completion, commits or pushes. Next: user
+  judges this bounded ice demonstration before more tuning.
+
+### Small shared sand-grip variation — 2026-11-02
+
+- After approving the visible sand demonstration, the user authorized smooth
+  positional sand-grip patches at 90–110% of the material allowance. One
+  coefficient per contact/fixed step is shared by uphill coupling,
+  drive/coast/brake capacity, native friction and both final ellipse axes.
+  Rotor differences are physical, not random animation. No motor, controls,
+  geometry, load support or Mars content changes.
+- Every non-sand material, including Mars dust/rock/glass, keeps multiplier 1.
+  All 33 non-sand deterministic trials match the preceding v3 model exactly,
+  including wheel-level turn traces apart from new telemetry fields.
+  Current 44-trial measurements: `artifacts/traction/sand-grip-response.json`;
+  earlier references are preserved.
+- **87 affected units pass**, as do typecheck/build and strict browser typing.
+  **20 distinct affected dual-engine browser cases have passing coverage**:
+  18 in the broader run plus both corrected sand demonstrations separately.
+  The new check initially overestimated RPM differences near the drivetrain
+  speed ceiling; no physics/amplitude or pre-existing assertions were changed
+  to resolve that test assumption. Final spin/release views were inspected
+  against the approved reference and saved to `artifacts/traction/sand-grip-views/`.
+- The existing Sólheimasandur browser return drive times out alone and with
+  the new coefficient forced to 1 in a page-local module interception
+  (pre-patch-v3 control, not `HEAD`/`main`). That browser gate remains open;
+  its interrupted broader run and Reynisfjara case are not accepted as passes.
+  Six actual headless Iceland sand drives covering both cars pass. Details
+  and control evidence are in `TRACTION_PROGRESS.md` and session artifacts.
+- No new full-suite/PWA or physical-iPad acceptance; earlier full-run and
+  incomplete full-browser evidence below remains unchanged. No commits or
+  pushes. Next: assess the deliberately subtle variation in play rather than
+  silently increasing its amplitude; unfinished common traction work remains
+  separate. No Mars region completion is claimed.
+
+### Shared sand-feedback demonstrator — 2026-11-02
+
+- The user selected a short visible sand-struggle demonstration instead of
+  further general tyre-model work. Amplified actual sand rim/contact slip with
+  directional grains and temporary churn stamps. The sand material only is
+  affected; Martian dust/rock/glass profiles and all physics, world content,
+  controls and terrain remain unchanged.
+- Existing area palette overrides, pool bounds, airborne suppression and
+  disposal remain intact. Vehicle/driving/wheel-drive hashes match the preceding
+  measured model. No Mars region completion or new handling acceptance is claimed.
+- **43 focused units and 14 affected Chromium/WebKit browser cases pass**,
+  including palette, contact-local feedback, bounded draw calls, reset/disposal
+  and real-keyboard sand spin/release with hidden telemetry. Typecheck/build and
+  strict browser-test typing pass. Driving views: `artifacts/traction/sand-views/`.
+- No new full-suite/PWA or physical-device checks; previous full-run evidence
+  and unresolved full-browser gates below are unchanged. No commits or pushes.
+  Next: user evaluates the sand demonstration before more physics investment.
+
+### Shared lateral-traction development checks — 2026-10-31
+
+- Continued the authorized isolated traction work, without Mars content, route,
+  model or collision-geometry changes. Sustained tyre scrub now produces
+  understeer and lift-off recovery on firm/loose ground. Wheel-weight contact
+  support uses the same normal-load budget as Rapier; service-brake torque no
+  longer inherits the acceleration multiplier. Existing neutral drag remains.
+- Focused traction/surface/lab checks pass, including the new normal-load and
+  free-fall invariant. Both reference-log drives and the new keyboard
+  understeer/recovery case pass in both engines. Typecheck/build, strict browser
+  typing and repeated 44-trial measurements pass.
+- **58/58 affected browser cases pass** in both engines, including Moon/Mars
+  model switching/reload/driving and all-world recovery. Test-generated changes
+  to 60 reference rover PNGs were preserved in session artifacts and restored.
+  Fresh full units finished **436/437**, with all Mars/Iceland routes passing.
+  The sole coastal failure was a full-throttle test driver running 8.28 m off
+  its authored line into a rock. It now brakes before corners using existing
+  controls, retaining every original assertion and adding a 5 m route-corridor
+  guard. All coast/west plus focused cases pass **46/46**; the stricter route
+  case also passes alone. Final game-source hashes match the full run and
+  browser evidence; only the test driver changed. This is full-run-plus-rerun
+  coverage, not a new single all-green 437-case run. The preceding **434-unit**
+  result below belongs to the previous increment.
+  An earlier full-browser attempt in this lateral iteration stopped at the baseline-proven
+  duplicate `.wordmark` selector: 10 passed, one failed, 395 not run. Earlier
+  interrupted probes do not count as acceptance.
+- The complete common transient tyre model, physical iPad and public release
+  gates remain open. No PWA run, commits or pushes. See `TRACTION_PROGRESS.md`
+  for current implementation, failed probes and exact remaining work.
+
+### Shared traction development checks — 2026-10-30
+
+- Isolated, uncommitted traction worktree; no publication or changes to Mars
+  scenery, routes, lighting, palette, fog or vehicle choices. Shared Vehicle
+  now has progressive existing throttle, independently inertial drive/coast/
+  brake wheels and load-bounded contact reactions. The old lateral ice rule
+  and uphill envelopes remain transitional; the complete traction scope is
+  not finished. See `TRACTION_PROGRESS.md`.
+- Latest full units: **434 passed / zero failed or skipped**, including all
+  authored Mars routes and shared recovery/model checks. An earlier 433/434 run
+  exposed a Northern log regression; corrected underside friction and restored
+  original hull mass properties before this full green rerun.
+- **56 affected dual-engine browser cases pass**, including Moon/Mars rover
+  switching/reload/driving, all-world recovery, Highlands fords/glacier, the
+  development lab and Northern obstacles. These are focused results, not a
+  full-browser success: the 398-case full attempt was stopped during Iceland
+  failures before WebKit. Original `HEAD` also reproduces the duplicate-logo
+  selector failure and ford/bridge timeout; other stopped-run failures were not
+  individually baseline-proven. No assertions were relaxed.
+- Typecheck/build pass. No PWA run or physical-iPad acceptance in this
+  drivetrain-only increment. Test-generated Moon/Mars reference PNG changes
+  were restored; curated current traction views live separately under
+  `artifacts/traction/coast-views/`. Next: preserve accepted Mars content while
+  developing and validating the common lateral response on the proving ground,
+  then repeat affected authored-route gates; do not treat these checks as a
+  release or complete traction acceptance.
+
 ### Shared lunar preview publication checks — 2026-10-25
 
 - The user authorized committing/pushing Nomad and the accepted permanent

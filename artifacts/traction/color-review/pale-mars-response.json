@@ -1,0 +1,1293 @@
+{
+  "date": "2026-11-02",
+  "scope": "Contact-local pale-region mars-dust hue only; unchanged Rust Dunes, packed regolith, other worlds, HUD, emission and physics.",
+  "reference": "Existing position-aware Mars rock particle override and marsColor terrain palette; share the existing pale region weight without changing terrain colors.",
+  "paleStart": {
+    "x": 545,
+    "z": -150,
+    "heading": -2.8112749562894663
+  },
+  "before": {
+    "project": "chromium-tablet",
+    "expectedFailure": "Old rusty dust fails the new pale-color ratios; actual loaded wheelspin and particle count gates pass before this assertion.",
+    "capture": "pale-before-chromium-side.png"
+  },
+  "after": {
+    "stats": {
+      "startTime": "2026-11-02T20:43:46.530Z",
+      "duration": 60664.602,
+      "expected": 4,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "title": "Rust Dunes Scout: material wheelspin spray and lift-off through normal controls",
+        "project": "chromium-tablet",
+        "status": "expected",
+        "spinning": {
+          "area": "mars",
+          "bounds": 768,
+          "spawn": {
+            "x": -535,
+            "z": 190,
+            "y": 10.25
+          },
+          "gravity": -18,
+          "fog": true,
+          "viewDistance": 900,
+          "car": "mars-scout",
+          "tractionLab": false,
+          "wheels": [
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.0929815310254,
+              "slipRatio": 0.9711670157289576,
+              "slipSpeed": 12.599113079854764,
+              "angularSpeed": 27.027433824032393,
+              "lateralSpeed": 0.01231640015780017,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 219.8347128778696,
+              "forwardImpulse": -3.2750840187072754,
+              "sideImpulse": 0.10801038146018982
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.0929815310254,
+              "slipRatio": 0.971155635512078,
+              "slipSpeed": 12.598965442386628,
+              "angularSpeed": 27.027433824032393,
+              "lateralSpeed": 0.012303662920872045,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 222.8684023283422,
+              "forwardImpulse": -3.2750840187072754,
+              "sideImpulse": 0.10800157487392426
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.0929815310254,
+              "slipRatio": 0.9709136577548172,
+              "slipSpeed": 12.595826224232427,
+              "angularSpeed": 27.027433824032393,
+              "lateralSpeed": 0.0126886314210849,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 577.8512769639492,
+              "forwardImpulse": -3.2750840187072754,
+              "sideImpulse": 0.1179765984416008
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.0929815310254,
+              "slipRatio": 0.9708892406859356,
+              "slipSpeed": 12.595509457490007,
+              "angularSpeed": 27.027433824032393,
+              "lateralSpeed": 0.012826559199648563,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 575.0184245221317,
+              "forwardImpulse": -3.2750840187072754,
+              "sideImpulse": 0.1144411563873291
+            }
+          ],
+          "surface": "mars-dust",
+          "wheelSurfaces": [
+            "mars-dust",
+            "mars-dust",
+            "mars-dust",
+            "mars-dust"
+          ],
+          "terrainFeedback": 0.017999999989812925,
+          "waterDepth": 0,
+          "terrainParticles": 32,
+          "terrainTracks": 88,
+          "terrainRipples": 0,
+          "terrainParticleCapacity": 72,
+          "terrainEffectUsesInstanceColors": true,
+          "reducedMotion": false,
+          "cameraFeedbackApplied": 0.017999999989812925,
+          "waterHeight": null,
+          "mode": "playing",
+          "position": {
+            "x": -588.7261962890625,
+            "y": 13.48786449432373,
+            "z": 12.039922714233398
+          },
+          "rotation": {
+            "x": 0.15857572853565216,
+            "y": -0.6891288161277771,
+            "z": 0.1466529220342636,
+            "w": 0.6916994452476501
+          },
+          "velocity": {
+            "x": 0.38266119360923767,
+            "y": 0.03326606750488281,
+            "z": 0.010141861625015736
+          },
+          "speed": 0.3610307333025749,
+          "contacts": 4,
+          "input": {
+            "steer": 0,
+            "forward": true,
+            "reverse": false
+          },
+          "camera": [
+            -601.3534050570682,
+            18.38975070237292,
+            12.03269502784813
+          ],
+          "targetDistance": 13.545241877467703,
+          "wheelSteering": 0,
+          "suspension": [
+            0.3217802345752716,
+            0.3203081786632538,
+            0.1441236436367035,
+            0.1454543173313141
+          ],
+          "drawCalls": 47,
+          "triangles": 164516,
+          "pixelRatio": 1,
+          "graphicsReduced": false,
+          "geometries": 67,
+          "textures": 2,
+          "cameraObstructed": false,
+          "streaming": {
+            "activeRender": 25,
+            "activePhysics": 9,
+            "queued": 0,
+            "triangles": 197208,
+            "colliderCount": 35,
+            "lastActivationMs": 3.399999998509884
+          },
+          "navigation": {
+            "heading": 90.00565950286193,
+            "direction": "E",
+            "elevation": 13
+          }
+        },
+        "released": {
+          "area": "mars",
+          "bounds": 768,
+          "spawn": {
+            "x": -535,
+            "z": 190,
+            "y": 10.25
+          },
+          "gravity": -18,
+          "fog": true,
+          "viewDistance": 900,
+          "car": "mars-scout",
+          "tractionLab": false,
+          "wheels": [
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.34075869873295256,
+              "slipSpeed": 0.34075869873295256,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.010975920163201177,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 255.74852201715112,
+              "forwardImpulse": -2.639843233489573,
+              "sideImpulse": 0.09701047837734222
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.34071396360121925,
+              "slipSpeed": 0.34071396360121925,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.010981901666300512,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 258.21210487931967,
+              "forwardImpulse": -2.639461156759066,
+              "sideImpulse": 0.09698686748743057
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.3383203666527042,
+              "slipSpeed": 0.3383203666527042,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.011194486136345098,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 538.2986720763147,
+              "forwardImpulse": -2.6574780585117614,
+              "sideImpulse": 0.10338269919157028
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.3380582246664964,
+              "slipSpeed": 0.3380582246664964,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.01145086069267752,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 535.9795931242406,
+              "forwardImpulse": -2.6534862368179586,
+              "sideImpulse": 0.10041888803243637
+            }
+          ],
+          "surface": "mars-dust",
+          "wheelSurfaces": [
+            "mars-dust",
+            "mars-dust",
+            "mars-dust",
+            "mars-dust"
+          ],
+          "terrainFeedback": 0.008642920706951296,
+          "waterDepth": 0,
+          "terrainParticles": 0,
+          "terrainTracks": 0,
+          "terrainRipples": 0,
+          "terrainParticleCapacity": 72,
+          "terrainEffectUsesInstanceColors": true,
+          "reducedMotion": false,
+          "cameraFeedbackApplied": 0.008642920706951296,
+          "waterHeight": null,
+          "mode": "playing",
+          "position": {
+            "x": -586.4556274414062,
+            "y": 14.35792064666748,
+            "z": 12.057706832885742
+          },
+          "rotation": {
+            "x": 0.15823031961917877,
+            "y": -0.6891618967056274,
+            "z": 0.14755572378635406,
+            "w": 0.6915535926818848
+          },
+          "velocity": {
+            "x": -0.3064964711666107,
+            "y": -0.24327971041202545,
+            "z": 0.00988045521080494
+          },
+          "speed": -0.3805558777359421,
+          "contacts": 4,
+          "input": {
+            "steer": 0,
+            "forward": false,
+            "reverse": false
+          },
+          "camera": [
+            -599.2331398044529,
+            19.20678901583237,
+            12.054251334181624
+          ],
+          "targetDistance": 13.666670314555022,
+          "wheelSteering": 0,
+          "suspension": [
+            0.29057708382606506,
+            0.28925666213035583,
+            0.17841562628746033,
+            0.17964938282966614
+          ],
+          "drawCalls": 44,
+          "triangles": 161028,
+          "pixelRatio": 1,
+          "graphicsReduced": true,
+          "geometries": 67,
+          "textures": 2,
+          "cameraObstructed": false,
+          "streaming": {
+            "activeRender": 25,
+            "activePhysics": 9,
+            "queued": 0,
+            "triangles": 197208,
+            "colliderCount": 35,
+            "lastActivationMs": 3.399999998509884
+          },
+          "navigation": {
+            "heading": 89.9975923372474,
+            "direction": "E",
+            "elevation": 14
+          }
+        }
+      },
+      {
+        "title": "Pale Mars dust Scout: material wheelspin spray and lift-off through normal controls",
+        "project": "chromium-tablet",
+        "status": "expected",
+        "spinning": {
+          "area": "mars",
+          "bounds": 768,
+          "spawn": {
+            "x": 426.05,
+            "z": -109.75,
+            "y": 9.25
+          },
+          "gravity": -18,
+          "fog": true,
+          "viewDistance": 900,
+          "car": "mars-scout",
+          "tractionLab": false,
+          "wheels": [
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 257.42548773448334,
+              "slipRatio": 0.9257947010538125,
+              "slipSpeed": 11.979428239218269,
+              "angularSpeed": 26.95753403711414,
+              "lateralSpeed": -0.027579939875606696,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 198.2770782969892,
+              "forwardImpulse": -3.3357489109039307,
+              "sideImpulse": -0.26044315099716187
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 257.42548773448334,
+              "slipRatio": 0.9262072754185531,
+              "slipSpeed": 11.984766793208829,
+              "angularSpeed": 26.95753403711414,
+              "lateralSpeed": -0.030074960466842604,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 214.67845436185598,
+              "forwardImpulse": -3.3357489109039307,
+              "sideImpulse": -0.26413509249687195
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 257.42548773448334,
+              "slipRatio": 0.925576867883038,
+              "slipSpeed": 11.976609561562796,
+              "angularSpeed": 26.95753403711414,
+              "lateralSpeed": -0.03151459340141627,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 579.7838460095227,
+              "forwardImpulse": -3.3357489109039307,
+              "sideImpulse": -0.12477623671293259
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 257.42548773448334,
+              "slipRatio": 0.9244913452879181,
+              "slipSpeed": 11.962563315655917,
+              "angularSpeed": 26.95753403711414,
+              "lateralSpeed": -0.029283674980657537,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 601.8873025998473,
+              "forwardImpulse": -3.3357489109039307,
+              "sideImpulse": -0.12630122900009155
+            }
+          ],
+          "surface": "mars-dust",
+          "wheelSurfaces": [
+            "mars-dust",
+            "mars-dust",
+            "mars-dust",
+            "mars-dust"
+          ],
+          "terrainFeedback": 0.01799411149727944,
+          "waterDepth": 0,
+          "terrainParticles": 47,
+          "terrainTracks": 12,
+          "terrainRipples": 0,
+          "terrainParticleCapacity": 72,
+          "terrainEffectUsesInstanceColors": true,
+          "reducedMotion": false,
+          "cameraFeedbackApplied": 0.01799411149727944,
+          "waterHeight": null,
+          "mode": "playing",
+          "position": {
+            "x": 544.1973266601562,
+            "y": 9.12006664276123,
+            "z": -152.37620544433594
+          },
+          "rotation": {
+            "x": 0.028893183916807175,
+            "y": -0.9644047617912292,
+            "z": 0.20314446091651917,
+            "w": 0.16679647564888
+          },
+          "velocity": {
+            "x": 0.2981525957584381,
+            "y": 0.20245976746082306,
+            "z": 0.8187366127967834
+          },
+          "speed": 0.8793076715228798,
+          "contacts": 4,
+          "input": {
+            "steer": 0,
+            "forward": true,
+            "reverse": false
+          },
+          "camera": [
+            552.2230168813225,
+            16.174664978264065,
+            -160.8295036744413
+          ],
+          "targetDistance": 13.624826775673887,
+          "wheelSteering": 0,
+          "suspension": [
+            0.318666011095047,
+            0.32943734526634216,
+            0.1506955325603485,
+            0.1348203718662262
+          ],
+          "drawCalls": 40,
+          "triangles": 179728,
+          "pixelRatio": 1,
+          "graphicsReduced": false,
+          "geometries": 65,
+          "textures": 2,
+          "cameraObstructed": false,
+          "streaming": {
+            "activeRender": 25,
+            "activePhysics": 9,
+            "queued": 0,
+            "triangles": 197208,
+            "colliderCount": 70,
+            "lastActivationMs": 3.7999999970197678
+          },
+          "navigation": {
+            "heading": 160.21740032587013,
+            "direction": "SSE",
+            "elevation": 8
+          }
+        },
+        "released": {
+          "area": "mars",
+          "bounds": 768,
+          "spawn": {
+            "x": 426.05,
+            "z": -109.75,
+            "y": 9.25
+          },
+          "gravity": -18,
+          "fog": true,
+          "viewDistance": 900,
+          "car": "mars-scout",
+          "tractionLab": false,
+          "wheels": [
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.347177628281441,
+              "slipSpeed": 0.347177628281441,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.0033110786675225184,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 227.36162417382002,
+              "forwardImpulse": -2.478551408536596,
+              "sideImpulse": 0.06188701465725899
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.3578548305655199,
+              "slipSpeed": 0.3578548305655199,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.008712124241698288,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 252.9416851438582,
+              "forwardImpulse": -2.5621554131532007,
+              "sideImpulse": 0.08019441366195679
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.3226191511136001,
+              "slipSpeed": 0.3226191511136001,
+              "angularSpeed": 0,
+              "lateralSpeed": -0.007175671332597944,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 554.717775452882,
+              "forwardImpulse": -2.354007880558129,
+              "sideImpulse": -0.004833294078707695
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.333969269367247,
+              "slipSpeed": 0.333969269367247,
+              "angularSpeed": 0,
+              "lateralSpeed": -0.0028665869965805724,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 539.7126518376172,
+              "forwardImpulse": -2.4729954739026905,
+              "sideImpulse": -0.17137137055397034
+            }
+          ],
+          "surface": "mars-dust",
+          "wheelSurfaces": [
+            "mars-dust",
+            "mars-dust",
+            "mars-dust",
+            "mars-dust"
+          ],
+          "terrainFeedback": 0.013077115375349644,
+          "waterDepth": 0,
+          "terrainParticles": 2,
+          "terrainTracks": 20,
+          "terrainRipples": 0,
+          "terrainParticleCapacity": 72,
+          "terrainEffectUsesInstanceColors": true,
+          "reducedMotion": false,
+          "cameraFeedbackApplied": 0.013077115375349644,
+          "waterHeight": null,
+          "mode": "playing",
+          "position": {
+            "x": 544.4254760742188,
+            "y": 9.36687183380127,
+            "z": -151.77496337890625
+          },
+          "rotation": {
+            "x": 0.04438997805118561,
+            "y": -0.9589030742645264,
+            "z": 0.23190242052078247,
+            "w": 0.1573394387960434
+          },
+          "velocity": {
+            "x": -0.06624183058738708,
+            "y": -0.21240712702274323,
+            "z": -0.19403938949108124
+          },
+          "speed": -0.2796200829433648,
+          "contacts": 4,
+          "input": {
+            "steer": 0,
+            "forward": false,
+            "reverse": false
+          },
+          "camera": [
+            540.4214156327561,
+            14.294466340249762,
+            -163.69350691660114
+          ],
+          "targetDistance": 13.504346197720235,
+          "wheelSteering": 0,
+          "suspension": [
+            0.33562353253364563,
+            0.3224668800830841,
+            0.1482747495174408,
+            0.15398827195167542
+          ],
+          "drawCalls": 42,
+          "triangles": 179822,
+          "pixelRatio": 1,
+          "graphicsReduced": false,
+          "geometries": 75,
+          "textures": 2,
+          "cameraObstructed": false,
+          "streaming": {
+            "activeRender": 25,
+            "activePhysics": 9,
+            "queued": 0,
+            "triangles": 197208,
+            "colliderCount": 70,
+            "lastActivationMs": 3.7999999970197678
+          },
+          "navigation": {
+            "heading": 161.55396665380533,
+            "direction": "SSE",
+            "elevation": 9
+          }
+        },
+        "colorSample": {
+          "count": 52,
+          "linearGreenToRed": [
+            0.6441149882898399,
+            0.654791358300134
+          ],
+          "linearBlueToRed": [
+            0.32450038179259877,
+            0.33294858212595624
+          ]
+        }
+      },
+      {
+        "title": "Rust Dunes Scout: material wheelspin spray and lift-off through normal controls",
+        "project": "webkit-tablet",
+        "status": "expected",
+        "spinning": {
+          "area": "mars",
+          "bounds": 768,
+          "spawn": {
+            "x": -535,
+            "z": 190,
+            "y": 10.25
+          },
+          "gravity": -18,
+          "fog": true,
+          "viewDistance": 900,
+          "car": "mars-scout",
+          "tractionLab": false,
+          "wheels": [
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.09290782792687,
+              "slipRatio": 1,
+              "slipSpeed": 13.009357065150956,
+              "angularSpeed": 27.027426105861235,
+              "lateralSpeed": 0.012355479586720036,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 221.5461386591196,
+              "forwardImpulse": -3.275089740753174,
+              "sideImpulse": 0.108291856944561
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.09290782792687,
+              "slipRatio": 1,
+              "slipSpeed": 13.009206832154437,
+              "angularSpeed": 27.027426105861235,
+              "lateralSpeed": 0.01234316476479873,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 224.30030235275626,
+              "forwardImpulse": -3.275089740753174,
+              "sideImpulse": 0.10828621685504913
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.09290782792687,
+              "slipRatio": 1,
+              "slipSpeed": 13.005980799069674,
+              "angularSpeed": 27.027426105861235,
+              "lateralSpeed": 0.012727702304121574,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 579.1721387803555,
+              "forwardImpulse": -3.275089740753174,
+              "sideImpulse": 0.11833102256059647
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.09290782792687,
+              "slipRatio": 1,
+              "slipSpeed": 13.005670184739554,
+              "angularSpeed": 27.027426105861235,
+              "lateralSpeed": 0.012864672573967999,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 576.5897135846317,
+              "forwardImpulse": -3.275089740753174,
+              "sideImpulse": 0.11477400362491608
+            }
+          ],
+          "surface": "mars-dust",
+          "wheelSurfaces": [
+            "mars-dust",
+            "mars-dust",
+            "mars-dust",
+            "mars-dust"
+          ],
+          "terrainFeedback": 0.01799999997801523,
+          "waterDepth": 0,
+          "terrainParticles": 40,
+          "terrainTracks": 104,
+          "terrainRipples": 0,
+          "terrainParticleCapacity": 72,
+          "terrainEffectUsesInstanceColors": true,
+          "reducedMotion": false,
+          "cameraFeedbackApplied": 0.01799999997801523,
+          "waterHeight": null,
+          "mode": "playing",
+          "position": {
+            "x": -588.7686767578125,
+            "y": 13.47126579284668,
+            "z": 12.037823677062988
+          },
+          "rotation": {
+            "x": 0.15831276774406433,
+            "y": -0.6891980171203613,
+            "z": 0.14637315273284912,
+            "w": 0.6917500495910645
+          },
+          "velocity": {
+            "x": 0.002871181583032012,
+            "y": -0.10646285861730576,
+            "z": 0.010863612405955791
+          },
+          "speed": -0.042192213933110935,
+          "contacts": 4,
+          "input": {
+            "steer": 0,
+            "forward": true,
+            "reverse": false
+          },
+          "camera": [
+            -601.4073573393088,
+            18.369835347630392,
+            12.031990894577723
+          ],
+          "targetDistance": 13.554795154679462,
+          "wheelSteering": 0,
+          "suspension": [
+            0.3208795487880707,
+            0.3194449245929718,
+            0.14326360821723938,
+            0.14454242587089539
+          ],
+          "drawCalls": 47,
+          "triangles": 164516,
+          "pixelRatio": 1,
+          "graphicsReduced": false,
+          "geometries": 67,
+          "textures": 2,
+          "cameraObstructed": false,
+          "streaming": {
+            "activeRender": 25,
+            "activePhysics": 9,
+            "queued": 0,
+            "triangles": 197208,
+            "colliderCount": 35,
+            "lastActivationMs": 4
+          },
+          "navigation": {
+            "heading": 90.00717987565486,
+            "direction": "E",
+            "elevation": 13
+          }
+        },
+        "released": {
+          "area": "mars",
+          "bounds": 768,
+          "spawn": {
+            "x": -535,
+            "z": 190,
+            "y": 10.25
+          },
+          "gravity": -18,
+          "fog": true,
+          "viewDistance": 900,
+          "car": "mars-scout",
+          "tractionLab": false,
+          "wheels": [
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.3108041114029479,
+              "slipSpeed": 0.3108041114029479,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.011572882890603528,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 267.4786494933069,
+              "forwardImpulse": -2.4230103343708858,
+              "sideImpulse": 0.10430695116519928
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.3105961418222535,
+              "slipSpeed": 0.3105961418222535,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.011703227279942078,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 271.48935874924064,
+              "forwardImpulse": -2.425902637717116,
+              "sideImpulse": 0.1037638708949089
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.307018410907009,
+              "slipSpeed": 0.307018410907009,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.012022243262527745,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 535.8436780869961,
+              "forwardImpulse": -2.3905374764090555,
+              "sideImpulse": 0.10834944993257523
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.30691551382387183,
+              "slipSpeed": 0.30691551382387183,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.012005378673801184,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 532.8884410969913,
+              "forwardImpulse": -2.3906838956703864,
+              "sideImpulse": 0.10855235904455185
+            }
+          ],
+          "surface": "mars-dust",
+          "wheelSurfaces": [
+            "mars-dust",
+            "mars-dust",
+            "mars-dust",
+            "mars-dust"
+          ],
+          "terrainFeedback": 0.00826745636389408,
+          "waterDepth": 0,
+          "terrainParticles": 22,
+          "terrainTracks": 104,
+          "terrainRipples": 0,
+          "terrainParticleCapacity": 72,
+          "terrainEffectUsesInstanceColors": true,
+          "reducedMotion": false,
+          "cameraFeedbackApplied": 0.00826745636389408,
+          "waterHeight": null,
+          "mode": "playing",
+          "position": {
+            "x": -588.26806640625,
+            "y": 13.65880298614502,
+            "z": 12.050976753234863
+          },
+          "rotation": {
+            "x": 0.1513398140668869,
+            "y": -0.6906160712242126,
+            "z": 0.1394711136817932,
+            "w": 0.6933206915855408
+          },
+          "velocity": {
+            "x": -0.2676163911819458,
+            "y": -0.21641699969768524,
+            "z": 0.01053120382130146
+          },
+          "speed": -0.33209192064383225,
+          "contacts": 4,
+          "input": {
+            "steer": 0,
+            "forward": false,
+            "reverse": false
+          },
+          "camera": [
+            -600.9625919798666,
+            18.539213109501883,
+            12.051350495476871
+          ],
+          "targetDistance": 13.601041309905101,
+          "wheelSteering": 0,
+          "suspension": [
+            0.29225876927375793,
+            0.29028090834617615,
+            0.17400899529457092,
+            0.17537102103233337
+          ],
+          "drawCalls": 47,
+          "triangles": 164516,
+          "pixelRatio": 1,
+          "graphicsReduced": false,
+          "geometries": 67,
+          "textures": 2,
+          "cameraObstructed": false,
+          "streaming": {
+            "activeRender": 25,
+            "activePhysics": 9,
+            "queued": 0,
+            "triangles": 197208,
+            "colliderCount": 35,
+            "lastActivationMs": 4
+          },
+          "navigation": {
+            "heading": 89.98176106758314,
+            "direction": "E",
+            "elevation": 13
+          }
+        }
+      },
+      {
+        "title": "Pale Mars dust Scout: material wheelspin spray and lift-off through normal controls",
+        "project": "webkit-tablet",
+        "status": "expected",
+        "spinning": {
+          "area": "mars",
+          "bounds": 768,
+          "spawn": {
+            "x": 426.05,
+            "z": -109.75,
+            "y": 9.25
+          },
+          "gravity": -18,
+          "fog": true,
+          "viewDistance": 900,
+          "car": "mars-scout",
+          "tractionLab": false,
+          "wheels": [
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.1318032723046,
+              "slipRatio": 1,
+              "slipSpeed": 13.037792756948022,
+              "angularSpeed": 27.031499227272022,
+              "lateralSpeed": -0.032106749423143455,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 244.4956299327314,
+              "forwardImpulse": -3.2709333896636963,
+              "sideImpulse": -0.31848546862602234
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.1318032723046,
+              "slipRatio": 1,
+              "slipSpeed": 13.00660151269815,
+              "angularSpeed": 27.031499227272022,
+              "lateralSpeed": -0.03522450943504905,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 190.4962339028716,
+              "forwardImpulse": -3.2709333896636963,
+              "sideImpulse": -0.32571738958358765
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.1318032723046,
+              "slipRatio": 1,
+              "slipSpeed": 13.028908570095465,
+              "angularSpeed": 27.031499227272022,
+              "lateralSpeed": 0.00489892850646036,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 554.4946952946484,
+              "forwardImpulse": -3.2709333896636963,
+              "sideImpulse": 0.11688163876533508
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 258.1318032723046,
+              "slipRatio": 1,
+              "slipSpeed": 12.985393483945716,
+              "angularSpeed": 27.031499227272022,
+              "lateralSpeed": -0.0012256607392458646,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 620.3230325803161,
+              "forwardImpulse": -3.2709333896636963,
+              "sideImpulse": 0.26907795667648315
+            }
+          ],
+          "surface": "mars-dust",
+          "wheelSurfaces": [
+            "mars-dust",
+            "mars-dust",
+            "mars-dust",
+            "mars-dust"
+          ],
+          "terrainFeedback": 0.01797427437540368,
+          "waterDepth": 0,
+          "terrainParticles": 31,
+          "terrainTracks": 12,
+          "terrainRipples": 0,
+          "terrainParticleCapacity": 72,
+          "terrainEffectUsesInstanceColors": true,
+          "reducedMotion": false,
+          "cameraFeedbackApplied": 0.01797427437540368,
+          "waterHeight": null,
+          "mode": "playing",
+          "position": {
+            "x": 544.1344604492188,
+            "y": 9.053372383117676,
+            "z": -152.54310607910156
+          },
+          "rotation": {
+            "x": 0.02574094943702221,
+            "y": -0.9665651321411133,
+            "z": 0.1954878568649292,
+            "w": 0.1639326512813568
+          },
+          "velocity": {
+            "x": 0.01808234117925167,
+            "y": -0.10724366456270218,
+            "z": -0.008008327335119247
+          },
+          "speed": -0.042850291486104704,
+          "contacts": 4,
+          "input": {
+            "steer": 0,
+            "forward": true,
+            "reverse": false
+          },
+          "camera": [
+            552.2355389338601,
+            16.160672896180024,
+            -160.83157681609964
+          ],
+          "targetDistance": 13.595795939838736,
+          "wheelSteering": 0,
+          "suspension": [
+            0.31028053164482117,
+            0.33302298188209534,
+            0.1559145748615265,
+            0.1256418526172638
+          ],
+          "drawCalls": 41,
+          "triangles": 182928,
+          "pixelRatio": 1,
+          "graphicsReduced": false,
+          "geometries": 65,
+          "textures": 2,
+          "cameraObstructed": false,
+          "streaming": {
+            "activeRender": 25,
+            "activePhysics": 9,
+            "queued": 0,
+            "triangles": 197208,
+            "colliderCount": 70,
+            "lastActivationMs": 3
+          },
+          "navigation": {
+            "heading": 160.56914667802675,
+            "direction": "SSE",
+            "elevation": 8
+          }
+        },
+        "released": {
+          "area": "mars",
+          "bounds": 768,
+          "spawn": {
+            "x": 426.05,
+            "z": -109.75,
+            "y": 9.25
+          },
+          "gravity": -18,
+          "fog": true,
+          "viewDistance": 900,
+          "car": "mars-scout",
+          "tractionLab": false,
+          "wheels": [
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.360470540667047,
+              "slipSpeed": 0.360470540667047,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.0008950874214627563,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 215.01370852440596,
+              "forwardImpulse": -2.6441991283460364,
+              "sideImpulse": 0.03947796672582626
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.369251826704697,
+              "slipSpeed": 0.369251826704697,
+              "angularSpeed": 0,
+              "lateralSpeed": 0.0030938537422700585,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 241.85857051983476,
+              "forwardImpulse": -2.7155534421679475,
+              "sideImpulse": 0.03194494917988777
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.3414082986048584,
+              "slipSpeed": 0.3414082986048584,
+              "angularSpeed": 0,
+              "lateralSpeed": -0.012748230204849442,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 570.2663899548352,
+              "forwardImpulse": -2.4644871585210217,
+              "sideImpulse": -0.06019293889403343
+            },
+            {
+              "surface": "mars-dust",
+              "grounded": true,
+              "visualRpm": 0,
+              "slipRatio": 0.351799948110087,
+              "slipSpeed": 0.351799948110087,
+              "angularSpeed": 0,
+              "lateralSpeed": -0.003892598854018048,
+              "lateralFriction": 1.584,
+              "gripMultiplier": 1,
+              "longitudinalFriction": 1.584,
+              "load": 550.6003471501172,
+              "forwardImpulse": -2.5744894707300996,
+              "sideImpulse": -0.18561169505119324
+            }
+          ],
+          "surface": "mars-dust",
+          "wheelSurfaces": [
+            "mars-dust",
+            "mars-dust",
+            "mars-dust",
+            "mars-dust"
+          ],
+          "terrainFeedback": 0.009284278524442222,
+          "waterDepth": 0,
+          "terrainParticles": 14,
+          "terrainTracks": 12,
+          "terrainRipples": 0,
+          "terrainParticleCapacity": 72,
+          "terrainEffectUsesInstanceColors": true,
+          "reducedMotion": false,
+          "cameraFeedbackApplied": 0.009284278524442222,
+          "waterHeight": null,
+          "mode": "playing",
+          "position": {
+            "x": 544.4988403320312,
+            "y": 9.466402053833008,
+            "z": -151.54847717285156
+          },
+          "rotation": {
+            "x": 0.04264860227704048,
+            "y": -0.9571399688720703,
+            "z": 0.23526383936405182,
+            "w": 0.1634475141763687
+          },
+          "velocity": {
+            "x": -0.09414365887641907,
+            "y": -0.23965220153331757,
+            "z": -0.27272775769233704
+          },
+          "speed": -0.3668033665223701,
+          "contacts": 4,
+          "input": {
+            "steer": 0,
+            "forward": false,
+            "reverse": false
+          },
+          "camera": [
+            540.2813950796562,
+            14.353544496127213,
+            -163.5079641758474
+          ],
+          "targetDistance": 13.59163590865647,
+          "wheelSteering": 0,
+          "suspension": [
+            0.3138766586780548,
+            0.3000272214412689,
+            0.16147324442863464,
+            0.16919735074043274
+          ],
+          "drawCalls": 42,
+          "triangles": 179822,
+          "pixelRatio": 1,
+          "graphicsReduced": false,
+          "geometries": 75,
+          "textures": 2,
+          "cameraObstructed": false,
+          "streaming": {
+            "activeRender": 25,
+            "activePhysics": 9,
+            "queued": 0,
+            "triangles": 197208,
+            "colliderCount": 70,
+            "lastActivationMs": 3
+          },
+          "navigation": {
+            "heading": 160.69396390121938,
+            "direction": "SSE",
+            "elevation": 9
+          }
+        },
+        "colorSample": {
+          "count": 43,
+          "linearGreenToRed": [
+            0.6456401507089136,
+            0.6562713092979423
+          ],
+          "linearBlueToRed": [
+            0.3267889187538914,
+            0.33294859142427885
+          ]
+        }
+      }
+    ]
+  },
+  "checks": {
+    "focusedUnits": {
+      "file": "tests/driving-feedback.test.ts",
+      "passed": 21,
+      "failed": 0
+    },
+    "productTypecheck": true,
+    "productionBuild": true,
+    "strictTractionBrowserTyping": true,
+    "productionLabAbsent": true,
+    "terrainColorParity": {
+      "samples": 961,
+      "beforeAndAfterSha256": "376eec2d99cf50a9e307c02be13278ea45a8d50b4085521841ee114feb964912"
+    },
+    "earlierRuns": "The 76 focused units, 18 browser cases and 21 additional changed-route units in tyre-clearance-response.json precede this color-only correction; they are not reruns of this revision.",
+    "skipped": "No fresh full unit/browser suites, PWA or physical iPad acceptance; earlier unrelated coverage gaps remain."
+  },
+  "sourceSha256": {
+    "src/game/areas.ts": "56ecc03046d2a8bd3a6ce63c615119989279ff68626bcfd1a9d433d56285603c",
+    "src/game/mars-terrain.ts": "2fdc2233b57eae55f88ca7524141d4c9ce4e6e073abb3c60f344e98e497a7064",
+    "src/game/terrain-effects.ts": "c5a9fac5784edce50cd9205f19686d771ae4ec38205c354641842f610c07f8c0",
+    "src/game/surfaces.ts": "c9255592e2d0000af0ade4b2583088055b1cb5e36611d6cfee778f7d232762d5",
+    "src/game/vehicle.ts": "c68f3c337caf4c2c6bee92590621e890b684eb06ee4c64c0428d64e62fee89b8"
+  }
+}

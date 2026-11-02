@@ -425,6 +425,158 @@ and `npx playwright test tests/browser/moon-discoveries.spec.ts`.
 
 ## Checks
 
+The development-only traction proving ground is
+`http://127.0.0.1:5174/?dev=traction`. Run its isolated server with
+`npm run dev -- --port 5174 --strictPort`; do not reuse another session's server.
+The lab panel selects 10/20/25/32-degree ramps, a 15-degree traverse with a small
+wheel-unloading bump, the marked 15 m radius arc, slalom or left/right split strip.
+Choose a surface without changing the geometry, select a straight/oblique/reverse
+heading, then use **Repeat start** or **Reset car / R**. Resets repeat the
+selected trial rather than locally righting the car. Driving controls are unchanged.
+Telemetry reports total tyre load/contact, bounded tyre impulses, local grip multiplier, visual RPM,
+physical wheel angular speed, rim/contact slip and each wheel's lateral speed.
+The lab is neither a public area nor included in production bundles.
+The first retained drivetrain increment adds wheel inertia, torque/contact
+feedback and a progressive response to the existing boolean throttle. Short
+pedal taps deliver less torque than holding it; releasing or braking cuts the
+motor immediately. A held hill-start command remains drive during rollback;
+a new opposite command still brakes before reversing. The inherited uphill
+envelope and ice axle rule remain transitional, not a
+completed replacement tyre model; see [traction progress](TRACTION_PROGRESS.md).
+Coasting and brakes now use the same inertial wheel/contact reaction as drive.
+Lift-off returns excess wheel momentum through available grip instead of
+snapping wheel rotation to road speed. Brake torque may lock a slipping wheel;
+the shared tyre budget still limits its force on the chassis.
+The lateral increment transitions sustained sideways scrub from static grip to
+a sliding limit of 1.25 times each wheel's normal load (or the material's lower
+inherited limit), without reducing straight-line drive capacity. Sideways and
+longitudinal reactions still share one ellipse. Contact changes reset scrub
+history; suspension roll alone is not treated as sliding across the ground.
+Tyre load includes the wheel's inertia-derived weight as a physical contact
+reaction, not extra vehicle mass. Settled spring load decreases correspondingly;
+airborne wheels have no load or ground force. Rapier's native force allowance
+uses the same total load. Active brake torque is no longer increased by the
+drivetrain's rotating-mass acceleration calibration; calibrated neutral drag
+is retained.
+Fast powered turns on dirt and sand now push the front wide; lifting off while
+holding the same steering restores turn response. To feel this on the lab's
+**Constant-radius arc**, accelerate on **dirt**, hold a strong turn, then release
+the forward pedal without releasing the steering. This is an understeer increment,
+not the finished common breakaway/recovery model; the old ice axle rule remains.
+
+For the first visible sand-wheelspin demonstration, open
+`http://127.0.0.1:5174/?dev=traction&start=grade-25&surface=sand&car=modern`
+and hold forward onto the ramp, then release it. Real tyre overspeed now throws
+a stronger directional fan of sand and leaves shallow temporary churn marks;
+the spray subsides as the wheelspin decays. Normal rolling does not trigger the
+amplification. These are visual consequences of existing slip, not random
+wheelspin, new terrain deformation or a new traction benefit from tapping the
+pedal. [Current driving views](artifacts/traction/sand-views/) are separate from
+the earlier physics measurements.
+The amplified fan also covers **loose black sand (`ash`) and Martian dust**,
+with a weaker, smaller-grain response on **packed dirt and Martian regolith**.
+Each keeps its own material/area palette. The same contact, real rim-slip and
+slip-ratio gates apply; ordinary rolling stays quiet and airborne wheels cannot
+emit. Sand's amplification and the 72-particle pool are unchanged.
+On pale Glassfall ground, Martian dust now takes its hue from the local terrain
+at each emitting wheel, with a smooth transition to the original rusty tint.
+Rust Dunes and packed-regolith colours are unchanged.
+See [before/after colour views](artifacts/traction/color-review/).
+Stationary churn marks remain sand-only; snow and mud retain their previous
+effects. Lunar regolith uses smaller grey grains with longer ballistic arcs
+under Moon gravity, not an atmospheric dust cloud. Its ordinary rolling remains
+sparse; stronger ejection still requires real contact and rim slip.
+These changes affect presentation, not traction.
+See [lunar driving views](artifacts/moon/tyre-ejecta-views/) and
+[lunar particle evidence](artifacts/moon/tyre-ejecta-response.json).
+See [driving views](artifacts/traction/loose-spray-views/) and
+[material comparison evidence](artifacts/traction/loose-spray-response.json).
+The DEV surface selector now includes `mars-dust` for repeatable comparisons.
+Dry fragments begin small against the lower trailing tread in each wheel's own
+steering/contact-plane direction and grow into available clearance. Newborn
+grains are shown at their source before advancing; full-sized birth had left
+a visible gap. Clearance still accounts for their complete rendered volume. A grain
+that later crosses a tyre is retired without applying physical forces.
+See [side-angle comparisons](artifacts/traction/tyre-clearance-views/) and
+[clearance evidence](artifacts/traction/tyre-clearance-response.json).
+
+Sand now has smooth, repeatable two-metre grip patches in the range **90–110%**
+of its material allowance. Every wheel samples the same field at its own contact:
+rear wheels encounter the front wheels' patches later. The coefficient scales
+uphill coupling, drive/coast/brake capacity and both axes of the shared tyre
+budget; motor torque, controls and visual wheel rotation are unchanged.
+Different real rotor reactions feed the existing spray, not random animation.
+All other materials retain a multiplier of exactly 1. This is a small physical
+variation, not a guarantee that only one axle spins: all four may still saturate
+on a steep climb, and RPM differences narrow near the drivetrain's speed limit.
+The [sand-patch driving views](artifacts/traction/sand-grip-views/) preserve the
+preceding demonstration's framing; they are not evidence of large RPM separation.
+
+For the ice-slide comparison, open
+`http://127.0.0.1:5174/?dev=traction&start=pad&surface=ice&car=modern`.
+Accelerate, steer left briefly, then release forward while countersteering
+right; release steering to straighten and coast. The same manoeuvre on packed
+dirt slides substantially less. The rear axle now breaks sideways more strongly
+during a fast, strong ice turn: the current matched-speed demonstration targets
+40–48 degrees of sideslip rather than the preceding 25–30-degree tune.
+This tunes the existing ice axle response, not global ice grip, braking,
+randomness or scripted body rotation. The speed/steering/steep-uphill fades
+and moving recovery remain. The stronger slide also loses more speed during
+the manoeuvre: the current trial recovers at about 3.3 m/s instead of about
+6 m/s, without changing straight braking. Accepted glass, sand patches and
+wheelspin feedback are unchanged. Blue Hollow at High Pass is the actual-world
+skating reference; Vatnajökull is explicitly deferred to the next Iceland pass,
+when a possible change of its surface to `snow` can be considered.
+The DEV pad has a five-metre
+reference grid and darker lines on ice so ground-relative motion is readable.
+Collision, terrain sampling and normal-world scenery are unchanged.
+See [current driving views](artifacts/traction/ice-playful-views/) and
+[recorded input/response traces](artifacts/traction/ice-playful-slide-response.json).
+The [preceding 25–30-degree views](artifacts/traction/ice-strong-views/) and
+[their traces](artifacts/traction/ice-strong-slide-response.json) remain preserved.
+The [preceding mild-ice reference](artifacts/traction/ice-slide-response.json)
+and [its views](artifacts/traction/ice-views/) remain separate.
+
+Glassfall's impact glass now shares that turn-response mechanism with a much
+stronger glass-specific rear response and weaker glass braking/rolling drag.
+Fast turns break sideways dramatically; lift-off and countersteer still allow
+recovery while moving. The user accepted this very slippery tune. Firm perimeter
+roads, accepted sand/ice and terrain geometry are unchanged. Try the actual
+Scout at `http://127.0.0.1:5174/?area=mars&start=glassfall-plain`; the start is on
+firm ground, so leave the road for the dark melt ribbons. The DEV lab can compare
+glass and regolith on identical geometry with
+`http://127.0.0.1:5174/?dev=traction&start=pad&surface=mars-glass&car=modern`.
+The lab remains an Earth entry; a Scout URL there normalizes to an Earth car.
+Current verification and unresolved browser gates are in
+[traction progress](TRACTION_PROGRESS.md).
+
+Run focused lab checks with
+`node --import tsx --test tests/traction-ground.test.ts tests/traction-drive.test.ts tests/surfaces.test.ts`
+and `ROAMER_PORT=5174 npx playwright test tests/browser/traction-ground.spec.ts`.
+`node --import tsx scripts/measure-traction.ts` prints deterministic real-vehicle
+trials at 60 Hz. The recorded pre-change result is
+[`artifacts/traction/baseline.json`](artifacts/traction/baseline.json); write later
+measurements to a **different** file rather than replacing that reference.
+Current results are in `artifacts/traction/ice-playful-response.json`;
+`artifacts/traction/glass-response.json` retains the accepted glass stage before
+this ice-only follow-up, and `artifacts/traction/ice-strong-response.json` retains
+the preceding 25–30-degree ice;
+`artifacts/traction/sand-grip-response.json` retains the accepted sand-patch
+model before stronger ice. The preceding lateral model remains in
+`artifacts/traction/lateral-response.json`. Earlier
+coast/brake and drive-only increments remain in `artifacts/traction/drive-coast.json`
+and `artifacts/traction/drive-response.json`. Their physical
+slip values are not comparable to the old baseline's slope-derived spin estimate;
+compare matching distances, speeds, lateral movement, contacts and loads.
+The braking case stops at 0.5 m/s, before reverse engages; traverse drives stop
+before the exit transition. Displacement includes drift/rollback and airborne
+samples are retained, not counted as valid tyre contact.
+The four pad trials also record `turningSamples` every ten steps: steering,
+world-vertical yaw rate, body-side speed and all four contact velocities, loads
+and impulses (in the forward/right wheel frame). These traces expose axle
+response during turn-in, reversal and initial straightening without changing
+the 44-trial inputs or extending their four-second duration.
+
 The new Iceland world has an internal south-coast slice at `/?area=iceland` when
 running `npm run dev`. Start at Skógafoss with
 `http://127.0.0.1:5173/?area=iceland&start=skogafoss`, or at the

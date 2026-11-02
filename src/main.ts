@@ -139,7 +139,11 @@ async function boot() {
       throw error;
     }
   }
-  let area = AREAS[isAreaId(requestedArea) ? requestedArea : 'northern-reach'];
+  const labParams = new URLSearchParams(window.location.search);
+  let tractionLab = import.meta.env.DEV && labParams.get('dev') === 'traction'
+    ? (await import('./game/traction-ground')).createTractionGround(labParams.get('start'), labParams.get('surface'))
+    : null;
+  let area = tractionLab?.area ?? AREAS[isAreaId(requestedArea) ? requestedArea : 'northern-reach'];
   if (area.id === 'mars' || area.id === 'moon') selectedModel = explorationVehicle(area.id, modelFromUrl);
   const syncCarUrl = () => {
     const url = new URL(window.location.href);
@@ -641,7 +645,7 @@ async function boot() {
   const reset = async () => {
     if (mode !== 'playing') return;
     controls?.clear();
-    const righted = vehicle.tryRight();
+    const righted = !tractionLab && vehicle.tryRight();
     let message = 'Back on your wheels. Off you go.';
     if (!righted) {
       const start = area.id === 'northern-reach' ? nearestNorthernStart(vehicle.position.x, vehicle.position.z)
@@ -675,7 +679,7 @@ async function boot() {
       message = moonResetStart ? `Back at ${moonResetStart.name}` : icelandResetStart ? `Back at ${icelandResetStart.name}`
         : start ? `Back at ${start.name}` : 'Back at the starting area. Off you go.';
     }
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < (tractionLab ? 90 : 30); i++) {
       vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
       world.step();
       vehicle.capture();
@@ -803,6 +807,9 @@ async function boot() {
       return;
     }
     scene.remove(ambient, sun, sun.target);
+    tractionPanel?.dispose();
+    tractionPanel = null;
+    tractionLab = null;
     runtime?.dispose();
     terrainEffects.dispose();
     world.free();
@@ -829,6 +836,8 @@ async function boot() {
     url.searchParams.set('area', id);
     url.searchParams.set('car', selectedModel);
     url.searchParams.delete('start');
+    url.searchParams.delete('dev');
+    url.searchParams.delete('surface');
     window.history.replaceState(null, '', url);
     element('start').focus();
   }
@@ -870,6 +879,10 @@ async function boot() {
   resize();
 
   follow.update(1 / 60, true);
+  let tractionPanel = import.meta.env.DEV && tractionLab
+    ? (await import('./game/traction-ground')).mountTractionPanel(tractionLab, () => vehicle,
+      () => reset().catch(showError))
+    : null;
   // Development-only instrumentation for real-browser behavioral tests.
   if (import.meta.env.DEV) {
     const cameraProbe = new RAPIER.Ball(0.25);
@@ -879,6 +892,8 @@ async function boot() {
           area: area.id, bounds: area.half, spawn: area.spawn,
           gravity: world.gravity.y, fog: scene.fog !== null, viewDistance: camera.far,
           car: vehicle.currentModel,
+          tractionLab: tractionLab !== null,
+          wheels: vehicle.wheelTelemetry,
           surface: vehicle.currentSurface.id,
           wheelSurfaces: vehicle.wheelSurfaces,
           terrainFeedback: vehicle.terrainFeedback,
@@ -962,6 +977,7 @@ async function boot() {
     requestAnimationFrame(frame);
     const elapsed = Math.max(0, (now - lastTime) / 1000);
     lastTime = now;
+    tractionPanel?.update(mode === 'playing' && !photoState);
     if (document.hidden || mode === 'paused' || mode === 'loading') return;
     if (photoState) {
       updatePhotoCamera(Math.min(elapsed, 0.05));

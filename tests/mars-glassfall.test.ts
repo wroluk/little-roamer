@@ -10,8 +10,78 @@ import { Vehicle } from '../src/game/vehicle';
 import { disposeScene } from '../src/game/dispose';
 import { LocalMarsTransport, MarsStreamingRuntime } from '../src/game/mars-streaming';
 import { marsSpawn } from '../src/game/mars-terrain';
+import type { SurfaceId } from '../src/game/surfaces';
 
 before(async () => { await RAPIER.init(); });
+
+function withFlatScout<T>(surface: SurfaceId,
+  run: (car: Vehicle, tick: (steer: number, powered: boolean, reverse?: boolean) => void) => T): T {
+  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  world.createCollider(RAPIER.ColliderDesc.cuboid(200, 0.1, 200));
+  const car = new Vehicle(scene, world, { x: 0, y: 1.2, z: 0 }, 1.45, () => surface, () => null, undefined, 'mars-scout');
+  const tick = (steer: number, powered: boolean, reverse = false) => {
+    car.beforeStep({ steer, forward: powered, reverse }, 1 / 60); world.step(); car.capture();
+  };
+  try {
+    for (let i = 0; i < 100; i++) tick(0, false);
+    return run(car, tick);
+  } finally { world.free(); disposeScene(scene); }
+}
+
+test('Scout glass breakaway is stronger than ice in both turns and recovers without stopping', () => {
+  const turn = (surface: SurfaceId, direction: number) => withFlatScout(surface, (car, tick) => {
+    const facing = new THREE.Vector3();
+    const sample = () => {
+      facing.set(0, 0, -1).applyQuaternion(car.rotation);
+      const v = car.body.linvel(), side = Math.abs(v.x * facing.z - v.z * facing.x);
+      const along = Math.abs(v.x * facing.x + v.z * facing.z);
+      return { angle: Math.atan2(side, along) * 180 / Math.PI, side };
+    };
+    for (let i = 0; i < 1_200 && car.speed < 10; i++) tick(0, true);
+    assert.ok(car.speed >= 10 && car.speed < 10.5, `${surface}: entry=${car.speed}`);
+    let peakAngle = 0, peakSide = 0;
+    for (let i = 0; i < 99; i++) {
+      tick(i < 54 ? direction : -direction, i < 54);
+      const s = sample();
+      peakAngle = Math.max(peakAngle, s.angle); peakSide = Math.max(peakSide, s.side);
+      assert.ok(car.contactCount() >= 2 && 1 - 2 * (car.rotation.x ** 2 + car.rotation.z ** 2) > 0.8);
+    }
+    const counterEnd = car.position.clone();
+    for (let i = 0; i < 120; i++) tick(0, false);
+    const recovered = sample();
+    assert.ok(recovered.angle < 3 && recovered.side < 0.5, `${surface}: recovery=${JSON.stringify(recovered)}`);
+    assert.ok(car.speed > 2 && car.position.distanceTo(counterEnd) > 5, `${surface}: must recover while moving`);
+    return { peakAngle, peakSide };
+  });
+  for (const direction of [-1, 1]) {
+    const glass = turn('mars-glass', direction), ice = turn('ice', direction), firm = turn('regolith', direction);
+    assert.ok(glass.peakAngle > 40 && glass.peakAngle < 65 && glass.peakAngle > ice.peakAngle,
+      `direction=${direction}: glass=${glass.peakAngle}, ice=${ice.peakAngle}`);
+    assert.ok(glass.peakSide > 7 && glass.peakSide > firm.peakSide * 3);
+    assert.ok(glass.peakSide > ice.peakSide * 1.2);
+    assert.ok(firm.peakAngle < 9, `firm perimeter must remain predictable: ${firm.peakAngle}`);
+  }
+});
+
+test('Scout glass retains momentum and needs a much longer braking distance than firm regolith', () => {
+  const run = (surface: SurfaceId, brake: boolean) => withFlatScout(surface, (car, tick) => {
+    for (let i = 0; i < 1_200 && car.speed < 8; i++) tick(0, true);
+    assert.ok(car.speed >= 8 && car.speed < 8.5);
+    const start = car.position.clone();
+    let ticks = 0;
+    if (brake) {
+      while (car.speed > 0.5 && ticks < 1_200) { tick(0, false, true); ticks++; }
+      assert.ok(car.speed <= 0.5, 'the existing opposite-direction control must still stop the car');
+    } else for (; ticks < 120; ticks++) tick(0, false);
+    return { distance: car.position.distanceTo(start), speed: car.speed };
+  });
+  const glide = run('mars-glass', false), firmGlide = run('regolith', false);
+  const stop = run('mars-glass', true), firmStop = run('regolith', true);
+  assert.ok(glide.distance > 14 && glide.speed > 6, `glass glide=${JSON.stringify(glide)}`);
+  assert.ok(glide.distance > firmGlide.distance && glide.speed > firmGlide.speed);
+  assert.ok(stop.distance > 7 && stop.distance < 10 && stop.distance > firmStop.distance * 2,
+    `glass stop=${stop.distance}, firm=${firmStop.distance}`);
+});
 
 test('Scout drives flat glass but cannot power up the actual glass-covered impact lip', async () => {
   const run = async (crater: boolean, firm = false, reverse = false) => {

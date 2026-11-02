@@ -1,5 +1,21 @@
 # Iceland implementation progress
 
+## Ice handling follow-up deferred — 2026-11-02
+
+- During traction work in an isolated worktree, the user explicitly deferred
+  Vatnajökull until the next Iceland session. They suggested possibly using
+  `snow` for the glacier and reserving `ice` for genuine skating surfaces.
+  This is a future option, not authorization already executed.
+- The shared `ice` profile now has stronger fast-turn breakaway for Blue Hollow
+  and other skating areas. It still applies wherever Iceland currently returns
+  `ice`; no Iceland material mapping, geometry, roads or glacier assets changed.
+  No new Vatnajökull acceptance is claimed. Its earlier Chromium manoeuvre
+  timeout remains open and was deliberately excluded from the new tune's checks.
+- When Iceland work resumes, assess snow versus slick ice on the actual plateau,
+  approaches and cave routes before changing the mapping. Do not silently
+  weaken every skating surface to preserve a deferred glacier challenge.
+  See `TRACTION_PROGRESS.md` for the current tune and evidence.
+
 ## Tapered overhang sides — 2026-10-22
 
 - User identified exposed, abruptly cut caps on both sides of the new white

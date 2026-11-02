@@ -6,6 +6,35 @@ import { Vehicle } from '../src/game/vehicle';
 import { disposeScene } from '../src/game/dispose';
 import { MOON_HANDLING } from '../src/game/moon';
 
+test('the skid plate preserves the hull envelope, mass and inertia without changing cabin friction', async () => {
+  await RAPIER.init();
+  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  try {
+    const car = new Vehicle(scene, world, { x: 0, y: 0, z: 0 });
+    const hull = car.body.collider(0), cabin = car.body.collider(1), skid = car.body.collider(2);
+    assert.ok(hull.shape instanceof RAPIER.Cuboid && skid.shape instanceof RAPIER.Cuboid);
+    const bottom = skid.translation().y - skid.shape.halfExtents.y;
+    const top = hull.translation().y + hull.shape.halfExtents.y;
+    assert.ok(Math.abs(bottom + 0.23) < 1e-6 && Math.abs(top - 0.29) < 1e-6);
+    assert.deepEqual(skid.shape.halfExtents.x, hull.shape.halfExtents.x);
+    assert.deepEqual(skid.shape.halfExtents.z, hull.shape.halfExtents.z);
+    assert.equal(skid.mass(), 0);
+    assert.ok(Math.abs(car.body.mass() - 95) < 1e-4);
+    assert.ok(Math.abs(skid.friction() - 0.16) < 1e-6);
+    assert.equal(skid.frictionCombineRule(), RAPIER.CoefficientCombineRule.Min);
+    assert.ok(cabin.friction() > 0.34 && hull.friction() > 0.34);
+    const original = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic());
+    world.createCollider(RAPIER.ColliderDesc.cuboid(0.73, 0.26, 1.37)
+      .setTranslation(0, 0.03, 0).setMass(90), original);
+    world.createCollider(RAPIER.ColliderDesc.cuboid(0.63, 0.35, 0.61)
+      .setTranslation(0, 0.61, 0.15).setMass(5), original);
+    for (const axis of ['x', 'y', 'z'] as const) {
+      assert.ok(Math.abs(car.body.localCom()[axis] - original.localCom()[axis]) < 1e-6);
+      assert.ok(Math.abs(car.body.principalInertia()[axis] - original.principalInertia()[axis]) < 1e-4);
+    }
+  } finally { world.free(); disposeScene(scene); }
+});
+
 test('Modern bonnet and sloping cabin expose their exterior faces on both sides', async () => {
   await RAPIER.init();
   const scene = new THREE.Scene();
@@ -70,7 +99,7 @@ test('exploration rovers have distinct batched details within the Scout envelope
       car.setModel(model);
       assert.ok([...disposed.values()].every(count => count === 1), 'release each old shared material/geometry once');
       assert.equal(car.body.handle, bodyHandle, 'changing trim must not rebuild physics');
-      assert.equal(car.body.numColliders(), 2);
+      assert.equal(car.body.numColliders(), 3);
       assert.equal(car.controller.numWheels(), 4);
       assert.equal(car.wheels.length, 4); assert.equal(car.tires.length, 4);
       const bounds = new THREE.Box3().setFromObject(car.model);
@@ -239,6 +268,6 @@ test('Lunar Nomad has a full-length faceted hull, exposed amber glazing and exac
     assert.equal(car.wheels.length, 4); assert.equal(car.tires.length, 4);
     assert.deepEqual([...new Set(car.wheels.map(wheel => wheel.position.z))].sort(), [-1.02, 1]);
     assert.deepEqual([...new Set(car.wheels.map(wheel => wheel.position.x))].sort(), [-0.91, 0.91]);
-    assert.equal(car.controller.numWheels(), 4); assert.equal(car.body.numColliders(), 2);
+    assert.equal(car.controller.numWheels(), 4); assert.equal(car.body.numColliders(), 3);
   } finally { disposeScene(scene); world.free(); }
 });

@@ -103,6 +103,7 @@ test('the actual streamed vehicle completes each coastal route with bounded stre
     car.body.setRotation(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle), true);
     const forward = new THREE.Vector3();
     let next = 1;
+    let maximumDeviation = 0;
     for (let tick = 0; tick < 10000 && next < path.length; tick++) {
       const target = path[next];
       const dx = target.x - car.position.x, dz = target.z - car.position.z;
@@ -111,11 +112,25 @@ test('the actual streamed vehicle completes each coastal route with bounded stre
       const desired = Math.atan2(dx, -dz), heading = Math.atan2(forward.x, -forward.z);
       const error = Math.atan2(Math.sin(desired - heading), Math.cos(desired - heading));
       runtime.update(car.position.x, car.position.z);
-      car.beforeStep({ steer: Math.max(-1, Math.min(1, error * 1.5)), forward: tick > 90, reverse: false }, 1 / 60);
+      // Brake before corners instead of asking the new tyre model to turn at full throttle.
+      const approachingTurn = Math.abs(error) > 0.35 || Math.hypot(dx, dz) < Math.max(8, car.speed);
+      const brake = tick > 90 && approachingTurn && car.speed > 6;
+      car.beforeStep({
+        steer: Math.max(-1, Math.min(1, error * 1.5)), forward: tick > 90 && !brake, reverse: brake,
+      }, 1 / 60);
       world.step(); car.capture();
+      let deviation = Infinity;
+      for (let i = 1; i < path.length; i++) {
+        const a = path[i - 1], b = path[i], sx = b.x - a.x, sz = b.z - a.z;
+        const t = Math.max(0, Math.min(1,
+          ((car.position.x - a.x) * sx + (car.position.z - a.z) * sz) / (sx * sx + sz * sz)));
+        deviation = Math.min(deviation, Math.hypot(car.position.x - a.x - t * sx, car.position.z - a.z - t * sz));
+      }
+      maximumDeviation = Math.max(maximumDeviation, deviation);
       assert.ok(car.position.y > sampledHeightAt(car.position.x, car.position.z) - 0.5);
     }
     assert.equal(next, path.length, `${route.name} stuck before waypoint ${next} at ${car.position.x},${car.position.z}: ${JSON.stringify({rotation:car.body.rotation(), velocity:car.body.linvel(), contacts:car.contactCount()})}`);
+    assert.ok(maximumDeviation < 5, `${route.name} left its waypoint-width corridor: ${maximumDeviation} m`);
     await runtime.ensureReady(NORTHERN_SPAWN.x, NORTHERN_SPAWN.z);
     assert.ok(runtime.stats.activeRender <= 25 && runtime.stats.activePhysics <= 9);
   } finally { runtime.dispose(); world.free(); disposeScene(scene); }

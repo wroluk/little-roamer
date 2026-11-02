@@ -1,3 +1,5 @@
+import { icelandNoise as positionalNoise } from './iceland-noise';
+
 export type SurfaceId =
   | 'grass' | 'asphalt' | 'dirt' | 'ash' | 'lava' | 'moss' | 'ice' | 'water'
   | 'snow' | 'mud' | 'rock' | 'sand' | 'regolith' | 'mars-dust' | 'mars-glass' | 'lunar-regolith';
@@ -8,6 +10,8 @@ export type Surface = {
   trait: string;
   longitudinalGrip: number;
   lateralGrip: number;
+  /** Rear lateral-response multiplier in fast, strong turns; absent on balanced surfaces. */
+  rearTurnResponse?: number;
   /** Additional loss of drive force on steep, loose ground; ice uses its own glacier curve. */
   uphillSlip: number;
   power: number;
@@ -41,7 +45,8 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   },
   'mars-glass': {
     id: 'mars-glass', label: 'Impact glass', trait: 'Smooth & slippery', longitudinalGrip: 0.18, lateralGrip: 0.12, uphillSlip: 1,
-    power: 0.9, rollingBrake: 0.04, brakeEffect: 0.38, drag: 0.01, speed: 1, steering: 0.7,
+    rearTurnResponse: 0.1,
+    power: 0.9, rollingBrake: 0.01, brakeEffect: 0.1, drag: 0.002, speed: 1, steering: 0.7,
     suspensionStiffness: 31, suspensionCompression: 4.2, suspensionRelaxation: 5,
     roughness: 0.008, feedback: 0.01, particleColor: '#596060', particleRate: 0.1,
   },
@@ -89,6 +94,7 @@ export const SURFACES: Record<SurfaceId, Surface> = {
   },
   ice: {
     id: 'ice', label: 'Glacier ice', trait: 'Slippery', longitudinalGrip: 0.52, lateralGrip: 0.23, uphillSlip: 0,
+    rearTurnResponse: 0.2,
     power: 0.82, rollingBrake: 0.04, brakeEffect: 0.15, drag: 0.005, speed: 1, steering: 0.52,
     suspensionStiffness: 31, suspensionCompression: 4.2, suspensionRelaxation: 5,
     roughness: 0.026, feedback: 0.028, particleColor: '#c5edf2', particleRate: 0.38,
@@ -128,3 +134,8 @@ export const SURFACES: Record<SurfaceId, Surface> = {
 export const BLENDED_SURFACE_FIELDS = [
   'power', 'drag', 'speed', 'steering', 'feedback',
 ] as const satisfies readonly (keyof Surface)[];
+
+/** Repeatable two-metre sand patches, shared by every wheel crossing that spot. */
+export function surfaceGripAt(surface: SurfaceId, x: number, z: number) {
+  return surface === 'sand' ? 0.9 + 0.2 * positionalNoise(x / 2, z / 2) : 1;
+}

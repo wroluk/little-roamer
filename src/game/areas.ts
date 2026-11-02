@@ -1,5 +1,5 @@
 import { buildSamurai, SAMURAI_HALF, SAMURAI_START, samuraiSurfaceAt, samuraiSurfaceHeight, samuraiWaterHeight } from './samurai';
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import type RAPIER from '@dimforge/rapier3d-compat';
 import { buildWorld } from './world';
 import { START, surfaceHeight, valleySurfaceAt, WORLD_HALF } from './terrain';
@@ -10,8 +10,8 @@ import {
 import {
   BrowserChunkTransport, NorthernStreamingRuntime, type NorthernStreamingStats,
 } from './northern-streaming';
-import type { SurfaceId } from './surfaces';
-import { MARS_HALF, HABITAT_PAD, marsSpawn, marsSurfaceAt, marsSurfaceHeight } from './mars-terrain';
+import { SURFACES, type SurfaceId } from './surfaces';
+import { MARS_HALF, HABITAT_PAD, marsSpawn, marsSurfaceAt, marsSurfaceHeight, marsColor, marsPaleGroundWeight } from './mars-terrain';
 import { MarsStreamingRuntime, MarsWorkerTransport, MARS_SUN_OFFSET } from './mars-streaming';
 import { tubesWeight } from './mars-tubes-layout';
 import type { ParticleColors } from './terrain-effects';
@@ -20,6 +20,15 @@ import { IcelandStreamingRuntime, IcelandWorkerTransport } from './iceland-strea
 import { MoonRuntime, MOON_GRAVITY, MOON_HANDLING, MOON_SUN_OFFSET } from './moon';
 import { MOON_HALF, moonSpawn, moonSurfaceAt, moonSurfaceHeight } from './moon-terrain';
 import type { VehicleHandling } from './vehicle';
+
+const marsDustBase = new THREE.Color(SURFACES['mars-dust'].particleColor);
+const marsDustTint = new THREE.Color();
+
+function marsDustColor(x: number, z: number): string {
+  const pale = THREE.MathUtils.smoothstep(marsPaleGroundWeight(x, z), 0.05, 0.3);
+  if (pale === 0) return SURFACES['mars-dust'].particleColor;
+  return `#${marsDustTint.fromArray(marsColor(x, z, marsSurfaceHeight(x, z))).lerp(marsDustBase, 1 - pale).getHexString()}`;
+}
 
 export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars' | 'iceland' | 'moon';
 export type AreaRuntime = {
@@ -111,7 +120,10 @@ export const AREAS: Record<AreaId, Area> = {
     sky: '#bb8f80', fogNear: 65, fogFar: 250, groundLight: '#6d4540', sunlight: '#fff0d6',
     sunOffset: MARS_SUN_OFFSET,
     surfaceHeight: marsSurfaceHeight, surfaceAt: marsSurfaceAt, waterHeight: () => null,
-    particleColors: { rock: (x, z) => tubesWeight(x, z) > 0.4 ? '#514640' : '#b76b49' },
+    particleColors: {
+      rock: (x, z) => tubesWeight(x, z) > 0.4 ? '#514640' : '#b76b49',
+      'mars-dust': marsDustColor,
+    },
     build: (scene, world, onError) => new MarsStreamingRuntime(scene, world, new MarsWorkerTransport(), onError),
   },
   'samurai-village': {
