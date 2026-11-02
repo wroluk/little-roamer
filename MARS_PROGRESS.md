@@ -4,6 +4,23 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Deferred: locally consistent tyre-track colours — 2026-11-02
+
+- After commit `030aae1`, the user reports that tyre tracks are still much too
+  rusty on pale ground. Record for a later return; do not change gameplay now.
+  The preceding correction changed airborne dust only, not ground-track colours.
+- Confirmed separate source: `TRACK_STYLES` in `src/game/ground-effects.ts`
+  assigns fixed rusty colours to `mars-dust` and packed `regolith`, independently
+  of the local particle palette.
+- Future scope: consider one local terrain/material colour source for particles
+  and tracks, with appropriate contrast/opacity for each effect. Consider HUD
+  consistency too, but do not use its fixed CSS fallback as a ground sampler.
+  Preserve Rust Dunes' rusty appearance and accepted traction/emission.
+- Acceptance when resumed: compare tracks and thrown grains together on pale
+  Glassfall and red Rust Dunes, at driving height and the reported side angle.
+  Wider cross-world palette changes require their own scope; no implementation
+  or new validation is claimed by this note.
+
 ### Pale Mars dust colour corrected — 2026-11-02
 
 - User chose the limited pale-Mars fix and explicitly requested a commit once

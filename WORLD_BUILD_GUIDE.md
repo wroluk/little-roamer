@@ -232,6 +232,9 @@ other materials and all sampled terrain colours. A good-looking HUD dot can be
 a fixed CSS fallback, not a local terrain sample: do not make particle emission
 depend on DOM styling. See `artifacts/traction/color-review/` for the reproduced
 red mismatch and corrected actual-game views.
+Check ground tracks separately: their `TRACK_STYLES` palette does not inherit
+particle overrides. The user still found rusty tracks on pale Mars after the
+dust correction; the deferred follow-up is recorded in `MARS_PROGRESS.md`.
 
 This ledger covers more than shoreline work. The Mars entries come from the
 user's preserved [first](artifacts/mars/Mars-feedback1/Mars%20feedback.md) and

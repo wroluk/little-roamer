@@ -1124,3 +1124,14 @@ remain distinct pre-colour runs; no new full-suite/PWA/physical-iPad claim.
 Commit scope is this authorized batch, without pushing. Next: keep accepted tuning.
 Remaining general breakaway work and wider palette consolidation are not
 silently marked complete.
+
+### Deferred colour follow-up: tyre tracks — 2026-11-02
+
+User reports that ground tracks remain strongly rusty after the pale airborne
+dust correction in `030aae1` and asks only for a note, not another fix now.
+`GroundEffects.TRACK_STYLES` is a separate fixed palette for `mars-dust` and
+packed regolith. Future work should consider a shared local terrain/material
+colour source for tracks and particles, keeping effect-specific contrast and
+opacity and preserving red Rust Dunes. Review both effects together at driving
+height and from the reported side angle. See the deferred item at the top of
+`MARS_PROGRESS.md`; no game changes or new acceptance are implied.
