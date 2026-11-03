@@ -142,7 +142,7 @@ normal handling; deliberate wheel placement and occasional controlled run-ups
 matter. There is no bridge, easy dry
 bypass or tide timer.
 
-For the next demanding ride, continue north from Windward Lookout onto
+For the second demanding ride, continue north from Windward Lookout onto
 **Seabird Climb**: another 180 m of exposed cliff ledges, four solid offset
 stone crossings and an upper switchback. Pause at the 47 m **Wind Notch**,
 then reach the 67 m **Seabird Summit**, with a clear turning area and a view
@@ -171,7 +171,9 @@ Saltgrass Landing starts on the earned island; the summit entry starts a descent
 
 This connected development build is not the full eight-region world and stays
 out of production selection/direct entry. The old comparison and tropical
-Island pilots remain intact. See [current scope and evidence](LOCATION_DEMOS.md#fresh-island-tracks-earned-shore-recovery-and-game-dna--2026-10-30).
+Island pilots remain intact. See the [current build plan](artifacts/island-tracks/BUILD_PLAN.md)
+and [latest progress/evidence](artifacts/island-tracks/PROGRESS.md#progress). The proposed
+Pebble Cove Descent is planning only, not another available route.
 
 In the highlands, follow the **amber posts** for broad, shallow river crossings.
 Drive down the bank, through the water, and up the opposite side. The riverbed
@@ -259,7 +261,7 @@ take its southern descent, then follow the road through Glassfall toward Iron.
 Habitat and Crown retain their original positions.
 See the [spatial map](artifacts/mars/concept-map.svg).
 
-Follow [the build plan](MARS_BUILD_PLAN.md) and [progress record](MARS_PROGRESS.md)
+Follow [the build plan](artifacts/mars/BUILD_PLAN.md) and [progress record](artifacts/mars/PROGRESS.md)
 for completion status, release evidence, and the remaining physical-iPad checks.
 All nine regions and the connecting route network are implemented and visually
 accepted; desktop automation does not certify sustained performance on an iPad.
@@ -453,8 +455,8 @@ Skylight Hollow adds a short solid-roof passage with a real daylight opening
 and an easy western surface bypass; both return east to the basalt approach. All pilot
 terrain remains rendered at fixed detail; only the bounded terrain-collision
 core moves. It does not yet certify full-world streaming or physical-iPad
-performance. See [plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
-and [current progress](MOON_PROGRESS.md).
+performance. See [plan](artifacts/moon/BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
+and [current progress](artifacts/moon/PROGRESS.md).
 
 The existing perimeter mountains are backed by invisible vehicle-only guards,
 six metres inside the solid terrain limit. They prevent climbing out onto the
@@ -681,8 +683,8 @@ water. Earth cars and normal gravity are retained.
 Regional links use `start=castaway-cove`, `start=rootwood-trail` and
 `start=aqueduct`; Reset returns to the nearest of these when local righting is
 not appropriate. The pilot stays out of production home/direct entry.
-See [Island scope](ISLAND_BUILD_PLAN.md), [design](artifacts/island/DESIGN.md)
-and [current progress](ISLAND_PROGRESS.md).
+See [Island scope](artifacts/island/BUILD_PLAN.md), [design](artifacts/island/DESIGN.md)
+and [current progress](artifacts/island/PROGRESS.md).
 Its functional checks are opt-in, like the other comparison demos:
 `node --import tsx --test tests/optional/island.test.ts` and
 `ROAMER_INCLUDE_DEMOS=1 npx playwright test tests/browser/island.spec.ts`.
@@ -751,7 +753,7 @@ When local righting is not applicable, Reset returns to the nearest completed
 Iceland regional start. Iceland is
 separate from Iceland Highlands and stays out of the production picker/direct
 links until the coastal pilot is ready. See
-[Iceland progress](ICELAND_PROGRESS.md) and [build plan](ICELAND_BUILD_PLAN.md).
+[Iceland progress](artifacts/iceland/PROGRESS.md) and [build plan](artifacts/iceland/BUILD_PLAN.md).
 The single current-world development map is a
 [full-world 3D aerial render](artifacts/iceland/iceland-aerial.png)
 with the game's actual materials and colours, separate from the proposed concept map.

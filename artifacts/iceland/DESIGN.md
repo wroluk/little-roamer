@@ -7,7 +7,7 @@ landmarks and roads can be driven in a game session. The sea surrounds an
 irregular island inside the square; no terrain touches the outer edge.
 
 Implementation began on 2026-10-17 with the Skógafoss/Skógá slice only.
-See [progress](../../ICELAND_PROGRESS.md) and [actual pilot captures](pilot/).
+See [progress](PROGRESS.md) and [actual pilot captures](pilot/).
 The remaining map continues to describe planned regions.
 
 ## Draft map

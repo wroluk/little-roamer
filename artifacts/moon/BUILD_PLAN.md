@@ -1,8 +1,8 @@
 # Moon — complete
 
 Home-screen **Moon / Low-gravity exploration** tile, or `?area=moon`.
-Read [WORLD_BUILD_GUIDE.md](WORLD_BUILD_GUIDE.md),
-[design](artifacts/moon/DESIGN.md) and [progress](MOON_PROGRESS.md) before extending.
+Read [WORLD_BUILD_GUIDE.md](../../WORLD_BUILD_GUIDE.md),
+[design](DESIGN.md) and [progress](PROGRESS.md) before extending.
 
 **Complete — 2026-10-26:** the user accepted Moon as complete and authorized commit
 and push, including the restored postcard tile counter. The completed scope is

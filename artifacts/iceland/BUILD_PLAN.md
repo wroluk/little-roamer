@@ -1,7 +1,7 @@
 # Iceland build plan
 
 Status: **Vatnajökull and coastal refinements committed and pushed as `49a2046`. The winding Y cave, hall and flat floor have smaller entrance throats; the white snow now rolls over each lip into a connected fringe of irregular flat points, tapering into the glacier at both sides rather than ending in blunt caps or separate ceiling-mounted cones. Glacier/terrain contacts retain locally refined, rounded toes and the graded traverse's original triangles; accepted dirty terrain-colour fading is permanent, with no toggle. Focused geometry, both-car driving and Chromium/WebKit entrance checks pass; physical iPad and refined-world loading performance remain open, and cave/contact work remains uncommitted. Vatnajökull retains only its higher through-route, with no crater-overlook branch. Lakagígar and sandur are next** (2026-10-22).
-See [implementation progress](ICELAND_PROGRESS.md) for checks and the next chunk.
+See [implementation progress](PROGRESS.md) for checks and the next chunk.
 As of 2026-11-03, the user has deferred this unfinished world's functional
 checks from release gates. They remain opt-in through `test:iceland` and
 `test:browser:iceland`, not marked as passed. Production exclusion stays checked;
@@ -10,8 +10,8 @@ This is a new, full-size **Iceland** location alongside the existing 480 × 480 
 Iceland Highlands. Do not replace that location during development. The new
 world is 1,536 × 1,536 m, like Northern Reach and Mars Outpost. Its geography is
 compressed and deliberately driveable, but the relative placement of named
-places follows Iceland. See the [draft map](artifacts/iceland/concept-map.png)
-and [spatial design and region cards](artifacts/iceland/DESIGN.md).
+places follows Iceland. See the [draft map](concept-map.png)
+and [spatial design and region cards](DESIGN.md).
 
 ## Experience to build
 
@@ -92,7 +92,7 @@ and lagoon approach. Recommend Langjökull as a compact second glacier linked
 to Hallmundarhraun/Surtshellir. Kerlingarfjöll is confirmed as the pale geothermal mountain region. Include
 Kverkfjöll as a compact northern Vatnajökull landmark within the existing
 glacier region; it does not need a separate region allocation.
-See the [new placement and route reservations](artifacts/iceland/DESIGN.md#additional-highland-and-gateway-reservations--2026-10-17).
+See the [new placement and route reservations](DESIGN.md#additional-highland-and-gateway-reservations--2026-10-17).
 
 Finish the current coast pilot first, including Lómagnúpur at its sandur stage.
 Add Landmannalaugar after Lakagígar, and build Langjökull with the western
@@ -149,13 +149,13 @@ terrain/collider agreement, chunk seams, camera clearance, water recovery,
 iceberg and effect lifecycle, area switching, and sustained device performance.
 Keep public picker availability behind completion of the full world.
 
-Use the [README checks](README.md#checks) as the baseline: typecheck, affected
+Use the [README checks](../../README.md#checks) as the baseline: typecheck, affected
 unit/real-driving tests, build, and focused Chromium/WebKit browser cases at each
 completed region. Run full unit/browser suites after each block of three
 completed regions or broad shared-system edits, and before public release. Run
 PWA checks for startup/cache/storage/offline changes and before release, after
 browser tests because they share `test-results`. Record progress, last full-suite
-date, skipped cases and exact next step in a dedicated `ICELAND_PROGRESS.md` once
+date, skipped cases and exact next step in a dedicated `artifacts/iceland/PROGRESS.md` once
 implementation starts. Physical iPad Safari driving, touch and offline reload
 remain explicit manual acceptance until covered by automation.
 

@@ -115,7 +115,7 @@ surface-track batch. Static impressions reuse `ground-effects.ts`'s stamp writer
 and material without a live effect pool, fading timer or update loop.
 No moving parts, textures, animation loop or larger shadow
 map. Default world/vehicle handling, all seven starts and all ten routes remain.
-See [actual game captures](discoveries/) and [progress](../../MOON_PROGRESS.md)
+See [actual game captures](discoveries/) and [progress](PROGRESS.md)
 for final geometry and driving evidence. Regenerate the two 800 x 600 postcard
 images and low-camera review frames with
 `node --import tsx scripts/render-moon-discoveries.ts` while a dev server runs.
@@ -309,7 +309,7 @@ The basalt–rille captures show the current extension. Its separate
 [hardware frame probe](basalt-rille/hardware-chromium/performance.json) retains
 16.7 ms median / 16.8 ms p95 desktop cadence at five views/driving samples,
 with the same terrain budget. Physical iPad acceptance remains open;
-see [current progress](../../MOON_PROGRESS.md) for exact coverage and limits.
+see [current progress](PROGRESS.md) for exact coverage and limits.
 The later basalt-identity pass adds 240 scenery triangles and one batched
 rock material/collider, not terrain triangles. Its
 [fresh hardware probe](basalt-identity/hardware-chromium/performance.json)
@@ -333,7 +333,7 @@ the earlier passage/bypass coverage; see [connector evidence](hollow-connectors/
 ## Approved staged layouts
 
 The user approved a compact connected expansion on 2026-10-23. See the
-[staged plan](../../MOON_BUILD_PLAN.md#approved-continuation--2026-10-23).
+[staged plan](BUILD_PLAN.md#approved-continuation--2026-10-23).
 
 ### Skylight Hollow layout — 2026-10-24
 

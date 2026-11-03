@@ -1,7 +1,7 @@
 # Island implementation progress
 
-Read [plan](ISLAND_BUILD_PLAN.md), [design](artifacts/island/DESIGN.md) and
-[world-building guide](WORLD_BUILD_GUIDE.md) before extending.
+Read [plan](BUILD_PLAN.md), [design](DESIGN.md) and
+[world-building guide](../../WORLD_BUILD_GUIDE.md) before extending.
 
 ## Reclassified as an optional development demo — 2026-11-03
 
@@ -59,7 +59,7 @@ Read [plan](ISLAND_BUILD_PLAN.md), [design](artifacts/island/DESIGN.md) and
   pilots. The full PWA run passed 22 other scenarios with four existing WebKit
   offline skips; after isolating comparison checks per fresh browser context,
   all 10 targeted comparison PWA cases also passed. See
-  [comparison evidence](LOCATION_DEMOS.md) for the exact run scope.
+  [comparison evidence](../../LOCATION_DEMOS.md) for the exact run scope.
 - User acceptance is pending. No claims of completed-world, visual
   acceptance, physical-iPad performance or offline acceptance.
 - Next: user comparison with the five other location pilots; physical iPad

@@ -19,7 +19,7 @@ proposed geography, not completed worlds or required journeys.
 crossing to the second island. The original Red Canyon recommendation and the
 five comparison pilots remain useful alternatives, not the current selection.
 Mars Outpost is already available; its current design is documented in
-[MARS_BUILD_PLAN.md](MARS_BUILD_PLAN.md) and [artifacts/mars/DESIGN.md](artifacts/mars/DESIGN.md).
+[Mars build plan](artifacts/mars/BUILD_PLAN.md) and [design](artifacts/mars/DESIGN.md).
 
 ## Try the comparison pilots
 
@@ -46,12 +46,19 @@ the crossing, then Saltgrass Landing after its safe far-shore arrival.
 The old causeway comparison above is preserved, not reused as this world's
 geography.
 
-The selected next ride adds **Seabird Climb** beyond the 30 m lookout:
+The implemented second demanding ride is **Seabird Climb** beyond the 30 m lookout:
 exposed ledges, four physical stone crossings, the 47 m Wind Notch resting
 shelf and a 67 m summit. This is a connected 180 m extension, not a second
 world or a return to the causeway concept. Use
 [`&start=windward-lookout`](http://127.0.0.1:5173/?area=tidal-islands&start=windward-lookout)
 to inspect the climb without repeating the crossing.
+
+The user accepted both demanding rides and called the sea crossing the game's
+DNA. The [Island Tracks build plan](artifacts/island-tracks/BUILD_PLAN.md) now records
+that direction, current challenge boundaries and extension gates. Its proposed
+next slice is **Pebble Cove Descent**: a two-way boulder ravine and short dry,
+daylight-lit basalt cave from Windward Lookout to a sheltered cove. This is a
+recommendation, not an implemented or approved route.
 
 The first tactile refinement pair is **Old Quarry** (a deep, covered descent
 with a turning chamber, second exit and solid rubble) and **Autumn Woods**
@@ -130,9 +137,11 @@ this refinement yet.
 
 ## Island Tracks
 
-**Current direction:** the fresh Rock Passage slice described above supersedes
-the fixed-causeway connection below. It has no easy bypass or changing-tide
-timer. See [current design, references and progress](LOCATION_DEMOS.md#fresh-island-tracks-build--2026-10-28).
+**Current direction:** the fresh Rock Passage and Seabird Climb described above
+supersede the fixed-causeway connection below. There is no easy crossing bypass
+or changing-tide timer. Use the [current build plan](artifacts/island-tracks/BUILD_PLAN.md)
+and [latest progress](artifacts/island-tracks/PROGRESS.md#progress), not the historical route
+list, when extending the world.
 The following is the **earlier eight-region concept**, retained as idea history;
 its lighthouse, causeway and complete island loops are not claims about the
 new build.
@@ -157,8 +166,8 @@ new build.
 The user chose a compact lunar pilot on 2026-10-22: black sky, Earth above the
 horizon, reduced-gravity Scout driving, an Earthview base, a crater circuit and
 a floor descent. Its geography is invented, not a real-site replica. See the
-[pilot plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md) and
-[current evidence and remaining gates](MOON_PROGRESS.md). The compact landscape
+[pilot plan](artifacts/moon/BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md) and
+[current evidence and remaining gates](artifacts/moon/PROGRESS.md). The compact landscape
 now includes Basalt Reach, Silver Rille, Broken Highlands and Skylight Hollow.
 On 2026-10-24 the user accepted Highlands and authorized a home-screen preview
 tile for iPad testing. `?area=moon` and regional links work in production.
@@ -166,7 +175,7 @@ Physical-device acceptance remains open before designing a larger lunar world.
 
 ## Mars Outpost — expanded concept
 
-The following was the early proposal that led to the built Mars Outpost. Its planned scale, some landmark details and vehicle availability were superseded during development. Use the current [build plan](MARS_BUILD_PLAN.md), [design record](artifacts/mars/DESIGN.md) and game for the released layout.
+The following was the early proposal that led to the built Mars Outpost. Its planned scale, some landmark details and vehicle availability were superseded during development. Use the current [build plan](artifacts/mars/BUILD_PLAN.md), [design record](artifacts/mars/DESIGN.md) and game for the released layout.
 
 **Scale and feel:** Mars would span **768 × 768 world metres**, half Northern Reach's length and width (and one quarter of its area). It would be a compact, continuous place to explore rather than a single crater scene. The tone is playful science fiction: recognizable Martian geology, a small human outpost, and a few oversized, friendly pieces of exploration hardware. The sky, lighting, and terrain provide the drama; there are no survival meters, damage, or required missions.
 

@@ -46,4 +46,4 @@ Transfer Mars's real-driving harness technique, not altered vehicle physics.
 The aqueduct is intentionally engineered masonry, not a natural rock arch:
 regular voussoirs are appropriate here. Render and solid triangles match.
 
-See [design](artifacts/island/DESIGN.md) and [progress](ISLAND_PROGRESS.md).
+See [design](DESIGN.md) and [progress](PROGRESS.md).

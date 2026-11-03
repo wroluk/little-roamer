@@ -1,7 +1,7 @@
 # Moon implementation progress
 
-Read with [build plan](MOON_BUILD_PLAN.md), [design](artifacts/moon/DESIGN.md)
-and [shared guide](WORLD_BUILD_GUIDE.md).
+Read with [build plan](BUILD_PLAN.md), [design](DESIGN.md)
+and [shared guide](../../WORLD_BUILD_GUIDE.md).
 
 ## Lunar tyre ejecta — accepted 2026-11-02
 
@@ -105,8 +105,8 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   browser/PWA rerun: this changes only the development-map generator and outputs,
   not game lighting, terrain, handling, photos, postcard recognition or caching.
 - Basalt retains the requested three middle circles. Local only; no commit/push.
-  **Next:** user reviews the corrected [navigation map](artifacts/moon/moon-map.png)
-  and [trigger map](artifacts/moon/postcard-trigger-map.png).
+  **Next:** user reviews the corrected [navigation map](moon-map.png)
+  and [trigger map](postcard-trigger-map.png).
 
 ## Basalt Reach outer triggers removed — 2026-10-25
 
@@ -121,7 +121,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   then continue into retained circles and discover the card. Central two-way
   recognition, journal persistence, exact three-circle map geometry and
   neighbouring-card separation remain covered. Inspected the regenerated
-  [trigger map](artifacts/moon/postcard-trigger-map.png) and actual driving-height
+  [trigger map](postcard-trigger-map.png) and actual driving-height
   exclusion/arrival captures. No PWA/full-suite rerun for this trigger-only edit.
 - No terrain, handling, photo, caption, map-shading or game-lighting change.
   Local only; no commit/push. **Next:** user review of the three-circle footprint;
@@ -139,7 +139,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   outer-slope exclusions. Adaptation: a low, wide chain along the existing
   central flat corridor rather than a single large radius reaching into the
   surrounding slopes. Regenerated and inspected the
-  [trigger map](artifacts/moon/postcard-trigger-map.png), including all four
+  [trigger map](postcard-trigger-map.png), including all four
   alternate rings. Exact generated geometry is checked for every circle.
 - **24 focused units, typecheck/build and four Chromium/WebKit browser cases
   pass.** Coverage includes a grid across X=-25..155, Z=218..252, excluded
@@ -162,14 +162,14 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
 - Replaced only **A Window into Darkness**'s photo with the user's exact
   camera: position **-255.953 / 7.626 / 184.023**, target
   **-248.639 / 10.103 / 194.9**, FOV **48**. Preserved the complete supplied
-  [view and car pose](artifacts/moon/discoveries/window-photo-view.json).
+  [view and car pose](discoveries/window-photo-view.json).
   Actual game capture remains vehicle/UI-free and **800 x 600**, with no
   terrain, lighting, caption, trigger or map changes.
 - Reference: the existing Moon photo capture script and exact user-camera
   home-tile technique. The script now accepts a single capture name, retains
   other captures' metadata, supports absolute camera height, and checks the
   rendered position, direction, FOV and hidden vehicle. Inspected the
-  [replacement source](artifacts/moon/discoveries/window-into-darkness.png)
+  [replacement source](discoveries/window-into-darkness.png)
   and refreshed tablet journal views. This selected camera is about one metre
   beyond the existing 9 m trigger circle; the photograph is intentionally
   independent of recognition, so the trigger was not moved or widened.
@@ -203,7 +203,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   or per-frame effects.
 - Captured all three **800 x 600** photos in the actual game with vehicle/UI
   hidden, retaining source PNGs and camera metadata in
-  [discoveries](artifacts/moon/discoveries/). Adjusted the Earth composition
+  [discoveries](discoveries/). Adjusted the Earth composition
   southward after an initial ridge obscured part of Earth; the final globe
   is fully clear of the ridge. Compared four interior angles and chose the
   diagonal skylight view with its illuminated wall and pool of sunlight.
@@ -211,8 +211,8 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   another Earth composition. Inspected source photos, driving-height arrivals
   and tablet journal details.
 - Extended the **existing** Mars/Northern trigger renderer, keeping their
-  styles unchanged. The [Moon trigger PNG](artifacts/moon/postcard-trigger-map.png)
-  and [SVG](artifacts/moon/postcard-trigger-map.svg) read all five exact
+  styles unchanged. The [Moon trigger PNG](postcard-trigger-map.png)
+  and [SVG](postcard-trigger-map.svg) read all five exact
   centres/radii from `POSTCARDS`, with orange P1-P3 scenic badges and purple
   secret stars. Offset badges leave the small rings visible and distinguish
   cards from regional-start numbers. Refreshed the underlying navigation map;
@@ -289,7 +289,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   medians were 45.2–50.4 ms before and 51.1–52.3 ms with terrain casting.
   These are comparative software-renderer samples, not physical-device frame
   acceptance. **No shadow change retained** under the user's condition.
-  Preserved the [user image, exact poses, baseline/rejected view and costs](artifacts/moon/perimeter-shadow/).
+  Preserved the [user image, exact poses, baseline/rejected view and costs](perimeter-shadow/).
 - Work remains uncommitted/unpushed; concurrent discoveries/tracks and accepted
   local-reset/camera work are preserved. No unrelated broad browser/PWA suites
   repeated; physical-iPad acceptance remains open. **Next:** user review of the
@@ -334,10 +334,10 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   surveyor searched for a safe crossing of Silver Rille. Its maps reached
   home; the rover never did." Regenerated the actual-game postcard and
   source views. Preserved the
-  [previous ribbons](artifacts/moon/discoveries/stranded-surveyor-before-tracks.jpg)
+  [previous ribbons](discoveries/stranded-surveyor-before-tracks.jpg)
   for comparison; inspected the revised low photo, opposing side,
-  [driving-height arrival](artifacts/moon/discoveries/webkit-tablet/stranded-surveyor-arrival.png)
-  and [journal detail](artifacts/moon/discoveries/chromium-tablet/stranded-surveyor-journal.png).
+  [driving-height arrival](discoveries/webkit-tablet/stranded-surveyor-arrival.png)
+  and [journal detail](discoveries/chromium-tablet/stranded-surveyor-journal.png).
 - **28 focused units, typecheck and production build pass.** Both engines
   pass the real Nomad surveyor approach/return, persistence and exact new
   history assertion. Both also pass the existing live-track browser case.
@@ -360,8 +360,8 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   game with rover/UI hidden and updated the same **476 x 350** home JPEG.
   This view naturally includes Earth over the crater; no scene or sky changes.
 - Reused the existing photo-view capture and exact-position assertion.
-  Updated the [source image](artifacts/moon/home-preview/moon-tile.png),
-  [pose metadata](artifacts/moon/home-preview/tile-camera.json) and both tablet
+  Updated the [source image](home-preview/moon-tile.png),
+  [pose metadata](home-preview/tile-camera.json) and both tablet
   home screenshots. Inspected the large source and final thumbnail.
   **Two Chromium/WebKit home-tile cases pass**. No runtime-code changes or
   repeat production/PWA run for this image-only replacement.
@@ -378,8 +378,8 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   No camera reinterpretation, Earth repositioning or scenery changes.
 - Reference: the actual-game Moon discovery capture flow and existing
   home-tile browser case. Preserved the tile's **476 x 350** JPEG dimensions.
-  Retained the [larger source view](artifacts/moon/home-preview/moon-tile.png)
-  and [user pose/capture metadata](artifacts/moon/home-preview/tile-camera.json).
+  Retained the [larger source view](home-preview/moon-tile.png)
+  and [user pose/capture metadata](home-preview/tile-camera.json).
   Inspected both source and thumbnail; actual camera matches the supplied
   position and the vehicle is hidden.
 - **Two Chromium/WebKit home-tile cases and two production/PWA tile cases
@@ -399,8 +399,8 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   This supersedes the initial found-only decision in the entry below.
 - Reference: the existing shared secret-card renderer and Mars journal
   browser coverage. No new rendering/UI component or storage format.
-  Inspected [empty](artifacts/moon/discoveries/webkit-tablet/empty-journal.png)
-  and [partly discovered](artifacts/moon/discoveries/chromium-tablet/partly-discovered-journal.png)
+  Inspected [empty](discoveries/webkit-tablet/empty-journal.png)
+  and [partly discovered](discoveries/chromium-tablet/partly-discovered-journal.png)
   actual tablet game captures. Updated plan/design/README/shared lesson and
   both discovery-drive cases' expected slot counts.
 - **Four focused Chromium/WebKit journal cases, typecheck and build pass.**
@@ -438,7 +438,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   one loose wheel and two faint tracks. The eastern bank hides it from the
   Silver Rille floor. Sites are about **285 m apart**; close recognition is
   **13 m / 11 m**, outside every normal authored route and regional start.
-  Exact approaches are recorded in [design](artifacts/moon/DESIGN.md#quiet-discoveries--2026-10-25),
+  Exact approaches are recorded in [design](DESIGN.md#quiet-discoveries--2026-10-25),
   not marked on the in-game landscape.
 - No terrain, physics, lighting, atlas, regional-start or main-route changes.
   Existing rocks are excluded around the small scenes. Visible hardware
@@ -449,7 +449,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   **nine** moving terrain colliders. Eight complete new browser drives
   peaked at **117,392 rendered triangles / 45 draw calls**. These are resource
   bounds, not a fresh frame-cadence or physical-iPad benchmark.
-- Inspected [actual game images](artifacts/moon/discoveries/) from low arrival,
+- Inspected [actual game images](discoveries/) from low arrival,
   opposing side and screened-route views, plus actual Nomad approach/return
   and journal detail in Chromium/WebKit. Initial open-ended wheels looked
   incomplete; added annular sidewalls/spokes. Initial raised tread blocks
@@ -534,10 +534,10 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   waypoints reached, queues empty and cameras clear at the endpoints. Peak
   terrain colliders **9**, rendered triangles **114,042**, draw calls **38**.
   Retained departure/arrival captures and per-direction evidence in
-  [connector evidence](artifacts/moon/hollow-connectors/). Inspected the actual
+  [connector evidence](hollow-connectors/). Inspected the actual
   portal arrival and reverse southern return alongside current interior and
   southern-roof views. Existing passage/bypass two-way coverage is unchanged.
-- Fresh [hardware-backed Hollow probe](artifacts/moon/skylight-hollow/hardware-chromium/performance.json):
+- Fresh [hardware-backed Hollow probe](skylight-hollow/hardware-chromium/performance.json):
   **Apple M1 Pro / ANGLE Metal**, 1080 x 810, pixel ratio 1, current Nomad and
   corrected static sunlight. Seven views/runs, **240 frames each**: arrival,
   northern portal, interior, skylight, southern roof, surface bypass and actual
@@ -568,8 +568,8 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
 
 - Reproduced the user's exact camera position **-253.213 / 16.214 / 269.189**,
   target **-249.582 / 13.952 / 256.524**, FOV **48**. Preserved the
-  [user image](artifacts/moon/static-tube-shadows/roof-pattern-user.png) and
-  [actual before capture](artifacts/moon/static-tube-shadows/chromium-tablet/reported-before.png).
+  [user image](static-tube-shadows/roof-pattern-user.png) and
+  [actual before capture](static-tube-shadows/chromium-tablet/reported-before.png).
   Disabling only the roof material's static depth comparison removed the teeth:
   **370 of 953 visible, ray-verified sunlit samples** were incorrectly darkened,
   by up to **27 RGB levels**. This was atlas self-shadowing, not roof geometry.
@@ -580,8 +580,8 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   the centre depth, which fails on steep walls. Derivatives run before the
   atlas-bounds branch. No larger bias, texture, extra render pass, geometry,
   collision, handling, global lighting or material-colour changes.
-- The [corrected Chromium view](artifacts/moon/static-tube-shadows/chromium-tablet/reported-current.png)
-  and [WebKit view](artifacts/moon/static-tube-shadows/webkit-tablet/reported-current.png)
+- The [corrected Chromium view](static-tube-shadows/chromium-tablet/reported-current.png)
+  and [WebKit view](static-tube-shadows/webkit-tablet/reported-current.png)
   are clean. Both retain **953 verified samples, zero patterned samples and
   zero RGB difference** against the unoccluded roof reference. Inspected both
   captures; genuine floor shade and the skylight patch remain.
@@ -592,7 +592,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   failed on the original shader before the correction. No full-project suite,
   PWA rerun or new device benchmark for this shader-only correction.
 - User also confirmed **Mars Tubes shadows look good**; recorded acceptance
-  in `MARS_PROGRESS.md`. **Exact next step:** user reviews the corrected Moon
+  in `artifacts/mars/PROGRESS.md`. **Exact next step:** user reviews the corrected Moon
   roof side; keep physical-iPad acceptance and Moon's internal release gate
   open. Changes remain uncommitted; no new commit/push was requested.
 
@@ -614,7 +614,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
 - References: Moon/Mars's actual closed roof geometry, exact roof/rim raycasts,
   current area/streaming/disposal lifecycle and Iceland's existing
   `onBeforeCompile` material customization. Adaptation:
-  [shared static sunlight](src/game/static-sunlight.ts) uses a small fixed
+  [shared static sunlight](../../src/game/static-sunlight.ts) uses a small fixed
   light-space atlas, not terrain colour darkening, a ground overlay, a second
   light or a continuously rendered shadow map. Four depth comparisons use
   bilinear weights to soften texel edges. The dynamic map stays **1024 x 1024,
@@ -643,8 +643,8 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   passed. An overbroad Mars-unit invocation was stopped; only completed
   change-focused results are counted.
 - Inspected actual approach views in both engines and the current Hollow
-  interior. [Moon distant-map view](artifacts/moon/static-tube-shadows/webkit-tablet/far.png),
-  [Mars distant-map view](artifacts/mars/static-tube-shadows/webkit-tablet/far.png).
+  interior. [Moon distant-map view](static-tube-shadows/webkit-tablet/far.png),
+  [Mars distant-map view](../mars/static-tube-shadows/webkit-tablet/far.png).
   The capture folders retain near/far/disabled renders and pixel evidence.
   Sequential production/PWA run: **17 passed, three pre-existing WebKit
   offline cases skipped**. No full-project unit/browser run or new hardware
@@ -697,11 +697,11 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   basalt return were not separately driven end-to-end in the browser.
   Inspected real arrival, portals, interior, skylight, daylight-from-inside
   and bypass/roof captures in both engines, including the corrected rim faces.
-  [Northern portal](artifacts/moon/skylight-hollow/webkit-tablet/north-portal.png),
-  [daylight from inside](artifacts/moon/skylight-hollow/chromium-tablet/daylight-from-inside.png),
-  [roof/bypass](artifacts/moon/skylight-hollow/chromium-tablet/roof-and-bypass.png),
-  [actual drive](artifacts/moon/skylight-hollow/webkit-tablet/real-drive.png).
-- Regenerated and inspected the [navigation map](artifacts/moon/moon-map.png):
+  [Northern portal](skylight-hollow/webkit-tablet/north-portal.png),
+  [daylight from inside](skylight-hollow/chromium-tablet/daylight-from-inside.png),
+  [roof/bypass](skylight-hollow/chromium-tablet/roof-and-bypass.png),
+  [actual drive](skylight-hollow/webkit-tablet/real-drive.png).
+- Regenerated and inspected the [navigation map](moon-map.png):
   **seven starts, ten routes**, pink Hollow connection, dashed western bypass
   and a distinct roof/opening overlay. Updated the plan, design, README and
   transferable shared-guide lessons.
@@ -723,7 +723,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   two axles. Added **Lunar Nomad** as a separate choice, preserving Lunar Rover,
   Mars Scout and both world defaults. Direct entry:
   `http://localhost:5173/?area=moon&car=lunar-nomad`.
-- References: the user's [image](artifacts/moon/DESIGN.md#lunar-nomad-alternative),
+- References: the user's [image](DESIGN.md#lunar-nomad-alternative),
   existing rover tire/tread construction and batching, `solidPanel`/`beveledBox`,
   vehicle selection and exterior-glass/disposal/real-driving tests. The new
   `lunar-nomad.ts` builder authors a continuous chamfered pressure hull, large
@@ -752,10 +752,10 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
 - Inspected current front, head-on, both profiles, home and driving views in both
   engines; the lit opposite-side Moon profile confirms hull/rim colours rather
   than judging only the shaded side. Refreshed only the Nomad thumbnail.
-  [Moon front](artifacts/moon/lunar-nomad/chromium-tablet/moon-nomad-front.png),
-  [lit Moon profile](artifacts/moon/lunar-nomad/webkit-tablet/moon-nomad-other-side.png),
-  [Mars front](artifacts/moon/lunar-nomad/webkit-tablet/mars-nomad-front.png),
-  [driving](artifacts/moon/lunar-nomad/chromium-tablet/moon-nomad-driving.png).
+  [Moon front](lunar-nomad/chromium-tablet/moon-nomad-front.png),
+  [lit Moon profile](lunar-nomad/webkit-tablet/moon-nomad-other-side.png),
+  [Mars front](lunar-nomad/webkit-tablet/mars-nomad-front.png),
+  [driving](lunar-nomad/chromium-tablet/moon-nomad-driving.png).
 - Sequential production/PWA checks: **17 passed, three existing WebKit offline
   cases skipped**. Nomad's asset is precached in both engines; Chromium selects,
   reloads and drives it offline. Internal Moon publication gate and Earth-only
@@ -787,9 +787,9 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   Samples of actual rendered front/corner/side pixels match within two RGB
   levels. Inspected final three-quarter and profile captures in both engines,
   and regenerated the actual-model Lunar Rover thumbnail.
-  [Moon corner/pillar](artifacts/moon/lunar-rover/chromium-tablet/moon-rover-front.png),
-  [Moon profile](artifacts/moon/lunar-rover/chromium-tablet/moon-rover-side.png),
-  [Mars opposite side](artifacts/moon/lunar-rover/webkit-tablet/mars-rover-other-side.png).
+  [Moon corner/pillar](lunar-rover/chromium-tablet/moon-rover-front.png),
+  [Moon profile](lunar-rover/chromium-tablet/moon-rover-side.png),
+  [Mars opposite side](lunar-rover/webkit-tablet/mars-rover-other-side.png).
 - No full-project, PWA, long-region or fresh hardware checks for this visual-only
   correction. Last full-suite evidence remains 2026-10-11; prior PWA skips and
   physical-iPad acceptance remain open. **Exact next step:** user reviews window
@@ -826,9 +826,9 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   final head-on and three-quarter views in both engines; all three front panes
   and rectangular lights are visible, and the wheels are unguarded. Refreshed
   only the Lunar Rover thumbnail from the actual model.
-  [Moon front](artifacts/moon/lunar-rover/webkit-tablet/moon-rover-head-on.png),
-  [Mars front](artifacts/moon/lunar-rover/chromium-tablet/mars-rover-head-on.png),
-  [three-quarter body](artifacts/moon/lunar-rover/webkit-tablet/mars-rover-front.png).
+  [Moon front](lunar-rover/webkit-tablet/moon-rover-head-on.png),
+  [Mars front](lunar-rover/chromium-tablet/mars-rover-head-on.png),
+  [three-quarter body](lunar-rover/webkit-tablet/mars-rover-front.png).
 - No terrain, route, startup, selection/storage or offline behavior changes.
   Did not repeat PWA, long-region or full-project suites for this visual-only
   refinement; the preceding PWA result remains 17 passed / three existing
@@ -860,9 +860,9 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   front face, fitted both panes outside it, and added first-hit glass raycasts.
   Inspected final rendered front/side and following-camera views in both
   engines and both worlds, plus the regenerated actual-model thumbnail.
-  [Moon front](artifacts/moon/lunar-rover/webkit-tablet/moon-rover-front.png),
-  [Moon driving](artifacts/moon/lunar-rover/webkit-tablet/moon-rover-driving.png),
-  [Mars front](artifacts/moon/lunar-rover/chromium-tablet/mars-rover-front.png).
+  [Moon front](lunar-rover/webkit-tablet/moon-rover-front.png),
+  [Moon driving](lunar-rover/webkit-tablet/moon-rover-driving.png),
+  [Mars front](lunar-rover/chromium-tablet/mars-rover-front.png).
   Added the bevel/glazing lesson to the shared guide.
 - **32 focused unit tests pass**, covering selection/defaults/invalid links,
   both physical simulations under normal and lunar gravity, body clearance,
@@ -908,8 +908,8 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   X=-264 / Z=-65, climbs around unequal massifs and returns through the northern
   saddle to Earthrise Overlook. An optional western ridge reaches 43 m and
   rejoins that saddle. Recorded the layout before implementation, then updated
-  the navigation [PNG](artifacts/moon/moon-map.png) /
-  [SVG](artifacts/moon/moon-map.svg): six numbered starts, green main traverse
+  the navigation [PNG](moon-map.png) /
+  [SVG](moon-map.svg): six numbered starts, green main traverse
   and dashed-green ridge, plus departure directions from Earthview Base.
 - The first immediately uphill branches interacted with the flat spawn field,
   compressing their departure grades despite passing rover simulation. Added
@@ -942,12 +942,12 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   climb. Low/steep fracture cameras were occluded or filled by nearby ground;
   moved only the photo camera to the higher eastern bank and used a shallow
   near-target view. Evidence:
-  [arrival](artifacts/moon/broken-highlands/webkit-tablet/arrival.png),
-  [climb](artifacts/moon/broken-highlands/webkit-tablet/shelf-climb.png),
-  [ridge and Earth](artifacts/moon/broken-highlands/hardware-chromium/western-ridge.png),
-  [northern return](artifacts/moon/broken-highlands/webkit-tablet/northern-return.png),
-  [fracture side view](artifacts/moon/broken-highlands/webkit-tablet/fracture.png),
-  [actual drive](artifacts/moon/broken-highlands/webkit-tablet/real-drive.png).
+  [arrival](broken-highlands/webkit-tablet/arrival.png),
+  [climb](broken-highlands/webkit-tablet/shelf-climb.png),
+  [ridge and Earth](broken-highlands/hardware-chromium/western-ridge.png),
+  [northern return](broken-highlands/webkit-tablet/northern-return.png),
+  [fracture side view](broken-highlands/webkit-tablet/fracture.png),
+  [actual drive](broken-highlands/webkit-tablet/real-drive.png).
   The map remains a navigation reference, not a game aerial or visual gate.
 - Terrain remains **91,008 triangles**, one fixed rendered mesh and at most
   nine terrain colliders. Five outcrops add **100 scenery triangles**, one
@@ -959,7 +959,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   activation. Cadence is consistent with the previous hardware probe; camera
   culling differs, so lower triangle samples are not an optimization claim.
   Warm-server navigation through playable startup took 1.24 s, not isolated
-  generation time. [Raw results](artifacts/moon/broken-highlands/hardware-chromium/performance.json).
+  generation time. [Raw results](broken-highlands/hardware-chromium/performance.json).
 - Did not rerun unrelated full-project, PWA, long crater or long rille browser
   suites for this bounded local region. The last full-project suite record
   remains 2026-10-11; prior Moon PWA/production checks are recorded below.
@@ -996,11 +996,11 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   regional arrival, a close rock-side view and genuine two-way driving captures
   in Chromium and WebKit. The first close-view camera hid slab bases behind a
   nearby crest; moved only the capture camera to the unobstructed northern side.
-  Evidence: [before](artifacts/moon/basalt-identity/webkit-tablet/before-reported-view.png),
-  [same-camera after](artifacts/moon/basalt-identity/webkit-tablet/reported-view.png),
-  [arrival](artifacts/moon/basalt-identity/webkit-tablet/arrival.png),
-  [grounded crust](artifacts/moon/basalt-identity/webkit-tablet/grounded-crust.png)
-  and [actual drive](artifacts/moon/basalt-identity/webkit-tablet/real-drive.png).
+  Evidence: [before](basalt-identity/webkit-tablet/before-reported-view.png),
+  [same-camera after](basalt-identity/webkit-tablet/reported-view.png),
+  [arrival](basalt-identity/webkit-tablet/arrival.png),
+  [grounded crust](basalt-identity/webkit-tablet/grounded-crust.png)
+  and [actual drive](basalt-identity/webkit-tablet/real-drive.png).
   Refreshed the navigation PNG/SVG from the final terrain.
 - Typecheck/build and **11 Moon unit tests pass**. Added measurable lobe/shoulder
   relief, determinism, dense buried slab undersides, route clearance and actual
@@ -1023,7 +1023,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   240 frames each at the overlook, basalt, rille, bank and an actual basalt
   collision crossing: **16.7 ms median / 16.7–16.8 ms p95**, 22–26 draw calls,
   about 110,800–114,600 rendered triangles, at most 3.1 ms recorded activation.
-  [Raw hardware results](artifacts/moon/basalt-identity/hardware-chromium/performance.json).
+  [Raw hardware results](basalt-identity/hardware-chromium/performance.json).
   This does not clear physical-iPad acceptance.
 - Lighting, Earth, quiet palette, gravity/handling and render footprint are
   unchanged. Recorded the colour-only-region failure and geometry-based
@@ -1037,8 +1037,8 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
 ## Current navigation map — 2026-10-23
 
 - User requested a simple design map or aerial to locate the new areas.
-  Added a north-up [PNG](artifacts/moon/moon-map.png) and self-contained
-  [SVG](artifacts/moon/moon-map.svg), linked from README and the design.
+  Added a north-up [PNG](moon-map.png) and self-contained
+  [SVG](moon-map.svg), linked from README and the design.
   Orange highlights Basalt Reach, cyan Silver Rille, cream the original circuit
   and descent, and dashed purple the optional bank/crossing breach.
   Five numbered starts and directions from Earthview Base make the actual
@@ -1072,7 +1072,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   channel profile/routes in `mars-delta-layout.ts`, and connected-route/relief
   checks in `tests/mars-western.test.ts`. Adapted the channel technique to dry
   lunar ground and the existing fixed mesh, not Mars water, workers or new props.
-  Recorded the connected layout in [the design](artifacts/moon/DESIGN.md)
+  Recorded the connected layout in [the design](DESIGN.md)
   before terrain implementation.
 - Added the broad dark Basalt Reach plain and winding Silver Rille, connected
   to the original crater circuit at both ends. The floor and optional upper
@@ -1100,12 +1100,12 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   two-way coverage is simulation-based, not a full browser excursion claim.
   Refreshed final rover-height captures after waiting for ground contact and
   inspected the plain, channel, bank, breach, shoulder and real-drive evidence.
-  [Basalt arrival](artifacts/moon/basalt-rille/webkit-tablet/basalt-reach.png),
-  [channel with Earth](artifacts/moon/basalt-rille/webkit-tablet/silver-rille.png),
-  [upper bank](artifacts/moon/basalt-rille/hardware-chromium/upper-bank.png),
-  [breach](artifacts/moon/basalt-rille/webkit-tablet/breach-floor.png),
-  [eastern return view](artifacts/moon/basalt-rille/chromium-tablet/eastern-shoulder.png)
-  and [actual drive](artifacts/moon/basalt-rille/webkit-tablet/real-drive.png).
+  [Basalt arrival](basalt-rille/webkit-tablet/basalt-reach.png),
+  [channel with Earth](basalt-rille/webkit-tablet/silver-rille.png),
+  [upper bank](basalt-rille/hardware-chromium/upper-bank.png),
+  [breach](basalt-rille/webkit-tablet/breach-floor.png),
+  [eastern return view](basalt-rille/chromium-tablet/eastern-shoulder.png)
+  and [actual drive](basalt-rille/webkit-tablet/real-drive.png).
 - Retained **91,008 terrain triangles**, one fixed mesh and at most nine active
   terrain colliders. Final unit construction sample: **530 ms**, versus earlier
   pilot samples around 472–504 ms; these are non-isolated desktop measurements,
@@ -1117,7 +1117,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   about 110,800–114,400 rendered triangles and at most 2.9 ms recorded collision
   activation. Cadence matches the historical pilot hardware sample; this is
   not physical-iPad acceptance. Raw backend-labelled results:
-  [performance.json](artifacts/moon/basalt-rille/hardware-chromium/performance.json).
+  [performance.json](basalt-rille/hardware-chromium/performance.json).
 - Did not rerun unrelated full-project/PWA suites or the old long browser
   crater drive for this localized extension. The full-project suite record
   remains 2026-10-11; prior PWA coverage is below. Physical iPad Safari touch,
@@ -1137,7 +1137,7 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   correction for visible gaps beneath human-made structures. The quiet
   atmosphere, lighting/palette, Earth, handling and terrain remain unchanged.
   Recorded the approved six-place direction and basalt–rille-first sequence in
-  [the build plan](MOON_BUILD_PLAN.md); no new region is claimed implemented.
+  [the build plan](BUILD_PLAN.md); no new region is claimed implemented.
 - References: `groundMarsRock` in `mars-landmarks.ts` and its dense skirt-edge
   checks, plus the Dish relay's whole-footprint placement test and independent
   leg/foot construction. Adapted the technique to rectangular footings with
@@ -1158,11 +1158,11 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   legs and rendered/collider agreement. **4 focused browser cases pass** across
   Chromium and WebKit: structure views plus pilot presentation/reset/travel.
   Inspected low shelter/feet, solar and instrument captures in both engines.
-  [Before shelter](artifacts/moon/grounding/before-shelter.png),
-  [grounded shelter](artifacts/moon/grounding/webkit-tablet/shelter.png),
-  [feet](artifacts/moon/grounding/webkit-tablet/shelter-feet.png),
-  [solar supports](artifacts/moon/grounding/webkit-tablet/solar.png) and
-  [instrument](artifacts/moon/grounding/chromium-tablet/instrument.png).
+  [Before shelter](grounding/before-shelter.png),
+  [grounded shelter](grounding/webkit-tablet/shelter.png),
+  [feet](grounding/webkit-tablet/shelter-feet.png),
+  [solar supports](grounding/webkit-tablet/solar.png) and
+  [instrument](grounding/chromium-tablet/instrument.png).
 - This checkpoint includes the accepted internal pilot, corrected Earth,
   grounded structures, evidence and approved continuation. No push or public
   release requested. Full-project/PWA and long browser-driving suites were not
@@ -1186,10 +1186,10 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
 - User accepted the lunar visual feel, Earthrise and initial handling, noting
   slower travel and longer hops. Kept gravity, vehicle settings, terrain, camera,
   lighting, Earth's direction and angular size unchanged.
-- Preserved the [reported image](artifacts/moon/earth-texture/user-artifacts.png)
+- Preserved the [reported image](earth-texture/user-artifacts.png)
   and captured the original globe at
-  [driving height](artifacts/moon/earth-texture/before-driving.png) and
-  [close zoom](artifacts/moon/earth-texture/before-close.png). Reproduced the
+  [driving height](earth-texture/before-driving.png) and
+  [close zoom](earth-texture/before-close.png). Reproduced the
   diagonal white cloud dashes and pixel-stepped coastlines.
 - Reference: the existing `earthTexture`/`buildMoonSky` in `moon-scenery.ts`,
   `moonRandom`/interpolated terrain noise, Moon disposal checks and actual
@@ -1211,10 +1211,10 @@ and [shared guide](WORLD_BUILD_GUIDE.md).
   longitude-seam view. Inspected actual captures in both engines; the repeated
   cloud dashes and stair-stepped shore are no longer visible.
 - Current detail evidence:
-  [Chromium close view](artifacts/moon/earth-texture/chromium-tablet/close.png),
-  [WebKit close view](artifacts/moon/earth-texture/webkit-tablet/close.png),
-  [exposed seam](artifacts/moon/earth-texture/webkit-tablet/seam.png) and
-  [driving view](artifacts/moon/earth-texture/webkit-tablet/driving.png).
+  [Chromium close view](earth-texture/chromium-tablet/close.png),
+  [WebKit close view](earth-texture/webkit-tablet/close.png),
+  [exposed seam](earth-texture/webkit-tablet/seam.png) and
+  [driving view](earth-texture/webkit-tablet/driving.png).
   The earlier hardware benchmark remains historical evidence, not a fresh
   measurement of this texture revision. Did not rerun long browser drives,
   full-project suites or PWA checks for this local texture-only correction.

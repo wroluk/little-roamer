@@ -1612,14 +1612,14 @@ The waterfall, basalt and surf are first-pass art; physical iPad Safari review
 and long-session performance acceptance remain open.
 
 No full unit/browser suites were requested or run for this isolated slice.
-The last project full-suite record in `MARS_PROGRESS.md` remains 2026-10-11.
+The last project full-suite record in `artifacts/mars/PROGRESS.md` remains 2026-10-11.
 WebKit two-contact touch and offline-reload automation gaps retain manual iPad
 acceptance; skipped cases must not be counted as passed.
 
 **Exact next chunk:** extend the existing black coast east to Sólheimasandur,
 add the optional airplane wreck and a safe coastal route/return, and prove both
 cars can drive the connector both ways. Then continue to Reynisfjara and the
-lagoon pilot gate described in `ICELAND_BUILD_PLAN.md`.
+lagoon pilot gate described in `artifacts/iceland/BUILD_PLAN.md`.
 
 The user's later additions are reserved in `artifacts/iceland/DESIGN.md`:
 Landmannalaugar/Brennisteinsalda/Laugahraun/Ljótipollur, Lómagnúpur and a

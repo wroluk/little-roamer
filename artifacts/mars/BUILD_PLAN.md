@@ -1,13 +1,13 @@
 # Mars Outpost build plan
 
-This plan develops the [Mars Outpost concept](LOCATION_IDEAS.md#mars-outpost--expanded-concept) as a sequence of finished, driveable places. Northern Reach showed that a large generated landscape can be technically complete yet feel sparse. Mars should grow from a small polished pilot: **one region at a time, each reviewed on screen and driven with the real car before the next begins**. Do not publish a broad placeholder map as the new location.
+This plan develops the [Mars Outpost concept](../../LOCATION_IDEAS.md#mars-outpost--expanded-concept) as a sequence of finished, driveable places. Northern Reach showed that a large generated landscape can be technically complete yet feel sparse. Mars should grow from a small polished pilot: **one region at a time, each reviewed on screen and driven with the real car before the next begins**. Do not publish a broad placeholder map as the new location.
 
 **Current release decision:** the user has accepted all regions and the texture-free
 buried hull, declared Mars complete, and requested public picker availability,
 all pending checks, a commit, and publication. This supersedes the historical
 development-only gate and pause on long checks below. Run the full automated
 release gates before publishing; physical-iPad acceptance remains explicitly
-unverified rather than inferred from desktop WebKit. See `MARS_PROGRESS.md`
+unverified rather than inferred from desktop WebKit. See `artifacts/mars/PROGRESS.md`
 for current results.
 
 ## Target experience

@@ -15,7 +15,7 @@ Source: [Mars feedback with six attached images](Mars-feedback1/Mars%20feedback.
 
 The work stays within the existing pilot and its common terrain/camera systems. No further region has been started. The original feedback and attachments are preserved.
 
-Validation passed: typecheck, production build, 40 focused unit tests, and 10 selected browser cases across Chromium and WebKit. The sequential PWA run passed 5 tests, with the existing WebKit offline-reload skip. Details are recorded in `MARS_PROGRESS.md`. Physical iPad Safari acceptance remains pending.
+Validation passed: typecheck, production build, 40 focused unit tests, and 10 selected browser cases across Chromium and WebKit. The sequential PWA run passed 5 tests, with the existing WebKit offline-reload skip. Details are recorded in `artifacts/mars/PROGRESS.md`. Physical iPad Safari acceptance remains pending.
 
 ## Captures from the revised game
 

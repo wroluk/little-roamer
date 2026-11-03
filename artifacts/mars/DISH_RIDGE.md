@@ -15,7 +15,7 @@ The ivory receiver rises above three terracotta shelves northeast of Crown Crate
 
 ## Quality gate
 
-Verify road grades across their widths, the summit terrace and reset clearing, chunk joins, and visible/collision agreement in the bowl and tripod. Drive each new route in both directions with the actual Scout; inspect the approach, receiver, and western lookout in Chromium and WebKit. Save captures and a map after refinement. This card records intent until the evidence in `MARS_PROGRESS.md` marks the region complete.
+Verify road grades across their widths, the summit terrace and reset clearing, chunk joins, and visible/collision agreement in the bowl and tripod. Drive each new route in both directions with the actual Scout; inspect the approach, receiver, and western lookout in Chromium and WebKit. Save captures and a map after refinement. This card records intent until the evidence in `artifacts/mars/PROGRESS.md` marks the region complete.
 
 The [expanded concept map](concept-map.svg) shows current placement. The [original terrain map](dish-ridge-map.svg) and captures below are historical evidence from the compact layout, not validation of the relocated region. User review and longer driving/browser gates for the expansion are pending.
 
@@ -27,7 +27,7 @@ The [expanded concept map](concept-map.svg) shows current placement. The [origin
 - [Outpost sightline](dish-ridge-review/outpost-view.png): distant habitat silhouettes remain visible beyond the detailed chunks.
 - [Eastern ledge](dish-ridge-review/eastern-ledge.png): the optional rock road follows a supporting shelf.
 
-The tablet captures show the implemented game. Matching [WebKit receiver](dish-ridge-review/webkit/receiver.png) and [outpost](dish-ridge-review/webkit/outpost-view.png) views are saved, together with the completed driving circuit in [Chromium](dish-ridge-review/completed-circuit-chromium.png) and [WebKit](dish-ridge-review/webkit/completed-circuit.png). Both engines passed the complete 629 m switchback/summit/ledge return drive without reset. Automated checks and their current status are recorded in [Mars progress](../../MARS_PROGRESS.md).
+The tablet captures show the implemented game. Matching [WebKit receiver](dish-ridge-review/webkit/receiver.png) and [outpost](dish-ridge-review/webkit/outpost-view.png) views are saved, together with the completed driving circuit in [Chromium](dish-ridge-review/completed-circuit-chromium.png) and [WebKit](dish-ridge-review/webkit/completed-circuit.png). Both engines passed the complete 629 m switchback/summit/ledge return drive without reset. Automated checks and their current status are recorded in [Mars progress](PROGRESS.md).
 
 ## Dish feedback refinement
 

@@ -1,6 +1,6 @@
 # Mars implementation progress
 
-Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status against the code and test evidence; an unchecked milestone is unfinished. Update this record at every milestone and before stopping.
+Read this file with `artifacts/mars/BUILD_PLAN.md` before continuing. Verify status against the code and test evidence; an unchecked milestone is unfinished. Update this record at every milestone and before stopping.
 
 ## Current work
 
@@ -446,7 +446,7 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
   shadow map near, 600 m away and disabled; car swaps and Earth isolation
   remain covered. Moon's reported roof-face pattern now has zero mismatching
   pixels among 953 verified samples in each engine. Full cause, before/after
-  captures and scope are in the latest `MOON_PROGRESS.md` entry.
+  captures and scope are in the latest `artifacts/moon/PROGRESS.md` entry.
 - No full-suite/PWA rerun or new device benchmark for this shader-only fix.
   Last full-suite record remains 2026-10-11. **Exact next step:** retain the
   accepted Mars shadows while the user reviews Moon's corrected roof; keep
@@ -464,7 +464,7 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
   or reintroduction of the rejected experimental distance fades.
 - Reused actual `lavaTubeGeometry`, current material/streaming/disposal
   patterns and Iceland's existing shader-hook technique. The shared
-  [static sunlight atlas](src/game/static-sunlight.ts) rasterizes both complete
+  [static sunlight atlas](../../src/game/static-sunlight.ts) rasterizes both complete
   roofs once along the fixed sun direction. Streamed terrain/scenery and
   all selected rovers sample actual world positions. Only direct sunlight
   is occluded, not ambient fill or surface colour; actual holes and portals
@@ -484,7 +484,7 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
   floor/roof driving, Hollow views, car swaps/Earth isolation and actual GPU
   near/far/disabled-shadow comparisons. **88 shaded Mars samples change by
   zero RGB levels** in each engine when moving shadows are far away or off.
-  [Current approach](artifacts/mars/static-tube-shadows/webkit-tablet/far.png);
+  [Current approach](static-tube-shadows/webkit-tablet/far.png);
   near/far/disabled images and numeric evidence remain beside it.
 - One Chromium multi-view case timed out during concurrent CPU work, then
   passed alone in 39.1 s with its original 45 s timeout and unchanged physics.
@@ -516,7 +516,7 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
   Inspected actual Moon/Mars body views in Chromium/WebKit and generated the new
   thumbnail. **PWA: 17 passed, three existing WebKit offline cases skipped**;
   Nomad is precached and reloads/drives offline in Chromium. Full detail/reference:
-  [Moon progress](MOON_PROGRESS.md#lunar-nomad-reference-inspired-alternative--2026-10-23).
+  [Moon progress](../moon/PROGRESS.md#lunar-nomad-reference-inspired-alternative--2026-10-23).
 - No terrain or release-gate change, full terrain suites or fresh hardware
   benchmark; last full-suite record remains 2026-10-11. Existing WebKit automation
   gaps and physical-iPad acceptance remain open. **Exact next step:** user
@@ -535,7 +535,7 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
   browser cases pass**, including actual front/corner/side pixel-colour matching.
   Inspected final Moon/Mars three-quarter and both-side profiles and refreshed
   the thumbnail. Details and captures:
-  [Moon progress](MOON_PROGRESS.md#lunar-rover-window-fit-and-matching-tint--2026-10-23).
+  [Moon progress](../moon/PROGRESS.md#lunar-rover-window-fit-and-matching-tint--2026-10-23).
 - No full-project/PWA, long-region or fresh hardware checks; the last full-suite
   record remains 2026-10-11 and physical-iPad/existing WebKit gaps remain open.
   **Exact next step:** user reviews `?area=mars&car=lunar-rover`. User requested
@@ -552,7 +552,7 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
   browser cases pass**. Inspected actual head-on/three-quarter Moon and Mars
   captures and refreshed the lunar thumbnail. Full detail and the corrected
   unstepped-suspension test assumption are in
-  [Moon progress](MOON_PROGRESS.md#lunar-rover-upright-front-and-exposed-wheels--2026-10-23).
+  [Moon progress](../moon/PROGRESS.md#lunar-rover-upright-front-and-exposed-wheels--2026-10-23).
 - No terrain, startup/storage/offline or public-release change; no repeated
   full-project/PWA suites or fresh hardware benchmark. Last full suite remains
   2026-10-11; physical-iPad and existing WebKit gaps remain open.
@@ -575,7 +575,7 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
   final glazing fix. Actual final Mars/Moon views were inspected.
   **PWA: 17 passed, three existing WebKit offline cases skipped**, including
   new asset precaching and Chromium offline rover selection/reload/driving.
-  See [Moon progress](MOON_PROGRESS.md#separate-lunar-rover-and-cab-forward-body--2026-10-23)
+  See [Moon progress](../moon/PROGRESS.md#separate-lunar-rover-and-cab-forward-body--2026-10-23)
   for references, iteration failures, exact scope and capture links.
 - No full-project/long-region suites or new hardware benchmark ran for this local
   vehicle addition. Last full-suite record remains 2026-10-11; physical-iPad and
@@ -1124,7 +1124,7 @@ The user requested continuation, authorizing Iron Maze as the next individual re
 - Added shared world bounds and explicit regional placements. Dish moves to (398, -472), Glassfall to (500, -30) with 1.45-times-wider landforms, and Iron to (380, 460) with 1.4-times-wider landforms. Road widths, buildings, rocks and vehicle scale stay unchanged, except modestly enlarged Iron hero fins. Habitat and Crown retain pilot positions.
 - Reauthored the Crown connection, Habitat spoke and two eastern connectors. Rust gullies, central shoulders and a sediment ridge screen destinations; pale ground/ejecta and low iron fins introduce the next geology. Broad connector shoulders avoid narrow artificial embankments. Fog remains 80–480 m.
 - Updated nominal/apron chunk bounds, exact surface-sampling clamps, Great Ring position, horizon generation and landmark ownership. The detailed streaming rings remain 5×5 render / 3×3 collision. Updated regional starts, scenery ownership and browser capture coordinates together.
-- Redrew `artifacts/mars/concept-map.svg` and updated regional cards and README. Earlier regional maps/captures are explicitly historical; new Chromium views are [rust gully](artifacts/mars/expansion-review/rust-gully.png), [Glassfall reveal](artifacts/mars/expansion-review/glassfall-reveal.png), and [Iron reveal](artifacts/mars/expansion-review/iron-reveal.png).
+- Redrew `artifacts/mars/concept-map.svg` and updated regional cards and README. Earlier regional maps/captures are explicitly historical; new Chromium views are [rust gully](expansion-review/rust-gully.png), [Glassfall reveal](expansion-review/glassfall-reveal.png), and [Iron reveal](expansion-review/iron-reveal.png).
 - Fourteen distinct focused unit checks passed across the iteration: expanded bounds/apron sampling, connected route spacing, terrain sightline occlusion/reveal, exact seams/LOD edges, route grades and reset clearings, dish shell/terrace/relay placement, closed Iron geometry, glass source/contours/color/collision, and streaming transitions/disposal. One shifted-lattice descent grade marginally exceeded the existing limit; raising its intermediate road point by 1 m fixed it without changing the assertion.
 - Final production build/typecheck and `git diff --check` passed. A short Chromium scenario (about 14 seconds) loaded three new viewpoints with wheel contact and no page errors. Inspected the actual captures and broadened the new connector shoulders after the first pass. This is a presentation smoke check, not a completed drive.
 - User-directed omissions: no long real-driving route suites, full browser regression, WebKit region gate, PWA rerun or device-performance acceptance. The last full-suite status remains unchanged/unrecorded. Expanded-layout acceptance is still pending; prior compact-region gates do not certify it.
