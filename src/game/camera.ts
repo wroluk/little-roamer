@@ -33,6 +33,7 @@ export class FollowCamera {
     readonly vehicle: Vehicle,
     private readonly groundHeight = surfaceHeight,
     initialView?: { pitch: number; yaw: number },
+    private readonly waterHeight?: (x: number, z: number) => number | null,
   ) {
     this.orbitPitch = initialView?.pitch ?? 0;
     this.orbitYaw = initialView?.yaw ?? 0;
@@ -56,6 +57,11 @@ export class FollowCamera {
       Math.cos(this.orbitYaw + yaw),
     );
     this.orbitPitch = THREE.MathUtils.clamp(this.orbitPitch + pitch, -0.75, 0.62);
+  }
+
+  private keepAboveWater(position: THREE.Vector3) {
+    const level = this.waterHeight?.(position.x, position.z);
+    if (level !== null && level !== undefined) position.y = Math.max(position.y, level + 1);
   }
 
   update(dt: number, showcase = false, feedback = 0) {
@@ -95,14 +101,18 @@ export class FollowCamera {
       this.wanted.addScaledVector(this.forward, Math.sin(this.feedbackTime * 29 + 0.8) * feedback * 0.35);
     }
     this.wanted.y = Math.max(this.wanted.y, this.groundHeight(this.wanted.x, this.wanted.z) + 1);
+    this.keepAboveWater(this.wanted);
     if (!this.initialized) this.smoothed.copy(this.wanted);
     else this.smoothed.lerp(this.wanted, 1 - Math.exp(-5 * dt));
+    this.keepAboveWater(this.smoothed);
     this.initialized = true;
 
     // Sweep the camera's near-plane volume, not just its center ray. Apply after
     // smoothing so interpolation cannot carry the camera through a solid object.
     this.origin.copy(car.position);
     this.origin.y += 0.45;
+    // Lift both boom ends before sweeping; a final unswept lift could enter a coastal cliff.
+    this.keepAboveWater(this.origin);
     this.direction.subVectors(this.smoothed, this.origin);
     const distanceToCamera = this.direction.length();
     this.direction.normalize();

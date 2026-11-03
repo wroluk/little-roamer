@@ -4,6 +4,14 @@ const port = Number(process.env.ROAMER_PORT ?? '5173');
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('ROAMER_PORT must be a valid TCP port');
 export default defineConfig({
   testDir: './tests/browser',
+  testIgnore: [
+    ...(process.env.ROAMER_INCLUDE_DEMOS === '1' ? [] : [
+      '**/location-demos.spec.ts',
+      '**/location-demo-adventures.spec.ts',
+      '**/island.spec.ts',
+    ]),
+    ...(process.env.ROAMER_INCLUDE_ICELAND === '1' ? [] : ['**/iceland.spec.ts']),
+  ],
   timeout: 45_000,
   expect: { timeout: 12_000 },
   fullyParallel: false,

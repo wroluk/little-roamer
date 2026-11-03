@@ -9,7 +9,11 @@
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
+    "test:demos": "tsx --test tests/optional/location-demos.test.ts tests/optional/island.test.ts",
+    "test:iceland": "ROAMER_INCLUDE_ICELAND=1 tsx --test tests/optional/iceland.test.ts tests/driving-feedback.test.ts",
     "test:browser": "playwright test",
+    "test:browser:demos": "ROAMER_INCLUDE_DEMOS=1 playwright test tests/browser/location-demos.spec.ts tests/browser/location-demo-adventures.spec.ts tests/browser/island.spec.ts",
+    "test:browser:iceland": "ROAMER_INCLUDE_ICELAND=1 playwright test tests/browser/iceland.spec.ts",
     "test:pwa": "npm run build && playwright test --config playwright.pwa.config.ts"
   },
   "dependencies": {
@@ -18,6 +22,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
+    "@types/node": "^22.20.5",
     "@types/three": "^0.180.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",

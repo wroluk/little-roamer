@@ -2,6 +2,10 @@
 
 Status: **Vatnajökull and coastal refinements committed and pushed as `49a2046`. The winding Y cave, hall and flat floor have smaller entrance throats; the white snow now rolls over each lip into a connected fringe of irregular flat points, tapering into the glacier at both sides rather than ending in blunt caps or separate ceiling-mounted cones. Glacier/terrain contacts retain locally refined, rounded toes and the graded traverse's original triangles; accepted dirty terrain-colour fading is permanent, with no toggle. Focused geometry, both-car driving and Chromium/WebKit entrance checks pass; physical iPad and refined-world loading performance remain open, and cave/contact work remains uncommitted. Vatnajökull retains only its higher through-route, with no crater-overlook branch. Lakagígar and sandur are next** (2026-10-22).
 See [implementation progress](ICELAND_PROGRESS.md) for checks and the next chunk.
+As of 2026-11-03, the user has deferred this unfinished world's functional
+checks from release gates. They remain opt-in through `test:iceland` and
+`test:browser:iceland`, not marked as passed. Production exclusion stays checked;
+public Iceland Highlands and the selected Island Tracks crossing remain covered.
 This is a new, full-size **Iceland** location alongside the existing 480 × 480 m
 Iceland Highlands. Do not replace that location during development. The new
 world is 1,536 × 1,536 m, like Northern Reach and Mars Outpost. Its geography is

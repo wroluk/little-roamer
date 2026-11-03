@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { env } from 'node:process';
 import type { Vehicle } from '../../src/game/vehicle';
 import type { FollowCamera } from '../../src/game/camera';
 import type * as THREE from 'three';
@@ -38,6 +39,7 @@ async function overturn(page: Page, roll: number) {
 }
 
 for (const area of ['valley', 'northern-reach', 'mars', 'iceland', 'moon']) {
+  if (area === 'iceland' && env.ROAMER_INCLUDE_ICELAND !== '1') continue;
   test(`${area}: Reset and R right an overturned car locally, then an upright reset still returns`, async ({ page }) => {
     if (area === 'iceland') test.slow();
     await page.goto(`/?area=${area}`);

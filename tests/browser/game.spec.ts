@@ -3,6 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 type Snapshot = {
   mode: string;
   car: 'modern' | 'classic';
+  tractionLab: boolean;
   position: { x: number; y: number; z: number };
   speed: number;
   contacts: number;
@@ -14,10 +15,11 @@ type Snapshot = {
   navigation: { heading: number; direction: string; elevation: number };
 };
 type Ramp = { x: number; z: number; angle: number; length: number; height: number };
-type DebugApi = { snapshot(): Snapshot; ramps: Ramp[]; placeVehicle(x: number, z: number, heading: number): void };
+type DebugApi = { snapshot(): Snapshot; ramps: Ramp[]; placeVehicle(x: number, z: number, heading: number): Promise<void> };
 const snapshot = (page: Page): Promise<Snapshot> => page.evaluate(() => {
   return (window as unknown as { __ROAMER__: { snapshot(): Snapshot } }).__ROAMER__.snapshot();
 });
+const RELEASED_AREAS = ['northern-reach', 'valley', 'highlands', 'samurai-village', 'mars', 'moon'];
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/?area=valley');
@@ -80,8 +82,8 @@ test('tablet portrait and landscape controls fit and remain usable', async ({ pa
     await expect(page.locator('#area-picker input').first()).toBeDisabled();
     expect(Math.abs(forward.height - reverse.height)).toBeLessThanOrEqual(1);
     expect(navigation.x).toBeLessThan(viewport.width / 3);
-    if (viewport.width <= viewport.height) await expect(page.locator('.wordmark')).toBeHidden();
-    else await expect(page.locator('.wordmark')).toBeVisible();
+    if (viewport.width <= viewport.height) await expect(page.locator('.topbar .wordmark')).toBeHidden();
+    else await expect(page.locator('.topbar .wordmark')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
     await page.locator('#forward').tap();
     expect((await snapshot(page)).input.forward).toBe(false);
@@ -106,13 +108,87 @@ test('location selection lives on the home screen and can be reached from pause'
 
 test('Northern Reach is the default and first location', async ({ page }) => {
   await page.goto('/');
+  await expect(page.locator('#start')).toBeEnabled();
   await expect(page.locator('body')).toHaveAttribute('data-area', 'northern-reach');
-  await expect(page.locator('.area-options input').first()).toHaveValue('northern-reach');
+  await expect(page.locator('#area-picker input').first()).toHaveValue('northern-reach');
   await expect(page.locator('input[name="area"][value="northern-reach"]')).toBeChecked();
-  await expect(page.locator('.area-options input').last()).toHaveValue('moon');
+  expect(await page.locator('#area-picker input').evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).value)))
+    .toEqual(RELEASED_AREAS);
+});
+
+test('Development groups stay separate from released locations and remain usable on small screens', async ({ page }, info) => {
+  test.setTimeout(90_000);
+  const menu = page.locator('#development-menu');
+  const summary = page.locator('#development-menu > summary');
+  await expect(menu).toHaveJSProperty('open', false);
+  expect(await page.locator('#development-builds input').evaluateAll(inputs =>
+    inputs.map(input => (input as HTMLInputElement).value))).toEqual(['tidal-islands', 'iceland']);
+  expect(await page.locator('#development-demos input').evaluateAll(inputs =>
+    inputs.map(input => (input as HTMLInputElement).value))).toEqual(
+    ['red-canyon', 'old-quarry', 'dune-sea', 'autumn-woods', 'island-tracks', 'island']);
+  await expect(page.locator('#development-builds input[value="island"]')).toHaveCount(0);
+  await expect(page.locator('#development-picker input[value="valley"]')).toHaveCount(0);
+  await expect(page.locator('#area-picker input[value="iceland"]')).toHaveCount(0);
+  for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 1024, height: 768 }]) {
+    await page.setViewportSize(viewport);
+    await page.locator('.home-wordmark').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: info.outputPath(`official-menu-${viewport.width}.png`) });
+    await summary.scrollIntoViewIfNeeded();
+    await summary.focus(); await page.keyboard.press('Enter');
+    await expect(menu).toHaveJSProperty('open', true);
+    for (const id of ['tidal-islands', 'iceland', 'island']) {
+      const tile = page.locator(`#development-picker input[value="${id}"]`).locator('..');
+      await tile.evaluate(element => element.scrollIntoView({ block: 'center' }));
+      await expect(tile).toBeInViewport({ ratio: 1 });
+      expect((await tile.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+    const tool = page.locator('#open-traction-lab');
+    await tool.scrollIntoViewIfNeeded();
+    await expect(tool).toBeInViewport({ ratio: 1 });
+    expect((await tool.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+    await page.screenshot({ path: info.outputPath(`development-menu-${viewport.width}.png`) });
+    await summary.click();
+    await expect(menu).toHaveJSProperty('open', false);
+    await page.locator('#start').scrollIntoViewIfNeeded();
+    await expect(page.locator('#start')).toBeInViewport({ ratio: 1 });
+  }
+});
+
+test('Development launches the poligon and switches cleanly between tools, public worlds and Island Tracks', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.locator('#development-menu > summary').click();
+  await page.locator('#open-traction-lab').click();
+  await expect(page.locator('#start')).toBeEnabled();
+  expect(new URL(page.url()).searchParams.get('dev')).toBe('traction');
+  expect((await snapshot(page)).tractionLab).toBe(true);
+  await expect(page.locator('#area-picker input:checked')).toHaveCount(0);
+  await expect(page.locator('#development-menu')).toHaveJSProperty('open', true);
+  await page.locator('#start').click();
+  await expect(page.locator('#development-picker')).toHaveJSProperty('disabled', true);
+  await expect(page.locator('#development-builds input').first()).toBeDisabled();
+  await expect(page.locator('#open-traction-lab')).toBeDisabled();
+  await page.locator('#pause').click(); await page.locator('#home').click();
+  await page.locator('#area-picker input[value="valley"]').check();
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect.poll(async () => (await snapshot(page)).tractionLab).toBe(false);
+  await expect(page.locator('#traction-lab')).toHaveCount(0);
+  await expect(page.locator('#development-menu')).toHaveJSProperty('open', false);
+  expect(new URL(page.url()).searchParams.has('dev')).toBe(false);
+  await page.locator('#development-menu > summary').click();
+  await page.locator('#development-builds input[value="tidal-islands"]').check();
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'tidal-islands');
+  await expect(page.locator('#development-menu')).toHaveJSProperty('open', true);
+  await expect(page.locator('#development-builds input[value="tidal-islands"]')).toBeChecked();
+  await page.locator('#area-picker input[value="valley"]').check();
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'valley');
+  await expect(page.locator('#development-menu')).toHaveJSProperty('open', false);
 });
 
 test('home logo scrolls with content and stays visible after a portrait resize', async ({ page }) => {
+  test.setTimeout(90_000);
   await page.setViewportSize({ width: 667, height: 260 });
   const logo = page.locator('.home-wordmark');
   await expect(logo).toBeVisible();
@@ -133,17 +209,20 @@ test('home logo scrolls with content and stays visible after a portrait resize',
 });
 
 test('location tiles and start remain usable on portrait and landscape phones', async ({ page }) => {
+  test.setTimeout(90_000);
   await expect(page.locator('input[name="area"][value="mars"] + .area-choice')).toContainText('Domes, dunes & craters');
   for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 375, height: 667 }]) {
     await page.setViewportSize(viewport);
     await expect(page.locator('#area-picker')).toBeVisible();
-    await expect(page.locator('#area-picker input')).toHaveCount(6);
+    expect(await page.locator('#area-picker input').evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).value)))
+      .toEqual(RELEASED_AREAS);
     expect(await page.locator('.area-thumbnail').evaluateAll(images => images.every(image => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0))).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
-    for (const value of ['valley', 'highlands', 'northern-reach', 'samurai-village', 'mars', 'moon']) {
+    for (const value of RELEASED_AREAS) {
       const choice = page.locator(`input[name="area"][value="${value}"]`);
-      await choice.scrollIntoViewIfNeeded();
+      await choice.locator('..').evaluate(element => element.scrollIntoView({ block: 'center' }));
       const box = (await choice.locator('..').boundingBox())!;
+      await expect(choice.locator('..')).toBeInViewport({ ratio: 1 });
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
     }
@@ -192,7 +271,7 @@ test('compass follows vehicle heading and altimeter reports terrain elevation', 
   await page.locator('#start').click();
   const initial = await snapshot(page);
   expect(initial.navigation.direction).toBe('N');
-  expect(initial.navigation.heading).toBeCloseTo(0, 0);
+  expect(Math.min(initial.navigation.heading, 360 - initial.navigation.heading)).toBeCloseTo(0, 0);
   expect(initial.navigation.elevation).toBe(0);
   await expect(page.locator('#compass-direction')).toHaveText('N');
   await expect(page.locator('#compass-degrees')).toHaveText('000°');

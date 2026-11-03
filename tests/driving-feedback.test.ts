@@ -370,7 +370,7 @@ test('stationary sand churn marks require actual grounded slip and reuse a footp
   } finally { effects.dispose(); assert.equal(scene.children.length, 0); }
 });
 
-test('Iceland black sand keeps sand handling but emits dark particles', () => {
+if (process.env.ROAMER_INCLUDE_ICELAND === '1') test('Iceland black sand keeps sand handling but emits dark particles', () => {
   const scene = new THREE.Scene();
   const effects = new TerrainEffects(scene, () => null, () => 0, AREAS.iceland.particleColors);
   const car = vehicle();

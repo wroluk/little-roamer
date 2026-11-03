@@ -286,6 +286,38 @@ test('manual camera orbit circles the vehicle and clamps vertical travel', () =>
   } finally { world.free(); }
 });
 
+for (const level of [0, 12]) for (const wall of [false, true])
+  test(`water-aware camera stays above level ${level} during a deep fall and low orbit${wall ? ' beside a cliff' : ''}`, () => {
+    const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+    try {
+      world.createCollider(RAPIER.ColliderDesc.cuboid(50, 0.5, 50).setTranslation(0, level - 8.5, 0));
+      if (wall) world.createCollider(RAPIER.ColliderDesc.cuboid(8, 8, 0.3).setTranslation(0, level, 1.9));
+      const vehicle = new Vehicle(new THREE.Scene(), world, { x: 0, y: level + 2, z: 0 }, 1,
+        () => 'water', () => level);
+      const camera = new THREE.PerspectiveCamera(48, 1.5, 0.15, 250);
+      const follow = new FollowCamera(camera, world, vehicle, () => level - 8,
+        { pitch: -0.2, yaw: 0 }, () => level);
+      let minimumHeight = Infinity;
+      for (let frame = 0; frame < 360; frame++) {
+        vehicle.beforeStep(idle, 1 / 60); world.step(); vehicle.capture(); vehicle.syncVisuals(1);
+        follow.orbit(frame > 150 ? 0.025 : 0, -0.005);
+        follow.update(1 / 60, false, 0.1);
+        minimumHeight = Math.min(minimumHeight, camera.position.y);
+        assert.equal(world.intersectionWithShape(camera.position, camera.quaternion, new RAPIER.Ball(0.4),
+          RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC), null, 'the waterline floor must not bypass scenery collision');
+      }
+      assert.ok(minimumHeight >= level + 1 - 0.00001, `camera lost its waterline clearance: ${minimumHeight}`);
+      assert.ok(vehicle.position.y < level - 6, 'the car must still sink; only the camera stays above water');
+      assert.ok(vehicle.waterDepth > 6, 'deep-water handling remains active');
+      if (!wall) {
+        const plainCamera = new THREE.PerspectiveCamera(48, 1.5, 0.15, 250);
+        const plain = new FollowCamera(plainCamera, world, vehicle, () => level - 8, { pitch: -0.75, yaw: 0 });
+        plain.update(1 / 60);
+        assert.ok(plainCamera.position.y < level - 4, 'worlds without the opt-in keep their existing camera behavior');
+      }
+    } finally { world.free(); }
+  });
+
 test('a wall close behind or beside the Scout redirects the camera outside its cabin', () => {
   for (const side of [false, true]) {
     const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });

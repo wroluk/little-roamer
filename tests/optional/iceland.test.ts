@@ -1,34 +1,34 @@
-import { calvingBay, lagoonCarve } from '../src/game/iceland-lagoon';
-import { icelandNoise } from '../src/game/iceland-noise';
-import { GRIMSVOTN, VATNAJOKULL_ROUTE, vatnajokullRouteAt } from '../src/game/iceland-vatnajokull';
-import { buildIcelandGlacierGeometry, icelandGlacierColor } from '../src/game/iceland-glacier';
-import { ICE_CAVE, ICE_CAVE_HALL, ICE_CAVE_ROUTE, ICE_CAVE_BRANCH, ICE_CAVE_BYPASS, iceCaveEntranceWeight } from '../src/game/iceland-ice-cave';
-import { buildIceCaveGeometry, buildIceCaveIcicles } from '../src/game/iceland-ice-cave-scenery';
-import { icelandSeaTint } from '../src/game/iceland-river';
-import { LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE, JOKULSA_CROSSING, JOKULSA_BRIDGE, lagoonRadius, southernGlacier, GLACIER_MARGIN_WEIGHT, LAGOON_WATER_BOUNDS } from '../src/game/iceland-lagoon';
-import { buildLagoonWater, addLagoonScenery } from '../src/game/iceland-lagoon-scenery';
-import { LOMAGNUPUR_ROUTE, LOMAGNUPUR, lomagnupurRouteDistance } from '../src/game/iceland-skeidararsandur';
+import { calvingBay, lagoonCarve } from '../../src/game/iceland-lagoon';
+import { icelandNoise } from '../../src/game/iceland-noise';
+import { GRIMSVOTN, VATNAJOKULL_ROUTE, vatnajokullRouteAt } from '../../src/game/iceland-vatnajokull';
+import { buildIcelandGlacierGeometry, icelandGlacierColor } from '../../src/game/iceland-glacier';
+import { ICE_CAVE, ICE_CAVE_HALL, ICE_CAVE_ROUTE, ICE_CAVE_BRANCH, ICE_CAVE_BYPASS, iceCaveEntranceWeight } from '../../src/game/iceland-ice-cave';
+import { buildIceCaveGeometry, buildIceCaveIcicles } from '../../src/game/iceland-ice-cave-scenery';
+import { icelandSeaTint } from '../../src/game/iceland-river';
+import { LAGOON_VIEW_ROUTE, GLACIER_VIEW_ROUTE, JOKULSA_CROSSING, JOKULSA_BRIDGE, lagoonRadius, southernGlacier, GLACIER_MARGIN_WEIGHT, LAGOON_WATER_BOUNDS } from '../../src/game/iceland-lagoon';
+import { buildLagoonWater, addLagoonScenery } from '../../src/game/iceland-lagoon-scenery';
+import { LOMAGNUPUR_ROUTE, LOMAGNUPUR, lomagnupurRouteDistance } from '../../src/game/iceland-skeidararsandur';
 import assert from 'node:assert/strict';
 import { before, test } from 'node:test';
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { generateIcelandChunk, icelandHeight, icelandSurfaceHeight, icelandBedHeight, icelandGlacierHeight, icelandIceAt, icelandSurfaceAt, icelandWaterHeight, icelandDrivingHeight, COASTAL_TURNOUT, shoreZ,
   icelandSpawn, riverX, FORD_PATH, BRIDGE_PATH, ICELAND_LOOP, icelandIceCellDivisions,
-  icelandTerrainColor, sampleIcelandTriangle, type IcelandPoint } from '../src/game/iceland-terrain';
-import { IcelandStreamingRuntime, LocalIcelandTransport, type IcelandTransport } from '../src/game/iceland-streaming';
-import { ICELAND_RING_ROAD, ICELAND_RING_LENGTH, ringRoadAt, ringRoadCoastAt } from '../src/game/iceland-road';
-import { buildIcelandRoadGeometry } from '../src/game/iceland-road-scenery';
-import { buildIcelandScenery } from '../src/game/iceland-scenery';
-import { Vehicle } from '../src/game/vehicle';
-import { buildSkogafossWater, FALL } from '../src/game/iceland-waterfall';
-import { disposeScene } from '../src/game/dispose';
-import { SOLHEIMASANDUR_APPROACH, SOLHEIMASANDUR_WRECK, solheimasandurApproachDistance } from '../src/game/iceland-sandur';
-import { addSolheimasandurWreck, SOLHEIMASANDUR_BURIAL } from '../src/game/iceland-wreck';
-import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from '../src/game/iceland-starts';
+  icelandTerrainColor, sampleIcelandTriangle, type IcelandPoint } from '../../src/game/iceland-terrain';
+import { IcelandStreamingRuntime, LocalIcelandTransport, type IcelandTransport } from '../../src/game/iceland-streaming';
+import { ICELAND_RING_ROAD, ICELAND_RING_LENGTH, ringRoadAt, ringRoadCoastAt } from '../../src/game/iceland-road';
+import { buildIcelandRoadGeometry } from '../../src/game/iceland-road-scenery';
+import { buildIcelandScenery } from '../../src/game/iceland-scenery';
+import { Vehicle } from '../../src/game/vehicle';
+import { buildSkogafossWater, FALL } from '../../src/game/iceland-waterfall';
+import { disposeScene } from '../../src/game/dispose';
+import { SOLHEIMASANDUR_APPROACH, SOLHEIMASANDUR_WRECK, solheimasandurApproachDistance } from '../../src/game/iceland-sandur';
+import { addSolheimasandurWreck, SOLHEIMASANDUR_BURIAL } from '../../src/game/iceland-wreck';
+import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from '../../src/game/iceland-starts';
 import { REYNIS_BEACH_PATH, REYNIS_CAVE, REYNIS_SHORE_ROUTE, REYNIS_STACKS, reynisBeachPathDistance,
-  reynisShallowWaterAt } from '../src/game/iceland-reynisfjara';
-import { addReynisfjaraScenery } from '../src/game/iceland-reynisfjara-scenery';
-import { REYNIS_SHALLOW_BOUNDS, buildReynisShallowGeometry } from '../src/game/iceland-river';
+  reynisShallowWaterAt } from '../../src/game/iceland-reynisfjara';
+import { addReynisfjaraScenery } from '../../src/game/iceland-reynisfjara-scenery';
+import { REYNIS_SHALLOW_BOUNDS, buildReynisShallowGeometry } from '../../src/game/iceland-river';
 before(async () => { await RAPIER.init(); });
 
 test('Iceland regional starts are unique, dry, level and select the nearest reset', () => {
@@ -934,7 +934,7 @@ test('waterfall brink rests on the river bed and has unobstructed vertical clear
 });
 
 test('Skógá water follows the wet terrain and fades at its bank boundary', async () => {
-  const { buildIcelandRiverGeometry, SKOGA_MOUTH_Z } = await import('../src/game/iceland-river');
+  const { buildIcelandRiverGeometry, SKOGA_MOUTH_Z } = await import('../../src/game/iceland-river');
   const geometry = buildIcelandRiverGeometry(), p = geometry.attributes.position, depth = geometry.attributes.waterDepth;
   const color = geometry.attributes.color;
   assert.equal(color.itemSize, 4, 'depth opacity uses the standard RGBA vertex-colour path');
@@ -964,8 +964,8 @@ test('Skógá water follows the wet terrain and fades at its bank boundary', asy
 });
 
 test('upper Skógá closes naturally at its source and stays wet through the plateau to the brink', async () => {
-  const { SKOGA_WATER_START, SKOGA_SOURCE_Z, riverLevel } = await import('../src/game/iceland-terrain');
-  const { buildIcelandRiverGeometry } = await import('../src/game/iceland-river');
+  const { SKOGA_WATER_START, SKOGA_SOURCE_Z, riverLevel } = await import('../../src/game/iceland-terrain');
+  const { buildIcelandRiverGeometry } = await import('../../src/game/iceland-river');
   const g = buildIcelandRiverGeometry(); g.computeBoundingBox();
   assert.ok(SKOGA_SOURCE_Z <= 100, 'the upper river reaches inland beyond the original short channel');
   assert.ok(g.boundingBox!.min.z > SKOGA_WATER_START + 10, 'source closes on terrain before the mesh boundary');
@@ -985,7 +985,7 @@ test('upper Skógá closes naturally at its source and stays wet through the pla
 
 test('narrow river reaches sea level before the ocean takes ownership', async () => {
   const { buildIcelandSeaGeometry, buildIcelandRiverGeometry, SKOGA_MOUTH_Z, SKOGA_SEA_Y,
-    SKOGA_WATER_MIN_X, SKOGA_WATER_MAX_X } = await import('../src/game/iceland-river');
+    SKOGA_WATER_MIN_X, SKOGA_WATER_MAX_X } = await import('../../src/game/iceland-river');
   const sea = buildIcelandSeaGeometry(), water = buildIcelandRiverGeometry();
   assert.ok(shoreZ(-539) < shoreZ(-620) - 10, 'shoreline bends into the tidal inlet');
   assert.ok(icelandSurfaceHeight(-539, 660) < 0 && icelandSurfaceHeight(-470, 660) > 0,
@@ -1010,7 +1010,7 @@ test('narrow river reaches sea level before the ocean takes ownership', async ()
 });
 
 test('Ring Road and bridge are asphalt while the gravel track and ford remain distinct', async () => {
-  const { SURFACES } = await import('../src/game/surfaces');
+  const { SURFACES } = await import('../../src/game/surfaces');
   for (const p of ICELAND_RING_ROAD) assert.equal(icelandSurfaceAt(p.x, p.z), 'asphalt');
   assert.equal(icelandSurfaceAt(-531, 530), 'asphalt');
   assert.equal(icelandSurfaceAt(-490, 555), 'dirt');
@@ -1033,7 +1033,7 @@ test('western Ring Road stays on the coastal shelf and the dirt trail has a broa
 });
 
 test('ground detail stays sparse, deterministic and clear of the paved driving surface', async () => {
-  const { buildIcelandGroundDetail } = await import('../src/game/iceland-detail');
+  const { buildIcelandGroundDetail } = await import('../../src/game/iceland-detail');
   const a = new THREE.Scene(), b = new THREE.Scene();
   const count = buildIcelandGroundDetail(a); assert.deepEqual(buildIcelandGroundDetail(b), count);
   // Expanded coast through the sandur; retain a bounded density for the larger footprint.

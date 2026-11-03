@@ -4,6 +4,36 @@ Read this file with `MARS_BUILD_PLAN.md` before continuing. Verify status agains
 
 ## Current work
 
+### Island demo scope and requested integration publication — 2026-11-03
+
+- The user subsequently parked tropical Island alongside the optional comparison
+  demos and requested commit/push after that change. Fresh Island Tracks stays
+  in the default suites. No Mars terrain, handling, dust or tracks changed.
+- The menu and production-exclusion rechecks pass **8/8** across Chromium and
+  WebKit; typecheck/build pass. Default browser discovery is now **402**.
+  The **459/459** full-unit record below predates the Island fixture move.
+- Publication is user-directed, not a new full-browser/PWA acceptance result.
+  Fresh Island Tracks' compound Chromium capture timeout and the previously
+  recorded manual/offline WebKit gaps remain open.
+
+### Shared integration validation — 2026-11-03
+
+- Latest complete default unit run: **459/459 pass**, no skips/cancellations,
+  12 minutes 22 seconds. The user-approved exclusions park unfinished Iceland
+  and the five comparison demos; released Mars/Highlands and fresh Island Tracks
+  retain their normal coverage. No Mars terrain, handling or palette change in
+  this menu/test-maintenance step; rusty tyre-track colour work stays deferred.
+- Focused Chromium/WebKit menu/compass/Highlands feedback checks pass **14/14**,
+  and lab-to-Island Tracks reset checks **2/2**. Typecheck/build pass.
+- Full PWA attempt: **33 pass / 1 Chromium picker timeout / 4 existing WebKit
+  skips**. That picker passes isolated at the original deadline, then **2/2**
+  after a bounded scenario-budget correction. This is not a second full PWA
+  pass; skipped offline cases still need physical iPad Safari acceptance.
+- The latest full browser attempt remains interrupted, not passed. Two combined
+  Island/Island Tracks render/recovery/switching scenarios pass WebKit but time
+  out Chromium; compare clean main before changing game behavior. Integration
+  is not published. See `TRACTION_PROGRESS.md` for exact runs and next steps.
+
 ### Deferred: locally consistent tyre-track colours — 2026-11-02
 
 - After commit `030aae1`, the user reports that tyre tracks are still much too

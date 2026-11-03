@@ -1,0 +1,96 @@
+{
+  "next": 22,
+  "total": 22,
+  "under": true,
+  "over": true,
+  "maxWater": 0,
+  "maxCalls": 48,
+  "maxTriangles": 327980,
+  "state": {
+    "area": "island",
+    "bounds": 240,
+    "spawn": {
+      "x": -70,
+      "y": 3.9999999523162844,
+      "z": 132
+    },
+    "gravity": -18,
+    "fog": true,
+    "viewDistance": 900,
+    "car": "classic",
+    "surface": "sand",
+    "wheelSurfaces": [
+      "sand",
+      "sand",
+      "sand",
+      "sand"
+    ],
+    "terrainFeedback": 0.014032494399504318,
+    "waterDepth": 0,
+    "terrainParticles": 14,
+    "terrainTracks": 256,
+    "terrainRipples": 0,
+    "terrainParticleCapacity": 72,
+    "terrainEffectUsesInstanceColors": true,
+    "reducedMotion": false,
+    "cameraFeedbackApplied": 0.014032494399504318,
+    "waterHeight": null,
+    "mode": "playing",
+    "position": {
+      "x": -67.07115936279297,
+      "y": 3.4714789390563965,
+      "z": 130.4738311767578
+    },
+    "rotation": {
+      "x": -0.012648078612983227,
+      "y": -0.8660646080970764,
+      "z": 0.02294927090406418,
+      "w": -0.4992450177669525
+    },
+    "velocity": {
+      "x": -5.70517110824585,
+      "y": -0.11444902420043945,
+      "z": 3.3100814819335938
+    },
+    "speed": 6.580828450883116,
+    "contacts": 4,
+    "input": {
+      "steer": 0,
+      "forward": true,
+      "reverse": false
+    },
+    "camera": [
+      -54.18060663063507,
+      8.344425344935821,
+      123.70332327965065
+    ],
+    "targetDistance": 15.34898189390712,
+    "wheelSteering": 0.0009084488265216351,
+    "suspension": [
+      0.24436882138252258,
+      0.24243882298469543,
+      0.14316365122795105,
+      0.1412956416606903
+    ],
+    "drawCalls": 45,
+    "triangles": 326144,
+    "pixelRatio": 1,
+    "graphicsReduced": true,
+    "geometries": 47,
+    "textures": 1,
+    "cameraObstructed": false,
+    "streaming": {
+      "activeRender": 1,
+      "activePhysics": 1,
+      "queued": 0,
+      "triangles": 282964,
+      "colliderCount": 10,
+      "lastActivationMs": 0
+    },
+    "navigation": {
+      "heading": 239.9243101247352,
+      "direction": "WSW",
+      "elevation": 3
+    }
+  }
+}

@@ -28,7 +28,7 @@ type State = {
   cameraFeedbackApplied: number;
   waterDepth: number;
 };
-type Game = { snapshot(): State; fords: Ford[]; ascents: Ascent[]; placeVehicle(x: number, z: number, heading: number): void };
+type Game = { snapshot(): State; fords: Ford[]; ascents: Ascent[]; placeVehicle(x: number, z: number, heading: number): Promise<void> };
 const state = (page: Page): Promise<State> =>
   page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
 
@@ -120,7 +120,8 @@ test('drive every Iceland ford across actual water and emerge on the other bank'
   }
 });
 
-test('Iceland touch controls and Home Screen area picker fit portrait and landscape', async ({ page }) => {
+test('Highlands touch controls and scrollable Home Screen remain usable in portrait and landscape', async ({ page }) => {
+  test.setTimeout(90_000);
   await enter(page);
   for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1024, height: 768 }]) {
     await page.setViewportSize(viewport);
@@ -138,12 +139,18 @@ test('Iceland touch controls and Home Screen area picker fit portrait and landsc
   await returnHome(page);
   for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1024, height: 768 }]) {
     await page.setViewportSize(viewport);
-    const box = (await page.locator('#area-picker').boundingBox())!;
-    expect(box.x).toBeGreaterThanOrEqual(0);
-    expect(box.y).toBeGreaterThanOrEqual(0);
-    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
-    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
-    expect(box.height).toBeGreaterThanOrEqual(44);
+    for (const value of ['northern-reach', 'valley', 'highlands', 'samurai-village', 'mars', 'moon']) {
+      const choice = page.locator(`#area-picker input[value="${value}"]`).locator('..');
+      await choice.evaluate(element => element.scrollIntoView({ block: 'center' }));
+      await expect(choice).toBeInViewport({ ratio: 1 });
+      const box = (await choice.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+    await page.locator('#start').scrollIntoViewIfNeeded();
+    await expect(page.locator('#start')).toBeInViewport({ ratio: 1 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   }
 });
 
@@ -191,16 +198,31 @@ test('visible terrain changes the live handling profile and surface indicator', 
 
 test('terrain emits bounded wheel-local feedback without inflating draw calls', async ({ page }) => {
   await enter(page);
-  await page.waitForTimeout(1300);
-  await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__
-    .placeVehicle(-8, -172, 0));
-  await expect(page.locator('#surface')).toHaveAttribute('data-surface', 'ice');
-  await expect(page.locator('#surface')).toHaveClass(/changed/);
-  await page.waitForTimeout(1300);
-  await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__
-    .placeVehicle(220, -10, 0));
-  await expect(page.locator('#surface')).toHaveAttribute('data-surface', 'ash');
-  await expect(page.locator('#surface')).toHaveClass(/changed/);
+  for (const point of [{ x: -8, z: -172, surface: 'ice' }, { x: 220, z: -10, surface: 'ash' }]) {
+    await page.waitForTimeout(1300);
+    const observed = await page.evaluate(async point => {
+      const surface = document.getElementById('surface');
+      if (!surface) throw new Error('Missing surface indicator.');
+      let observer: MutationObserver | undefined;
+      let timer: number | undefined;
+      const cue = new Promise<boolean>(resolve => {
+        observer = new MutationObserver(() => {
+          if (surface.dataset.surface === point.surface && surface.classList.contains('changed')) resolve(true);
+        });
+        observer.observe(surface, { attributes: true, attributeFilter: ['class'] });
+        timer = window.setTimeout(() => resolve(false), 12_000);
+      });
+      try {
+        await (window as unknown as { __ROAMER__: Game }).__ROAMER__.placeVehicle(point.x, point.z, 0);
+        return await cue;
+      } finally {
+        observer?.disconnect();
+        window.clearTimeout(timer);
+      }
+    }, point);
+    expect(observed, `${point.surface}: surface-change cue must actually appear`).toBe(true);
+    await expect(page.locator('#surface')).toHaveAttribute('data-surface', point.surface);
+  }
   const baseline = await state(page);
   await page.keyboard.down('KeyW');
   await expect.poll(async () => (await state(page)).terrainParticles).toBeGreaterThan(0);

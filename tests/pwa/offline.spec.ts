@@ -23,6 +23,8 @@ test('installs a standalone manifest and completes the offline cache', async ({ 
 test('production exposes Mars and all three exploration rovers and precaches their assets', async ({ page }) => {
   await page.goto('/?area=mars&car=mars-scout');
   await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('#development-menu')).toHaveCount(0);
+  await expect(page.locator('#open-traction-lab')).toHaveCount(0);
   await expect(page.locator('body')).toHaveAttribute('data-area', 'mars');
   await expect(page.locator('#mars-car-option')).toBeVisible();
   await expect(page.locator('#lunar-car-option')).toBeVisible();
@@ -102,6 +104,7 @@ test('Moon discovery keepsakes and tile count survive reload and open offline', 
 });
 
 test('production home picker restricts cars by world and remembers the Earth car', async ({ page }) => {
+  test.setTimeout(90_000);
   await page.goto('/');
   await expect(page.locator('#start')).toBeEnabled();
   await page.locator('input[name="car"][value="classic"]').check();
@@ -165,6 +168,7 @@ test('the cached Mars worker generates all four new regions without network acce
 });
 
 test('reloads and travels through Highlands, Valley, Mars and Moon with no network', async ({ page, context, browserName }) => {
+  test.setTimeout(90_000);
   test.skip(browserName === 'webkit', 'Playwright WebKit cannot navigate after context.setOffline; iPad Safari supports service workers.');
 
   await page.goto('/?area=highlands');

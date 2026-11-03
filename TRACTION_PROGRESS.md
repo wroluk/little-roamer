@@ -1135,3 +1135,223 @@ colour source for tracks and particles, keeping effect-specific contrast and
 opacity and preserving red Rust Dunes. Review both effects together at driving
 height and from the reported side angle. See the deferred item at the top of
 `MARS_PROGRESS.md`; no game changes or new acceptance are implied.
+
+### Integration with current main: controlled run-ups approved — 2026-11-02
+
+- User authorized integration with `origin/main` (`f8be182`) and explicitly
+  approved pushing the result to main after verification. Work remains in this
+  isolated traction worktree; the other checkout/server is untouched.
+- Resolved README, area-union and reset conflicts while retaining both worlds'
+  behavior. Poligon repeat-start and Island Tracks whole-challenge restart both
+  bypass local righting. Preserved all Island Tracks and comparison-pilot
+  geometry, recovery, water-aware camera and development-only gates. Added a
+  dual-world switching/reset browser regression; not executed yet.
+- Typecheck/build and strict traction-browser typing pass. Fresh full unit run:
+  **604/608 pass, four fail**, no skips/cancellations, about 38.3 minutes.
+  Failures reproduce alone and all four pass on an isolated `origin/main` copy:
+  both Earth cars crossing Diagonal fallen oak forward; modern crossing
+  Split Saddle slab and Landing rib forward.
+- Complete authored journeys, wet channels and Seabird routes pass; the failures
+  are isolated low-speed obstacle approaches under the inertial/load-bounded
+  drivetrain. Diagnostic input-only probes retain unchanged physics/geometry:
+  3.2 m/s clears the oak and Landing rib; 4 m/s clears all three, with minimum
+  upright component above 0.83. Slower 1.4 m/s, pedal hysteresis and a small
+  diagonal approach do not solve the stalls. These probes are not replacements
+  for the original unit assertions or browser acceptance.
+- User chose to preserve accepted physics and validate controlled run-ups, then
+  explicitly confirmed this as the direction for future terrain challenges.
+  Updated only the four forward input speed limits: both oak cases 3.2 m/s,
+  Split Saddle 4 m/s and Landing rib 3.2 m/s. All four original unit cases now
+  pass with unchanged wheel-lift, articulation and safety assertions. Reverse
+  approaches and full-journey inputs retain their original limits.
+- No production physics, terrain or control changes. Next: finish all new-world
+  regressions and full browser/PWA gates before merge commit and publication.
+- Follow-up validation: **205/205** units pass across physics, vehicle recovery,
+  driving feedback, Tropical Island, all comparison pilots and Island Tracks.
+  This includes both cars/directions, all other slow isolated obstacles and
+  complete connected journeys; no skips/cancellations. Typecheck, production
+  build, strict browser typing and staged/unstaged whitespace checks pass.
+  Attempted the complete **492-case** Chromium/WebKit browser gate alone,
+  without a heavy unit process. Stopped on 2026-11-03 after **42 completed:
+  25 pass / 17 fail**, all in Chromium; one Iceland case reported 39.7 minutes.
+  This is not a full-suite result. Failures include UI layout/heading,
+  Highlands feedback and multiple Iceland startup/driving scenarios.
+  Do not assume every failure is pre-existing: isolate them and compare with
+  `origin/main` before changing product behavior. New-world browser scenarios,
+  WebKit and PWA have not yet been reached by this attempt. Publication remains
+  blocked; next prioritize affected-world browser coverage and baseline
+  classification instead of repeating this broad failing run.
+
+### Integration scope: comparison demos no longer gate releases — 2026-11-03
+
+- User explicitly removed the five exploratory comparison demos from default
+  functional test suites. Their units now live under `tests/optional/`, and
+  browser discovery ignores the two comparison specs unless explicitly opted
+  in. Existing checks remain available through `test:demos` and
+  `test:browser:demos`; no test assertions or game behavior were weakened.
+- Fresh Island Tracks (`tidal-islands`) is the selected new direction, not the
+  old comparison sketch (`island-tracks`), and retains its normal coverage.
+  The production-exclusion guard remains, since released-game availability
+  is independent of demo terrain correctness.
+- This removes optional scope, not the 17 UI/Highlands/Iceland failures from
+  the interrupted browser run. Next: isolate a small representative failure
+  set against current main, run the affected real-game/Island Tracks scenarios
+  in both engines, then sequential production/PWA checks. Fix integration-caused
+  regressions rather than maintaining speculative demo terrain. Main is not
+  committed/published yet.
+- Verified discovery after this scope change: **468 default browser cases**,
+  **24 opt-in comparison cases**, with no comparison spec in the default list.
+  Fresh Island Tracks and production-exclusion guards remain discoverable.
+  The moved unit fixture imports successfully; typecheck/build and diff checks
+  pass. These are configuration checks, not a new browser-drive acceptance.
+
+### Remaining release-failure triage — 2026-11-03
+
+- User also deferred unfinished Iceland (`iceland`) until its development
+  resumes. Its units moved to `tests/optional/iceland.test.ts`; browser specs
+  and embedded Vatnajökull/recovery/palette cases are opt-in. The production
+  exclusion guard remains. Public Iceland Highlands and selected Island Tracks
+  remain covered in both engines. Default browser discovery is **404 cases**;
+  the dedicated optional Iceland browser command retains 60 cases.
+- Refreshed origin: main is still `f8be182`. Preserved interrupted browser
+  traces before reproducing only the five remaining failures. Merged result:
+  **4 fail / 1 pass**; isolated clean main snapshot, including its public
+  assets, same Chromium/5174 settings: **3 fail / 2 pass**. Temporarily stopped
+  only our own 5174 server for the comparison, then restored this worktree's
+  server and confirmed it responds. The other checkout/server was untouched.
+
+| Check | Evidence | Classification / next correction |
+| --- | --- | --- |
+| Touch-layout logo | Both revisions fail because `.wordmark` matches two elements. | Pre-existing ambiguous selector; scope it to the in-game topbar, retaining the responsive visibility requirement. |
+| Location tiles | Both revisions expect six choices but DEV has thirteen. | Pre-existing public-only count applied to DEV; assert required public choices and accessibility without fixing the total to a demo count. |
+| Home-screen bounds | Both revisions reject fieldset bottom 790.6875 at viewport height 768. | Pre-existing non-scrolling assumption. Actual scroll probes reach every public tile, Island Tracks and Start at all three tested viewports, without horizontal overflow. |
+| Compass | Merged raw heading is 359.99999999999 while the HUD correctly displays N / 000 degrees; clean main's raw value happens to be near positive zero. | Circular-angle test error exposed by the drivetrain, not a wrong heading. Retain the same tolerance using shortest angular distance. Actual eastward placement shows E / 087 degrees and 5 m altitude. |
+| Highlands feedback | Original failure was the transient `changed` CSS class, before particle assertions. Passes isolated on both revisions and all three further merged repeats. | Intermittent cue-observation risk, not a reproduced particle regression. The class lasts 750 ms with a 1200 ms cooldown; observe the transition rather than relying on a late instantaneous sample. |
+
+- No UI/handling/terrain product code or those five browser assertions changed
+  during triage. The recommended next step is bounded test-harness maintenance,
+  then affected real-game/Island Tracks scenarios in both engines and sequential
+  PWA checks; this does not establish a full release pass or authorize repairing
+  the deferred worlds.
+- Evidence is retained in session files: `integration-triage-{current,main}.log`,
+  separate trace folders, `integration-feedback-repeat.log`, and
+  `integration-ui-triage-probe.json` with menu/navigation captures.
+  Shared navigation/feedback units pass **23/23**; a single parked Iceland
+  start fixture verifies the move/imports, not that world's acceptance.
+- Typecheck/build, strict browser typing and diff checks pass. Environment-gated
+  runner files now import `env` explicitly from `node:process`; the missing Node
+  declarations exposed by the strict check were added as a development-only
+  `@types/node` dependency. Use `--types node,vite/client` for that check.
+- Preserved all thirty historical Moon captures overwritten by the interrupted
+  broad run: archived its generated versions in session files, verified each
+  backup against the staged original bytes, then restored only those PNGs.
+  No unrelated source/image edits were reverted. The worktree preview responds
+  HTTP 200 on its restored strict-port 5174 server.
+
+### Grouped local menu and browser-test maintenance — 2026-11-03
+
+- User approved fixing the five triaged browser problems and separating local
+  work from released locations. The public picker now always contains its six
+  released worlds; the collapsed DEV-only **Development** disclosure groups
+  active builds (fresh Island Tracks, unfinished Iceland, tropical Island),
+  five comparison demos, and **Traction lab (poligon)**. A selected development
+  world/tool opens its group automatically. Production visibility is unchanged.
+- Reference: the existing `main.ts` DEV choice creation, official `.area-choice`
+  radio markup, native fieldset disabling and `travel()` disposal lifecycle.
+  Reused those paths rather than creating another navigation system; adapted a
+  native keyboard-accessible `details` disclosure and scoped responsive styles.
+  A lab-to-public-Valley transition now bypasses the same-area early return,
+  because the tool uses Valley's ID but still needs disposal and query cleanup.
+- Scoped the duplicate logo selector, asserted the explicit public-world list
+  instead of a DEV-wide count, checked scrollable tile/Start accessibility
+  instead of full-fieldset fit, and compared north circularly with the original
+  angular tolerance. Highlands feedback now observes the actual transient
+  target-surface class transition before placement, retaining its particle,
+  track, reduced-motion and rendering-budget assertions.
+- The first focused Chromium run finished **5 pass / 5 fail**. Two new harness
+  errors were diagnosed: Playwright does not interpret a fieldset itself as a
+  disabled control, and nearest scrolling left 0.17 CSS pixels of a tile outside
+  the viewport. Check the fieldset DOM property and its genuinely disabled
+  descendants; center the visible tile while retaining 100% viewport visibility.
+  Three multi-viewport scenarios exhausted their 45-second test budget (one
+  spent 38 seconds navigating after a worker restart), not a failed layout
+  assertion. Their bounded budget is now 90 seconds; assertion timeouts and
+  visibility/44px/no-overflow requirements are unchanged.
+- Added coverage for default collapse, group membership, keyboard disclosure,
+  three viewport sizes, tool launch/disabled state, lab disposal to public
+  Valley, and Island Tracks selection/return. Updated existing Island, optional
+  Iceland/demo, and Island Tracks switching scenarios to use the disclosure.
+  Island Tracks switches via public Valley rather than depending on a deferred
+  comparison demo. Production checks explicitly reject the drawer/tool launcher.
+- Corrected menu/compass/Highlands feedback checks pass **14/14**, seven in each
+  engine. Inspected actual portrait and short-landscape captures, including the
+  expanded drawer in Chromium and WebKit. Default discovery is now **408 cases**
+  (two added menu scenarios per engine), with deferred worlds still excluded.
+  Typecheck, production build and strict typing of all eight affected browser
+  fixtures plus the production offline fixture pass.
+- Extended world-switching run: **4 pass / 4 fail**. Tropical Island and fresh
+  Island Tracks render/recovery/switching scenarios both pass in WebKit;
+  leaving the lab for a public world passes in both engines. Both Chromium
+  compound capture scenarios exhaust their existing 120/180-second budgets
+  before reaching the changed menu path. These are not world acceptance passes
+  or yet classified as pre-existing against main.
+- The new lab/Island Tracks reset fixture had an incorrect pad expectation:
+  actual authored spawn is `(38, 52)`, not `(0, 52)`. It now reads
+  `TRACTION_STARTS[0]`; the exact same reset tolerance remains. Corrected
+  full-restart checks pass **2/2**, one per engine, for the sideways lab vehicle
+  and Island Tracks challenge. No production reset/physics change was needed.
+- Tried larger budgets for the two compound capture scenarios. Island still
+  timed out at 300 seconds, later at Pause after the photo views. Stopped the
+  follow-up run during Island Tracks instead of repeating an unproductive
+  timeout escalation; restored both original budgets. Its unfinished case is
+  not passed. Keep these separate from the green menu checks and reproduce on
+  clean main before any game changes; consider separating capture and navigation
+  responsibilities if the baseline confirms test-harness scope/runtime debt.
+- Archived generated Island/Island Tracks captures and JSON separately, then
+  restored the exact pre-run artifact snapshots. Both portrait menu engines and
+  the inspected world driving-height captures remain retained in session files.
+  Production/PWA validation ran sequentially after browser checks.
+- Full PWA attempt: **33 pass / 1 timeout / 4 existing WebKit skips**. Production
+  exclusion of the new drawer/launcher, unfinished Iceland, Island, all five
+  demos and fresh Island Tracks passes in both engines. Installation, updates
+  and the supported offline cases pass. The compound production car/world
+  picker hit its existing 45-second Chromium test budget; the exact scenario
+  passes isolated in **45.3 seconds** (including teardown), with all assertions
+  unchanged. Its global budget is now 90 seconds, consistent with the focused
+  multi-viewport menu cases; per-condition waits and car/world contracts remain
+  unchanged. The affected picker then passes **2/2** in Chromium and WebKit
+  (34.7/11.3 seconds). This is a focused correction/recheck, not a second full
+  PWA run. The four skipped offline WebKit scenarios still require manual
+  iPad Safari acceptance and are not counted as passed.
+- Default unit suite after the approved exclusions passes **459/459**, with no
+  skips or cancellations, in 12 minutes 22 seconds. This is the latest complete
+  default-unit result, separate from the earlier 604/608 attempt that included
+  deferred worlds. Browser/PWA and heavy unit runs stayed sequential.
+- These are targeted corrections, not a green rerun of the full browser/PWA
+  suites. Merge remains open and unpublished. Exact next integration step: classify
+  those two Chromium compound scenarios against clean main, then finish the
+  narrowed full-suite/actual-driving gates before publication.
+
+### User-directed Island demo classification and publication — 2026-11-03
+
+- The user explicitly requested tropical Island be treated like Old Quarry:
+  move it from active builds to comparison demos, exclude its functional tests
+  from normal suites, then commit and push the integration. This is the latest
+  publication instruction following the previously reported validation gaps.
+- Reused the existing demo menu group, `tests/optional/` directory and
+  `ROAMER_INCLUDE_DEMOS` flag. The parked Island checks remain available in the
+  two demo commands; the cheap production guard stays mandatory. Fresh Island
+  Tracks remains an active build with normal coverage. No terrain, physics,
+  controls or image assets changed in this reclassification.
+- Fresh validation: typecheck/build, strict typing and moved-unit smoke check
+  pass. Development grouping/navigation **4/4**, Island/Island Tracks production
+  guards **4/4**, both engines; inspected the actual revised portrait menu.
+  Default browser discovery is **402 cases**, optional Island retains six.
+  The preceding **459/459** unit run predates this fixture move; it is not a new
+  full-unit run under the smaller selection.
+- Refetched main before publication: still `f8be182`, the open merge parent.
+  Commit/push follows these focused checks as requested. The fresh Island
+  Tracks compound Chromium capture timeout is still open and is not excluded;
+  the last full browser attempt remains incomplete, and the previous PWA
+  attempt/rechecks/manual WebKit gaps remain as recorded above. Publication
+  does not certify those outstanding acceptance items.

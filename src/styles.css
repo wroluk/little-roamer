@@ -98,6 +98,15 @@ h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(40px, 4.5v
 .area-options input:checked + .area-choice { border-color: #4f7668; background: #f7f6e9; box-shadow: inset 0 0 0 1px #4f7668; }
 .area-options input:focus-visible + .area-choice { outline: 3px solid #ec754b; outline-offset: 3px; }
 .home-area-picker:disabled { opacity: .55; }
+#development-menu { grid-column: 1 / -1; margin-top: 20px; border-top: 1px solid #cdd6c8; color: #31534a; }
+#development-menu summary { min-height: 44px; padding: 14px 0; cursor: pointer; font-size: 12px; font-weight: 700; }
+#development-menu summary:focus-visible, #open-traction-lab:focus-visible { outline: 3px solid #ec754b; outline-offset: 3px; }
+#development-menu > p { font-size: 11px; }
+#development-picker, #development-picker fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+#development-picker fieldset { margin-bottom: 14px; }
+#development-picker legend { margin-bottom: 8px; font-size: 10px; font-weight: 800; letter-spacing: 1px; }
+#development-picker:disabled { opacity: .55; }
+#open-traction-lab { min-height: 44px; padding: 10px 14px; border: 1px solid #4f7668; border-radius: 10px; background: #fffdf5d9; color: #31534a; font: inherit; font-size: 12px; }
 .home-car-picker { width: 100%; margin: 0 0 13px; padding: 0; border: 0; color: #31534a; }
 .car-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .car-options label { position: relative; min-width: 0; cursor: pointer; }

@@ -1,8 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { env } from 'node:process';
 import { glassfallPosition } from '../../src/game/mars-layout';
 import { PASS_BOWL } from '../../src/game/northern-pass';
-import { TRACTION_RAMPS } from '../../src/game/traction-ground';
+import { TRACTION_RAMPS, TRACTION_STARTS } from '../../src/game/traction-ground';
 import { WHEEL_RADIUS } from '../../src/game/vehicle';
+import { TIDAL_STARTS } from '../../src/game/tidal-terrain';
 
 type LabState = {
   car: string;
@@ -21,7 +23,10 @@ type LabState = {
 };
 type Game = {
   snapshot(): LabState; placeVehicle(x: number, z: number, heading: number): Promise<void>;
-  vehicle: { model: import('three').Group; wheels: import('three').Group[]; capture(): void };
+  vehicle: {
+    model: import('three').Group; wheels: import('three').Group[]; capture(): void;
+    body: import('../../src/game/vehicle').Vehicle['body'];
+  };
   follow: { orbit(yaw: number, pitch: number): void };
 };
 
@@ -36,6 +41,7 @@ for (const trial of [
   { name: 'Vatnajökull ice', surface: 'ice', lab: false, url: '/?area=iceland&start=vatnajokull&car=modern' },
   { name: 'Glassfall glass', surface: 'mars-glass', lab: false, url: '/?area=mars&start=glassfall-plain&car=mars-scout' },
 ] as const) {
+  if (trial.name === 'Vatnajökull ice' && env.ROAMER_INCLUDE_ICELAND !== '1') continue;
   const { surface, lab } = trial;
   const hollow = trial.name === 'Blue Hollow ice';
   test(`${trial.name}: visible slide, lift-off countersteer and moving recovery without telemetry`, async ({ page }, info) => {
@@ -545,6 +551,36 @@ test('leaving the lab disposes its panel and restores normal resets', async ({ p
   expect(new URL(page.url()).searchParams.has('dev')).toBe(false);
   const state = await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot());
   expect(state.tractionLab).toBe(false);
+});
+
+test('switching from the lab to Island Tracks preserves both full-restart policies', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.goto('/?dev=traction&start=pad&surface=dirt');
+  await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('#start').click();
+  for (const trial of [
+    { lab: true, position: { x: 12, z: 52 }, reset: TRACTION_STARTS[0] },
+    { lab: false, position: TIDAL_STARTS[1].position, reset: TIDAL_STARTS[0].position },
+  ]) {
+    if (!trial.lab) {
+      await page.locator('#pause').click(); await page.locator('#home').click();
+      await page.locator('input[name="area"][value="tidal-islands"]').check();
+      await expect(page.locator('#start')).toBeEnabled();
+      await page.locator('#start').click();
+    }
+    await page.evaluate(async position => {
+      const game = (window as unknown as { __ROAMER__: Game }).__ROAMER__;
+      await game.placeVehicle(position.x, position.z, 0);
+      game.vehicle.body.setRotation({ x: 0, y: 0, z: Math.SQRT1_2, w: Math.SQRT1_2 }, true);
+    }, trial.position);
+    await page.keyboard.press('KeyR');
+    await expect.poll(() => page.evaluate(destination => {
+      const s = (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot();
+      return Math.hypot(s.position.x - destination.x, s.position.z - destination.z);
+    }, trial.reset)).toBeLessThan(0.7);
+    expect(await page.locator('#traction-lab').count()).toBe(trial.lab ? 1 : 0);
+    expect(await page.evaluate(() => (window as unknown as { __ROAMER__: Game }).__ROAMER__.snapshot().tractionLab)).toBe(trial.lab);
+  }
 });
 
 test('drive the measured loose climb, then repeat an offset oblique start', async ({ page }, info) => {

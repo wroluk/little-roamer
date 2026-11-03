@@ -12,6 +12,10 @@ import { NORTHERN_STARTS, nearestNorthernStart, regionalSpawn } from './game/reg
 import { MARS_STARTS, nearestMarsStart, marsSpawn } from './game/mars-terrain';
 import { ICELAND_STARTS, nearestIcelandStart, icelandStartSpawn } from './game/iceland-starts';
 import { MOON_STARTS, nearestMoonStart, moonSpawn } from './game/moon-terrain';
+import { ISLAND_BRIDGE, ISLAND_STARTS, nearestIslandStart, islandGroundHeight, islandSpawn } from './game/island-terrain';
+import { DEMOS, DEMO_IDS, isDemoId, demoSurfaceLabel } from './game/location-demo-terrain';
+import { TIDAL_STARTS, tidalSpawn } from './game/tidal-terrain';
+import { TidalTracksRuntime } from './game/tidal-tracks';
 import { SKOGA_WATER_START } from './game/iceland-terrain';
 import { SKOGA_MOUTH_Z, SKOGA_WATER_MAX_X, SKOGA_WATER_MIN_X } from './game/iceland-river';
 import { reynisShallowWaterAt } from './game/iceland-reynisfjara';
@@ -48,6 +52,7 @@ function showError(error: unknown) {
   element<HTMLButtonElement>('pause').disabled = true;
   element<HTMLButtonElement>('reset').disabled = true;
   element<HTMLFieldSetElement>('area-picker').disabled = true;
+  document.getElementById('development-picker')?.setAttribute('disabled', '');
   element<HTMLFieldSetElement>('car-picker').disabled = true;
   console.error('Little Roamer:', error);
 }
@@ -105,6 +110,7 @@ async function boot() {
     try {
       runtime = area.build(scene, world, showError);
       await runtime?.ensureReady(area.spawn.x, area.spawn.z);
+      if (runtime instanceof TidalTracksRuntime) runtime.beginAt(area.spawn.x, area.spawn.z);
       // Newly streamed fixed colliders enter Rapier's scene-query broad phase on a world step.
       world.step();
       const vehicle = new Vehicle(
@@ -122,7 +128,8 @@ async function boot() {
       if (area.spawnHeading !== undefined) vehicle.body.setRotation(
         new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), area.spawnHeading), true);
       const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight,
-        { pitch: area.id === 'moon' ? -0.46 : -0.2, yaw: 0 });
+        { pitch: area.id === 'moon' ? -0.46 : -0.2, yaw: 0 },
+        area.id === 'tidal-islands' ? area.waterHeight : undefined);
       // Populate scene queries and settle all four wheels before handing over control.
       for (let i = 0; i < 90; i++) {
         vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
@@ -184,6 +191,14 @@ async function boot() {
   const moonStart = MOON_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
   if (area.id === 'moon' && moonStart) area = { ...area, spawn: moonSpawn(moonStart.position),
     spawnHeading: moonStart.heading, readyMessage: `${moonStart.name}. Home is above the horizon.` };
+  const islandStart = ISLAND_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
+  if (area.id === 'island' && islandStart) area = { ...area, spawn: islandSpawn(islandStart.position),
+    spawnHeading: islandStart.heading, welcomeEyebrow: `ISLAND / ${islandStart.name.toUpperCase()} PILOT`,
+    readyMessage: `${islandStart.name} is ready. Follow the loop back to the beach.` };
+  const tidalStart = TIDAL_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
+  if (area.id === 'tidal-islands' && tidalStart) area = { ...area, spawn: tidalSpawn(tidalStart.position),
+    spawnHeading: tidalStart.heading, welcomeEyebrow: `ISLAND TRACKS / ${tidalStart.name.toUpperCase()}`,
+    readyMessage: `${tidalStart.name} is ready. Read the rock and shallow-water lines before moving on.` };
   document.body.dataset.area = area.id;
   element('loading-status').textContent = area.id === 'northern-reach'
     ? 'Preparing the road ahead...'
@@ -204,11 +219,61 @@ async function boot() {
   let postcardNoticeTimer = 0;
   let postcardNoticeHideTimer = 0;
   const areaPicker = element<HTMLFieldSetElement>('area-picker');
-  const areaInputs = [...areaPicker.querySelectorAll<HTMLInputElement>('input[name="area"]')];
+  let developmentMenu: HTMLDetailsElement | null = null;
+  let developmentPicker: HTMLFieldSetElement | null = null;
+  if (import.meta.env.DEV) {
+    developmentMenu = document.createElement('details');
+    developmentMenu.id = 'development-menu';
+    const summary = document.createElement('summary');
+    summary.id = 'development-heading'; summary.textContent = 'Development';
+    const note = document.createElement('p');
+    note.textContent = 'Local-only builds, comparison sketches and diagnostics. Not part of the released game.';
+    developmentPicker = document.createElement('fieldset');
+    developmentPicker.id = 'development-picker';
+    developmentPicker.disabled = true;
+    developmentPicker.setAttribute('aria-labelledby', summary.id);
+    for (const group of [
+      { id: 'development-builds', title: 'Active builds', areas: ['tidal-islands', 'iceland'] as const },
+      { id: 'development-demos', title: 'Comparison demos', areas: [...DEMO_IDS, 'island'] as const },
+    ]) {
+      const fieldset = document.createElement('fieldset');
+      fieldset.id = group.id;
+      const legend = document.createElement('legend'); legend.textContent = group.title;
+      const options = document.createElement('div'); options.className = 'area-options';
+      for (const id of group.areas) {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'radio'; input.name = 'area'; input.value = id;
+        const choice = document.createElement('span'); choice.className = 'area-choice';
+        const copy = document.createElement('span'); copy.className = 'area-copy';
+        const title = document.createElement('b'); title.textContent = AREAS[id].name;
+        const subtitle = document.createElement('small');
+        subtitle.textContent = isDemoId(id) ? DEMOS[id].subtitle
+          : id === 'tidal-islands' ? 'Rock Passage & Seabird Climb'
+          : id === 'iceland' ? 'Unfinished South Coast' : 'Beach & jungle pilot';
+        copy.append(title, subtitle); choice.append(copy); label.append(input, choice);
+        options.append(label);
+      }
+      fieldset.append(legend, options);
+      developmentPicker.append(fieldset);
+    }
+    const tools = document.createElement('fieldset');
+    const toolsLegend = document.createElement('legend'); toolsLegend.textContent = 'Tools';
+    const labButton = document.createElement('button');
+    labButton.id = 'open-traction-lab'; labButton.type = 'button';
+    labButton.textContent = 'Traction lab (poligon)';
+    labButton.addEventListener('click', () => window.location.assign(new URL('?dev=traction', window.location.href)));
+    tools.append(toolsLegend, labButton);
+    developmentPicker.append(tools);
+    developmentMenu.append(summary, note, developmentPicker);
+    element('welcome').querySelector('.welcome-card')!.append(developmentMenu);
+  }
+  const areaInputs = [...element('welcome').querySelectorAll<HTMLInputElement>('input[name="area"]')];
   const carPicker = element<HTMLFieldSetElement>('car-picker');
   const carInputs = [...carPicker.querySelectorAll<HTMLInputElement>('input[name="car"]')];
   const setHomeControlsEnabled = (enabled: boolean) => {
     areaPicker.disabled = !enabled;
+    if (developmentPicker) developmentPicker.disabled = !enabled;
     carPicker.disabled = !enabled;
     element<HTMLButtonElement>('open-journal').disabled = !enabled;
   };
@@ -221,14 +286,25 @@ async function boot() {
     }
   };
   const syncAreaPicker = () => {
-    for (const input of areaInputs) input.checked = input.value === area.id;
+    for (const input of areaInputs) input.checked = !tractionLab && input.value === area.id;
+    if (developmentMenu) developmentMenu.open = !!tractionLab
+      || !!developmentPicker?.querySelector('input:checked');
   };
   syncAreaPicker();
   syncCarPicker();
   function surfaceLabel(): string {
     const surface = vehicle.currentSurface;
+    if (area.id === 'tidal-islands') {
+      if (surface.id === 'water') return vehicle.waterDepth >= 0.85 ? 'Deep sea' : 'Rocky shallows';
+      if (surface.id === 'rock') return 'Coastal basalt';
+    }
+    if (isDemoId(area.id)) {
+      const label = demoSurfaceLabel(area.id, surface.id, vehicle.position.x, vehicle.position.z);
+      if (label) return label;
+    }
     if (area.id === 'mars' && surface.id === 'rock') return 'Martian rock';
     if (surface.id === 'water') {
+      if (area.id === 'island') return vehicle.waterDepth >= 0.85 ? 'Deep sea' : 'Tropical shallows';
       if (area.id === 'iceland' && lagoonWaterRegion(vehicle.position.x, vehicle.position.z))
         return lagoonRadius(vehicle.position.x, vehicle.position.z) < 1.1 ? 'Glacial lagoon' : 'Glacial river';
       if (area.id === 'samurai-village') return 'Shallow lake';
@@ -275,7 +351,9 @@ async function boot() {
     element('surface-label').textContent = surfaceLabel();
     element('surface-trait').textContent = vehicle.currentSurface.trait;
     element('loading-status').textContent = area.readyMessage;
-    element<HTMLButtonElement>('reset').title = area.id === 'northern-reach' || area.id === 'mars' || area.id === 'iceland' || area.id === 'moon'
+    element<HTMLButtonElement>('reset').title = area.id === 'tidal-islands'
+      ? 'Restart the whole current challenge from its departure point (R)'
+      : area.id === 'northern-reach' || area.id === 'mars' || area.id === 'iceland' || area.id === 'moon' || area.id === 'island'
       ? 'Right an overturned car here, or return to the nearest regional start (R)'
       : `Right an overturned car here, or return to the ${area.name} starting area (R)`;
   }
@@ -417,7 +495,9 @@ async function boot() {
     const reading = navigationReading(
       navigationForward.x,
       navigationForward.z,
-      area.surfaceHeight(vehicle.position.x, vehicle.position.z),
+      area.id === 'island' && vehicle.position.y < ISLAND_BRIDGE.deck - 3
+        ? islandGroundHeight(vehicle.position.x, vehicle.position.z)
+        : area.surfaceHeight(vehicle.position.x, vehicle.position.z),
     );
     const degrees = Math.round(reading.heading) % 360;
     if (reading.direction !== displayedDirection) {
@@ -645,14 +725,18 @@ async function boot() {
   const reset = async () => {
     if (mode !== 'playing') return;
     controls?.clear();
-    const righted = !tractionLab && vehicle.tryRight();
+    const tidalRuntime = runtime instanceof TidalTracksRuntime ? runtime : null;
+    const righted = !tractionLab && !tidalRuntime && vehicle.tryRight();
     let message = 'Back on your wheels. Off you go.';
     if (!righted) {
       const start = area.id === 'northern-reach' ? nearestNorthernStart(vehicle.position.x, vehicle.position.z)
         : area.id === 'mars' ? nearestMarsStart(vehicle.position.x, vehicle.position.z) : null;
       const icelandResetStart = area.id === 'iceland' ? nearestIcelandStart(vehicle.position.x, vehicle.position.z) : null;
       const moonResetStart = area.id === 'moon' ? nearestMoonStart(vehicle.position.x, vehicle.position.z) : null;
-      const destination = moonResetStart ? moonSpawn(moonResetStart.position) : icelandResetStart ? icelandStartSpawn(icelandResetStart)
+      const islandResetStart = area.id === 'island' ? nearestIslandStart(vehicle.position.x, vehicle.position.z) : null;
+      const tidalResetStart = tidalRuntime?.restart() ?? null;
+      const destination = tidalResetStart ? tidalSpawn(tidalResetStart.position) : islandResetStart ? islandSpawn(islandResetStart.position)
+        : moonResetStart ? moonSpawn(moonResetStart.position) : icelandResetStart ? icelandStartSpawn(icelandResetStart)
         : start ? (area.id === 'mars' ? marsSpawn(start.position) : regionalSpawn(start)) : area.spawn;
       if (runtime) {
         mode = 'loading';
@@ -673,10 +757,10 @@ async function boot() {
         world.step();
       }
       vehicle.reset(destination);
-      const resetHeading = moonResetStart?.heading ?? icelandResetStart?.heading ?? area.spawnHeading;
+      const resetHeading = tidalResetStart?.heading ?? islandResetStart?.heading ?? moonResetStart?.heading ?? icelandResetStart?.heading ?? area.spawnHeading;
       if (resetHeading !== undefined) vehicle.body.setRotation(
         new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), resetHeading), true);
-      message = moonResetStart ? `Back at ${moonResetStart.name}` : icelandResetStart ? `Back at ${icelandResetStart.name}`
+      message = tidalResetStart ? `Back at ${tidalResetStart.name}` : islandResetStart ? `Back at ${islandResetStart.name}` : moonResetStart ? `Back at ${moonResetStart.name}` : icelandResetStart ? `Back at ${icelandResetStart.name}`
         : start ? `Back at ${start.name}` : 'Back at the starting area. Off you go.';
     }
     for (let i = 0; i < (tractionLab ? 90 : 30); i++) {
@@ -777,7 +861,7 @@ async function boot() {
     syncCarUrl();
   });
   async function travel(id: AreaId) {
-    if (mode === 'loading' || mode === 'error' || id === area.id) {
+    if (mode === 'loading' || mode === 'error' || (id === area.id && !tractionLab)) {
       syncAreaPicker();
       return;
     }
@@ -841,7 +925,7 @@ async function boot() {
     window.history.replaceState(null, '', url);
     element('start').focus();
   }
-  areaPicker.addEventListener('change', event => {
+  for (const picker of [areaPicker, developmentPicker]) picker?.addEventListener('change', event => {
     const input = event.target;
     if (!(input instanceof HTMLInputElement) || input.name !== 'area' || mode !== 'ready') return;
     const id = input.value;
@@ -911,7 +995,12 @@ async function boot() {
           contacts: vehicle.contactCount(), input: controls?.state.value,
           camera: camera.position.toArray(), targetDistance: camera.position.distanceTo(vehicle.model.position),
           wheelSteering: vehicle.controller.wheelSteering(0),
+          recoveryStart: runtime instanceof TidalTracksRuntime ? runtime.recoveryStart.id : null,
           suspension: [0, 1, 2, 3].map(i => vehicle.controller.wheelSuspensionLength(i)),
+          wheelContactLift: [0, 1, 2, 3].map(i => {
+            const point = vehicle.controller.wheelContactPoint(i);
+            return point && vehicle.controller.wheelIsInContact(i) ? point.y - area.surfaceHeight(point.x, point.z) : 0;
+          }),
           drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
           pixelRatio: renderer.getPixelRatio(), graphicsReduced,
           geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures,
@@ -988,12 +1077,18 @@ async function boot() {
       return;
     }
     if (mode === 'playing') {
+      if (runtime instanceof TidalTracksRuntime && vehicle.contactCount() >= 2) {
+        const rotation = vehicle.body.rotation();
+        if (1 - 2 * (rotation.x ** 2 + rotation.z ** 2) > 0.65
+          && Math.abs(vehicle.position.y - area.surfaceHeight(vehicle.position.x, vehicle.position.z)) < 2)
+          runtime.visit(vehicle.position.x, vehicle.position.z);
+      }
       runtime?.update(vehicle.position.x, vehicle.position.z);
       runtime?.animate?.(Math.min(elapsed, 0.05), reducedMotion.matches);
       const alpha = clock.advance(elapsed, dt => {
         // Hold at an unready Mars/Iceland chunk until collision arrives, including the next
         // short movement interval. A delayed worker must not let the car fall through.
-        if ((area.id === 'mars' || area.id === 'iceland' || area.id === 'moon') && runtime) {
+        if ((area.id === 'mars' || area.id === 'iceland' || area.id === 'moon' || area.id === 'island' || area.id === 'tidal-islands' || isDemoId(area.id)) && runtime) {
           const v = vehicle.body.linvel();
           if (!runtime.isCollisionReadyAt(vehicle.position.x, vehicle.position.z)
             || !runtime.isCollisionReadyAt(vehicle.position.x + v.x * 0.15, vehicle.position.z + v.z * 0.15)) return;

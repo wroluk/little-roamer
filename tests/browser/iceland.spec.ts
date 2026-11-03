@@ -61,7 +61,8 @@ test('Iceland pilot renders waterfall, ford, black coast and resets; switching a
     const material = river.material as import('three').MeshStandardMaterial;
     return { transparent: material.transparent, opacity: material.opacity, bridge: !!scene.getObjectByName('Skógá · bridge deck') };
   })).toEqual({ transparent: true, opacity: 1, bridge: true });
-  await expect(page.locator('input[name="area"][value="iceland"]')).toHaveCount(0);
+  await expect(page.locator('#area-picker input[value="iceland"]')).toHaveCount(0);
+  await expect(page.locator('#development-builds input[value="iceland"]')).toBeChecked();
   await expect.poll(async () => (await state(page)).contacts).toBeGreaterThanOrEqual(2);
   await expect.poll(async () => (await state(page)).streaming.queued).toBe(0);
   await page.screenshot({ path: info.outputPath('skogafoss-arrival.png') });

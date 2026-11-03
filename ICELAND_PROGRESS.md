@@ -1,5 +1,31 @@
 # Iceland implementation progress
 
+## Local menu organization approved — 2026-11-03
+
+- The user approved a collapsed, development-only home section separating active
+  builds, comparison sketches and the traction lab. Unfinished Iceland is now
+  reachable through **Development → Active builds**, not the released picker.
+- This is a local navigation change only. Production exclusion, opt-in
+  functional tests and all unresolved terrain/handling acceptance remain as
+  recorded below; no Iceland implementation or release gate is newly completed.
+
+## Release checks deferred by user — 2026-11-03
+
+- The user explicitly removed unfinished Iceland (`iceland`) from release-test
+  gates until work on it resumes. This does not apply to the existing public
+  Iceland Highlands (`highlands`) or the selected Island Tracks crossing
+  (`tidal-islands`).
+- Units moved to `tests/optional/iceland.test.ts`; opt-in commands are
+  `npm run test:iceland` and `npm run test:browser:iceland`.
+  The shared black-sand palette unit and Vatnajökull/recovery browser cases
+  also require `ROAMER_INCLUDE_ICELAND=1`. Shared/public-world tests remain.
+  The PWA guard still verifies the unfinished world stays out of release.
+- No terrain, material mapping, physics, imagery or acceptance thresholds
+  changed. Interrupted browser failures and the deferred glacier handling/
+  performance/manual-device work remain unresolved, not newly passed.
+- Resume from the existing ice-handling follow-up and world progress below;
+  explicitly run the parked checks when Iceland development resumes.
+
 ## Ice handling follow-up deferred — 2026-11-02
 
 - During traction work in an isolated worktree, the user explicitly deferred
