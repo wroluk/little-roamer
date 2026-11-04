@@ -204,6 +204,6 @@ export const AREAS: Record<AreaId, Area> = {
 };
 
 export function isAreaId(value: string | null): value is AreaId {
-  if (value === 'iceland' || value === 'island' || value === 'island-tracks' || value !== null && isDemoId(value)) return import.meta.env?.DEV === true;
-  return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village' || value === 'mars' || value === 'moon';
+  if (value === 'iceland' || value === 'island' || value !== null && isDemoId(value)) return import.meta.env?.DEV === true;
+  return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village' || value === 'mars' || value === 'moon' || value === 'island-tracks';
 }

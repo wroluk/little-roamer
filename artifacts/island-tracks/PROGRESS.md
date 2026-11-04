@@ -10,6 +10,42 @@ later decisions supersede earlier scope and recovery policies.
 
 ## Progress
 
+### Published preview for later iPad review - 2026-11-04
+
+The user requested pushing the accepted work, then explicitly authorized
+including Island Tracks in the existing GitHub Pages game. They regard this
+site as the development preview, not a finished public launch, and will test
+on the iPad later. The accepted gameplay/scenery commits were pushed first.
+This publication supersedes internal-only availability without claiming
+physical-device or whole-world release acceptance.
+
+Reused the normal Moon home-tile/direct-entry/PWA technique: one Island Tracks
+tile in the main picker, labelled Preview, canonical area validation in
+production, existing Earth car selection, regional links and offline caching.
+Removed its duplicate local Development entry; unfinished Iceland, comparison
+demos and traction tools remain excluded from published selection/direct entry.
+No terrain, physics, recovery, camera or scenery changes are included.
+
+The tile uses a new unaltered actual-game photo-mode capture of the basalt
+crossing, pale channels and both grassy shores, resized to the existing
+476 x 350 JPEG format. Photo view requests `(5, 40, 100)` looking at
+`(5, 16, -20)` with 95-degree FOV and uses the existing 100 m camera-distance
+limit; UI and car are hidden. The original source is session-local;
+the shipped image is `public/locations/island-tracks.jpg`.
+
+Updated home-menu/canonical-entry regressions and replaced the production
+exclusion scenario with preview selection, regional-entry and offline-travel
+coverage. Retained the WebKit offline-navigation limitation as an explicit
+skip, not a pass. Typecheck passed before the final thumbnail/documentation
+updates. The focused unit run was interrupted; the user then reported that all
+tests had just run in a separate session and directed us not to rerun them.
+No local full-suite result is claimed for this publication change.
+
+Next: open the published preview on the iPad, accept **Update game** when
+offered, and review sustained performance, simultaneous steering/throttle,
+cave-camera feel, Cove uphill retry ownership and offline play. Do not mark
+these manual checks complete merely because the preview is online.
+
 ### Cove visual feedback, permanent shade and uphill departure - 2026-11-04
 
 The user reported a tree growing from an unnatural cliff, an orphaned track

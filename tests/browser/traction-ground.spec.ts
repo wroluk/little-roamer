@@ -564,7 +564,7 @@ test('switching from the lab to Island Tracks preserves both full-restart polici
   ]) {
     if (!trial.lab) {
       await page.locator('#pause').click(); await page.locator('#home').click();
-      await page.locator('input[name="area"][value="tidal-islands"]').check();
+      await page.locator('input[name="area"][value="island-tracks"]').check();
       await expect(page.locator('#start')).toBeEnabled();
       await page.locator('#start').click();
     }

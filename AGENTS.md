@@ -27,6 +27,9 @@ The single current world is `?area=island-tracks`. The old causeway comparison
 and intermediate `tidal-islands` ID are retired; do not recreate either.
 The tropical `?area=island` is separate. Keep historical comparison evidence
 in `LOCATION_DEMOS.md`.
+Island Tracks is available from the normal home picker and GitHub Pages as a
+preview for iPad testing. This is not finished-release acceptance; keep the
+other local development worlds and tools excluded from production.
 
 ## Continuing Iceland work
 

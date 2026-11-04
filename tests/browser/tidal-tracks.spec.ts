@@ -106,7 +106,6 @@ test('fresh Island Tracks: views, safe entries, whole-challenge recovery and swi
   await expect(page.locator('input[name="area"][value="tidal-islands"]')).toHaveCount(0);
   await page.locator('input[name="area"][value="valley"]').check(); await expect(page.locator('#start')).toBeEnabled();
   expect((await demoState(page)).area).toBe('valley');
-  await page.locator('#development-menu > summary').click();
   await page.locator('input[name="area"][value="island-tracks"]').check(); await expect(page.locator('#start')).toBeEnabled();
   const after = await demoState(page);
   expect(after.geometries).toBeLessThanOrEqual(before.geometries + 2);

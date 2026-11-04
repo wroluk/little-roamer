@@ -233,7 +233,7 @@ async function boot() {
     developmentPicker.disabled = true;
     developmentPicker.setAttribute('aria-labelledby', summary.id);
     for (const group of [
-      { id: 'development-builds', title: 'Active builds', areas: ['island-tracks', 'iceland'] as const },
+      { id: 'development-builds', title: 'Active builds', areas: ['iceland'] as const },
       { id: 'development-demos', title: 'Comparison demos', areas: [...DEMO_IDS, 'island'] as const },
     ]) {
       const fieldset = document.createElement('fieldset');
@@ -249,7 +249,6 @@ async function boot() {
         const title = document.createElement('b'); title.textContent = AREAS[id].name;
         const subtitle = document.createElement('small');
         subtitle.textContent = isDemoId(id) ? DEMOS[id].subtitle
-          : id === 'island-tracks' ? 'Rock Passage, Seabird Climb & Pebble Cove'
           : id === 'iceland' ? 'Unfinished South Coast' : 'Beach & jungle pilot';
         copy.append(title, subtitle); choice.append(copy); label.append(input, choice);
         options.append(label);

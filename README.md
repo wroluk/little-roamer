@@ -3,7 +3,8 @@
 An open-ended 3D toy 4WD playground with five places to explore: sunny hills
 in **Sunshine Valley**, the volcanic **Iceland Highlands**, the streamed
 1.5 km-wide wilderness of **Northern Reach**, **Samurai Village**, and
-**Mars Outpost**.
+**Mars Outpost**. The home picker also offers an **Island Tracks preview**
+for iPad review.
 No score, objectives, timers, accounts, audio, or downloads of external artwork.
 
 Built with TypeScript, Vite, Three.js and Rapier. All meshes and trail-sign
@@ -85,11 +86,11 @@ Direct links:
 
 ### Local development menu
 
-The main location picker contains the six released worlds. On the local
+The main location picker contains the six released worlds and the published
+Island Tracks preview. On the local
 development server, expand **Development** below the normal home controls:
 
-- **Active builds:** Island Tracks (`island-tracks`), unfinished Iceland
-  (`iceland`).
+- **Active builds:** unfinished Iceland (`iceland`).
 - **Comparison demos:** the four exploratory location sketches below and
   tropical Island (`island`).
 - **Tools:** **Traction lab (poligon)**, using the existing driving controls.
@@ -131,8 +132,9 @@ continuous crawling. The original easy circuits remain available.
 ### Island Tracks
 
 The selected direction is a **crossing-first driving adventure**:
-**[drive Island Tracks](http://127.0.0.1:5173/?area=island-tracks)** on the
-development server. Leave Harbor Cove and follow the cairns through a winding
+**[drive Island Tracks](https://wroluk.github.io/little-roamer/?area=island-tracks)**
+in the GitHub Pages preview, or choose its home-screen tile. Leave Harbor Cove
+and follow the cairns through a winding
 basalt chain: four solid stone ribs, narrow rock gates and three shallow sea
 channels lead to Saltgrass Landing. Climb the eastern island to the 30 m
 Windward Lookout and look back over the passage. Both Earth cars keep their
@@ -178,9 +180,11 @@ inspection links also accept `&start=harbor-cove`, `&start=gull-rock`,
 Notch inspection entries still retry from their full challenge's entrance.
 Saltgrass Landing starts on the earned island; the summit entry starts a descent.
 
-This connected development build is not the full eight-region world and stays
-out of production selection/direct entry. The other comparison pilots and
-tropical Island remain intact. See the [current build plan](artifacts/island-tracks/BUILD_PLAN.md)
+This connected preview is not the full eight-region world. It is included in
+the published build for physical-iPad review, not declared a finished release.
+Its tile, regional links and offline cache use the normal game lifecycle.
+The other comparison pilots and tropical Island remain local-only.
+See the [current build plan](artifacts/island-tracks/BUILD_PLAN.md)
 and [latest progress/evidence](artifacts/island-tracks/PROGRESS.md#progress).
 
 In the highlands, follow the **amber posts** for broad, shallow river crossings.
@@ -732,7 +736,8 @@ checks require one `island-tracks` picker item and reject the retired
 `tidal-islands` ID.
 Shared camera collision, optional waterline floors and unchanged recovery are
 covered by `node --import tsx --test tests/physics.test.ts tests/vehicle-recovery.test.ts`.
-Production exclusion is covered by `tests/pwa/tidal-tracks.spec.ts`; run PWA checks after
+Published preview selection, regional links and offline travel are covered by
+`tests/pwa/tidal-tracks.spec.ts`; run PWA checks after
 browser checks, not concurrently.
 
 The new Iceland world has an internal south-coast slice at `/?area=iceland` when

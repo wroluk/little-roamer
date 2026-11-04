@@ -19,7 +19,7 @@ type DebugApi = { snapshot(): Snapshot; ramps: Ramp[]; placeVehicle(x: number, z
 const snapshot = (page: Page): Promise<Snapshot> => page.evaluate(() => {
   return (window as unknown as { __ROAMER__: { snapshot(): Snapshot } }).__ROAMER__.snapshot();
 });
-const RELEASED_AREAS = ['northern-reach', 'valley', 'highlands', 'samurai-village', 'mars', 'moon'];
+const HOME_AREAS = ['northern-reach', 'valley', 'highlands', 'samurai-village', 'mars', 'moon', 'island-tracks'];
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/?area=valley');
@@ -113,7 +113,7 @@ test('Northern Reach is the default and first location', async ({ page }) => {
   await expect(page.locator('#area-picker input').first()).toHaveValue('northern-reach');
   await expect(page.locator('input[name="area"][value="northern-reach"]')).toBeChecked();
   expect(await page.locator('#area-picker input').evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).value)))
-    .toEqual(RELEASED_AREAS);
+    .toEqual(HOME_AREAS);
 });
 
 test('Development groups stay separate from released locations and remain usable on small screens', async ({ page }, info) => {
@@ -122,10 +122,11 @@ test('Development groups stay separate from released locations and remain usable
   const summary = page.locator('#development-menu > summary');
   await expect(menu).toHaveJSProperty('open', false);
   expect(await page.locator('#development-builds input').evaluateAll(inputs =>
-    inputs.map(input => (input as HTMLInputElement).value))).toEqual(['tidal-islands', 'iceland']);
+    inputs.map(input => (input as HTMLInputElement).value))).toEqual(['iceland']);
   expect(await page.locator('#development-demos input').evaluateAll(inputs =>
     inputs.map(input => (input as HTMLInputElement).value))).toEqual(
-    ['red-canyon', 'old-quarry', 'dune-sea', 'autumn-woods', 'island-tracks', 'island']);
+    ['red-canyon', 'old-quarry', 'dune-sea', 'autumn-woods', 'island']);
+  await expect(page.locator('#development-picker input[value="island-tracks"]')).toHaveCount(0);
   await expect(page.locator('#development-builds input[value="island"]')).toHaveCount(0);
   await expect(page.locator('#development-picker input[value="valley"]')).toHaveCount(0);
   await expect(page.locator('#area-picker input[value="iceland"]')).toHaveCount(0);
@@ -136,7 +137,7 @@ test('Development groups stay separate from released locations and remain usable
     await summary.scrollIntoViewIfNeeded();
     await summary.focus(); await page.keyboard.press('Enter');
     await expect(menu).toHaveJSProperty('open', true);
-    for (const id of ['tidal-islands', 'iceland', 'island']) {
+    for (const id of ['iceland', 'island']) {
       const tile = page.locator(`#development-picker input[value="${id}"]`).locator('..');
       await tile.evaluate(element => element.scrollIntoView({ block: 'center' }));
       await expect(tile).toBeInViewport({ ratio: 1 });
@@ -175,12 +176,11 @@ test('Development launches the poligon and switches cleanly between tools, publi
   await expect(page.locator('#traction-lab')).toHaveCount(0);
   await expect(page.locator('#development-menu')).toHaveJSProperty('open', false);
   expect(new URL(page.url()).searchParams.has('dev')).toBe(false);
-  await page.locator('#development-menu > summary').click();
-  await page.locator('#development-builds input[value="tidal-islands"]').check();
+  await page.locator('#area-picker input[value="island-tracks"]').check();
   await expect(page.locator('#start')).toBeEnabled();
-  await expect(page.locator('body')).toHaveAttribute('data-area', 'tidal-islands');
-  await expect(page.locator('#development-menu')).toHaveJSProperty('open', true);
-  await expect(page.locator('#development-builds input[value="tidal-islands"]')).toBeChecked();
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'island-tracks');
+  await expect(page.locator('#development-menu')).toHaveJSProperty('open', false);
+  await expect(page.locator('#area-picker input[value="island-tracks"]')).toBeChecked();
   await page.locator('#area-picker input[value="valley"]').check();
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.locator('body')).toHaveAttribute('data-area', 'valley');
@@ -215,10 +215,10 @@ test('location tiles and start remain usable on portrait and landscape phones', 
     await page.setViewportSize(viewport);
     await expect(page.locator('#area-picker')).toBeVisible();
     expect(await page.locator('#area-picker input').evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).value)))
-      .toEqual(RELEASED_AREAS);
+      .toEqual(HOME_AREAS);
     expect(await page.locator('.area-thumbnail').evaluateAll(images => images.every(image => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0))).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
-    for (const value of RELEASED_AREAS) {
+    for (const value of HOME_AREAS) {
       const choice = page.locator(`input[name="area"][value="${value}"]`);
       await choice.locator('..').evaluate(element => element.scrollIntoView({ block: 'center' }));
       const box = (await choice.locator('..').boundingBox())!;

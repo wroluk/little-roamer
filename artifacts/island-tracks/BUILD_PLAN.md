@@ -1,7 +1,8 @@
 # Island Tracks build plan
 
 Revised 2026-11-04 against the current implementation, Pebble Cove visual
-feedback and the uphill-return recovery report.
+feedback, the uphill-return recovery report and authorization to publish an
+iPad-test preview.
 The single current world is **Island Tracks**, at `?area=island-tracks`.
 The old causeway comparison implementation and intermediate `tidal-islands`
 ID are retired. The tropical `?area=island` pilot remains separate.
@@ -186,9 +187,11 @@ clean-main/local isolated passes, subsequent WebKit graphics/storage
 interruption and successful Cove reruns, rather than describing the interrupted
 batch as green. Unrelated full unit/browser suites were not rerun.
 
-Still open: user review of corrected recovery/camera feel and physical-iPad
-Safari performance, simultaneous touch and offline acceptance. Keep the world
-internal until an explicit release decision; no home-page promotion, saved
-progression, missions, new vehicles, full eight-region rollout or world-size
-increase is included. The user authorized Pebble Cove and the single-world
-naming cleanup, not a new release, commit or push.
+The user accepted the visual/recovery corrections and subsequently authorized
+publishing Island Tracks in the existing GitHub Pages game for later iPad
+testing. Its normal home tile is labelled Preview; direct regional links and
+offline travel are available. This supersedes internal-only availability,
+not the remaining physical-iPad Safari performance, simultaneous touch and
+offline acceptance. No saved progression, missions, new vehicles, full
+eight-region rollout or world-size increase is included. The other unfinished
+worlds and tools remain local-only.

@@ -42,7 +42,7 @@ test('production exposes Mars and all three exploration rovers and precaches the
   expect(cached.some(url => url.includes('/cars/mars-scout.png'))).toBe(true);
   expect(cached.some(url => url.includes('/cars/lunar-rover.png'))).toBe(true);
   expect(cached.some(url => url.includes('/cars/lunar-nomad.png'))).toBe(true);
-  for (const area of ['northern-reach', 'valley', 'highlands', 'samurai-village', 'mars', 'moon']) {
+  for (const area of ['northern-reach', 'valley', 'highlands', 'samurai-village', 'mars', 'moon', 'island-tracks']) {
     expect(cached.some(url => url.includes(`/locations/${area}.jpg`))).toBe(true);
   }
   for (const [area, postcard] of [

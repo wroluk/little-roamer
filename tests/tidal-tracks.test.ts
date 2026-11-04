@@ -24,7 +24,7 @@ test('development pilots defer terrain-backed starts until their world is select
   }
 });
 test('fresh Island Tracks has dry level resting places, real wet channels and no causeway bypass', () => {
-  assert.equal(isAreaId('island-tracks'), false);
+  assert.equal(isAreaId('island-tracks'), true, 'Pages preview must accept the canonical direct link');
   assert.equal(isAreaId('tidal-islands'), false, 'retired intermediate ID is not a second world');
   assert.equal(AREAS['island-tracks'].id, 'island-tracks');
   assert.equal(AREAS['island-tracks'].name, 'Island Tracks');

@@ -63,7 +63,7 @@ picker counts with production counts, compare compass angles across the
 0/360-degree boundary linearly, or infer missing particles from a missed
 short-lived surface-change CSS cue.
 
-Keep the six released home choices separate from the local-only Development
+Keep the six released home choices and published Island Tracks preview separate from the local-only Development
 disclosure: active builds, comparison demos and diagnostic tools are different
 groups, not additional released locations. Use the existing radio/travel
 lifecycle and native keyboard-accessible disclosure; production must contain
@@ -71,6 +71,12 @@ neither the disclosure nor its lab launcher. Test scrolling to individual
 choices and tool targets on portrait and short-landscape screens. Selecting
 public Valley from the traction lab must dispose the tool even though the lab
 uses the same underlying area ID.
+
+Publishing a preview for device review is not finished-release acceptance.
+The user authorized Island Tracks on the existing GitHub Pages build so it
+can be tested on an iPad. Reuse the normal tile, area validation and offline
+lifecycle together, with an actual-game thumbnail; keep unrelated unfinished
+worlds and diagnostics local-only.
 
 Keep focused menu checks distinct from compound world-capture journeys. A green
 navigation check does not certify the full route or render/recovery scenario.
