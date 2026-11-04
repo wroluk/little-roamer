@@ -25,11 +25,6 @@ test('pilots have different driving landforms and surfaces, not just different c
   assert.equal(demoWaterHeight('autumn-woods', 45, -25), 0);
   assert.equal(demoSurfaceAt('autumn-woods', 45, -25), 'water');
   assert.equal(demoSurfaceAt('autumn-woods', 45, 45), 'dirt');
-  assert.equal(demoGroundHeight('island-tracks', 27, 15), 3);
-  assert.equal(demoWaterHeight('island-tracks', 27, 34), 0);
-  assert.equal(demoSurfaceAt('island-tracks', 27, 34), 'water');
-  assert.equal(demoSurfaceAt('island-tracks', 27, 15), 'dirt');
-  assert.equal(demoSurfaceAt('island-tracks', -58, 3), 'rock');
 });
 
 test('Copper Falls has a wet upstream source, an exposed supported drop and a connected creek outlet', () => {
@@ -70,7 +65,7 @@ for (const id of DEMO_IDS) {
         const y = ids.reduce((sum, n) => sum + p.getY(n), 0) / 3;
         assert.ok(Math.abs(demoGroundHeight(id, x, z) - y) < 0.00002);
       }
-      if (id === 'autumn-woods' || id === 'island-tracks') for (const level of id === 'autumn-woods' ? [0, 3.8] : [0]) {
+      if (id === 'autumn-woods') for (const level of [0, 3.8]) {
         const water = demoWaterGeometry(terrain, level, level ? [55, -60, 96, -50] : undefined);
         const p = water.getAttribute('position');
         assert.ok(p.count > 100);

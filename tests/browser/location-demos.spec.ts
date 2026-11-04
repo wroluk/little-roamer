@@ -9,7 +9,6 @@ const critical: Record<DemoId, readonly (readonly Point[])[]> = {
   'old-quarry': [[point(45, -45), point(65, 0), point(25, 28)], [point(-20, 20), point(-55, 47)]],
   'dune-sea': [[point(-60, -35), point(-10, -55)], [point(3, -85), point(30, -104), point(59, -94)]],
   'autumn-woods': [[point(30, -25), point(45, -25), point(60, -25)], [point(65, 45), point(25, 45)]],
-  'island-tracks': [[point(0, 15), point(55, 15)], [point(-64, -20), point(-58, 3), point(-44, 21)]],
 };
 const views: Record<DemoId, readonly (readonly [string, number, number, number, number, number, number])[]> = {
   'red-canyon': [['split-spire', -59, 37, 3, -59, 27, 14], ['echo-arch', -30, -65, 3, -20, -65, 15],
@@ -26,8 +25,6 @@ const views: Record<DemoId, readonly (readonly [string, number, number, number, 
     ['fallen-timber', -105, 9, 2, -111, 1, demoGroundHeight('autumn-woods', -111, 1) + 0.5],
     ['ridge-boulders', -99, -90, 2, -89, -93, 44],
     ['ridge-crown', -63, -100, 3.5, -53, -98, 44]],
-  'island-tracks': [['needle-lighthouse', -97, 40, 3, -100, 30, 9], ['tide-gate', -12, 15, 3, -2, 15, 7],
-    ['islet-return', 80, 27, 3, 70, 26, 6]],
 };
 for (const id of DEMO_IDS) test(`${id}: actual views, reset and world switching`, async ({ page }, info) => {
   test.setTimeout(120_000);

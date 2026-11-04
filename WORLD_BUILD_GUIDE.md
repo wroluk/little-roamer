@@ -35,17 +35,18 @@ traction, or retune accepted handling merely to make every straight slow
 approach succeed. Test the intended technique with ordinary controls, retaining
 wheel-contact, articulation, upright, water-depth and airborne-time limits.
 
-The five comparison demos are exploratory references, not release gates.
+The four remaining small comparison demos are exploratory references, not release gates.
 Their functional units/browser checks are opt-in (`npm run test:demos` and
 `npm run test:browser:demos`); do not spend integration work repairing them
-unless requested. Keep their production-exclusion guard. Fresh Island Tracks
-(`tidal-islands`) is the selected driving direction, distinct from the old
-`island-tracks` comparison demo, and retains normal coverage.
+unless requested. Keep their production-exclusion guard. The single current
+Island Tracks (`island-tracks`) is the selected driving direction and retains
+normal coverage. Its old causeway comparison and intermediate `tidal-islands`
+ID are retired, not parallel worlds to restore.
 
 The user also classified tropical Island (`island`) as a comparison demo.
 It belongs in **Development → Comparison demos**, not active builds; its units
 and browser scenarios use the same optional demo commands/flag. Retain its
-production-exclusion guard. Do not confuse it with either Island Tracks entry.
+production-exclusion guard. Do not confuse it with the active Island Tracks world.
 
 The user likewise deferred unfinished Iceland (`iceland`) from release gates
 until its development resumes. Its functional checks are opt-in
@@ -95,14 +96,80 @@ crossing means reaching the safe far shore after its final obstacle, not
 climbing an unrelated inland hill. Keep subsequent approaches separate so
 Reset cannot erase a completed journey or skip an unfinished obstacle.
 
+An earned destination needs physical route isolation, not only ordered
+checkpoint tracking. Pebble Cove's retry logic rejected an out-of-order arrival,
+but a dry corridor from the landing still let players drive straight into the
+reward. Check plausible cross-country and shoreline approaches from nearby
+unlocked places; use coherent visible, collision-matched landforms rather
+than invisible walls to make the intended access meaningful.
+
+A natural cave roof needs a supporting landform, not just noise on a regular
+arch. Preserve the proven lower driving bed while varying the mouth lips and
+width, burying the closed roof edges and merging its crown into broad,
+asymmetric outcrops. Share the surrounding rock height, palette and crown
+normals; a narrow ridge with a contrasting folded cap still reads as a built
+structure. Review overhead and oblique captures alongside both driving mouths.
+For earned-access checks, pair real-car attempts along the reported shortcut
+and plausible alternatives with a bounded slope/depth connectivity search
+excluding the intended entrance. Neither checkpoint rejection nor one failed
+straight-line attempt establishes physical isolation by itself.
+
+Buried roof vertices alone do not prove a buried skirt: the roof and the
+terrain can interpolate different triangles across a steep bank. Fade the
+underside into the actual ground outside the usable opening, subdivide to
+follow the terrain and check triangle centres and edge midpoints with a burial
+margin. Do not retain a clamped, floor-height arch outside the passage: that
+creates a floating shelf even when the perimeter vertices are hidden. Keep the
+proven central clearance and verify the joins from both driving mouths.
+
+For trees, grass and markers, reject steep full-footprint sites before placing
+them; burying a trunk or mast foot does not make a near-vertical site natural.
+Measure the actual interpolated support, not just an analytical clearing radius.
+Keep detached stones rigid and ensure the terrain can occlude buried scenery
+in the dynamic shadow pass. Capture above-ground camera views: a photo camera
+inside a new headland can itself produce misleading stretched geometry.
+
 Extend the driving vocabulary rather than merely escalating altitude or
 repeating the accepted obstacle sequence. A descent, enclosed passage or
 different wheel-line problem can carry the same DNA as a crossing. Specify
 the whole reversible journey, safe arrival and retry boundary before dressing
 it with scenery; label proposed places separately from driveable ones.
-Island Tracks' [current plan](artifacts/island-tracks/BUILD_PLAN.md) separates its accepted
-rides from the proposed descent; [progress](artifacts/island-tracks/PROGRESS.md#progress) retains
+Island Tracks' [current plan](artifacts/island-tracks/BUILD_PLAN.md) records its accepted
+rides and Pebble Cove extension; [progress](artifacts/island-tracks/PROGRESS.md#progress) retains
 the evidence and superseded decisions.
+
+At a branching departure, multiple route-entry tolerances can overlap just
+outside the safe pad. Choose the closest eligible outgoing segment, not the
+first matching route in an array; then keep ordered progress pinned to that
+attempt. Sparse waypoint-only recovery tests missed this at Windward Lookout.
+Drive through the junction with both cars and preserve wrong-branch, interrupted
+attempt and return-direction checks.
+
+Match a completed arrival's final gate to the actual supported resting area,
+without widening intermediate gates or unrelated rides. Pebble Cove had a
+12 m dry pad but required visiting within 4.5 m of its centre, so a valid
+edge arrival followed by an uphill return retained Windward recovery. Regress
+that boundary with ordered descent to an off-centre arrival, then a partial
+return, fall and both Reset controls. Preserve out-of-order and pre-final-stone
+rejections; do not replace departure ownership with nearest-location recovery.
+
+Transfer a cave as a complete lower-floor/solid-roof technique. Keep daylight
+at both mouths, sample the lower bed for spawning, surfaces and instruments,
+and sweep the normal camera against the roof. Check orbit clearance against
+the actual ceiling at the camera's position, not a fixed world Y: a descending
+roof has different elevations along the boom. Pebble Cove adapts Quarry's
+`quarryTunnelGeometry` without its industrial style or local-righting policy.
+Keep small shoulder boulders rigid and embed them against a sampled footprint:
+projecting each vertex onto a steep cliff stretched a compact stone into a
+tall blade in the cove view. Do not copy that conforming-bed technique from
+crossable slabs to detached boulders.
+
+For a shallow-water play area, support the whole turning car and all wheel
+footprints, not just the intended centreline. A shelf that passed centre-depth
+samples still let outer wheels drop into deep water during a full-lock turn.
+Use a gradual shore ramp, a bounded submerged bed and the existing fitted
+depth-coloured sea; prove a wet loop and dry return with both cars and steering
+policies. Keep arrival/retry rules separate from optional water play.
 
 ## World documentation layout
 

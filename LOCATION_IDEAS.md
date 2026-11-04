@@ -17,48 +17,51 @@ proposed geography, not completed worlds or required journeys.
 
 **Selected direction:** Island Tracks, rebuilt independently around an earned
 crossing to the second island. The original Red Canyon recommendation and the
-five comparison pilots remain useful alternatives, not the current selection.
+four other comparison pilots remain useful alternatives, not the current selection.
 Mars Outpost is already available; its current design is documented in
 [Mars build plan](artifacts/mars/BUILD_PLAN.md) and [design](artifacts/mars/DESIGN.md).
 
 ## Try the comparison pilots
 
-Small development-only pilots now sample each of the five concepts below.
+Four development-only comparison pilots remain available.
 Run `npm run dev`, then use the development home picker or these links:
 [Red Canyon](http://127.0.0.1:5173/?area=red-canyon),
 [Old Quarry](http://127.0.0.1:5173/?area=old-quarry),
-[Dune Sea](http://127.0.0.1:5173/?area=dune-sea),
-[Autumn Woods](http://127.0.0.1:5173/?area=autumn-woods), and
-[Island Tracks](http://127.0.0.1:5173/?area=island-tracks).
+[Dune Sea](http://127.0.0.1:5173/?area=dune-sea), and
+[Autumn Woods](http://127.0.0.1:5173/?area=autumn-woods).
 Each is one connected sample with signature landmarks and an optional harder
-line, not the full eight-region concept. Island Tracks is the grassy,
-lighthouse-and-causeway idea; the separate tropical
+line, not the full eight-region concept. The lighthouse/causeway comparison
+was retired when the selected world became the single Island Tracks entry.
+The separate tropical
 [Island pilot](http://127.0.0.1:5173/?area=island) has a jungle and aqueduct.
 See [pilot design, implementation references and current evidence](LOCATION_DEMOS.md).
 
-The selected fresh build is a separate development entry:
-**[Island Tracks — Rock Passage](http://127.0.0.1:5173/?area=tidal-islands)**.
+The selected world has one development entry:
+**[Island Tracks](http://127.0.0.1:5173/?area=island-tracks)**.
 Its first slice connects Harbor Cove, three real wading channels, two dry
 resting rocks, Saltgrass Landing and a 30 m lookout. Follow the cairns, read the
 pale shallow bed and avoid dark offshore water. Reset returns to the last
 earned challenge departure, not an intermediate shelf: Harbor Cove during
 the crossing, then Saltgrass Landing after its safe far-shore arrival.
-The old causeway comparison above is preserved, not reused as this world's
-geography.
+The old causeway implementation is removed, not reused as this world's
+geography. The intermediate `tidal-islands` URL is retired.
 
 The implemented second demanding ride is **Seabird Climb** beyond the 30 m lookout:
 exposed ledges, four physical stone crossings, the 47 m Wind Notch resting
 shelf and a 67 m summit. This is a connected 180 m extension, not a second
 world or a return to the causeway concept. Use
-[`&start=windward-lookout`](http://127.0.0.1:5173/?area=tidal-islands&start=windward-lookout)
+[`&start=windward-lookout`](http://127.0.0.1:5173/?area=island-tracks&start=windward-lookout)
 to inspect the climb without repeating the crossing.
 
 The user accepted both demanding rides and called the sea crossing the game's
 DNA. The [Island Tracks build plan](artifacts/island-tracks/BUILD_PLAN.md) now records
-that direction, current challenge boundaries and extension gates. Its proposed
-next slice is **Pebble Cove Descent**: a two-way boulder ravine and short dry,
-daylight-lit basalt cave from Windward Lookout to a sheltered cove. This is a
-recommendation, not an implemented or approved route.
+that direction, current challenge boundaries and extension gates.
+**Pebble Cove Descent** now branches east from Windward Lookout: a two-way
+rocky ravine and short dry, daylight-lit basalt cave to a sheltered cove.
+It descends 26 m over 193 m and retains whole-challenge retries in both
+directions. Use
+[`&start=pebble-cove`](http://127.0.0.1:5173/?area=island-tracks&start=pebble-cove)
+to inspect the arrival or start the return.
 
 The first tactile refinement pair is **Old Quarry** (a deep, covered descent
 with a turning chamber, second exit and solid rubble) and **Autumn Woods**
@@ -137,7 +140,7 @@ this refinement yet.
 
 ## Island Tracks
 
-**Current direction:** the fresh Rock Passage and Seabird Climb described above
+**Current direction:** Rock Passage, Seabird Climb and Pebble Cove described above
 supersede the fixed-causeway connection below. There is no easy crossing bypass
 or changing-tide timer. Use the [current build plan](artifacts/island-tracks/BUILD_PLAN.md)
 and [latest progress](artifacts/island-tracks/PROGRESS.md#progress), not the historical route

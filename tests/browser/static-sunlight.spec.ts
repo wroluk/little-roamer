@@ -2,24 +2,29 @@ import { test, expect } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { moonSurfaceHeight } from '../../src/game/moon-terrain';
 import { marsSurfaceHeight } from '../../src/game/mars-terrain';
+import { tidalGroundHeight } from '../../src/game/tidal-terrain';
 
 test.use({ deviceScaleFactor: 1 });
-for (const area of ['moon', 'mars'] as const) test(`${area} tube shade survives distant and disabled dynamic shadows`, async ({ page }, info) => {
+for (const area of ['moon', 'mars', 'island-tracks'] as const) test(`${area} tube shade survives distant and disabled dynamic shadows`, async ({ page }, info) => {
   test.setTimeout(120_000);
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.goto(`/?area=${area}&start=${area === 'moon' ? 'skylight-hollow' : 'lava-tubes'}&car=lunar-nomad`);
+  const start = area === 'moon' ? 'skylight-hollow' : area === 'mars' ? 'lava-tubes' : 'windward-lookout';
+  await page.goto(`/?area=${area}&start=${start}&car=${area === 'island-tracks' ? 'modern' : 'lunar-nomad'}`);
   await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 });
   await page.locator('#start').click();
-  const heightAt = area === 'moon' ? moonSurfaceHeight : marsSurfaceHeight;
-  const bounds = area === 'moon' ? [-266, -222, 150, 214] : [-450, -406, -382, -306];
+  const heightAt = area === 'moon' ? moonSurfaceHeight : area === 'mars' ? marsSurfaceHeight : tidalGroundHeight;
+  const bounds = area === 'moon' ? [-266, -222, 150, 214] : area === 'mars'
+    ? [-450, -406, -382, -306] : [146, 184, 22, 62];
   const points: { x: number; y: number; z: number }[] = [];
-  for (let z = bounds[2]; z <= bounds[3]; z += 4) for (let x = bounds[0]; x <= bounds[1]; x += 4)
+  const step = area === 'island-tracks' ? 1 : 4;
+  for (let z = bounds[2]; z <= bounds[3]; z += step) for (let x = bounds[0]; x <= bounds[1]; x += step)
     points.push({ x, y: heightAt(x, z), z });
   const view = area === 'moon'
     ? { position: { x: -248, y: 12, z: 144 }, target: { x: -246, y: 8, z: 183 }, fov: 65 }
-    : { position: { x: -430, y: 11, z: -302 }, target: { x: -430, y: 8, z: -350 }, fov: 65 };
+    : area === 'mars' ? { position: { x: -430, y: 11, z: -302 }, target: { x: -430, y: 8, z: -350 }, fov: 65 }
+    : { position: { x: 181, y: 17, z: 24 }, target: { x: 164, y: 13, z: 42 }, fov: 65 };
   const result = await page.evaluate(async ({ view, points }) => {
     type Game = {
       vehicle: { model: import('three').Group }; camera: import('three').PerspectiveCamera;
@@ -41,7 +46,7 @@ for (const area of ['moon', 'mars'] as const) test(`${area} tube shade survives 
     scene.traverse(o => {
       if (!(o instanceof THREE.Mesh)) return;
       const materials = Array.isArray(o.material) ? o.material : [o.material];
-      if (o.name === 'Moon hollow roof' || materials.some((m: import('three').Material) =>
+      if (o.name === 'Moon hollow roof' || o.name === 'Pebble Cove basalt cave' || materials.some((m: import('three').Material) =>
         m instanceof THREE.MeshStandardMaterial && m.vertexColors && m.side === THREE.DoubleSide))
         roofMeshes.push(o);
     });

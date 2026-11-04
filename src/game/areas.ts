@@ -35,7 +35,7 @@ function marsDustColor(x: number, z: number): string {
   return `#${marsDustTint.fromArray(marsColor(x, z, marsSurfaceHeight(x, z))).lerp(marsDustBase, 1 - pale).getHexString()}`;
 }
 
-export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars' | 'iceland' | 'moon' | 'island' | 'tidal-islands' | DemoId;
+export type AreaId = 'valley' | 'highlands' | 'northern-reach' | 'samurai-village' | 'mars' | 'iceland' | 'moon' | 'island' | 'island-tracks' | DemoId;
 export type AreaRuntime = {
   shade?: (object: THREE.Object3D) => void;
   update: (x: number, z: number) => void;
@@ -87,7 +87,7 @@ export type Area = {
 
 export const AREAS: Record<AreaId, Area> = {
   ...DEMO_AREAS,
-  'tidal-islands': TIDAL_AREA,
+  'island-tracks': TIDAL_AREA,
   island: {
     id: 'island', name: 'Island', label: '08 / LOST ISLAND PILOT',
     tagline: 'A little lost. A long way from ordinary.',
@@ -204,6 +204,6 @@ export const AREAS: Record<AreaId, Area> = {
 };
 
 export function isAreaId(value: string | null): value is AreaId {
-  if (value === 'iceland' || value === 'island' || value === 'tidal-islands' || value !== null && isDemoId(value)) return import.meta.env?.DEV === true;
+  if (value === 'iceland' || value === 'island' || value === 'island-tracks' || value !== null && isDemoId(value)) return import.meta.env?.DEV === true;
   return value === 'valley' || value === 'highlands' || value === 'northern-reach' || value === 'samurai-village' || value === 'mars' || value === 'moon';
 }

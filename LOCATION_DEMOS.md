@@ -8,6 +8,12 @@ location can be chosen by driving. These are development-only samples, not
 implementations of the concepts' eight-region plans. Tropical Island remains
 separate; Mars and Moon already exist and are not being rebuilt.
 
+**Current selection:** Island Tracks is now the single `?area=island-tracks`
+world, with Rock Passage, Seabird Climb and Pebble Cove. The old causeway
+comparison implementation is removed, and `tidal-islands` is retired.
+The table and dated entries below preserve the original comparison history,
+not five currently selectable alternatives. The other four pilots remain.
+
 | Pilot | Connected sample | Optional choice |
 | --- | --- | --- |
 | Red Canyon | Juniper wash, Split Spire, Echo Arch and layered mesa return | Rock-shelf shortcut |
@@ -21,8 +27,8 @@ directions, terrain-matched solid landmarks, bounded resident resources and
 explicit disposal. Route markings and landmarks should be readable from car
 height. No missions, discoveries, vehicles or production release are included.
 
-The table describes the comparison samples, not the selected fresh Island
-Tracks world. For `?area=tidal-islands`, use
+The table describes the historical comparison samples, not the selected Island
+Tracks world. For `?area=island-tracks`, use
 [its build plan](artifacts/island-tracks/BUILD_PLAN.md) as the current design
 and continuation plan. The [tropical Island plan](artifacts/island/BUILD_PLAN.md)
 describes a different world.

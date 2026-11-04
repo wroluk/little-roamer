@@ -230,29 +230,6 @@ export function buildDemoScenery(id: DemoId) {
     const water = new THREE.Mesh(cascade, new THREE.MeshStandardMaterial({ color: '#e1eee2', side: THREE.DoubleSide, roughness: 0.28, transparent: true, opacity: 0.84 }));
     water.name = 'Copper Falls'; group.add(water);
   }
-  if (id === 'island-tracks') {
-    const x = -120, z = -27, base = 7;
-    add('Needle Lighthouse', '#a8a78d', new THREE.CylinderGeometry(3.4, 4.5, 1.4, 10).translate(x, base, z), true, true);
-    for (let i = 0; i < 7; i++) add('Needle Lighthouse', i === 2 || i === 5 ? '#657b7e' : '#e7e3cd',
-      new THREE.CylinderGeometry(2.2 - (i + 1) * 0.11, 2.2 - i * 0.11, 4, 12).translate(x, base + 2.7 + i * 4, z), true, true);
-    add('Needle Lighthouse', '#a8c6c0', new THREE.CylinderGeometry(1.65, 1.65, 2.5, 8).translate(x, base + 30.3, z), true, true);
-    add('Needle Lighthouse', '#9c5f4a', new THREE.ConeGeometry(2.6, 2.5, 8).translate(x, base + 32.5, z), true, true);
-    for (let i = 0; i < 8; i++) {
-      const angle = i * Math.PI / 4;
-      box('Needle Lighthouse', '#505f5e', x + Math.cos(angle) * 1.65, base + 30.3, z + Math.sin(angle) * 1.65, 0.12, 2.6, 0.12);
-    }
-    for (const centre of [12, 43]) {
-      const arch = new THREE.Shape();
-      arch.moveTo(-9, 1); arch.lineTo(-6, 1); arch.lineTo(-6, 7);
-      for (let i = 0; i <= 16; i++) {
-        const a = Math.PI * (1 - i / 16); arch.lineTo(Math.cos(a) * 6, 7 + Math.sin(a) * 4);
-      }
-      arch.lineTo(6, 1); arch.lineTo(9, 1); arch.lineTo(9, 13); arch.lineTo(-9, 13); arch.closePath();
-      add('Tide Gate', '#8a9290', new THREE.ExtrudeGeometry(arch, { depth: 2.2, bevelEnabled: false })
-        .translate(0, 0, -1.1).rotateY(Math.PI / 2).translate(centre, 0, 15), true, true);
-    }
-    for (const side of [-1, 1]) box('Tide Gate', '#7f8b86', 27.5, 3.55, 15 + side * 5.4, 37, 1.1, 0.55);
-  }
   for (const tree of demoTrees(id)) {
     let base = tree.y;
     for (const dx of [-tree.radius, tree.radius]) for (const dz of [-tree.radius, tree.radius])
@@ -275,11 +252,11 @@ export function buildDemoScenery(id: DemoId) {
       const color = id === 'red-canyon' ? '#bb8e6d' : id === 'dune-sea' ? '#69645c' : id === 'old-quarry' ? '#aeb9ac' : '#68766a';
       rock(x, z, 1.2 + seed * 2.1, seed, color);
     }
-    if (id !== 'island-tracks' && id !== 'autumn-woods' || y < 1 || demoRouteSample(id, x, z).distance < 8) continue;
+    if (id !== 'autumn-woods' || y < 1 || demoRouteSample(id, x, z).distance < 8) continue;
     for (let k = 0; k < 3; k++) {
       const dx = Math.cos(k * 2.4 + seed) * 1.6, dz = Math.sin(k * 2.4 + seed) * 1.6;
       const ground = demoGroundHeight(id, x + dx, z + dz);
-      add('Low plants', id === 'autumn-woods' ? '#8e844b' : '#a1a56a',
+      add('Low plants', '#8e844b',
         new THREE.ConeGeometry(0.5, 0.7 + seed, 4).translate(x + dx, ground + 0.15, z + dz));
     }
   }

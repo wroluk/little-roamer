@@ -1,10 +1,10 @@
 {
   "fall": {
-    "minimumCamera": 1.0000000000000004,
-    "minimumCar": -6.894891738891602,
+    "minimumCamera": 4.922088632063586,
+    "minimumCar": -6.627054691314697,
     "obstructed": 0,
     "state": {
-      "area": "tidal-islands",
+      "area": "island-tracks",
       "bounds": 200,
       "spawn": {
         "x": 144,
@@ -22,87 +22,87 @@
         "water",
         "water"
       ],
-      "terrainFeedback": 0.00048200389333896275,
-      "waterDepth": 7.941831588745117,
+      "terrainFeedback": 7.111386323529971e-23,
+      "waterDepth": 7.487037520408631,
       "terrainParticles": 0,
       "terrainTracks": 0,
       "terrainRipples": 0,
       "terrainParticleCapacity": 72,
       "terrainEffectUsesInstanceColors": true,
       "reducedMotion": false,
-      "cameraFeedbackApplied": 0.00048200389333896275,
+      "cameraFeedbackApplied": 7.111386323529971e-23,
       "waterHeight": 0,
       "mode": "playing",
       "position": {
-        "x": 165.00921630859375,
-        "y": -6.894891738891602,
-        "z": -71.24467468261719
+        "x": 163.6486053466797,
+        "y": -6.627047538757324,
+        "z": -73.63638305664062
       },
       "rotation": {
-        "x": -0.10291776806116104,
-        "y": 0.027405889704823494,
-        "z": -0.13553480803966522,
-        "w": 0.9850316047668457
+        "x": -0.47445419430732727,
+        "y": 0.39706170558929443,
+        "z": 0.7547600865364075,
+        "w": 0.21811100840568542
       },
       "velocity": {
-        "x": 0.06601718068122864,
-        "y": -0.137051522731781,
-        "z": -0.03735922649502754
+        "x": -0.0011837007477879524,
+        "y": 0.0007522163214161992,
+        "z": 0.0008282890194095671
       },
-      "speed": 0.057875260315806774,
-      "contacts": 4,
+      "speed": -0.001443490407825647,
+      "contacts": 0,
       "input": {
         "steer": 0,
         "forward": false,
         "reverse": false
       },
       "camera": [
-        166.18514052423478,
-        1.0000000000000004,
-        -58.57007522466758
+        159.08723866602062,
+        4.927871819301779,
+        -71.66644891039012
       ],
-      "targetDistance": 14.978511172872082,
+      "targetDistance": 12.577871394946998,
       "wheelSteering": 0,
       "recoveryStart": "windward-lookout",
       "suspension": [
-        0.34173664450645447,
-        0.15709039568901062,
-        0.19924655556678772,
-        0.3508279025554657
+        0.3799999952316284,
+        0.3799999952316284,
+        0.3799999952316284,
+        0.3799999952316284
       ],
       "wheelContactLift": [
-        -0.000003546008883859031,
-        -9.163632057607174e-7,
-        5.652491381624714e-7,
-        0.0000017860420484794304
+        0,
+        0,
+        0,
+        0
       ],
-      "drawCalls": 35,
-      "triangles": 187288,
+      "drawCalls": 36,
+      "triangles": 185234,
       "pixelRatio": 1,
       "graphicsReduced": true,
-      "geometries": 44,
+      "geometries": 48,
       "textures": 1,
       "cameraObstructed": false,
       "streaming": {
         "activeRender": 1,
         "activePhysics": 1,
         "queued": 0,
-        "triangles": 155884,
-        "colliderCount": 15,
+        "triangles": 156738,
+        "colliderCount": 19,
         "lastActivationMs": 0
       },
       "navigation": {
-        "heading": 355.2103688505654,
-        "direction": "N",
+        "heading": 66.64470186239816,
+        "direction": "ENE",
         "elevation": -8
       }
     }
   },
   "orbit": {
-    "minimumCamera": 1.0000000000000004,
+    "minimumCamera": 1.0000598107223657,
     "obstructed": 0,
     "state": {
-      "area": "tidal-islands",
+      "area": "island-tracks",
       "bounds": 200,
       "spawn": {
         "x": 144,
@@ -120,78 +120,78 @@
         "water",
         "water"
       ],
-      "terrainFeedback": 0.00010677945465901214,
-      "waterDepth": 7.99995756149292,
+      "terrainFeedback": 3.924195095633517e-39,
+      "waterDepth": 7.487228255271912,
       "terrainParticles": 0,
       "terrainTracks": 0,
       "terrainRipples": 0,
       "terrainParticleCapacity": 72,
       "terrainEffectUsesInstanceColors": true,
       "reducedMotion": false,
-      "cameraFeedbackApplied": 0.00010677945465901214,
+      "cameraFeedbackApplied": 3.924195095633517e-39,
       "waterHeight": 0,
       "mode": "playing",
       "position": {
-        "x": 165.39198303222656,
-        "y": -7.012483596801758,
-        "z": -71.59944915771484
+        "x": 163.6484375,
+        "y": -6.62722635269165,
+        "z": -73.6364974975586
       },
       "rotation": {
-        "x": -0.08276993781328201,
-        "y": -0.007382605224847794,
-        "z": -0.1252216100692749,
-        "w": 0.9886426329612732
+        "x": -0.4743802547454834,
+        "y": 0.3968955874443054,
+        "z": 0.7549070715904236,
+        "w": 0.2180657684803009
       },
       "velocity": {
-        "x": 0.015526097267866135,
-        "y": -0.11696594953536987,
-        "z": -0.033840928226709366
+        "x": -0.0007925378740765154,
+        "y": 0.000689001171849668,
+        "z": 0.0010660139378160238
       },
-      "speed": 0.052637242105215185,
-      "contacts": 4,
+      "speed": -0.0012362535485645387,
+      "contacts": 0,
       "input": {
         "steer": 0,
         "forward": false,
         "reverse": false
       },
       "camera": [
-        153.6321262101337,
-        14.38840003792054,
-        -72.09554447459277
+        161.22201275757678,
+        18.375160480398726,
+        -80.1586185340604
       ],
-      "targetDistance": 24.42409596049777,
+      "targetDistance": 25.952742027491958,
       "wheelSteering": 0,
       "recoveryStart": "windward-lookout",
       "suspension": [
-        0.3626768887042999,
-        0.14247122406959534,
-        0.20477929711341858,
-        0.34260329604148865
+        0.3799999952316284,
+        0.3799999952316284,
+        0.3799999952316284,
+        0.3799999952316284
       ],
       "wheelContactLift": [
-        -7.724902388872579e-7,
-        1.7676211427897215e-7,
-        0.00000101159093901515,
-        -6.208574632182717e-8
+        0,
+        0,
+        0,
+        0
       ],
-      "drawCalls": 35,
-      "triangles": 187288,
+      "drawCalls": 37,
+      "triangles": 185414,
       "pixelRatio": 1,
       "graphicsReduced": true,
-      "geometries": 44,
+      "geometries": 48,
       "textures": 1,
       "cameraObstructed": false,
       "streaming": {
         "activeRender": 1,
         "activePhysics": 1,
         "queued": 0,
-        "triangles": 155884,
-        "colliderCount": 15,
+        "triangles": 156738,
+        "colliderCount": 19,
         "lastActivationMs": 0
       },
       "navigation": {
-        "heading": 359.6437668355192,
-        "direction": "N",
+        "heading": 66.61400944469358,
+        "direction": "ENE",
         "elevation": -8
       }
     }

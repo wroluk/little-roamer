@@ -2,11 +2,335 @@
 
 Read the [build plan](BUILD_PLAN.md) and
 [shared world-building guide](../../WORLD_BUILD_GUIDE.md) before extending
-`?area=tidal-islands`. The tropical Island and old causeway comparison
-remain separate worlds. Dated entries retain their original evidence;
+`?area=island-tracks`. The tropical Island remains separate. The old causeway
+comparison is removed; earlier entries describing `tidal-islands` or preserving
+both Island Tracks versions are historical, superseded by the user's naming
+cleanup. Dated entries retain their original evidence;
 later decisions supersede earlier scope and recovery policies.
 
 ## Progress
+
+### Cove visual feedback, permanent shade and uphill departure - 2026-11-04
+
+The user reported a tree growing from an unnatural cliff, an orphaned track
+shadow, a wind vane stranded on a slope and a cave skirt protruding as a shelf.
+Preserved the four original images in [feedback-2026-11-04](feedback-2026-11-04/).
+They explicitly requested the permanent, precalculated Moon/Mars cave shadows.
+They also reported Reset returning to Windward after falling about two-thirds
+through an uphill drive begun at Pebble Cove.
+
+**Corrections and references:** retained the accepted exact lower floor,
+normal handling, five physical steps, headland isolation and shallow play.
+Reused the existing rigid-boulder grounding and full-footprint placement
+techniques: reject steep vegetation sites, ground each tree from its root
+footprint and keep detached rocks rigid instead of stretching them onto
+cliffs. The existing mast and vane now stand at measured flat `(149, -49)`,
+with rigid lookout stones beside them. No replacement landmark is introduced.
+
+The Quarry-derived closed roof now fades into buried ground outside its usable
+opening. Finer geometry follows the actual terrain; skirt-face centres and
+edge midpoints must remain buried, rather than only the original vertices.
+The first coarse revision failed that check at a sharp terrain transition;
+kept the assertion and corrected the geometry instead of hiding the shelf.
+Central driving/camera clearance and open approaches remain protected.
+
+Reused `StaticSunlight` unchanged from Moon/Mars, with the actual owned cave
+triangles and the matching Earth sunlight direction. Its **184 x 204 RGBA atlas
+uses about 147 KiB** and is generated once, not as the car enters. Terrain,
+scenery and swapped vehicles receive the shader; disposal restores material
+hooks and releases the texture. Removed redundant dynamic roof casting and
+enabled terrain casting so buried props cannot cast through a non-occluding
+hill. This is a local fixed-roof bake, not a whole-world static-shadow system.
+
+**Recovery root cause reproduced:** a complete ordered descent onto the safe
+pad at `(137, 68)`, without visiting its centre, retained Windward. The dry pad
+has a 12 m radius but its old arrival/resting tolerance was only 4.5 m.
+Aligning only Cove's final gate and resting area with its 12 m pad makes that
+regression pass and retains Cove through the partial uphill return. This is
+consistent with the reported path, not proof of the user's exact trajectory.
+Other rides' gates, final-obstacle ordering, physical-visit eligibility and
+strict whole-challenge policy are unchanged.
+
+**Current evidence:** typecheck, production build and **96 focused units pass**
+(91 Island Tracks and five static-sunlight tests). Both cars still complete
+the crossing, Seabird, Cove in both directions and shallow-water play with
+analog/digital steering. The new atlas agrees with actual roof rays, including
+171 shaded and 545 open samples; existing Moon/Mars coverage also passes.
+The earlier pre-correction unit process was cancelled as obsolete; the current
+complete run is recorded separately, not counted as that run finishing.
+
+All **eight visual/browser cases pass across Chromium and WebKit**: permanent
+floor shade with the car outside and the dynamic map near, distant and
+disabled; the reported cliff/tree view; shortcut blocking and headland views;
+both cave-mouth driving views and camera orbits. The first visual run had one
+tree-count failure after an overly strict placement filter removed every tree;
+corrected the supported-site filter and retained the resource assertions.
+Resident cost is **157,596 triangles / 19 colliders**. Physical-iPad performance
+remains unverified.
+
+**Final browser evidence:** all **14 distinct affected cases pass** across both
+engines, including the full descent to an off-centre Cove arrival and complete
+return. Chromium actually earns Cove at `(136.67, 67.04)`, more than 10 m from
+the centre, before R returns to the centre. The separate uphill regression
+drives from the outer pad to about two-thirds of the return, drops the car
+into the sea and verifies both button Reset and R return to Cove. It does not
+replay the user's exact accidental wheel departure. Retained actual driving,
+before-fall and both-reset captures plus JSON for each engine.
+
+Inspected the corrected above-ground mast, both cave joins and reported
+cliff/track views. The mast stands on the level shoulder, the blade-like
+detached rocks and cliff vegetation are gone, and the skirt no longer
+protrudes as the reported horizontal shelf. The track capture places the car
+nearby and enables live shadows, rather than relying on a distant shadow map
+or reduced graphics to hide an orphan shadow; that final capture case was
+rerun in both engines. The exterior remains stylized rock, subject to the
+user's visual judgment, not a claim of final landscape acceptance.
+
+The user accepted these fixes on 2026-11-04 and requested a commit. This accepts
+the reported visual/recovery corrections, not a public release or unrelated
+extension. Physical-iPad performance/touch/offline acceptance remains manual;
+the world is still internal. No push is authorized.
+PWA/startup/storage and unrelated full suites were not rerun for these local
+scene/recovery changes; the previous production/PWA result below is historical.
+
+### Physical cove isolation, integrated roof and remote-main physics - 2026-11-04
+
+The user authorized fixing the bypass and asked to rebase onto remote main's
+physics improvements. Rebased the local documentation commit onto `ddc839b`
+(`dab99db` is the rewritten documentation commit), then restored all uncommitted
+Island Tracks work. Kept the remote per-wheel traction/contact-driven effects,
+nested Development menu, traction lab and optional-demo/Iceland test scope.
+The six shared physics/effects implementation files remain identical to remote
+main. No new gameplay commit or push; the named pre-rebase stash is retained
+as a recovery backup, not pending work to apply again.
+
+A real coastal headland now closes the reported Saltgrass-to-cove dry corridor.
+Its inland arm separates the lower ravine from the mainland; broad overlapping
+rock outcrops support the cave rather than leaving a narrow ridge topped by an
+obvious cap. Roof width and mouth lips vary asymmetrically, its edges are buried,
+and its crown shares the headland height, rock palette and crown-normal field.
+The collision uses those actual visible vertices. Preserved the existing route
+coordinates and driving floor, open approaches, dry cove, shallow-water play
+area, ordered arrivals and normal handling.
+
+**References and adaptation:** reused the current exact tidal terrain sampler,
+resident terrain/solid ownership and existing solid-step drive tests. Retained
+the Quarry-derived closed separate roof over a lower driving bed, but replaced
+its regular external treatment with the surrounding outcrop profile. Used the
+accepted full return drive's 2.5 m/s controlled approach for the isolated uphill
+Resting shelf exit rib: the new traction model stalls the old 2.2 m/s straight
+crawl there. The stone and shared handling are unchanged, as are articulation,
+support, upright, water and airborne assertions. Other reverse stone checks
+retain their original slow pace.
+
+**Current evidence:** typecheck, production build and **163 focused units pass**
+(88 Island Tracks plus shared physics, traction, recovery, navigation, surfaces
+and vehicle selection). New real-car
+attempts cover direct, western-shore and lower-cave shortcuts with both cars.
+A separate bounded 2 m slope/depth connectivity search cannot reach the cove
+from the landing without entering the descent. This is supplementary geography
+coverage, not a substitute for real-car evidence or proof against every stunt.
+
+The four Chromium/WebKit shortcut/visual/cave-camera cases pass. Inspected
+actual overhead and oblique views, both driving mouths, cave interior and
+the blocked landing approach. The roof is materially less regular and blends
+into the broader headland; user judgment of the remaining stylized cliff
+silhouette is still pending. Current resident cost is **156,464 triangles /
+19 colliders**, within the existing budgets. Both browser shortcut attempts
+stop near `(115, 27)`, well before the cove, with Saltgrass recovery retained.
+
+**Final browser result:** all **14 distinct affected cases pass** across
+Chromium and WebKit, covering menu/entry/reset/switching, earned-shore recovery,
+Seabird both ways, Cove both ways, wet play/return, shortcut blocking and
+overhead/driving/cave-camera views. This is coverage across the initial run and
+isolated reruns, not a claim that the long batch passed uninterrupted.
+
+The long ten-case batch had seven passes and three failures. Chromium's
+earned-shore drive stalled at the landing rib near `(89.8, -2.2)`; the same
+isolated scenario then passed on both an archived, unmodified `origin/main`
+(5.5 minutes) and the local checkout (4.4 minutes), without behavior or
+assertion changes. Later, WebKit lost its graphics context during the Cove
+drive, followed by disk-write exhaustion during failure reporting; its trace
+zip is incomplete. With storage available again, both isolated WebKit Cove
+drive/return and wet-play cases passed (3.3 minutes combined). Retained the
+original crossing trace, WebKit error capture, comparison and rerun logs in
+the session artifacts. Do not silently erase the intermittent failure history
+or retune shared handling to make a single automated approach succeed.
+
+The subsequent sequential full production/PWA run passes **32 cases**, with
+**four existing WebKit offline skips**. Production exclusion, installation,
+cache/update and supported offline scenarios pass. Skips are not passes;
+physical-iPad Safari offline/touch acceptance remains manual. Unrelated full
+unit/browser and optional comparison/Iceland suites were not rerun.
+
+Evidence: `chromium-tablet/pebble-headland-above.png`,
+`pebble-headland-oblique.png`, `pebble-rock-roof-above.png`,
+`pebble-shortcut-blocked.png`, `pebble-shortcut-evidence.json`, cave driving
+views and `pebble-camera-evidence.json`, with matching WebKit captures.
+The temporary baseline comparison never switches or resets the user checkout.
+
+Next: user review of the full
+Windward-to-cove drive, the naturalness of the headland/roof from above and the
+now-blocked direct landing approach. Physical-iPad performance, simultaneous
+touch and offline acceptance remain manual; this is still an internal world.
+
+### Driving feedback: artificial cave and unearned cove access - 2026-11-03
+
+The user finds the drive nice, but the cave looks too regular/man-made,
+especially from above. Its solid roof already exists; the straight,
+constant-width footprint and repeated arch are not a finished natural-rock
+exterior. Any refinement must preserve the accepted floor, daylight and
+camera clearance while integrating the enclosure into the surrounding rock.
+
+The user also reports direct driving access from the far-island landing to
+Pebble Cove, bypassing the lookout/descent. Inspection confirms a continuous
+dry terrain corridor from Saltgrass Landing `(110, 8)` to the cove `(126, 66)`,
+with sampled heights about 4-7.6 m. This inspection is not a new driven test,
+but corroborates the user's actual drive. Ordered recovery prevents an
+unearned checkpoint; it does not prevent physical access to the reward.
+The earned-cove geography contract is therefore **not met**.
+
+No terrain or gameplay change is made in this feedback investigation.
+The next design correction should address physical access and cave
+integration together using visible, collision-matched coastal landforms,
+not invisible walls or merely stricter progress tracking. Preserve the cove,
+its shallows and the driving line the user enjoys. Validate the reported
+landing-to-cove shortcut as well as the intended route and actual overhead/
+driving views before claiming the cove is an earned destination.
+
+### Pebble Cove shallow-water play area - 2026-11-03
+
+The user said **"Pebble cove itself is great"** and requested a small shallow
+area to drive in the water. Their full-challenge feedback will follow later;
+this is acceptance of the cove, not the whole descent/return.
+
+Added a local submerged shelf beyond the existing dry arrival, reached by a
+gradual beach ramp. Its bed is 32 cm below the unchanged sea level, with a
+verified 20 m by 10 m flat wet core and extra whole-car turning clearance.
+Pale fitted water shows the shallow area; the surrounding dark sea remains
+deep. Kept the dry pad, cave/challenge route, normal handling, earned-arrival
+rules and strict retry behavior unchanged. No new start, checkpoint, saved
+progression, public release, commit or push.
+
+**Reference and adaptation:** read the existing `TIDAL_CHANNELS` profiles,
+exact heightfield/fitted-water generation, wet-channel unit drives and browser
+water checks. Reused the same terrain/collision/colour/depth-aware sea pipeline
+and normal per-wheel wet handling, adapting a crossing channel into a compact
+shore-connected play shelf. No new mesh/collider lifecycle is introduced;
+resident resources remain owned and disposed by the current runtime.
+
+The first shelf supported the path's centre but not all wheels during a
+full-lock turn near the edge. Widened its flat support to cover that physical
+footprint rather than changing handling, tightening waypoint precision or
+relaxing wet-depth assertions.
+
+**Evidence:** typecheck, production build and all **81 Island Tracks units
+pass**, including both cars with analog and keyboard steering around the
+water loop and back onto dry land. Existing crossing, both Cove directions,
+dry turning pads, recovery, cave and exact fitted-water checks also pass.
+All **four affected browser cases pass** across Chromium and WebKit: real
+keyboard wet loop/dry return/Reset, current driving views and cave orbits.
+Inspected actual wet-driving captures in both engines and the dry return.
+Browser maximum wet depth was 0.32-0.345 m, with zero obstructed-camera frames,
+at most 49 draw calls / 192,510 rendered triangles. Current resident cost is
+**156,882 triangles / 19 colliders**.
+
+Evidence: `chromium-tablet/pebble-shallows-driving.png`,
+`pebble-shallows-dry-return.png` and `pebble-shallows-evidence.json`, with the
+same set under `webkit-tablet/`. Unrelated full suites and production/PWA
+were not rerun for this local terrain change; the preceding production/PWA
+result remains historical. Physical-iPad Safari gates remain manual.
+
+Next: drive down the beach into the pale water from
+[Pebble Cove](http://127.0.0.1:5173/?area=island-tracks&start=pebble-cove);
+await the user's later feedback on the full challenge without redesigning it
+in the meantime.
+
+### Pebble Cove and one canonical Island Tracks world - 2026-11-03
+
+The user authorized **"Let's do Pebble Cove"**, then requested one world called
+**Island Tracks**, accessed through `?area=island-tracks`, without intermediate
+variants. The current runtime now owns that ID and one picker entry. Removed
+the old causeway comparison's terrain, landmarks, configuration and executable
+scenarios; `tidal-islands` is no longer an accepted ID or picker choice. The
+other four comparison pilots, tropical Island and historical captures remain.
+Production exclusion remains in force. Current URLs:
+
+- [Harbor Cove](http://127.0.0.1:5173/?area=island-tracks)
+- [Windward junction](http://127.0.0.1:5173/?area=island-tracks&start=windward-lookout)
+- [Pebble Cove return](http://127.0.0.1:5173/?area=island-tracks&start=pebble-cove)
+
+**Implementation:** a 192.51 m eastern branch from the 30 m lookout descends
+26 m to a dry 4 m cove. It includes offset basalt steps, an inland ravine wall,
+a supported resting shelf, a 25.46 m dry daylight cave and a pebble shore with
+a level turning pad and fitted sea. Five real crossable stones provide tactile
+wheel-line choices. Both mouths are open; the car, spawn, surfaces and
+altimeter use the lower heightfield, while a separately matched roof supplies
+stacked collision. The existing sphere-swept camera handles the enclosure
+without changing shared camera/handling code or lifting it through the roof.
+
+**References and adaptation:** read the accepted tidal terrain/scenery/runtime
+and their real-driving/retry tests, plus Quarry's `quarryTunnelGeometry` and
+Deep Cut floor/roof/open-mouth tests before implementation. Built and proved
+the bare reversible floor with both cars and both analog/digital steering
+before adding the roof. Transferred the quarry's closed roof skin, buried
+edges, exact collision and light-readable interior, not its industrial theme,
+scale or local-righting policy. All added meshes/colliders use the resident
+runtime's deterministic ownership and disposal.
+
+The cove journey is one full challenge in each direction. Reset from the
+ravine, shelf or cave retries the actual departure; ordered arrival beyond
+the last threshold earns the cove, and returning retries from there. A real
+drive exposed overlapping entry tolerances immediately outside the lookout:
+the first matching ride could capture the new route as Seabird. Select the
+closest eligible outgoing segment, then pin ordered progress to it. Backing
+up, visiting the other branch or falling to an endpoint cannot skip a ride.
+The existing crossing, shore completion and Seabird geography are unchanged.
+
+**Corrections during development:** expanded the cove's flat core to include
+the 2 m grid's interpolated edge around the turning footprint. Replaced an
+incorrect fixed-Y cave camera assertion with actual ceiling-relative raycasts
+at the camera position. Early captures showed a grassy arrival; added a
+pebble-coloured shore and fitted shallow shelf. Conforming each vertex of a
+new shoulder boulder to a steep bank stretched it into an oversized blade;
+keep these stones rigid and embed them from the sampled footprint instead.
+Crossable low slabs retain their established bed-conforming technique.
+
+**Evidence:** typecheck, production build and **191 focused units pass**
+(Island Tracks, the four comparisons, shared physics and recovery). This
+includes both cars/both directions/both steering policies, all five new
+individual stone crossings, real cove turning circles, exact roof render/
+collision agreement, open mouths, lower-level queries, route isolation,
+ordered recovery and complete accepted crossing/Seabird drives. All **14 affected
+browser scenarios pass**, seven each in Chromium and WebKit: connected
+crossing/Seabird journeys, both Cove directions with real keyboard controls,
+strict retries, earned shores, above-water falls, named entries, world
+switching, canonical-ID selection and ceiling-relative cave camera orbits.
+Inspected final actual driving-height ravine, cave and cove captures in both
+engines after the shoulder-grounding refinement.
+
+The subsequent full production/PWA run reports **32 passed / 4 skipped**.
+Both engines exclude Island Tracks from production selection/direct entry.
+The four existing WebKit offline-keepsake/worker/reload skips remain manual
+gaps, not passes. Browser and PWA suites ran sequentially. Unrelated full
+unit/browser suites were not rerun.
+
+Current resident cost is **156,738 triangles / 19 colliders**, versus
+155,884 / 15 before the extension. The four added solid batches own the
+ravine steps, cave, shoulder boulders and cove pebbles; resource limits are
+unchanged. No world enlargement, vehicle/handling changes, missions, saved
+progression, public release, commit or push is included.
+
+Both engines completed the Cove descent and return with zero wet contact and
+zero obstructed-camera frames; observed peaks were 47 draw calls and 190,058
+rendered triangles, within the unchanged budgets. Final views and measurements
+are saved in the Chromium/WebKit `pebble-*.png` and `pebble-*-evidence.json`
+artifacts alongside refreshed accepted-route regressions.
+
+Next: user driving review from Windward Lookout along the eastern branch,
+descending the ravine and daylight cave, turning at Pebble Cove and climbing
+back to the lookout. Physical-iPad Safari performance, simultaneous touch and
+offline acceptance remain manual; the world stays internal.
 
 ### World documentation layout - 2026-11-03
 
@@ -360,7 +684,7 @@ User enjoyment/visual acceptance and physical-iPad Safari performance,
 simultaneous touch and offline acceptance remain open. This is still an
 internal development entry, not a public release.
 
-Next: [drive from Windward Lookout](http://127.0.0.1:5173/?area=tidal-islands&start=windward-lookout),
+Next: [drive from Windward Lookout](http://127.0.0.1:5173/?area=island-tracks&start=windward-lookout),
 climb through Wind Notch to the 67 m summit, turn around and descend. Judge
 the ledge widths and step rhythm before choosing another extension.
 No commits, pushes or branch changes were made.

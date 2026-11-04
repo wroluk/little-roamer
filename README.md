@@ -88,9 +88,9 @@ Direct links:
 The main location picker contains the six released worlds. On the local
 development server, expand **Development** below the normal home controls:
 
-- **Active builds:** fresh Island Tracks (`tidal-islands`), unfinished Iceland
+- **Active builds:** Island Tracks (`island-tracks`), unfinished Iceland
   (`iceland`).
-- **Comparison demos:** the five exploratory location sketches below and
+- **Comparison demos:** the four exploratory location sketches below and
   tropical Island (`island`).
 - **Tools:** **Traction lab (poligon)**, using the existing driving controls.
 
@@ -102,7 +102,7 @@ functional tests. Public **Iceland Highlands** remains a separate released world
 
 ### Compare the next location
 
-**Development → Comparison demos** includes five small, separate pilots from
+**Development → Comparison demos** includes four small comparison pilots from
 [LOCATION_IDEAS.md](LOCATION_IDEAS.md). Each has an easy connected circuit,
 an optional harder line, a dry starting/reset clearing and the existing Earth
 cars. They are samples for choosing the next location, not full eight-region
@@ -114,7 +114,6 @@ worlds, and are excluded from production selection and direct entry.
 | [Old Quarry](http://127.0.0.1:5173/?area=old-quarry) | Terraced pit, excavator and an optional deep tunnel with solid rubble crossings |
 | [Dune Sea](http://127.0.0.1:5173/?area=dune-sea) | Firm White Pan, soft crescent climb and Stone Window |
 | [Autumn Woods](http://127.0.0.1:5173/?area=autumn-woods) | Golden grove, ford, covered bridge and a high ridge with solid logs, roots and stones |
-| [Island Tracks](http://127.0.0.1:5173/?area=island-tracks) | Lighthouse, grass headland, rock ridge and raised two-islet causeway |
 
 Pause and choose **Back to home screen** to switch pilots. The tropical
 [Island](http://127.0.0.1:5173/?area=island), with its jungle and aqueduct,
@@ -129,11 +128,10 @@ mossy stone crossings, then back down before the ford. Read the obstacles and
 try different wheel lines; some faces need a controlled run-up rather than
 continuous crawling. The original easy circuits remain available.
 
-### Island Tracks — Rock Passage
+### Island Tracks
 
-The selected direction is a **fresh crossing-first build**, separate from the
-old lighthouse/causeway sample:
-**[drive Rock Passage](http://127.0.0.1:5173/?area=tidal-islands)** on the
+The selected direction is a **crossing-first driving adventure**:
+**[drive Island Tracks](http://127.0.0.1:5173/?area=island-tracks)** on the
 development server. Leave Harbor Cove and follow the cairns through a winding
 basalt chain: four solid stone ribs, narrow rock gates and three shallow sea
 channels lead to Saltgrass Landing. Climb the eastern island to the 30 m
@@ -142,12 +140,23 @@ normal handling; deliberate wheel placement and occasional controlled run-ups
 matter. There is no bridge, easy dry
 bypass or tide timer.
 
+There is just one Island Tracks entry. The old lighthouse/causeway comparison
+has been removed, and the intermediate `tidal-islands` URL is retired.
+
 For the second demanding ride, continue north from Windward Lookout onto
 **Seabird Climb**: another 180 m of exposed cliff ledges, four solid offset
 stone crossings and an upper switchback. Pause at the 47 m **Wind Notch**,
 then reach the 67 m **Seabird Summit**, with a clear turning area and a view
 back toward the islands. The way down follows the same physical trail.
-[Start at the foot of the climb](http://127.0.0.1:5173/?area=tidal-islands&start=windward-lookout).
+[Start at Windward Lookout](http://127.0.0.1:5173/?area=island-tracks&start=windward-lookout).
+
+At the same lookout, the **eastern branch** leads onto **Pebble Cove Descent**:
+193 m of offset basalt steps and a supported ravine shelf, descending 26 m
+through a short dry cave to a sheltered pebble shore. Daylight at both mouths
+frames the sea reveal. The supported floor climbs back the same way, with
+room to turn at the cove. The whole lookout-to-cove journey is one challenge;
+the shelf and cave mouths are not recovery checkpoints.
+[Inspect the cove and start the return](http://127.0.0.1:5173/?area=island-tracks&start=pebble-cove).
 
 Pale turquoise reveals the shallow bed; dark blue is deep sea, not an alternate
 route. If the car sinks, the driving camera stays at least 1 m above the sea
@@ -165,15 +174,14 @@ the car's heading or gear; backing up cannot move the retry point forward.
 Reaching an exit out of sequence cannot unlock it. Development
 inspection links also accept `&start=harbor-cove`, `&start=gull-rock`,
 `&start=split-saddle`, `&start=saltgrass-landing`, `&start=windward-lookout`,
-`&start=wind-notch` or `&start=seabird-summit`. Gull Rock, Split Saddle and Wind
+`&start=wind-notch`, `&start=seabird-summit` or `&start=pebble-cove`. Gull Rock, Split Saddle and Wind
 Notch inspection entries still retry from their full challenge's entrance.
 Saltgrass Landing starts on the earned island; the summit entry starts a descent.
 
 This connected development build is not the full eight-region world and stays
-out of production selection/direct entry. The old comparison and tropical
-Island pilots remain intact. See the [current build plan](artifacts/island-tracks/BUILD_PLAN.md)
-and [latest progress/evidence](artifacts/island-tracks/PROGRESS.md#progress). The proposed
-Pebble Cove Descent is planning only, not another available route.
+out of production selection/direct entry. The other comparison pilots and
+tropical Island remain intact. See the [current build plan](artifacts/island-tracks/BUILD_PLAN.md)
+and [latest progress/evidence](artifacts/island-tracks/PROGRESS.md#progress).
 
 In the highlands, follow the **amber posts** for broad, shallow river crossings.
 Drive down the bank, through the water, and up the opposite side. The riverbed
@@ -690,11 +698,11 @@ Its functional checks are opt-in, like the other comparison demos:
 `ROAMER_INCLUDE_DEMOS=1 npx playwright test tests/browser/island.spec.ts`.
 Production exclusion is covered by `tests/pwa/island.spec.ts`.
 
-The five comparison sketches and tropical Island are development demos, not release gates.
+The four comparison sketches and tropical Island are development demos, not release gates.
 Their functional tests are excluded from `npm test` and `npm run test:browser`.
 Run them only when explicitly wanted: `npm run test:demos` and
 `npm run test:browser:demos` (set `ROAMER_PORT=5174` for this worktree).
-The fresh Island Tracks crossing (`tidal-islands`) is not one of these demos
+Island Tracks (`island-tracks`) is not one of these demos
 and remains in the normal suites, as do shared vehicle/selection checks.
 Units drive complete circuits with both Earth cars and every optional line
 in both directions. Browser scenarios capture actual driving-height views,
@@ -708,15 +716,20 @@ The production-exclusion guard in `tests/pwa/location-demos.spec.ts` remains
 in the PWA suite: it checks that demos stay inaccessible in the released game,
 not whether their experimental terrain works.
 
-For the fresh Island Tracks crossing, run
+For Island Tracks, run
 `node --import tsx --test tests/tidal-tracks.test.ts`
 and `npx playwright test tests/browser/tidal-tracks.spec.ts`.
-Units drive the entire cove-to-lookout journey with both Earth cars in both
-directions and measure individual solid steps. Both browser engines drive the
+Units drive Rock Passage, Seabird Climb and Pebble Cove with both Earth cars,
+analog and keyboard steering, and measure individual solid steps. Both browser engines drive the
 complete passage using keyboard controls, require all three actual wet-wheel
 crossings, and check contact movement, camera clearance, direction-aware challenge retries,
 earned-shore recovery before/after the first inland turn, above-water fall/orbit
 views, regional entries, photo-mode isolation and switching/disposal.
+Pebble Cove checks include the reversible cave journey, floor/roof agreement,
+daylight mouths, actual ceiling-relative camera orbits, final-obstacle arrival,
+both Reset controls and isolation at the Seabird junction. Canonical entry
+checks require one `island-tracks` picker item and reject the retired
+`tidal-islands` ID.
 Shared camera collision, optional waterline floors and unchanged recovery are
 covered by `node --import tsx --test tests/physics.test.ts tests/vehicle-recovery.test.ts`.
 Production exclusion is covered by `tests/pwa/tidal-tracks.spec.ts`; run PWA checks after
@@ -766,7 +779,7 @@ parked, not accepted as passing. Opt in with `npm run test:iceland` and
 Vatnajökull/recovery cases in the shared browser specs as well.
 The production-exclusion guard remains in the PWA suite.
 This does not exclude Iceland Highlands (`highlands`) or the selected
-Island Tracks crossing (`tidal-islands`).
+Island Tracks crossing (`island-tracks`).
 
 The unmarked Delta / Dunes wreck has focused geometry, terrain sightline and
 real-Scout checks in `tests/mars-wreck.test.ts`, plus the short dual-engine

@@ -9,6 +9,9 @@ import { MARS_SUN_OFFSET } from '../src/game/mars-streaming';
 import { LAVA_TUBES } from '../src/game/mars-tubes-layout';
 import { lavaTubeGeometry } from '../src/game/mars-tubes-landmarks';
 import { marsSurfaceHeight } from '../src/game/mars-terrain';
+import { pebbleCaveGeometry } from '../src/game/tidal-scenery';
+import { TIDAL_SUN_OFFSET } from '../src/game/tidal-tracks';
+import { tidalGroundHeight } from '../src/game/tidal-terrain';
 
 const matrixRow = (matrix: THREE.Matrix4, row: number) =>
   new THREE.Vector3(matrix.elements[row], matrix.elements[row + 4], matrix.elements[row + 8]);
@@ -40,18 +43,20 @@ function visibility(atlas: StaticSunlight, point: THREE.Vector3, normal = new TH
   return result;
 }
 
-for (const area of ['moon', 'mars'] as const) test(`${area} fixed sunlight follows actual roof triangles, not rover position or skylight labels`, () => {
-  const roofs = area === 'moon' ? [moonHollowGeometry()] : LAVA_TUBES.map(tube => lavaTubeGeometry(tube));
-  const offset = area === 'moon' ? MOON_SUN_OFFSET : MARS_SUN_OFFSET;
+for (const area of ['moon', 'mars', 'island-tracks'] as const) test(`${area} fixed sunlight follows actual roof triangles, not rover position or skylight labels`, () => {
+  const roofs = area === 'moon' ? [moonHollowGeometry()] : area === 'mars'
+    ? LAVA_TUBES.map(tube => lavaTubeGeometry(tube)) : [pebbleCaveGeometry()];
+  const offset = area === 'moon' ? MOON_SUN_OFFSET : area === 'mars' ? MARS_SUN_OFFSET : TIDAL_SUN_OFFSET;
   const sunlight = new THREE.Vector3(...offset).normalize();
-  const atlas = new StaticSunlight(roofs, sunlight, area === 'moon' ? 0.2 : 0.3);
+  const atlas = new StaticSunlight(roofs, sunlight, area === 'mars' ? 0.3 : 0.2);
   const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
   const meshes = roofs.map(g => new THREE.Mesh(g, material));
-  const heightAt = area === 'moon' ? moonSurfaceHeight : marsSurfaceHeight;
+  const heightAt = area === 'moon' ? moonSurfaceHeight : area === 'mars' ? marsSurfaceHeight : tidalGroundHeight;
   let blocked = 0, clear = 0, matched = 0;
   try {
     assert.ok(atlas.texture.image.data.byteLength < 2 * 1024 * 1024, 'bounded single 8-bit atlas per world');
-    const bounds = area === 'moon' ? [-277, -213, 154, 246, 4] : [-517, -397, -586, -334, 8];
+    const bounds = area === 'moon' ? [-277, -213, 154, 246, 4]
+      : area === 'mars' ? [-517, -397, -586, -334, 8] : [136, 190, 18, 74, 2];
     const u = matrixRow(atlas.projection, 0).normalize();
     const v = matrixRow(atlas.projection, 1).normalize();
     for (let z = bounds[2]; z <= bounds[3]; z += bounds[4]) for (let x = bounds[0]; x <= bounds[1]; x += bounds[4]) {
@@ -82,7 +87,7 @@ for (const area of ['moon', 'mars'] as const) test(`${area} fixed sunlight follo
         litRoof++;
       }
     }
-    assert.ok(litRoof > 200);
+    assert.ok(litRoof > (area === 'island-tracks' ? 50 : 200));
     console.log(`${area} static sunlight: ${atlas.texture.image.width}×${atlas.texture.image.height}, ${blocked} shaded / ${clear} open samples`);
   } finally {
     atlas.dispose(); for (const roof of roofs) roof.dispose(); material.dispose();

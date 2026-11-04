@@ -20,11 +20,13 @@ rather than recreating prefixed plan/progress files at the repository root.
 - Follow the user's latest scope and authorization. Existing preferences persist;
   do not add a new approval step just because this guide is required reading.
 
-  ## Continuing Island Tracks work
+## Continuing Island Tracks work
 
-  Read `artifacts/island-tracks/BUILD_PLAN.md` and `artifacts/island-tracks/PROGRESS.md`.
-  These describe `?area=tidal-islands`; the tropical Island and old causeway
-  comparison are separate. Keep comparison history in `LOCATION_DEMOS.md`.
+Read `artifacts/island-tracks/BUILD_PLAN.md` and `artifacts/island-tracks/PROGRESS.md`.
+The single current world is `?area=island-tracks`. The old causeway comparison
+and intermediate `tidal-islands` ID are retired; do not recreate either.
+The tropical `?area=island` is separate. Keep historical comparison evidence
+in `LOCATION_DEMOS.md`.
 
 ## Continuing Iceland work
 

@@ -20,9 +20,9 @@ export class LocationDemoRuntime implements AreaRuntime {
       const geometry = demoTerrainGeometry(id);
       const terrain = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 }));
       terrain.name = `${id} terrain`; terrain.receiveShadow = true; this.group.add(terrain);
-      if (id === 'autumn-woods' || id === 'island-tracks') {
+      if (id === 'autumn-woods') {
         const waterMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.3, transparent: true, opacity: 0.88 });
-        const water = new THREE.Mesh(demoWaterGeometry(geometry, 0, undefined, id === 'island-tracks'), waterMaterial);
+        const water = new THREE.Mesh(demoWaterGeometry(geometry), waterMaterial);
         water.name = `${id} fitted water`; this.group.add(water);
         if (id === 'autumn-woods') {
           const source = new THREE.Mesh(demoWaterGeometry(geometry, 3.8, [55, -60, 96, -50]), waterMaterial);

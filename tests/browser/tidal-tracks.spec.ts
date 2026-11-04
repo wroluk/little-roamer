@@ -2,11 +2,12 @@ import { test, expect, type Page } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import type { Vehicle } from '../../src/game/vehicle';
 import type { FollowCamera } from '../../src/game/camera';
-import { TIDAL_ROUTE, TIDAL_CHANNELS, TIDAL_STARTS, SEABIRD_CLIMB, tidalGroundHeight } from '../../src/game/tidal-terrain';
+import type RAPIER from '@dimforge/rapier3d-compat';
+import { TIDAL_ROUTE, TIDAL_CHANNELS, TIDAL_STARTS, SEABIRD_CLIMB, PEBBLE_DESCENT, tidalGroundHeight } from '../../src/game/tidal-terrain';
 import { demoState, driveDemo, type DemoGame } from './location-demo-driving';
 
 async function boot(page: Page, start = 'harbor-cove') {
-  await page.goto(`/?area=tidal-islands&start=${start}&car=modern`);
+  await page.goto(`/?area=island-tracks&start=${start}&car=modern`);
   await expect(page.locator('#start')).toBeEnabled({ timeout: 30_000 }); await page.locator('#start').click();
   await expect.poll(async () => (await demoState(page)).contacts).toBeGreaterThanOrEqual(2);
   await expect.poll(async () => {
@@ -44,7 +45,7 @@ test('fresh Island Tracks: wind-bent tree foliage from the reported cliff angle 
     const state = await demoState(page);
     expect(state.recoveryStart).toBe('windward-lookout');
     expect(state.drawCalls).toBeLessThan(65); expect(state.triangles).toBeLessThan(300_000);
-    expect(state.streaming.colliderCount).toBe(15);
+    expect(state.streaming.colliderCount).toBe(19);
     await page.keyboard.press('Escape');
   }
   expect(errors).toEqual([]);
@@ -55,12 +56,12 @@ test('fresh Island Tracks: views, safe entries, whole-challenge recovery and swi
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   const folder = `artifacts/island-tracks/${info.project.name}`; await mkdir(folder, { recursive: true });
   for (const [index, start] of TIDAL_STARTS.entries()) {
-    const recovery = TIDAL_STARTS[[0, 0, 0, 3, 4, 4, 6][index]];
+    const recovery = TIDAL_STARTS[[0, 0, 0, 3, 4, 4, 6, 7][index]];
     await boot(page, start.id);
     await expect(page.locator('#reset')).toHaveAttribute('title', 'Restart the whole current challenge from its departure point (R)');
     await expect.poll(async () => (await demoState(page)).recoveryStart).toBe(recovery.id);
     const state = await demoState(page);
-    expect(state.area).toBe('tidal-islands'); expect(state.gravity).toBe(-18);
+    expect(state.area).toBe('island-tracks'); expect(state.gravity).toBe(-18);
     expect(state.position.x).toBeCloseTo(start.position.x, 0); expect(state.position.z).toBeCloseTo(start.position.z, 0);
     await page.screenshot({ path: `${folder}/${start.id}-driving.png` });
     await page.evaluate(() => (window as unknown as { __ROAMER__: DemoGame }).__ROAMER__.placeVehicle(20, 70, 0));
@@ -101,13 +102,15 @@ test('fresh Island Tracks: views, safe entries, whole-challenge recovery and swi
   await page.screenshot({ path: `${folder}/wading-driving.png` });
   const before = await demoState(page);
   await page.locator('#pause').click(); await page.locator('#home').click();
+  await expect(page.locator('input[name="area"][value="island-tracks"]')).toHaveCount(1);
+  await expect(page.locator('input[name="area"][value="tidal-islands"]')).toHaveCount(0);
   await page.locator('input[name="area"][value="valley"]').check(); await expect(page.locator('#start')).toBeEnabled();
   expect((await demoState(page)).area).toBe('valley');
   await page.locator('#development-menu > summary').click();
-  await page.locator('input[name="area"][value="tidal-islands"]').check(); await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('input[name="area"][value="island-tracks"]').check(); await expect(page.locator('#start')).toBeEnabled();
   const after = await demoState(page);
   expect(after.geometries).toBeLessThanOrEqual(before.geometries + 2);
-  expect(after.streaming.colliderCount).toBe(15);
+  expect(after.streaming.colliderCount).toBe(19);
   expect(after.drawCalls).toBeLessThan(65); expect(after.triangles).toBeLessThan(300_000);
   expect(errors).toEqual([]);
   await writeFile(`${folder}/render-budget.json`, JSON.stringify(after, null, 2));
@@ -122,6 +125,8 @@ test('fresh Island Tracks: Reset and R restart the challenge upright, overturned
     [TIDAL_STARTS[3], TIDAL_STARTS[2], TIDAL_STARTS[0], TIDAL_ROUTE.slice(17, 20).reverse()],
     [TIDAL_STARTS[4], TIDAL_STARTS[5], TIDAL_STARTS[6], SEABIRD_CLIMB.slice(0, 2)],
     [TIDAL_STARTS[6], TIDAL_STARTS[5], TIDAL_STARTS[4], [...SEABIRD_CLIMB].reverse().slice(0, 2)],
+    [TIDAL_STARTS[4], { position: PEBBLE_DESCENT[10] }, TIDAL_STARTS[7], PEBBLE_DESCENT.slice(0, 2)],
+    [TIDAL_STARTS[7], { position: PEBBLE_DESCENT[10] }, TIDAL_STARTS[4], [...PEBBLE_DESCENT].reverse().slice(0, 2)],
   ] as const) {
     await boot(page, entry.id);
     const driven = await driveDemo(page, approach, 2.5, 50_000, 2);
@@ -300,7 +305,7 @@ test('fresh Island Tracks: solid cairns block the car while the adjacent line st
   expect(Math.abs(blocked.state.speed)).toBeLessThan(0.2);
   expect(blocked.minimumUp).toBeGreaterThan(0.95);
   expect(blocked.obstructedFrames).toBe(0);
-  expect(blocked.state.streaming.colliderCount).toBe(15);
+  expect(blocked.state.streaming.colliderCount).toBe(19);
   expect(errors).toEqual([]);
   const folder = `artifacts/island-tracks/${info.project.name}`; await mkdir(folder, { recursive: true });
   const viewport = page.viewportSize()!;
@@ -351,11 +356,237 @@ test('fresh Island Tracks: Seabird Climb from the landing to the summit and back
     expect(result.suspensionDifference).toBeGreaterThan(0.04);
     expect(result.obstructedFrames).toBe(0);
     expect(result.maxCalls).toBeLessThan(65); expect(result.maxTriangles).toBeLessThan(300_000);
-    expect(result.state.streaming.colliderCount).toBe(15);
+    expect(result.state.streaming.colliderCount).toBe(19);
     expect(result.state.recoveryStart).toBe(reverse ? 'saltgrass-landing' : 'seabird-summit');
     results.push({ reverse, ...result });
     await page.screenshot({ path: `${folder}/seabird-climb-${reverse ? 'descent' : 'ascent'}.png` });
     await writeFile(`${folder}/seabird-driving-evidence.json`, JSON.stringify(results, null, 2));
   }
+  expect(errors).toEqual([]);
+});
+
+test('Island Tracks: Pebble Cove descent and return through the daylight cave with real keyboard controls', async ({ page }, info) => {
+  test.setTimeout(600_000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  const folder = `artifacts/island-tracks/${info.project.name}`; await mkdir(folder, { recursive: true });
+  const results = [];
+  await boot(page, 'windward-lookout');
+  for (const reverse of [false, true]) {
+    const path = reverse ? [...PEBBLE_DESCENT].reverse() : [...PEBBLE_DESCENT.slice(0, -1), { x: 135, z: 68 }];
+    const result = await driveDemo(page, path, 2.5, 240_000, 2);
+    expect(result.next, JSON.stringify(result)).toBe(result.total);
+    expect(result.minimumUp).toBeGreaterThan(0.65); expect(result.maxWater).toBe(0);
+    expect(result.low).toBeLessThan(5); expect(result.high).toBeGreaterThan(30);
+    expect(result.wheelLift).toBeGreaterThan(0.1); expect(result.articulation).toBeGreaterThan(0.08);
+    expect(result.suspensionDifference).toBeGreaterThan(0.04);
+    expect(result.obstructedFrames).toBe(0);
+    expect(result.maxCalls).toBeLessThan(65); expect(result.maxTriangles).toBeLessThan(300_000);
+    expect(result.state.streaming.colliderCount).toBe(19);
+    const arrival = reverse ? TIDAL_STARTS[4] : TIDAL_STARTS[7];
+    expect(result.state.recoveryStart).toBe(arrival.id);
+    await page.screenshot({ path: `${folder}/pebble-${reverse ? 'return' : 'arrival'}-driving.png` });
+    await page.keyboard.press('KeyR');
+    await expect(page.locator('#toast')).toHaveText(`Back at ${arrival.name}`);
+    await expect.poll(async () => {
+      const state = await demoState(page);
+      return Math.hypot(state.position.x - arrival.position.x, state.position.z - arrival.position.z);
+    }).toBeLessThan(0.5);
+    results.push({ reverse, ...result });
+    await writeFile(`${folder}/pebble-driving-evidence.json`, JSON.stringify(results, null, 2));
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Island Tracks: the landing shortcut meets a real headland, with an irregular cave roof above', async ({ page }, info) => {
+  test.setTimeout(75_000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  const folder = `artifacts/island-tracks/${info.project.name}`; await mkdir(folder, { recursive: true });
+  await boot(page, 'saltgrass-landing');
+  const shortcut = await driveDemo(page, [{ x: 110, z: 8 }, { x: 126, z: 66 }], 4, 22_000, 2);
+  expect(shortcut.next, 'the reported direct route must no longer reach the cove').toBeLessThan(shortcut.total);
+  expect(shortcut.state.position.z).toBeLessThan(40);
+  expect(shortcut.state.recoveryStart).toBe('saltgrass-landing');
+  await page.screenshot({ path: `${folder}/pebble-shortcut-blocked.png` });
+  await writeFile(`${folder}/pebble-shortcut-evidence.json`, JSON.stringify(shortcut, null, 2));
+  for (const [name, position, target] of [
+    ['pebble-headland-above', { x: 145, y: 120, z: 47 }, { x: 145, y: 40, z: 47 }],
+    ['pebble-headland-oblique', { x: 190, y: 83, z: 88 }, { x: 150, y: 25, z: 43 }],
+    ['pebble-rock-roof-above', { x: 164, y: 91, z: 42 }, { x: 164, y: 18, z: 42 }],
+  ] as const) {
+    await page.evaluate(view => (window as unknown as { __ROAMER__: DemoGame }).__ROAMER__.setPhotoView(view),
+      { position, target, fov: 65 });
+    await page.getByRole('button', { name: 'Hide UI', exact: true }).click();
+    await page.waitForTimeout(250);
+    await page.screenshot({ path: `${folder}/${name}.png` });
+    await page.keyboard.press('Escape');
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Island Tracks: reported scenery corrections at the cave joins, upper track and lookout', async ({ page }, info) => {
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await boot(page, 'windward-lookout');
+  const folder = `artifacts/island-tracks/${info.project.name}`; await mkdir(folder, { recursive: true });
+  for (const [name, position, target] of [
+    ['pebble-roof-hill-join', { x: 181, y: 17, z: 24 }, { x: 175, y: 18, z: 37 }],
+    ['pebble-roof-cove-join', { x: 153, y: 9, z: 55 }, { x: 160, y: 15, z: 47 }],
+    ['pebble-upper-track-shadow', { x: 177, y: tidalGroundHeight(177, -27) + 3, z: -27 }, { x: 170, y: 21, z: -14 }],
+    ['lookout-vane-supported', { x: 145, y: 33, z: -42 }, { x: 149, y: 33, z: -49 }],
+  ] as const) {
+    expect(position.y).toBeGreaterThan(tidalGroundHeight(position.x, position.z) + 1);
+    if (name === 'pebble-upper-track-shadow') {
+      await page.evaluate(async () => {
+        const game = (window as unknown as { __ROAMER__: DemoGame & { renderer: import('three').WebGLRenderer } }).__ROAMER__;
+        await game.placeVehicle(172, -20, Math.PI);
+        game.renderer.shadowMap.enabled = true;
+      });
+      await expect.poll(async () => (await demoState(page)).contacts).toBeGreaterThanOrEqual(2);
+    }
+    await page.evaluate(view => (window as unknown as { __ROAMER__: DemoGame }).__ROAMER__.setPhotoView(view),
+      { position, target, fov: 65 });
+    await page.getByRole('button', { name: 'Hide UI', exact: true }).click(); await page.waitForTimeout(250);
+    await page.screenshot({ path: `${folder}/${name}.png` });
+    await page.keyboard.press('Escape');
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Island Tracks: returning from the cove edge keeps Pebble Cove after an uphill fall and either reset control', async ({ page }, info) => {
+  test.setTimeout(360_000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await boot(page, 'pebble-cove');
+  const arrival = await driveDemo(page, [
+    { x: 126, z: 66 }, { x: 137, z: 68 },
+  ], 2.5, 60_000, 1);
+  expect(arrival.next, JSON.stringify(arrival)).toBe(arrival.total);
+  expect(arrival.state.recoveryStart).toBe('pebble-cove');
+  const uphill = await driveDemo(page, [
+    { x: 137, z: 68 }, ...[...PEBBLE_DESCENT].reverse().slice(1, 9),
+  ], 2.5, 180_000, 2);
+  expect(uphill.next, JSON.stringify(uphill)).toBe(uphill.total);
+  expect(uphill.state.recoveryStart).toBe('pebble-cove');
+  const folder = `artifacts/island-tracks/${info.project.name}`; await mkdir(folder, { recursive: true });
+  await page.screenshot({ path: `${folder}/pebble-uphill-before-fall.png` });
+  for (const reset of ['button', 'key'] as const) {
+    await page.evaluate(async () => {
+      const game = (window as unknown as { __ROAMER__: DemoGame & { vehicle: Vehicle } }).__ROAMER__;
+      await game.placeVehicle(172, -20, Math.PI);
+      game.vehicle.body.setTranslation({ x: 190, y: 22, z: -20 }, true);
+      game.vehicle.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      game.vehicle.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      game.vehicle.capture();
+    });
+    await expect.poll(async () => (await demoState(page)).waterDepth).toBeGreaterThan(1);
+    if (reset === 'button') await page.locator('#reset').click();
+    else if (reset === 'key') await page.keyboard.press('KeyR');
+    await expect.poll(async () => {
+      const state = await demoState(page);
+      return Math.hypot(state.position.x - 126, state.position.z - 66);
+    }, { timeout: 20_000 }).toBeLessThan(0.5);
+    expect((await demoState(page)).recoveryStart).toBe('pebble-cove');
+    await page.screenshot({ path: `${folder}/pebble-uphill-${reset}-reset.png` });
+  }
+  await writeFile(`${folder}/pebble-uphill-reset-evidence.json`, JSON.stringify({ arrival, uphill }, null, 2));
+  expect(errors).toEqual([]);
+});
+
+test('Island Tracks: Pebble Cove shallow-water play and dry return retain earned recovery', async ({ page }, info) => {
+  test.setTimeout(180_000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  const folder = `artifacts/island-tracks/${info.project.name}`; await mkdir(folder, { recursive: true });
+  await boot(page, 'pebble-cove');
+  const outward = await driveDemo(page, [
+    { x: 126, z: 66 }, { x: 126, z: 78 }, { x: 126, z: 88 }, { x: 126, z: 96 }, { x: 132, z: 100 },
+  ], 2.3, 70_000, 2);
+  expect(outward.next, JSON.stringify(outward)).toBe(outward.total);
+  expect(outward.maxWater).toBeGreaterThan(0.15); expect(outward.maxWater).toBeLessThan(0.5);
+  expect(outward.state.waterDepth).toBeGreaterThan(0.15);
+  await page.screenshot({ path: `${folder}/pebble-shallows-driving.png` });
+  const returning = await driveDemo(page, [
+    { x: 132, z: 100 }, { x: 138, z: 96 }, { x: 138, z: 90 }, { x: 132, z: 84 },
+    { x: 126, z: 78 }, { x: 126, z: 66 },
+  ], 2.3, 70_000, 2);
+  expect(returning.next, JSON.stringify(returning)).toBe(returning.total);
+  expect(returning.maxWater).toBeLessThan(0.5);
+  expect(returning.state.waterDepth).toBe(0);
+  for (const result of [outward, returning]) {
+    expect(result.minimumUp).toBeGreaterThan(0.65);
+    expect(result.obstructedFrames).toBe(0);
+    expect(result.maxCalls).toBeLessThan(65); expect(result.maxTriangles).toBeLessThan(300_000);
+    expect(result.state.recoveryStart).toBe('pebble-cove');
+  }
+  await page.screenshot({ path: `${folder}/pebble-shallows-dry-return.png` });
+  await page.keyboard.press('KeyR');
+  await expect(page.locator('#toast')).toHaveText('Back at Pebble Cove');
+  await expect.poll(async () => {
+    const state = await demoState(page);
+    return Math.hypot(state.position.x - 126, state.position.z - 66);
+  }).toBeLessThan(0.5);
+  await writeFile(`${folder}/pebble-shallows-evidence.json`, JSON.stringify({ outward, returning }, null, 2));
+  expect(errors).toEqual([]);
+});
+
+test('Island Tracks: Pebble Cove driving views, cave camera orbits and canonical entry', async ({ page }, info) => {
+  test.setTimeout(90_000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  const folder = `artifacts/island-tracks/${info.project.name}`; await mkdir(folder, { recursive: true });
+  await boot(page, 'windward-lookout');
+  const headings = [
+    ['pebble-junction', 149, -57, 2.24], ['pebble-ravine', 177, -48, -2.94],
+    ['pebble-resting-shelf', 168, -4, -Math.PI], ['pebble-cave-entry', 177, 28, 2.36],
+    ['pebble-cave-interior', 164, 42, 2.36], ['pebble-cave-exit', 152, 54, 2.36],
+    ['pebble-cove', 130, 66, Math.PI / 2], ['pebble-cave-return', 158, 48, -Math.PI / 4],
+  ] as const;
+  for (const [name, x, z, heading] of headings) {
+    await page.evaluate(async ({ x, z, heading }) =>
+      (window as unknown as { __ROAMER__: DemoGame }).__ROAMER__.placeVehicle(x, z, heading), { x, z, heading });
+    await expect.poll(async () => (await demoState(page)).contacts).toBeGreaterThanOrEqual(2);
+    await expect.poll(async () => {
+      const state = await demoState(page);
+      return Math.abs(state.position.y - tidalGroundHeight(state.position.x, state.position.z));
+    }).toBeLessThan(0.9);
+    await page.waitForTimeout(300);
+    const state = await demoState(page);
+    expect(state.area).toBe('island-tracks');
+    expect(state.waterDepth).toBe(0); expect(state.cameraObstructed).toBe(false);
+    expect(state.recoveryStart).toBe('windward-lookout', 'inspection/fall cannot earn the cove');
+    await page.screenshot({ path: `${folder}/${name}-view.png` });
+  }
+  await page.evaluate(async () => {
+    const game = (window as unknown as { __ROAMER__: DemoGame }).__ROAMER__;
+    await game.placeVehicle(164, 42, Math.PI * 0.75);
+  });
+  await page.waitForTimeout(400);
+  const orbits = await page.evaluate(async () => {
+    const game = (window as unknown as { __ROAMER__: DemoGame & { follow: FollowCamera; world: RAPIER.World } }).__ROAMER__;
+    const states = [];
+    for (let i = 0; i < 36; i++) {
+      game.follow.orbit(Math.PI / 18, i === 0 ? -0.75 : i === 18 ? 1.37 : 0);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      const state = game.snapshot();
+      const origin = { x: state.camera[0], y: state.camera[1], z: state.camera[2] }, dir = { x: 0, y: 1, z: 0 };
+      const hit = game.world.castRay({ origin, dir, pointAt: t => ({ ...origin, y: origin.y + t }) }, 40, true);
+      states.push({ ...state, overhead: hit ? origin.y + hit.timeOfImpact : null });
+    }
+    return states;
+  });
+  let covered = 0;
+  for (const state of orbits) {
+    expect(state.cameraObstructed).toBe(false);
+    const along = ((state.camera[2] - 33) - (state.camera[0] - 173)) / Math.SQRT2;
+    const across = ((state.camera[0] - 173) + (state.camera[2] - 33)) / Math.SQRT2;
+    if (along > 1 && along < 24 && Math.abs(across) < 7) {
+      covered++;
+      expect(state.overhead).not.toBeNull();
+      expect(state.camera[1], 'the cave camera remains below the actual ceiling at its own position')
+        .toBeLessThan(state.overhead! - 0.3);
+    }
+    expect(state.position.y, 'the car remains on the cave floor').toBeLessThan(10);
+  }
+  expect(covered).toBeGreaterThan(10);
+  await writeFile(`${folder}/pebble-camera-evidence.json`, JSON.stringify(orbits, null, 2));
+  await page.goto('/?area=tidal-islands');
+  await expect(page.locator('#start')).toBeEnabled();
+  await expect(page.locator('body')).toHaveAttribute('data-area', 'northern-reach');
   expect(errors).toEqual([]);
 });

@@ -129,7 +129,7 @@ async function boot() {
         new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), area.spawnHeading), true);
       const follow = new FollowCamera(camera, world, vehicle, area.surfaceHeight,
         { pitch: area.id === 'moon' ? -0.46 : -0.2, yaw: 0 },
-        area.id === 'tidal-islands' ? area.waterHeight : undefined);
+        area.id === 'island-tracks' ? area.waterHeight : undefined);
       // Populate scene queries and settle all four wheels before handing over control.
       for (let i = 0; i < 90; i++) {
         vehicle.beforeStep({ steer: 0, forward: false, reverse: false }, 1 / 60);
@@ -196,7 +196,7 @@ async function boot() {
     spawnHeading: islandStart.heading, welcomeEyebrow: `ISLAND / ${islandStart.name.toUpperCase()} PILOT`,
     readyMessage: `${islandStart.name} is ready. Follow the loop back to the beach.` };
   const tidalStart = TIDAL_STARTS.find(start => start.id === new URLSearchParams(window.location.search).get('start'));
-  if (area.id === 'tidal-islands' && tidalStart) area = { ...area, spawn: tidalSpawn(tidalStart.position),
+  if (area.id === 'island-tracks' && tidalStart) area = { ...area, spawn: tidalSpawn(tidalStart.position),
     spawnHeading: tidalStart.heading, welcomeEyebrow: `ISLAND TRACKS / ${tidalStart.name.toUpperCase()}`,
     readyMessage: `${tidalStart.name} is ready. Read the rock and shallow-water lines before moving on.` };
   document.body.dataset.area = area.id;
@@ -233,7 +233,7 @@ async function boot() {
     developmentPicker.disabled = true;
     developmentPicker.setAttribute('aria-labelledby', summary.id);
     for (const group of [
-      { id: 'development-builds', title: 'Active builds', areas: ['tidal-islands', 'iceland'] as const },
+      { id: 'development-builds', title: 'Active builds', areas: ['island-tracks', 'iceland'] as const },
       { id: 'development-demos', title: 'Comparison demos', areas: [...DEMO_IDS, 'island'] as const },
     ]) {
       const fieldset = document.createElement('fieldset');
@@ -249,7 +249,7 @@ async function boot() {
         const title = document.createElement('b'); title.textContent = AREAS[id].name;
         const subtitle = document.createElement('small');
         subtitle.textContent = isDemoId(id) ? DEMOS[id].subtitle
-          : id === 'tidal-islands' ? 'Rock Passage & Seabird Climb'
+          : id === 'island-tracks' ? 'Rock Passage, Seabird Climb & Pebble Cove'
           : id === 'iceland' ? 'Unfinished South Coast' : 'Beach & jungle pilot';
         copy.append(title, subtitle); choice.append(copy); label.append(input, choice);
         options.append(label);
@@ -294,7 +294,7 @@ async function boot() {
   syncCarPicker();
   function surfaceLabel(): string {
     const surface = vehicle.currentSurface;
-    if (area.id === 'tidal-islands') {
+    if (area.id === 'island-tracks') {
       if (surface.id === 'water') return vehicle.waterDepth >= 0.85 ? 'Deep sea' : 'Rocky shallows';
       if (surface.id === 'rock') return 'Coastal basalt';
     }
@@ -351,7 +351,7 @@ async function boot() {
     element('surface-label').textContent = surfaceLabel();
     element('surface-trait').textContent = vehicle.currentSurface.trait;
     element('loading-status').textContent = area.readyMessage;
-    element<HTMLButtonElement>('reset').title = area.id === 'tidal-islands'
+    element<HTMLButtonElement>('reset').title = area.id === 'island-tracks'
       ? 'Restart the whole current challenge from its departure point (R)'
       : area.id === 'northern-reach' || area.id === 'mars' || area.id === 'iceland' || area.id === 'moon' || area.id === 'island'
       ? 'Right an overturned car here, or return to the nearest regional start (R)'
@@ -1088,7 +1088,7 @@ async function boot() {
       const alpha = clock.advance(elapsed, dt => {
         // Hold at an unready Mars/Iceland chunk until collision arrives, including the next
         // short movement interval. A delayed worker must not let the car fall through.
-        if ((area.id === 'mars' || area.id === 'iceland' || area.id === 'moon' || area.id === 'island' || area.id === 'tidal-islands' || isDemoId(area.id)) && runtime) {
+        if ((area.id === 'mars' || area.id === 'iceland' || area.id === 'moon' || area.id === 'island' || area.id === 'island-tracks' || isDemoId(area.id)) && runtime) {
           const v = vehicle.body.linvel();
           if (!runtime.isCollisionReadyAt(vehicle.position.x, vehicle.position.z)
             || !runtime.isCollisionReadyAt(vehicle.position.x + v.x * 0.15, vehicle.position.z + v.z * 0.15)) return;

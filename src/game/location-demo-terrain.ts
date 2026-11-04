@@ -4,7 +4,7 @@ import { icelandHash, icelandNoise } from './iceland-noise';
 import { demoStrata } from './location-demo-geometry';
 import { extraDemoRoutes, QUARRY_CHAMBER, QUARRY_COVER, WOODLAND_RIDGE } from './location-demo-adventures';
 
-export const DEMO_IDS = ['red-canyon', 'old-quarry', 'dune-sea', 'autumn-woods', 'island-tracks'] as const;
+export const DEMO_IDS = ['red-canyon', 'old-quarry', 'dune-sea', 'autumn-woods'] as const;
 export type DemoId = typeof DEMO_IDS[number];
 export type DemoPoint = { x: number; y: number; z: number };
 type Demo = {
@@ -51,17 +51,6 @@ export const DEMOS: Record<DemoId, Demo> = {
       p(30, -25, 1), p(45, -25, -0.25), p(60, -25, 1), p(78, 0, 4),
       p(65, 45, 4), p(25, 45, 4), p(-20, 65, 6), p(-65, 65, 6)],
     option: WOODLAND_RIDGE,
-  },
-  'island-tracks': {
-    name: 'Island Tracks', subtitle: 'Windy headlands & two islets',
-    description: 'A lighthouse above grassy basalt headlands, a smooth rock ridge and a permanently raised stone causeway to a second islet.',
-    hint: "The headland loop reaches Tide Gate. Cross its fixed raised causeway, circle Saltgrass Islet, and return by the cove. Whale's Back is optional.",
-    sky: '#b9d7de', ground: '#607e62', sun: '#fff0d5',
-    loop: [p(-90, 65, 5), p(-120, 15, 6), p(-95, -40, 9), p(-55, -45, 8),
-      p(-25, -5, 4), p(0, 15, 3), p(55, 15, 3), p(80, -15, 5),
-      p(110, 10, 6), p(95, 45, 4), p(55, 15, 3), p(0, 15, 3),
-      p(-35, 60, 5), p(-90, 65, 5)],
-    option: [p(-55, -45, 8), p(-64, -20, 13), p(-58, 3, 16), p(-44, 21, 10), p(-25, -5, 4)],
   },
 };
 export const DEMO_HALF = 200, DEMO_CELL = 2;
@@ -142,19 +131,8 @@ export function demoHeightAt(id: DemoId, x: number, z: number) {
       h += (-0.25 + 3.65 * smooth((x - 51) / 4) - h) * branch;
       break;
     }
-    case 'island-tracks': {
-      const r = Math.min(Math.hypot((x + 77) / 83, (z - 8) / 90), Math.hypot((x - 92) / 48, (z - 15) / 59));
-      h = -10 + 15 * (1 - smooth((r - 0.78 + (n - 0.5) * 0.05) / 0.28));
-      h += 11 * bump(x, z, -65, -7, 24, 55) * (1 - smooth((r - 0.6) / 0.4));
-      const causeway = (1 - smooth((Math.abs(z - 15) - 5) / 5))
-        * smooth((x + 28) / 17) * (1 - smooth((x - 58) / 16));
-      h += (3 - h) * causeway;
-      const lighthousePad = 1 - smooth((Math.hypot(x + 120, z + 27) - 6) / 7);
-      h += (7 - h) * lighthousePad;
-      break;
-    }
   }
-  if (id !== 'island-tracks') h += (28 + 20 * n) * smooth((Math.hypot(x, z) - 143) / 44);
+  h += (28 + 20 * n) * smooth((Math.hypot(x, z) - 143) / 44);
   const option = demoRouteSample(id, x, z);
   if (option.optional) h += (option.elevation - h) * (1 - smooth((option.distance - 4) / 7));
   const route = demoRouteSample(id, x, z, false);
@@ -200,7 +178,7 @@ export const demoHeading = (id: DemoId) => {
 };
 export const demoSpawn = (id: DemoId) => { const a = DEMOS[id].loop[0]; return { ...a, y: a.y + 1.2 }; };
 export function demoWaterHeight(id: DemoId, x: number, z: number): number | null {
-  if (id !== 'autumn-woods' && id !== 'island-tracks') return null;
+  if (id !== 'autumn-woods') return null;
   const h = demoGroundHeight(id, x, z);
   if (id === 'autumn-woods' && x >= 55 && x <= 96 && z >= -60 && z <= -50 && h < 3.8) return 3.8;
   return h < 0 ? 0 : null;
@@ -213,9 +191,8 @@ export function demoSurfaceAt(id: DemoId, x: number, z: number): SurfaceId {
     ? 'rock' : route.distance < 6 ? 'dirt' : 'rock';
   if (id === 'autumn-woods' && route.optional && route.distance < 5) return 'rock';
   if (id === 'red-canyon') return route.optional && route.distance < 6 ? 'rock' : 'dirt';
-  if (id === 'island-tracks' && route.optional && route.distance < 7) return 'rock';
   if (route.distance < 5) return 'dirt';
-  return id === 'island-tracks' && demoGroundHeight(id, x, z) < 2 ? 'sand' : 'grass';
+  return 'grass';
 }
 export function demoSurfaceLabel(id: DemoId, surface: SurfaceId, x: number, z: number) {
   if (surface === 'water') return id === 'autumn-woods' ? 'Woodland creek' : 'Coastal water';
@@ -230,7 +207,6 @@ const palette = {
   'old-quarry': ['#acb5ae', '#d2d1bc', '#bac2bb', '#8c9c96'],
   'dune-sea': ['#da9a58', '#e9b66f', '#eac897', '#c78349'],
   'autumn-woods': ['#727444', '#8a854b', '#625f39', '#818052'],
-  'island-tracks': ['#6e8e56', '#809d62', '#647f50', '#74905c'],
 };
 function groundColor(id: DemoId, x: number, z: number, h: number) {
   const n = icelandNoise(x / 15, z / 17), route = demoRouteSample(id, x, z);
@@ -242,12 +218,10 @@ function groundColor(id: DemoId, x: number, z: number, h: number) {
     c.set('#dea15c').lerp(new THREE.Color('#eee8cd'), 1 - smooth((whitePan(x, z) - 0.8) / 0.3));
     if (whitePan(x, z) < 0.9) c.multiplyScalar(0.96 + icelandHash(Math.floor(x / 4), Math.floor(z / 4)) * 0.06);
   }
-  if (id === 'island-tracks') c.lerp(new THREE.Color('#626d6b'), 1 - smooth((h + 0.5) / 3.5));
-  const trail = id === 'autumn-woods' ? '#ab7d47' : id === 'island-tracks' ? '#a3a080'
+  const trail = id === 'autumn-woods' ? '#ab7d47'
     : id === 'old-quarry' ? '#c5bfa9' : id === 'dune-sea' ? '#8a8070' : '#d8b18a';
   const amount = 1 - smooth((route.distance - 2.4) / 2.8);
   if (!(id === 'dune-sea' && (whitePan(x, z) < 1 || route.optional))) c.lerp(new THREE.Color(trail), amount * 0.8);
-  if (id === 'island-tracks' && route.optional) c.lerp(new THREE.Color('#62696a'), amount);
   if (id === 'old-quarry') c.multiplyScalar(0.5 + smooth((demoPathSample(QUARRY_COVER, x, z).distance - 4) / 8) * 0.5);
   return c.multiplyScalar(0.9 + n * 0.18);
 }
