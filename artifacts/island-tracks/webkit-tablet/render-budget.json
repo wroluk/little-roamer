@@ -1,6 +1,6 @@
 {
   "area": "island-tracks",
-  "bounds": 200,
+  "bounds": 360,
   "spawn": {
     "x": -125,
     "y": 7.2,
@@ -134,19 +134,19 @@
     0,
     0
   ],
-  "drawCalls": 37,
-  "triangles": 182844,
+  "drawCalls": 39,
+  "triangles": 230893,
   "pixelRatio": 1.5,
   "graphicsReduced": false,
-  "geometries": 37,
-  "textures": 1,
+  "geometries": 39,
+  "textures": 2,
   "cameraObstructed": false,
   "streaming": {
     "activeRender": 1,
     "activePhysics": 1,
     "queued": 0,
-    "triangles": 156464,
-    "colliderCount": 19,
+    "triangles": 210853,
+    "colliderCount": 21,
     "lastActivationMs": 0
   },
   "navigation": {

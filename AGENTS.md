@@ -27,9 +27,12 @@ The single current world is `?area=island-tracks`. The old causeway comparison
 and intermediate `tidal-islands` ID are retired; do not recreate either.
 The tropical `?area=island` is separate. Keep historical comparison evidence
 in `LOCATION_DEMOS.md`.
-Island Tracks is available from the normal home picker and GitHub Pages as a
-preview for iPad testing. This is not finished-release acceptance; keep the
-other local development worlds and tools excluded from production.
+The user accepted Island Tracks as complete on 2026-11-05, including the
+expanded mainland, western coast and postcards. It is available from the
+normal home picker and GitHub Pages. Keep other local development worlds and
+tools excluded from production. Acceptance requires a safe, repeatable way
+through obstacles, not crawl-speed success on every line; preserve terrain
+and try an appropriate run-up or approach angle before easing a challenge.
 
 ## Continuing Iceland work
 

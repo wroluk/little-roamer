@@ -1,0 +1,78 @@
+{
+  "mainland-meadows": {
+    "camera": {
+      "position": { "x": -451, "y": 16, "z": 99 },
+      "target": { "x": -470, "y": 15, "z": 65 },
+      "fov": 62
+    }
+  },
+  "needle-lighthouse": {
+    "camera": {
+      "position": { "x": -257, "y": 19, "z": -65 },
+      "target": { "x": -280, "y": 24, "z": -90 },
+      "fov": 60
+    }
+  },
+  "western-beacon": {
+    "camera": {
+      "position": { "x": -522, "y": 29.969237518310546, "z": -38 },
+      "target": { "x": -610, "y": 19.5, "z": -15 },
+      "fov": 38
+    }
+  },
+  "west-beach": {
+    "area": "island-tracks",
+    "car": {
+      "position": { "x": -591.998, "y": 3.303, "z": -93.001 },
+      "rotation": [0.001, 0.796, -0.002, 0.605]
+    },
+    "camera": {
+      "position": { "x": -595.381, "y": 6.67, "z": -103.969 },
+      "target": { "x": -605.119, "y": 4.503, "z": -95.265 },
+      "fov": 48
+    }
+  },
+  "other-shore": {
+    "camera": {
+      "position": { "x": 108, "y": 8, "z": 12 },
+      "target": { "x": 20, "y": 2, "z": 6 },
+      "fov": 65
+    }
+  },
+  "seabird-summit": {
+    "area": "island-tracks",
+    "car": {
+      "position": { "x": 136.999, "y": 67.763, "z": -151.001 },
+      "rotation": [-0.001, 0.811, -0.001, -0.585]
+    },
+    "camera": {
+      "position": { "x": 126.641, "y": 73.749, "z": -149.387 },
+      "target": { "x": 138.534, "y": 69.767, "z": -153.464 },
+      "fov": 48
+    }
+  },
+  "pebble-cove": {
+    "area": "island-tracks",
+    "car": {
+      "position": { "x": 128.811, "y": 1.684, "z": 85.909 },
+      "rotation": [0.011, 0.963, 0.262, 0.06]
+    },
+    "camera": {
+      "position": { "x": 143.256, "y": 8.994, "z": 64.61 },
+      "target": { "x": 137.572, "y": 4.3, "z": 75.646 },
+      "fov": 48
+    }
+  },
+  "smugglers-nook": {
+    "area": "island-tracks",
+    "car": {
+      "position": { "x": -614.508, "y": 2.963, "z": 25.364 },
+      "rotation": [-0.001, 0.866, -0.001, -0.501]
+    },
+    "camera": {
+      "position": { "x": -615.975, "y": 12.077, "z": 22.057 },
+      "target": { "x": -607.249, "y": 5.963, "z": 29.917 },
+      "fov": 48
+    }
+  }
+}

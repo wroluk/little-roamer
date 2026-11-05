@@ -1,0 +1,20 @@
+{
+  "status": "early-preview-awaiting-user-look-before-full-checks",
+  "bounds": [-660, -200, 200, 200],
+  "originalPatchCell": 2,
+  "westernPatchCell": 4,
+  "stitchedInterfaceX": -360,
+  "dryLandSample": {
+    "bounds": [-650, -190, -77, 190],
+    "cell": 2,
+    "beforeSquareMetres": 42788,
+    "afterSquareMetres": 114508,
+    "ratio": 2.6761708890343088,
+    "ratioToOriginal": 7.7896598639455785
+  },
+  "mainlandCircuitMetres": 809.2622201156879,
+  "heatherCutMetres": 149.46844598792887,
+  "residentTriangles": 251799,
+  "residentColliders": 24,
+  "fullDrivingAndBrowserAcceptance": "pending"
+}

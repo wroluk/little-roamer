@@ -5,12 +5,16 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { AREAS, isAreaId } from '../src/game/areas';
 import { TidalTracksRuntime } from '../src/game/tidal-tracks';
 import {
-  TIDAL_ROUTE, TIDAL_STARTS, TIDAL_CHANNELS, SEABIRD_CLIMB, PEBBLE_DESCENT, PEBBLE_CAVE, tidalGroundHeight, tidalWaterHeight,
+  TIDAL_ROUTE, TIDAL_STARTS, TIDAL_CHANNELS, SEABIRD_CLIMB, PEBBLE_DESCENT, PEBBLE_CAVE,
+  TIDAL_BOUNDS, HOME_LOOP, WHALES_BACK, MAINLAND_LOOP, HEATHER_CUT, NEEDLE_LIGHTHOUSE, HARBOR_MEADOW, tidalGroundHeight, tidalWaterHeight,
   tidalTerrainGeometry, tidalWaterGeometry, tidalSurfaceAt, tidalSpawn, tidalRouteSample,
+  WEST_BEACON_APPROACH, WEST_BEACH_APPROACH, NORTH_COVE_APPROACH, CLIFF_WADE, WEST_BEACH, WEST_WADE, WEST_BEACON,
+  COAST_BEACONS, SMUGGLERS_NOOK, SMUGGLERS_APPROACH,
 } from '../src/game/tidal-terrain';
-import { TIDAL_STEPS, SEABIRD_STEPS, PEBBLE_STEPS, tidalStepGeometry } from '../src/game/tidal-scenery';
+import { TIDAL_STEPS, SEABIRD_STEPS, PEBBLE_STEPS, CLIFF_BOULDERS, tidalStepGeometry } from '../src/game/tidal-scenery';
 import { Vehicle, type VehicleModelId } from '../src/game/vehicle';
 import { FollowCamera } from '../src/game/camera';
+import { PostcardTracker } from '../src/game/postcards';
 import { SCENERY_QUERY_GROUPS } from '../src/game/collision-groups';
 import { disposeScene } from '../src/game/dispose';
 import { DEMO_IDS, demoPathSample } from '../src/game/location-demo-terrain';
@@ -32,6 +36,10 @@ test('fresh Island Tracks has dry level resting places, real wet channels and no
   assert.ok(!DEMO_IDS.some(id => (id as string) === 'island-tracks'), 'no old causeway comparison at the canonical ID');
   assert.equal(AREAS['island-tracks'].gravity, undefined);
   assert.equal(AREAS['island-tracks'].handling, undefined);
+  const heading = AREAS['island-tracks'].spawnHeading!;
+  assert.ok(-Math.sin(heading) < -0.5, 'normal arrival must face the grassy mainland, not the other islet');
+  assert.equal(heading, TIDAL_STARTS[0].heading, 'normal start, named Harbor Cove and Reset must agree');
+  assert.ok(AREAS['island-tracks'].hint.length < 100, 'the brief arrival toast must not become a route manual');
   for (const start of TIDAL_STARTS) for (const dx of [-3, 0, 3]) for (const dz of [-3, 0, 3]) {
     assert.ok(Math.abs(tidalGroundHeight(start.position.x + dx, start.position.z + dz) - start.position.y) < 0.01);
     assert.equal(tidalWaterHeight(start.position.x + dx, start.position.z + dz), null);
@@ -67,7 +75,7 @@ test('exact terrain, fitted sea, obstacle grounding and bounded resource ownersh
     for (let i = 0; i < w.count; i += 3) {
       const x = w.getX(i), z = w.getZ(i);
       assert.ok(Math.abs(w.getY(i) - 0.018) < 0.000001, 'conservative shore clipping must not lower the visible sea');
-      if (Math.abs(x) > 200 || Math.abs(z) > 200) continue;
+      if (x < TIDAL_BOUNDS[0] || x > TIDAL_BOUNDS[2] || z < TIDAL_BOUNDS[1] || z > TIDAL_BOUNDS[3]) continue;
       const height = tidalGroundHeight(x, z);
       assert.ok(height < 0.00003, `water over dry ground at ${x},${z}: ${height}`);
       if (Math.abs(height + 0.001) < 0.00003) shore++;
@@ -97,7 +105,15 @@ test('exact terrain, fitted sea, obstacle grounding and bounded resource ownersh
     assert.ok(tidalRouteSample(sentinelVertices.getX(i), sentinelVertices.getZ(i)).distance > 8,
       'the summit landmark must clear the approach and the whole turning envelope');
   const stats = runtime.stats;
-  assert.ok(stats.triangles < 280_000); assert.equal(stats.colliderCount, 19);
+  assert.ok(stats.triangles < 280_000); assert.equal(stats.colliderCount, 28);
+  assert.ok(scene.getObjectByName('Harbor roof and trim') instanceof THREE.Mesh);
+  assert.equal(scene.getObjectByName('Harbor details'), undefined);
+  assert.equal(scene.getObjectByName('Mainland furnishings'), undefined);
+  assert.equal(runtime.isCollisionReadyAt(-330, 0), true);
+  for (const point of [[-661, 0], [201, 0], [0, -201], [0, 201]]) {
+    assert.equal(runtime.isCollisionReadyAt(point[0], point[1]), false);
+    await assert.rejects(runtime.ensureReady(point[0], point[1]), /outside/);
+  }
   console.log('Island Tracks resources', JSON.stringify(stats));
   assert.equal(runtime.recoveryStart.id, 'harbor-cove');
   runtime.update(90, -10); assert.equal(runtime.recoveryStart.id, 'harbor-cove', 'no forward reset shortcut');
@@ -116,13 +132,253 @@ test('named inspection entries retry the full challenge rather than an intermedi
   const runtime = new TidalTracksRuntime(scene, world);
   try {
     const expected = ['harbor-cove', 'harbor-cove', 'harbor-cove', 'saltgrass-landing',
-      'windward-lookout', 'windward-lookout', 'seabird-summit', 'pebble-cove'];
+      'windward-lookout', 'windward-lookout', 'seabird-summit', 'pebble-cove', 'whales-back', 'needle-lighthouse',
+      'heather-cut', 'west-overlook', 'west-beach', 'north-cove', 'west-beacon'];
     for (const [i, start] of TIDAL_STARTS.entries()) {
       runtime.beginAt(start.position.x, start.position.z);
       assert.equal(runtime.recoveryStart.id, expected[i], start.id);
       assert.equal(runtime.restart().id, expected[i], start.id);
     }
     assert.throws(() => runtime.beginAt(20, 70), /named starting place/);
+  } finally { runtime.dispose(); world.free(); }
+});
+
+test('home island has a broad dry cruising loop, optional rock ridge and supported lighthouse', () => {
+  let landArea = 0;
+  for (let z = -190; z <= 190; z += 2) for (let x = -650; x < -77; x += 2)
+    if (tidalGroundHeight(x, z) > 0) landArea += 4;
+  const originalLandArea = 42_788;
+  assert.ok(landArea >= originalLandArea * 2 && landArea <= originalLandArea * 3,
+    `mainland must grow another 2–3 times the first expansion's land area: ${landArea}`);
+  for (const route of [HOME_LOOP, MAINLAND_LOOP]) for (let i = 1; i < route.length; i++) {
+    const a = route[i - 1], b = route[i], length = Math.hypot(b.x - a.x, b.z - a.z);
+    const nx = (b.z - a.z) / length, nz = -(b.x - a.x) / length;
+    for (let s = 0; s <= length; s += 1) for (const offset of [-6, 0, 6]) {
+      const x = a.x + (b.x - a.x) * s / length + nx * offset;
+      const z = a.z + (b.z - a.z) * s / length + nz * offset;
+      const y = tidalGroundHeight(x, z);
+      assert.ok(y > 3, `broad home lane must remain dry at ${x},${z}`);
+      const slope = Math.hypot(tidalGroundHeight(x + 0.5, z) - tidalGroundHeight(x - 0.5, z),
+        tidalGroundHeight(x, z + 0.5) - tidalGroundHeight(x, z - 0.5));
+      assert.ok(slope < 0.45, `cruising lane is too steep: ${x},${z}: ${slope}`);
+    }
+  }
+  const crest = WHALES_BACK[3];
+  assert.ok(tidalGroundHeight(crest.x, crest.z) > 27);
+  assert.equal(tidalSurfaceAt(crest.x, crest.z), 'rock');
+  for (const dx of [-3.4, 0, 3.4]) for (const dz of [-3.4, 0, 3.4])
+    assert.ok(Math.abs(tidalGroundHeight(NEEDLE_LIGHTHOUSE.x + dx, NEEDLE_LIGHTHOUSE.z + dz) - NEEDLE_LIGHTHOUSE.y) < 0.001);
+});
+
+test('mainland coarse/fine join uses the exact rendered triangles without a crack', () => {
+  const terrain = tidalTerrainGeometry(), positions = terrain.getAttribute('position'), indices = terrain.getIndex()!;
+  try {
+    for (let i = 0; i < indices.count; i += 3) {
+      const ids = [indices.getX(i), indices.getX(i + 1), indices.getX(i + 2)];
+      const x = ids.reduce((sum, id) => sum + positions.getX(id), 0) / 3;
+      if (x < -365 || x > -357) continue;
+      const z = ids.reduce((sum, id) => sum + positions.getZ(id), 0) / 3;
+      const y = ids.reduce((sum, id) => sum + positions.getY(id), 0) / 3;
+      assert.ok(Math.abs(tidalGroundHeight(x, z) - y) < 0.00002);
+    }
+    for (let z = -199.5; z < 200; z += 0.5)
+      assert.ok(Math.abs(tidalGroundHeight(-360 - 1e-7, z) - tidalGroundHeight(-360 + 1e-7, z)) < 0.00001);
+  } finally { terrain.dispose(); }
+});
+
+test('optional Heather Cut owns its attempt without catching the easy mainland bypass', () => {
+  const world = new RAPIER.World({ x: 0, y: -18, z: 0 }), runtime = new TidalTracksRuntime(new THREE.Scene(), world);
+  try {
+    for (const reverse of [false, true]) {
+      const path = reverse ? [...MAINLAND_LOOP].reverse() : MAINLAND_LOOP;
+      runtime.beginAt(TIDAL_STARTS[0].position.x, TIDAL_STARTS[0].position.z);
+      for (let i = 1; i < path.length; i++) {
+        const a = path[i - 1], b = path[i], length = Math.hypot(b.x - a.x, b.z - a.z);
+        for (let s = 0; s <= length; s += 1) runtime.visit(a.x + (b.x - a.x) * s / length, a.z + (b.z - a.z) * s / length);
+      }
+      assert.equal(runtime.recoveryStart.id, reverse ? 'heather-cut' : 'west-overlook',
+        'passing the challenge entrances on the wide circuit must retain free home arrivals');
+    }
+    runtime.beginAt(HEATHER_CUT[0].x, HEATHER_CUT[0].z);
+    for (const point of HEATHER_CUT.slice(0, -1)) runtime.visit(point.x, point.z);
+    assert.equal(runtime.recoveryStart.id, 'heather-cut');
+    runtime.visit(HEATHER_CUT.at(-1)!.x, HEATHER_CUT.at(-1)!.z);
+    assert.equal(runtime.restart().id, 'west-overlook');
+  } finally { runtime.dispose(); world.free(); }
+});
+
+test('western coast has dry easy approaches, a full-footprint wading basin and a supported cliff-foot line', () => {
+  for (const route of [WEST_BEACON_APPROACH, WEST_BEACH_APPROACH, NORTH_COVE_APPROACH]) {
+    for (let i = 1; i < route.length; i++) {
+      const a = route[i - 1], b = route[i], length = Math.hypot(b.x - a.x, b.z - a.z);
+      for (let s = 0; s <= length; s++) for (const offset of [-3, 0, 3]) {
+        const x = a.x + (b.x - a.x) * s / length + (b.z - a.z) * offset / length;
+        const z = a.z + (b.z - a.z) * s / length - (b.x - a.x) * offset / length;
+        assert.ok(tidalGroundHeight(x, z) > 2, `coastal approach must stay dry: ${x},${z}`);
+        const slope = Math.hypot(tidalGroundHeight(x + 0.5, z) - tidalGroundHeight(x - 0.5, z),
+          tidalGroundHeight(x, z + 0.5) - tidalGroundHeight(x, z - 0.5));
+        assert.ok(slope < 0.55, `easy coastal approach too steep: ${x},${z}: ${slope}`);
+      }
+    }
+  }
+  for (let dx = -WEST_WADE.radius; dx <= WEST_WADE.radius; dx += 0.5)
+    for (let dz = -WEST_WADE.radius; dz <= WEST_WADE.radius; dz += 0.5) {
+      const x = WEST_WADE.x + dx, z = WEST_WADE.z + dz, y = tidalGroundHeight(x, z);
+      assert.ok(y < -0.2 && y > -0.4, `whole wading/turning footprint must stay shallow: ${x},${z}: ${y}`);
+      assert.equal(tidalWaterHeight(x, z), 0);
+    }
+  for (let i = 1; i < CLIFF_WADE.length; i++) {
+    const a = CLIFF_WADE[i - 1], b = CLIFF_WADE[i], length = Math.hypot(b.x - a.x, b.z - a.z);
+    for (let s = 0; s <= length; s++) for (const offset of [-3, 0, 3]) {
+      const x = a.x + (b.x - a.x) * s / length + (b.z - a.z) * offset / length;
+      const z = a.z + (b.z - a.z) * s / length - (b.x - a.x) * offset / length;
+      assert.ok(tidalGroundHeight(x, z) > -0.5, `cliff-foot wheel line is too deep: ${x},${z}`);
+    }
+  }
+  assert.equal(tidalSurfaceAt(WEST_BEACH.x, WEST_BEACH.z), 'sand');
+  assert.ok(tidalGroundHeight(-650, 0) < -5, 'deep ocean must remain outside the visible supported shelf');
+  for (const dx of [-2.4, 0, 2.4]) for (const dz of [-2.4, 0, 2.4])
+    assert.ok(Math.abs(tidalGroundHeight(WEST_BEACON.x + dx, WEST_BEACON.z + dz) - WEST_BEACON.y) < 0.001);
+});
+
+test('western water play stays separate from ordered whole-cliff attempts in both directions', () => {
+  const world = new RAPIER.World({ x: 0, y: -18, z: 0 }), runtime = new TidalTracksRuntime(new THREE.Scene(), world);
+  try {
+    runtime.beginAt(WEST_BEACH.x, WEST_BEACH.z);
+    for (const x of [WEST_WADE.x - 6, WEST_WADE.x + 6]) for (let z = WEST_BEACH.z; z >= WEST_WADE.z; z--)
+      runtime.visit(x, z);
+    runtime.visit(TIDAL_STARTS[14].position.x, TIDAL_STARTS[14].position.z);
+    assert.equal(runtime.restart().id, 'west-beacon', 'easy wet play must not leave an active cliff attempt');
+    for (const reverse of [false, true]) {
+      const path = reverse ? [...CLIFF_WADE].reverse() : CLIFF_WADE;
+      const entry = reverse ? 'north-cove' : 'west-beach', exit = reverse ? 'west-beach' : 'north-cove';
+      runtime.beginAt(path[0].x, path[0].z);
+      runtime.visit(path[1].x, path[1].z);
+      runtime.visit(path.at(-1)!.x, path.at(-1)!.z);
+      assert.equal(runtime.recoveryStart.id, entry, 'an unordered exit cannot complete the water challenge');
+      runtime.restart();
+      for (const point of path.slice(0, -1)) {
+        runtime.visit(point.x, point.z);
+        assert.equal(runtime.recoveryStart.id, entry, 'dry mid-trail rocks are not retry shortcuts');
+      }
+      runtime.visit(path.at(-1)!.x, path.at(-1)!.z);
+      assert.equal(runtime.restart().id, exit);
+    }
+  } finally { runtime.dispose(); world.free(); }
+});
+
+test('coastal lights stand on high supported sites with clear seaward sightlines', () => {
+  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  const runtime = new TidalTracksRuntime(scene, world);
+  try {
+    world.step();
+    assert.equal(scene.getObjectByName('Ruined Western Watchtower'), undefined);
+    const western = scene.getObjectByName('Western Beacon'), lighthouse = scene.getObjectByName('Needle Lighthouse');
+    assert.ok(western instanceof THREE.Mesh && lighthouse instanceof THREE.Mesh);
+    western.geometry.computeBoundingBox(); lighthouse.geometry.computeBoundingBox();
+    assert.ok(western.geometry.boundingBox!.max.y - WEST_BEACON.y
+      < lighthouse.geometry.boundingBox!.max.y - NEEDLE_LIGHTHOUSE.y);
+    assert.ok(western.geometry.boundingBox!.max.y - WEST_BEACON.y > 8, 'western light must be larger than the small beacons');
+    const mainlandBeacons = COAST_BEACONS.filter(beacon => beacon.x < 0);
+    assert.equal(mainlandBeacons.length, 2);
+    assert.ok(mainlandBeacons.some(beacon => beacon.z < -115), 'one small light belongs near the northern tip');
+    assert.ok(mainlandBeacons.some(beacon => beacon.z > 130), 'one small light belongs near the southern tip');
+    for (const beacon of mainlandBeacons) {
+      assert.ok(Math.hypot(beacon.x - WEST_BEACON.x, beacon.z - WEST_BEACON.z) > 150,
+        'small mainland lights must not cluster around the western beacon');
+      assert.ok(demoPathSample(MAINLAND_LOOP, beacon.x, beacon.z).distance > 10.5,
+        'the complete beacon footing must clear the broad cruising lane');
+    }
+    for (const beacon of COAST_BEACONS) {
+      const support = [-1.25, 0, 1.25].flatMap(dx =>
+        [-1.25, 0, 1.25].map(dz => tidalGroundHeight(beacon.x + dx, beacon.z + dz)));
+      const base = Math.min(...support);
+      assert.ok(base >= (beacon.x > 0 ? 66.9 : 7), `beacon must stand on an exposed high point: ${JSON.stringify(beacon)} / ${base}`);
+      assert.ok(Math.max(...support) - base < 0.3,
+        `beacon footing must not straddle a steep bank: ${JSON.stringify(beacon)} / ${support}`);
+      const direction = { x: beacon.x > 0 ? 1 : 0, y: 0, z: beacon.x > 0 ? 0 : Math.sign(beacon.z) };
+      const light = { x: beacon.x + direction.x, y: base + 6.75 * 0.68, z: beacon.z + direction.z };
+      assert.equal(world.castRay(new RAPIER.Ray(light, direction), 40, true), null,
+        'nearby higher terrain or scenery must not mask the light from the open sea');
+      if (beacon.x > 0)
+        assert.ok(demoPathSample(SEABIRD_CLIMB, beacon.x, beacon.z).distance > 8,
+          'summit light must clear the earned approach and turning area');
+    }
+  } finally { runtime.dispose(); world.free(); }
+});
+
+test('western shallows meander around physical outcrops and hide a supported dry discovery', () => {
+  assert.ok(Math.max(...CLIFF_WADE.slice(2, 10).map(p => p.x))
+    - Math.min(...CLIFF_WADE.slice(2, 10).map(p => p.x)) >= 10);
+  assert.ok(CLIFF_BOULDERS.length >= 6);
+  for (const boulder of CLIFF_BOULDERS)
+    assert.ok(demoPathSample(CLIFF_WADE, boulder.x, boulder.z).distance > boulder.radius + 1.5,
+      'boulders shape the wheel line without sealing the supported route');
+  for (let dx = -4; dx <= 4; dx++) for (let dz = -4; dz <= 4; dz++) {
+    const y = tidalGroundHeight(SMUGGLERS_NOOK.x + dx, SMUGGLERS_NOOK.z + dz);
+    assert.ok(Math.abs(y - SMUGGLERS_NOOK.y) < 0.01, 'discovery needs a dry grounded stopping area');
+  }
+  assert.ok(!TIDAL_STARTS.some(start => Math.hypot(start.position.x - SMUGGLERS_NOOK.x,
+    start.position.z - SMUGGLERS_NOOK.z) < 20), 'hidden discovery must not get a named inspection destination');
+  assert.ok(tidalGroundHeight(-593, 27) > 10, 'higher land must enclose the hidden rock cleft');
+  assert.ok(tidalGroundHeight(-616, 43) > 10, 'the nook must be recessed into a real headland');
+});
+
+test('home landmarks have matching solid surfaces and do not obstruct the broad cruising lane', () => {
+  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  const runtime = new TidalTracksRuntime(scene, world);
+  try {
+    world.step();
+    for (const name of ['Harbor skiff', 'Needle Lighthouse', 'Western Beacon', 'Coastal beacons', "Smuggler's skiff"]) {
+      const mesh = scene.getObjectByName(name);
+      assert.ok(mesh instanceof THREE.Mesh);
+      const vertices = mesh.geometry.getAttribute('position'), normals = mesh.geometry.getAttribute('normal');
+      const down = new THREE.Vector3(0, -1, 0);
+      let exposed = 0;
+      for (let i = 0; i < vertices.count; i += 3) {
+        if (normals.getY(i) < 0.2) continue;
+        const x = (vertices.getX(i) + vertices.getX(i + 1) + vertices.getX(i + 2)) / 3;
+        const z = (vertices.getZ(i) + vertices.getZ(i + 1) + vertices.getZ(i + 2)) / 3;
+        assert.ok(demoPathSample(HOME_LOOP, x, z).distance > 8, `${name} intrudes into the cruising lane`);
+        const bed = tidalGroundHeight(x, z), origin = new THREE.Vector3(x, bed + 40, z);
+        const visual = new THREE.Raycaster(origin, down).intersectObject(mesh)[0];
+        if (!visual || visual.point.y < bed + 0.05) continue;
+        const hit = world.castRay(new RAPIER.Ray(origin, down), 45, true);
+        assert.ok(hit && Math.abs(hit.timeOfImpact - visual.distance) < 0.001,
+          `${name} visible/solid disagreement at ${x},${z}: ${visual.distance} / ${hit?.timeOfImpact}`);
+        assert.ok(bed > 2, `${name} must stand on dry land`);
+        exposed++;
+      }
+      assert.ok(exposed > 10, `${name} needs physical exposed faces`);
+    }
+    const water = scene.getObjectByName('Island Tracks fitted sea');
+    assert.ok(water instanceof THREE.Mesh);
+    const positions = water.geometry.getAttribute('position');
+    for (let i = positions.count - 24; i < positions.count; i += 3) {
+      const x = (positions.getX(i) + positions.getX(i + 1) + positions.getX(i + 2)) / 3;
+      const z = (positions.getZ(i) + positions.getZ(i + 1) + positions.getZ(i + 2)) / 3;
+      assert.ok(x <= TIDAL_BOUNDS[0] || x >= TIDAL_BOUNDS[2] || z <= TIDAL_BOUNDS[1] || z >= TIDAL_BOUNDS[3],
+        'deep-water apron must not overlap the enlarged rectangular terrain');
+    }
+  } finally { runtime.dispose(); world.free(); }
+});
+
+test('relaxed home destinations accept free roaming without unlocking the sea crossing', () => {
+  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  const runtime = new TidalTracksRuntime(scene, world);
+  try {
+    runtime.update(HOME_LOOP[8].x, HOME_LOOP[8].z);
+    assert.equal(runtime.recoveryStart.id, 'harbor-cove', 'photo mode cannot earn a home destination');
+    runtime.visit(HOME_LOOP[8].x, HOME_LOOP[8].z);
+    assert.equal(runtime.restart().id, 'needle-lighthouse', 'a relaxed destination needs no prescribed approach');
+    runtime.visit(-235, 17);
+    assert.equal(runtime.restart().id, 'needle-lighthouse', 'open meadow retains the last safe destination');
+    runtime.visit(WHALES_BACK[3].x, WHALES_BACK[3].z);
+    assert.equal(runtime.restart().id, 'whales-back');
+    runtime.visit(TIDAL_ROUTE[0].x, TIDAL_ROUTE[0].z);
+    assert.equal(runtime.restart().id, 'harbor-cove');
+    runtime.visit(TIDAL_ROUTE[19].x, TIDAL_ROUTE[19].z);
+    assert.equal(runtime.restart().id, 'harbor-cove', 'free home arrivals cannot bypass an earned crossing');
   } finally { runtime.dispose(); world.free(); }
 });
 
@@ -142,6 +398,7 @@ for (const [name, points, entry, exit] of [
     const visit = (point: { x: number; z: number }) => runtime.visit(point.x, point.z);
     try {
       runtime.beginAt(points[0].x, points[0].z);
+      assert.equal(runtime.completedArrivals.size, 0, 'inspection starts do not earn postcards');
       for (const point of [...points].reverse()) {
         visit(point);
         assert.equal(runtime.recoveryStart.id, entry, 'an exit reached out of order must not become a departure');
@@ -173,10 +430,37 @@ for (const [name, points, entry, exit] of [
           'reversing to line up a wheel must not flip the attempt direction');
       }
       assert.equal(runtime.restart().id, exit, 'the completed endpoint can start the next attempt');
+      assert.ok(runtime.completedArrivals.has(exit), 'ordered arrival earns its destination postcard');
+      assert.equal(runtime.completedArrivals.size, 1, 'Reset preserves only genuinely completed arrivals');
     } finally { runtime.dispose(); world.free(); }
   });
 }
 
+test('earned Island Tracks arrivals unlock their postcards through the shared tracker', () => {
+  for (const [points, id] of [
+    [TIDAL_ROUTE.slice(0, 19), 'other-shore'],
+    [SEABIRD_CLIMB, 'seabird-summit'],
+    [PEBBLE_DESCENT, 'pebble-cove'],
+  ] as const) {
+    const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+    const runtime = new TidalTracksRuntime(scene, world), found = new Set<string>();
+    const tracker = new PostcardTracker(found, points[0].x, points[0].z);
+    try {
+      runtime.beginAt(points[0].x, points[0].z);
+      const end = points.at(-1)!;
+      runtime.visit(end.x, end.z);
+      assert.equal(runtime.completedArrivals.size, 0, 'jumping to the exit is not an earned arrival');
+      runtime.restart();
+      for (const point of points) {
+        runtime.visit(point.x, point.z);
+        tracker.update('island-tracks', point.x, point.z, {
+          y: tidalGroundHeight(point.x, point.z) + 0.5, grounded: true, completedArrivals: runtime.completedArrivals,
+        });
+      }
+      assert.ok(found.has(id), `${id} must unlock at the accepted route arrival, not a later unrelated climb`);
+    } finally { runtime.dispose(); world.free(); }
+  }
+});
 test('the earned far shore survives Reset on arrival and after the first inland left turn, but not before the landing rib', () => {
   const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
   const runtime = new TidalTracksRuntime(scene, world);
@@ -496,7 +780,7 @@ test('wind-bent trees have varied green foliage and solid branches outside the d
       checked++;
     }
     assert.ok(checked > 25, 'check branch faces throughout the forest');
-    assert.equal(runtime.stats.colliderCount, 19, 'branches reuse the owned trunk collider');
+    assert.equal(runtime.stats.colliderCount, 28, 'branches reuse the owned trunk collider');
   } finally { runtime.dispose(); world.free(); }
 });
 
@@ -602,6 +886,88 @@ async function drive(path: readonly { x: number; z: number }[], model: VehicleMo
       wetChannels: wetChannels.size, checkpoint: runtime.recoveryStart.id };
   } finally { runtime.dispose(); world.free(); disposeScene(scene); }
 }
+for (const model of ['classic', 'modern'] as const) for (const keyboard of [false, true])
+test(`${model}: western beach supports shallow water play and dry return with ${keyboard ? 'keyboard' : 'analog'} steering`, async () => {
+  const arc = Array.from({ length: 10 }, (_, i) => ({
+    x: WEST_WADE.x + Math.cos(Math.PI + i * Math.PI / 6) * 9,
+    z: WEST_WADE.z + Math.sin(Math.PI + i * Math.PI / 6) * 9,
+  }));
+  const path = [WEST_BEACH, { x: -600, z: -103 }, { x: -601, z: -114 }, ...arc,
+    { x: -600, z: -113 }, { x: -606, z: -105 }, { x: -600, z: -98 }, WEST_BEACH];
+  const result = await drive(path, model, 2.5, keyboard, true);
+  assert.ok(result.water > 0.1 && result.water < 0.5, JSON.stringify(result));
+  assert.equal(result.checkpoint, 'west-beach');
+});
+
+for (const model of ['classic', 'modern'] as const) for (const keyboard of [false, true])
+test(`${model}: hidden coastal discovery has a physical wet approach and dry return with ${keyboard ? 'keyboard' : 'analog'} steering`, async () => {
+  const path = [...SMUGGLERS_APPROACH, { x: -607, z: 24 }, { x: -605, z: 28 },
+    { x: -610, z: 33 }, { x: -617, z: 30 }, { x: -620, z: 24 },
+    ...[...SMUGGLERS_APPROACH].reverse().slice(1)];
+  const result = await drive(path, model, 2, keyboard, true);
+  assert.ok(result.high > SMUGGLERS_NOOK.y + 0.3);
+  assert.ok(result.water > 0.02 && result.water < 0.5);
+});
+
+for (const model of ['classic', 'modern'] as const) for (const reverse of [false, true])
+  for (const keyboard of [false, true]) {
+    const direction = reverse ? 'reverse' : 'forward', steering = keyboard ? 'keyboard' : 'analog';
+    test(`${model}: expanded mainland circuit ${direction} with ${steering} steering`, async () => {
+      const result = await drive(reverse ? [...MAINLAND_LOOP].reverse() : MAINLAND_LOOP, model, 6, keyboard, true);
+      assert.equal(result.water, 0);
+      assert.ok(result.high < 23, 'the easy mainland circuit bypasses Heather Cut');
+      assert.equal(result.checkpoint, reverse ? 'heather-cut' : 'west-overlook');
+    });
+    test(`${model}: Heather Cut ${direction} with ${steering} steering`, async () => {
+      const result = await drive(reverse ? [...HEATHER_CUT].reverse() : HEATHER_CUT, model, 5, keyboard, true);
+      assert.equal(result.water, 0);
+      assert.ok(result.high > 26, JSON.stringify(result));
+      assert.ok(result.lift > 0.1 && result.spread > 0.08 && result.suspensionDifference > 0.04, JSON.stringify(result));
+      assert.equal(result.checkpoint, reverse ? 'heather-cut' : 'west-overlook');
+    });
+    test(`${model}: cliff-foot water ride ${direction} with ${steering} steering`, async () => {
+      const result = await drive(reverse ? [...CLIFF_WADE].reverse() : CLIFF_WADE, model, 2.5, keyboard, true);
+      assert.ok(result.water > 0.15 && result.water < 0.6, JSON.stringify(result));
+      assert.ok(result.lift > 0.1 && result.spread > 0.08 && result.suspensionDifference > 0.04, JSON.stringify(result));
+      assert.equal(result.checkpoint, reverse ? 'west-beach' : 'north-cove');
+    });
+  }
+
+for (const model of ['classic', 'modern'] as const) for (const reverse of [false, true])
+  for (const keyboard of [false, true])
+    test(`${model}: home meadow circuit ${reverse ? 'reverse' : 'forward'} with ${keyboard ? 'keyboard' : 'analog'} steering`, async () => {
+      const result = await drive(reverse ? [...HOME_LOOP].reverse() : HOME_LOOP, model, 6, keyboard, true);
+      assert.equal(result.water, 0);
+      assert.equal(result.checkpoint, 'harbor-cove');
+      assert.ok(result.high < 23, 'the easy circuit bypasses the high rock crest');
+    });
+for (const model of ['classic', 'modern'] as const)
+  test(`${model}: open grassy meadow supports off-road cruising and turns`, async () => {
+    const meadow = HARBOR_MEADOW;
+    const path = [[12, 15], [-10, 15], [-13, 0], [-10, -15], [11, -15], [13, 0], [12, 15]]
+      .map(([dx, dz]) => ({ x: meadow.x + dx, z: meadow.z + dz }));
+    const result = await drive(path, model, 4, true, true);
+    assert.equal(result.water, 0);
+    assert.equal(result.checkpoint, 'harbor-cove');
+  });
+for (const model of ['classic', 'modern'] as const)
+  test(`${model}: lighthouse apron supports a complete turning circle outside the solid tower`, async () => {
+    const light = NEEDLE_LIGHTHOUSE;
+    const path = Array.from({ length: 13 }, (_, i) => ({
+      x: light.x + Math.cos(i * Math.PI / 6) * 8,
+      z: light.z + Math.sin(i * Math.PI / 6) * 8,
+    }));
+    const result = await drive(path, model, 2.5, true, true);
+    assert.equal(result.water, 0);
+  });
+for (const model of ['classic', 'modern'] as const) for (const reverse of [false, true])
+  for (const keyboard of [false, true])
+    test(`${model}: optional Whale's Back ${reverse ? 'reverse' : 'forward'} with ${keyboard ? 'keyboard' : 'analog'} steering`, async () => {
+      const result = await drive(reverse ? [...WHALES_BACK].reverse() : WHALES_BACK, model, 3.2, keyboard, true);
+      assert.equal(result.water, 0);
+      assert.ok(result.high > 28, JSON.stringify(result));
+      assert.equal(result.checkpoint, 'whales-back');
+    });
 for (const model of ['classic', 'modern'] as const) for (const reverse of [false, true])
   test(`${model}: keyboard steering completes the connected Seabird ${reverse ? 'descent' : 'ascent'}`, async () => {
     const path = [...TIDAL_ROUTE.slice(19), ...SEABIRD_CLIMB.slice(1)];

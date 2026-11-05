@@ -3,7 +3,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import type { Vehicle } from '../../src/game/vehicle';
 import type { FollowCamera } from '../../src/game/camera';
 import type RAPIER from '@dimforge/rapier3d-compat';
-import { TIDAL_ROUTE, TIDAL_CHANNELS, TIDAL_STARTS, SEABIRD_CLIMB, PEBBLE_DESCENT, tidalGroundHeight } from '../../src/game/tidal-terrain';
+import { TIDAL_ROUTE, TIDAL_CHANNELS, TIDAL_STARTS, SEABIRD_CLIMB, PEBBLE_DESCENT,
+  HOME_LOOP, WHALES_BACK, HARBOR_MEADOW, NEEDLE_LIGHTHOUSE, tidalGroundHeight } from '../../src/game/tidal-terrain';
 import { demoState, driveDemo, type DemoGame } from './location-demo-driving';
 
 async function boot(page: Page, start = 'harbor-cove') {
@@ -15,6 +16,97 @@ async function boot(page: Page, start = 'harbor-cove') {
     return state.position.y - tidalGroundHeight(state.position.x, state.position.z);
   }).toBeLessThan(0.9);
 }
+
+test('home island: broad meadow cruising, lighthouse arrival and optional Whale’s Back in both cars', async ({ page }, info) => {
+  test.setTimeout(480_000);
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  const folder = `artifacts/island-tracks/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  const results = [];
+  for (const [model, reverse] of [['modern', false], ['classic', true]] as const) {
+    await page.goto(`/?area=island-tracks&car=${model}`);
+    await expect(page.locator('#start')).toBeEnabled(); await page.locator('#start').click();
+    const path = reverse ? [...HOME_LOOP].reverse() : [...HOME_LOOP];
+    const journey = driveDemo(page, path, 6, 170_000, 2);
+    await expect.poll(async () => (await demoState(page)).position.x, { timeout: 80_000 }).toBeLessThan(-200);
+    await page.screenshot({ path: `${folder}/home-meadow-${model}-driving.png` });
+    await expect.poll(async () => {
+      const { position } = await demoState(page);
+      return Math.hypot(position.x - HOME_LOOP[8].x, position.z - HOME_LOOP[8].z);
+    }, { timeout: 100_000 }).toBeLessThan(12);
+    await page.screenshot({ path: `${folder}/home-lighthouse-${model}-driving.png` });
+    const result = await journey;
+    expect(result.next, JSON.stringify(result)).toBe(result.total);
+    expect(result.maxWater).toBe(0);
+    expect(result.minimumUp).toBeGreaterThan(0.65);
+    expect(result.obstructedFrames).toBe(0);
+    expect(result.maxCalls).toBeLessThan(65);
+    expect(result.maxTriangles).toBeLessThan(300_000);
+    expect(result.state.recoveryStart).toBe('harbor-cove');
+    results.push({ model, route: 'meadow', reverse, ...result });
+    const ridge = reverse ? [...WHALES_BACK].reverse() : [...WHALES_BACK];
+    const climb = await driveDemo(page, ridge, 3.2, 85_000, 2);
+    expect(climb.next, JSON.stringify(climb)).toBe(climb.total);
+    expect(climb.high).toBeGreaterThan(28);
+    expect(climb.maxWater).toBe(0);
+    expect(climb.minimumUp).toBeGreaterThan(0.65);
+    expect(climb.obstructedFrames).toBe(0);
+    expect(climb.state.recoveryStart).toBe('whales-back');
+    results.push({ model, route: 'whales-back', reverse, ...climb });
+  }
+  for (const [name, position, target, fov] of [
+    ['home-island-overview', { x: -210, y: 120, z: 125 }, { x: -220, y: 5, z: 40 }, 85],
+    ['home-lighthouse-view', { x: -264, y: 20, z: -64 }, { x: -280, y: 27, z: -90 }, 65],
+    ['home-islands-balance', { x: -10, y: 85, z: 160 }, { x: -42, y: 12, z: 75 }, 105],
+  ] as const) {
+    await page.evaluate(view => (window as unknown as { __ROAMER__: DemoGame }).__ROAMER__.setPhotoView(view),
+      { position, target, fov });
+    await page.getByRole('button', { name: 'Hide UI', exact: true }).click(); await page.waitForTimeout(250);
+    await page.screenshot({ path: `${folder}/${name}.png` });
+    await page.keyboard.press('Escape');
+  }
+  await writeFile(`${folder}/home-island-driving-evidence.json`, JSON.stringify(results, null, 2));
+  expect(errors).toEqual([]);
+});
+
+test('home island: open-grass turns, lighthouse apron and both free-roaming Reset controls', async ({ page }, info) => {
+  test.setTimeout(150_000);
+  const folder = `artifacts/island-tracks/${info.project.name}`;
+  await mkdir(folder, { recursive: true });
+  await boot(page);
+  const meadow = HARBOR_MEADOW;
+  const path = [[12, 15], [-10, 15], [-13, 0], [-10, -15], [11, -15], [13, 0], [12, 15]]
+    .map(([dx, dz]) => ({ x: meadow.x + dx, z: meadow.z + dz }));
+  const grass = await driveDemo(page, path, 4, 70_000, 2);
+  expect(grass.next, JSON.stringify(grass)).toBe(grass.total);
+  expect(grass.maxWater).toBe(0);
+  expect(grass.minimumUp).toBeGreaterThan(0.65);
+  expect(grass.obstructedFrames).toBe(0);
+  expect(grass.state.recoveryStart).toBe('harbor-cove');
+  await expect(page.locator('#surface-label')).toHaveText('Soft grass');
+  await page.screenshot({ path: `${folder}/home-open-grass-driving.png` });
+  await boot(page, 'needle-lighthouse');
+  const light = NEEDLE_LIGHTHOUSE;
+  const circle = Array.from({ length: 13 }, (_, i) => ({
+    x: light.x + Math.cos(i * Math.PI / 6) * 8, z: light.z + Math.sin(i * Math.PI / 6) * 8,
+  }));
+  const apron = await driveDemo(page, circle, 2.5, 65_000, 2);
+  expect(apron.next, JSON.stringify(apron)).toBe(apron.total);
+  expect(apron.maxWater).toBe(0);
+  expect(apron.obstructedFrames).toBe(0);
+  expect(apron.state.recoveryStart).toBe('needle-lighthouse');
+  await page.screenshot({ path: `${folder}/home-lighthouse-turning.png` });
+  for (const key of [true, false]) {
+    await page.evaluate(() => (window as unknown as { __ROAMER__: DemoGame }).__ROAMER__.placeVehicle(-220, 45, 0));
+    if (key) await page.keyboard.press('KeyR'); else await page.locator('#reset').click();
+    await expect.poll(async () => {
+      const { position } = await demoState(page);
+      return Math.hypot(position.x - HOME_LOOP[8].x, position.z - HOME_LOOP[8].z);
+    }).toBeLessThan(0.5);
+  }
+  await expect(page.locator('#error')).toBeHidden();
+  await writeFile(`${folder}/home-roaming-evidence.json`, JSON.stringify({ grass, apron }, null, 2));
+});
 
 test('fresh Island Tracks: wind-bent tree foliage from the reported cliff angle and driving height', async ({ page }, info) => {
   test.setTimeout(60_000);
@@ -45,7 +137,7 @@ test('fresh Island Tracks: wind-bent tree foliage from the reported cliff angle 
     const state = await demoState(page);
     expect(state.recoveryStart).toBe('windward-lookout');
     expect(state.drawCalls).toBeLessThan(65); expect(state.triangles).toBeLessThan(300_000);
-    expect(state.streaming.colliderCount).toBe(19);
+    expect(state.streaming.colliderCount).toBe(28);
     await page.keyboard.press('Escape');
   }
   expect(errors).toEqual([]);
@@ -56,7 +148,7 @@ test('fresh Island Tracks: views, safe entries, whole-challenge recovery and swi
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   const folder = `artifacts/island-tracks/${info.project.name}`; await mkdir(folder, { recursive: true });
   for (const [index, start] of TIDAL_STARTS.entries()) {
-    const recovery = TIDAL_STARTS[[0, 0, 0, 3, 4, 4, 6, 7][index]];
+    const recovery = TIDAL_STARTS[[0, 0, 0, 3, 4, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14][index]];
     await boot(page, start.id);
     await expect(page.locator('#reset')).toHaveAttribute('title', 'Restart the whole current challenge from its departure point (R)');
     await expect.poll(async () => (await demoState(page)).recoveryStart).toBe(recovery.id);
@@ -109,7 +201,7 @@ test('fresh Island Tracks: views, safe entries, whole-challenge recovery and swi
   await page.locator('input[name="area"][value="island-tracks"]').check(); await expect(page.locator('#start')).toBeEnabled();
   const after = await demoState(page);
   expect(after.geometries).toBeLessThanOrEqual(before.geometries + 2);
-  expect(after.streaming.colliderCount).toBe(19);
+  expect(after.streaming.colliderCount).toBe(28);
   expect(after.drawCalls).toBeLessThan(65); expect(after.triangles).toBeLessThan(300_000);
   expect(errors).toEqual([]);
   await writeFile(`${folder}/render-budget.json`, JSON.stringify(after, null, 2));
@@ -304,7 +396,7 @@ test('fresh Island Tracks: solid cairns block the car while the adjacent line st
   expect(Math.abs(blocked.state.speed)).toBeLessThan(0.2);
   expect(blocked.minimumUp).toBeGreaterThan(0.95);
   expect(blocked.obstructedFrames).toBe(0);
-  expect(blocked.state.streaming.colliderCount).toBe(19);
+  expect(blocked.state.streaming.colliderCount).toBe(28);
   expect(errors).toEqual([]);
   const folder = `artifacts/island-tracks/${info.project.name}`; await mkdir(folder, { recursive: true });
   const viewport = page.viewportSize()!;
@@ -355,7 +447,7 @@ test('fresh Island Tracks: Seabird Climb from the landing to the summit and back
     expect(result.suspensionDifference).toBeGreaterThan(0.04);
     expect(result.obstructedFrames).toBe(0);
     expect(result.maxCalls).toBeLessThan(65); expect(result.maxTriangles).toBeLessThan(300_000);
-    expect(result.state.streaming.colliderCount).toBe(19);
+    expect(result.state.streaming.colliderCount).toBe(28);
     expect(result.state.recoveryStart).toBe(reverse ? 'saltgrass-landing' : 'seabird-summit');
     results.push({ reverse, ...result });
     await page.screenshot({ path: `${folder}/seabird-climb-${reverse ? 'descent' : 'ascent'}.png` });
@@ -380,7 +472,7 @@ test('Island Tracks: Pebble Cove descent and return through the daylight cave wi
     expect(result.suspensionDifference).toBeGreaterThan(0.04);
     expect(result.obstructedFrames).toBe(0);
     expect(result.maxCalls).toBeLessThan(65); expect(result.maxTriangles).toBeLessThan(300_000);
-    expect(result.state.streaming.colliderCount).toBe(19);
+    expect(result.state.streaming.colliderCount).toBe(28);
     const arrival = reverse ? TIDAL_STARTS[4] : TIDAL_STARTS[7];
     expect(result.state.recoveryStart).toBe(arrival.id);
     await page.screenshot({ path: `${folder}/pebble-${reverse ? 'return' : 'arrival'}-driving.png` });

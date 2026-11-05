@@ -1,0 +1,160 @@
+{
+  "errors": [],
+  "state": {
+    "area": "island-tracks",
+    "bounds": 660,
+    "spawn": {
+      "x": -609,
+      "y": 23.2,
+      "z": -31
+    },
+    "gravity": -18,
+    "fog": true,
+    "viewDistance": 1600,
+    "car": "classic",
+    "tractionLab": false,
+    "wheels": [
+      {
+        "surface": "rock",
+        "grounded": true,
+        "visualRpm": 0,
+        "slipRatio": 0.00021954065596194207,
+        "slipSpeed": -0.00021954065596194207,
+        "angularSpeed": 0,
+        "lateralSpeed": -1.6440545610132271e-9,
+        "lateralFriction": 2.52,
+        "gripMultiplier": 1,
+        "longitudinalFriction": 2.52,
+        "load": 420.5390319824219,
+        "forwardImpulse": 0.002213167493842697,
+        "sideImpulse": -2.1058719212874166e-8
+      },
+      {
+        "surface": "rock",
+        "grounded": true,
+        "visualRpm": 0,
+        "slipRatio": 0.00021954065596194207,
+        "slipSpeed": -0.00021954065596194207,
+        "angularSpeed": 0,
+        "lateralSpeed": -1.6440545610132271e-9,
+        "lateralFriction": 2.52,
+        "gripMultiplier": 1,
+        "longitudinalFriction": 2.52,
+        "load": 420.5390319824219,
+        "forwardImpulse": 0.0022131675345602748,
+        "sideImpulse": -2.1058719212874166e-8
+      },
+      {
+        "surface": "rock",
+        "grounded": true,
+        "visualRpm": 0,
+        "slipRatio": 0.00021954065596193915,
+        "slipSpeed": -0.00021954065596193915,
+        "angularSpeed": 0,
+        "lateralSpeed": -1.6631198659036024e-9,
+        "lateralFriction": 2.52,
+        "gripMultiplier": 1,
+        "longitudinalFriction": 2.52,
+        "load": 437.0002746582031,
+        "forwardImpulse": 0.0022131679728021833,
+        "sideImpulse": -2.1016225204562033e-8
+      },
+      {
+        "surface": "rock",
+        "grounded": true,
+        "visualRpm": 0,
+        "slipRatio": 0.00021954065596193915,
+        "slipSpeed": -0.00021954065596193915,
+        "angularSpeed": 0,
+        "lateralSpeed": -1.6631198659036024e-9,
+        "lateralFriction": 2.52,
+        "gripMultiplier": 1,
+        "longitudinalFriction": 2.52,
+        "load": 437.0002746582031,
+        "forwardImpulse": 0.0022131670556007265,
+        "sideImpulse": -2.1016225204562033e-8
+      }
+    ],
+    "surface": "rock",
+    "wheelSurfaces": [
+      "rock",
+      "rock",
+      "rock",
+      "rock"
+    ],
+    "terrainFeedback": 0.00018671545297456262,
+    "waterDepth": 0,
+    "terrainParticles": 0,
+    "terrainTracks": 0,
+    "terrainRipples": 0,
+    "terrainParticleCapacity": 72,
+    "terrainEffectUsesInstanceColors": true,
+    "reducedMotion": false,
+    "cameraFeedbackApplied": 0.00018671545297456262,
+    "waterHeight": null,
+    "mode": "playing",
+    "position": {
+      "x": -616.0022583007812,
+      "y": 2.9630229473114014,
+      "z": 25
+    },
+    "rotation": {
+      "x": 0.0008269320242106915,
+      "y": -0.707106351852417,
+      "z": 0.0008269340032711625,
+      "w": 0.707106351852417
+    },
+    "velocity": {
+      "x": -0.00021365169959608465,
+      "y": -0.11741171777248383,
+      "z": -6.678464448128807e-10
+    },
+    "speed": -0.00048826756872011817,
+    "contacts": 4,
+    "input": {
+      "steer": 0,
+      "forward": false,
+      "reverse": false
+    },
+    "camera": [
+      -623,
+      5.4,
+      19
+    ],
+    "targetDistance": 9.534507026105011,
+    "wheelSteering": 0,
+    "recoveryStart": "west-beacon",
+    "suspension": [
+      0.285488098859787,
+      0.285488098859787,
+      0.28078171610832214,
+      0.28078171610832214
+    ],
+    "wheelContactLift": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "drawCalls": 24,
+    "triangles": 252696,
+    "pixelRatio": 1.5,
+    "graphicsReduced": false,
+    "geometries": 64,
+    "textures": 2,
+    "cameraObstructed": false,
+    "streaming": {
+      "activeRender": 1,
+      "activePhysics": 1,
+      "queued": 0,
+      "triangles": 254056,
+      "colliderCount": 29,
+      "lastActivationMs": 0
+    },
+    "navigation": {
+      "heading": 90.00000878307685,
+      "direction": "E",
+      "elevation": 2
+    }
+  }
+}

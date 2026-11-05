@@ -63,6 +63,20 @@ directions. Use
 [`&start=pebble-cove`](http://127.0.0.1:5173/?area=island-tracks&start=pebble-cove)
 to inspect the arrival or start the return.
 
+On 2026-11-05 the user accepted the published preview on iPad and authorized
+enlarging the starting island westward by 2–3x. **Harbor Meadow**, **Whale's
+Back** and **Needle Lighthouse** below are being adapted into the current
+world: broad grassy cruising and an easy lighthouse circuit, with the rounded
+rock climb optional. This does not revive Tide Gate, a causeway or the
+historical all-island route. The user explicitly wants relaxed regions too,
+not a demanding obstacle sequence everywhere.
+
+On 2026-11-05 the user accepted **Island Tracks as complete**, including the
+expanded mainland, optional Heather Cut, western coast and eight postcards,
+and requested committing and publishing the work. The old eight-region
+causeway proposal below remains historical, not unfinished current scope.
+See the [current progress record](artifacts/island-tracks/PROGRESS.md).
+
 The first tactile refinement pair is **Old Quarry** (a deep, covered descent
 with a turning chamber, second exit and solid rubble) and **Autumn Woods**
 (fallen logs, exposed roots and mossy stones on a high woodland ridge).

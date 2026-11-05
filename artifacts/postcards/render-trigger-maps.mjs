@@ -1,5 +1,5 @@
 // Render development-only postcard trigger overlays from the live card definitions.
-// Run: node --import tsx artifacts/postcards/render-trigger-maps.mjs [moon|mars|northern-reach]
+// Run: node --import tsx artifacts/postcards/render-trigger-maps.mjs [moon|mars|northern-reach|island-tracks]
 import { readFile, writeFile } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
 import { POSTCARDS } from '../../src/game/postcards.ts';
@@ -11,6 +11,10 @@ const northernOrder = [
   'river-mouth', 'outer-headlands', 'driftwood-strand', 'stone-circle',
 ];
 const worlds = [
+  { area: 'island-tracks', source: 'artifacts/island-tracks/island-tracks-map.svg',
+    output: 'artifacts/island-tracks/postcard-trigger-map', width: 1980, height: 1050,
+    originX: 1030, originY: 460, scale: 1.5,
+    panelX: 1360, panelY: 160, panelWidth: 580, rowHeight: 72, title: 'ISLAND TRACKS' },
   { area: 'moon', source: 'artifacts/moon/moon-map.svg',
     output: 'artifacts/moon/postcard-trigger-map', width: 1600, height: 1300,
     originX: 500, originY: 620, scale: 900 / 768,
@@ -41,12 +45,13 @@ function overlay(world, cards) {
     const zones = [{ x: card.x, z: card.z, radius: card.radius }, ...(card.visitZones ?? [])];
     out += `<g data-postcard="${esc(card.id)}">`;
     zones.forEach((zone, i) => {
-      out += `<circle cx="${px(zone.x)}" cy="${py(zone.z)}" r="${radius(zone.radius)}" fill="${color}" fill-opacity="${i ? '.14' : '.22'}" stroke="${card.secret ? '#fff0ff' : '#fff3ca'}" stroke-width="${i ? 2.5 : 3.5}" ${i ? 'stroke-dasharray="8 6"' : ''}/>`;
+      out += `<circle data-x="${zone.x}" data-z="${zone.z}" data-radius="${zone.radius}" cx="${px(zone.x)}" cy="${py(zone.z)}" r="${radius(zone.radius)}" fill="${color}" fill-opacity="${i ? '.14' : '.22'}" stroke="${card.secret ? '#fff0ff' : '#fff3ca'}" stroke-width="${i ? 2.5 : 3.5}" ${i ? 'stroke-dasharray="8 6"' : ''}/>`;
     });
-    const marker = card.secret ? '✦' : `${world.area === 'moon' ? 'P' : ''}${index + 1}`;
-    const mx = px(card.x) + (world.area === 'moon' ? 28 : 0);
-    const my = py(card.z) + (world.area === 'moon' ? card.id === 'small-blue-home' ? 28 : -28 : 0);
-    if (world.area === 'moon') out += `<path d="M ${px(card.x)} ${py(card.z)} L ${mx} ${my}" stroke="${color}" stroke-width="2"/>`;
+    const offsetBadge = world.area === 'moon' || world.area === 'island-tracks';
+    const marker = card.secret ? '✦' : `${offsetBadge ? 'P' : ''}${index + 1}`;
+    const mx = px(card.x) + (offsetBadge ? 28 : 0);
+    const my = py(card.z) + (offsetBadge ? card.id === 'small-blue-home' ? 28 : -28 : 0);
+    if (offsetBadge) out += `<path d="M ${px(card.x)} ${py(card.z)} L ${mx} ${my}" stroke="${color}" stroke-width="2"/>`;
     out += `<circle cx="${mx}" cy="${my}" r="17" fill="${color}" stroke="#242c2b" stroke-width="2.5"/>`;
     out += `<text x="${mx}" y="${num(my + 6)}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="${card.secret ? 20 : world.area === 'moon' ? 16 : 18}" font-weight="700" style="fill:#242c2b">${marker}</text>`;
     out += '</g>';
@@ -65,14 +70,19 @@ function overlay(world, cards) {
     const zoneCount = 1 + (card.visitZones?.length ?? 0);
     const color = card.secret ? '#b24b91' : '#bc6730';
     out += `<circle cx="${x + 42}" cy="${cy - 6}" r="16" fill="${color}"/>`;
-    out += `<text x="${x + 42}" y="${cy}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="${card.secret ? 19 : 17}" font-weight="700" style="fill:#fff9ec">${card.secret ? '✦' : `${world.area === 'moon' ? 'P' : ''}${index + 1}`}</text>`;
+    out += `<text x="${x + 42}" y="${cy}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="${card.secret ? 19 : 17}" font-weight="700" style="fill:#fff9ec">${card.secret ? '✦' : `${world.area === 'moon' || world.area === 'island-tracks' ? 'P' : ''}${index + 1}`}</text>`;
     out += svgText(x + 72, cy, card.name, world.area === 'northern-reach' ? 18 : 19, '#263f3c', 700);
     out += svgText(x + 72, cy + 20, `${zoneCount} ${zoneCount === 1 ? 'zone' : 'zones'} · main radius ${card.radius} m${card.secret ? ' · secret' : ''}`, 14, '#69786b');
     if (world.area === 'moon') out += svgText(x + 72, cy + 42, `Centre X ${card.x} / Z ${card.z}`, 14, '#69786b');
+    if (world.area === 'island-tracks')
+      out += svgText(x + 72, cy + 42, `${card.arrival ? `Earn arrival: ${card.arrival}` : `Centre X ${card.x} / Z ${card.z}`}${card.elevation !== undefined ? ` · Y ${card.elevation} ±2 m` : ''}`, 13, '#69786b');
   });
   const footY = y + panelHeight - 52;
-  out += svgText(x + 26, footY, 'After 8 m of driving, a pass through any ring unlocks.', 15, '#5a6b62');
+  out += svgText(x + 26, footY, world.area === 'island-tracks'
+    ? 'Requires 8 m driving, grounded upright and shallow/dry.' : 'After 8 m of driving, a pass through any ring unlocks.', 15, '#5a6b62');
   out += svgText(x + 26, footY + 22, 'Spawn, reset and teleport do not count as discovery.', 15, '#5a6b62');
+  if (world.area === 'island-tracks')
+    out += svgText(x + 26, footY + 44, 'Arrival/elevation gates also apply; rings alone are not enough.', 14, '#5a6b62');
   return out;
 }
 

@@ -336,7 +336,7 @@ async function boot() {
     camera.far = area.viewDistance ?? 900;
     camera.updateProjectionMatrix();
     document.body.dataset.area = area.id;
-    const journalAvailable = area.id === 'northern-reach' || area.id === 'mars' || area.id === 'moon';
+    const journalAvailable = POSTCARDS.some(card => card.area === area.id);
     element('open-journal').hidden = !journalAvailable;
     element('pause-journal').hidden = !journalAvailable;
     if (journalAvailable) for (const id of ['home-journal-preview', 'pause-journal-preview']) {
@@ -417,7 +417,7 @@ async function boot() {
     element('pause-journal-count').textContent = `${collected}/${cards.length}`;
   };
   const openJournal = (focusCardId?: string) => {
-    if (area.id !== 'northern-reach' && area.id !== 'mars' && area.id !== 'moon') return;
+    if (!POSTCARDS.some(card => card.area === area.id)) return;
     const fromPlaying = mode === 'playing';
     if (fromPlaying) pause();
     if (mode !== 'ready' && mode !== 'paused') return;
@@ -1097,7 +1097,15 @@ async function boot() {
         vehicle.capture();
       });
       vehicle.syncVisuals(alpha);
-      for (const card of postcardTracker.update(area.id, vehicle.position.x, vehicle.position.z)) rememberPostcard(card);
+      const rotation = vehicle.body.rotation();
+      const postcardVisit = runtime instanceof TidalTracksRuntime ? {
+        y: vehicle.position.y,
+        grounded: vehicle.contactCount() >= 2 && vehicle.waterDepth < 0.6
+          && 1 - 2 * (rotation.x ** 2 + rotation.z ** 2) > 0.65
+          && Math.abs(vehicle.position.y - area.surfaceHeight(vehicle.position.x, vehicle.position.z)) < 2,
+        completedArrivals: runtime.completedArrivals,
+      } : undefined;
+      for (const card of postcardTracker.update(area.id, vehicle.position.x, vehicle.position.z, postcardVisit)) rememberPostcard(card);
       updateNavigation();
       terrainEffects.update(Math.min(elapsed, 0.05), vehicle, controls!.state.value);
       const surface = vehicle.currentSurface;

@@ -10,6 +10,519 @@ later decisions supersede earlier scope and recovery policies.
 
 ## Progress
 
+### Completion sign-off and final scoped acceptance - 2026-11-05
+
+The user accepted **Island Tracks as complete**, including the mainland,
+western coast, discovery and current eight postcard compositions, and
+authorized committing everything and pushing. This supersedes the earlier
+preview/framing holds. Local validation is limited to Island Tracks and its
+shared postcard behavior; the user explicitly retained the normal Pages CI
+workflow, including its standard full unit run after the push.
+
+The user reaffirmed that an obstacle needs a safe, repeatable traversal, not
+crawl-speed success on every line. Heather Cut initially stalled under the
+test driver's slow approach. A controlled **5 m/s** run-up passes on the
+**original terrain** with both cars, both directions and analog/keyboard
+steering, retaining upright, physical articulation, water and flight limits.
+Temporary grading/line experiments were discarded; no accepted obstacle,
+terrain, shared handling, traction or safety assertion was weakened.
+The first browser batch was stopped when that clarification arrived; it is
+not counted as completed coverage. The final maps were regenerated against
+the restored original terrain.
+
+**Final scoped acceptance is complete.** No full local regression for other
+locations was run.
+
+| Check | Final result |
+| --- | --- |
+| Focused Island Tracks/postcard units | **173 passed** on the final code; both cars and steering policies, reversible mainland/Heather/cliff-foot journeys, plus beach/discovery matrices |
+| Typecheck and production build | Pass on the final code |
+| Mainland/journal browser coverage | All **24 distinct cases passed across the full batch and targeted reruns**, in Chromium and WebKit; see the failure/rerun history below |
+| Final targeted beach/nook and full-size-photo rerun | **4 passed**, both engines, 4.4 min |
+| Final focused production/PWA rerun | **7 passed / 1 existing skip**, 1.5 min; all eight images decode offline and the secret detail opens in both engines |
+| Production postcard copies | All eight accepted source JPEGs match `dist/postcards/island-tracks/` byte-for-byte |
+
+The initial 24-case browser batch had **21 passes / 3 failures**, not a
+fully green run. All twelve long mainland-circuit, Heather Cut and cliff-foot
+journeys passed, including physical articulation, water/camera limits and
+both Reset controls. The beach/nook drives completed safely but peaked at
+66 draw calls, over the unchanged `<65` budget. Chromium's all-photo case
+finished its image assertions but timed out on an incidental final screenshot.
+Removed only that screenshot, retaining every full-size image/title/note and
+secret assertion; the case then passed in both engines.
+
+Profiled the actual main/shadow draw contributors during wet driving.
+Disabling fine-ground-cover shadows did not fix the peak and was reverted.
+Reused the existing owned vertex-color batching instead: merged the nearby
+farm fence into the solid farmstead batch and the harbor trim into the
+decorative roof batch. Material, sidedness, shadows, every visible/physical
+triangle and all terrain/handling remain unchanged. The farm/fence now share
+one trimesh collider, reducing the resident count from 29 to **28**, with
+**254,056 resident triangles** unchanged. Updated current count assertions;
+the earlier long-route JSON deliberately retains its pre-batching count.
+
+The final beach/nook rerun passes in both engines at **64 calls** and
+**298,664 rendered triangles** maximum, below the unchanged `<65`/`<300,000`
+limits. Both engines finish all 17 beach and 12 nook points, with zero camera
+obstructions, water at most 0.3001 m and upright above 0.914. The earlier twelve
+long rides peak at 61 calls / 297,686 triangles; technical rides record
+0.355-0.438 m contact lift, meaningful independent suspension movement and
+water below 0.381 m. Reviewed actual driving-height route captures and both
+final beach/nook captures, not only the maps.
+
+Evidence: [Chromium journeys](chromium-tablet/mainland-acceptance/) and
+[WebKit journeys](webkit-tablet/mainland-acceptance/), alongside the accepted
+[postcards and exact saved views](postcards/) and
+[trigger map](postcard-trigger-map.png). No additional framing approval remains.
+WebKit offline navigation and automated two-contact touch remain existing
+manual iPad Safari gaps, not passed automated checks.
+
+**Next:** verify the normal push-to-main Pages deployment of this signed-off
+build, then perform the user's later iPad check. Keep Island Tracks marked
+complete; physical-device performance/offline observations are follow-up
+feedback, not a reason to reopen accepted content or release other local
+development worlds.
+
+### User-framed Smuggler's Nook - 2026-11-05
+
+Preserved the user's complete copied car/camera pose and regenerated only
+Smuggler's Nook using the shared saved-view capture workflow. The exact
+position, viewing direction and 48-degree FOV checks pass with the car hidden.
+Inspected the actual-game image: the crates and beached skiff are framed within
+the cleft, without the car or HUD. Production build/typecheck and whitespace
+checks pass; its source JPEG matches
+`dist/postcards/island-tracks/smugglers-nook.jpg` byte-for-byte.
+No discovery zones, terrain or other photographs changed. Four postcards now
+use user-supplied framing; the other four remain drafts. Next: continue with
+the remaining views, then the deferred focused browser/offline checks.
+No longer suites, commit or publication were performed.
+
+### User-framed West Beach
+
+Applied the user's complete copied West Beach pose without changing position,
+target, 48-degree FOV or discovery geometry. Regenerated only its vehicle/HUD-free
+postcard with the shared saved-view script and inspected the actual-game result:
+the beach frames the cliff-foot shallows and coastal rocks. Production
+build/typecheck pass; the JPEG matches its `dist/postcards/island-tracks/`
+copy byte-for-byte. The preceding 20 postcard units and all eight source/build
+image comparisons also passed. Pebble Cove, Seabird Summit and West Beach now
+use user-supplied framing; the other five remain drafts. Next: continue applying
+the user's remaining views, then the deferred focused browser/offline checks.
+No longer suites, commit or publication were performed.
+
+### Postcards, trigger map and user-framed Pebble Cove / Seabird Summit
+
+Implemented the eight approved keepsakes in the existing journal: Mainland
+Meadows, Needle Lighthouse, Western Beacon, West Beach, The Other Shore,
+Seabird Summit, Pebble Cove and secret Smuggler's Nook. Retained shared
+storage, first-discovery dates, detail images and anonymous locked-secret
+presentation. Existing Northern Reach/Mars postcard definitions, Moon journal
+presentation and the shared photo capture script are the references; this is
+not a separate collectible or checkpoint system.
+
+Island Tracks recognition requires real movement and grounded, upright,
+shallow/dry travel. The three eastern destination cards additionally require
+their runtime's ordered completed arrival. Inspection starts and Reset do not
+earn those arrivals. Elevation gates prevent the cliff above Smuggler's Nook
+from discovering the secret below it. The generated
+[trigger map](postcard-trigger-map.png) and [zoomable SVG](postcard-trigger-map.svg)
+show all main/alternate circles and explain non-spatial gates. The background
+samples actual terrain and routes; it is a development reference, not a game
+capture or new in-game map.
+
+Preserved the user's supplied Pebble Cove and Seabird Summit JSON, including
+car poses, in [saved views](postcards/photo-views.json). Regenerated only those
+two 800 x 520, car/HUD-free JPEGs using the exact supplied camera positions,
+targets and 48-degree FOVs. The shared capture now checks rendered direction
+and FOV as well as position and car visibility. Inspected both actual-game
+images: the cove shows the beach, pebbles and shallow bay; the summit shows the
+complete beacon and sea horizon without the previous cropped lantern.
+The other six photographs remain drafts for the user's framing assistance.
+Sources remain `public/postcards/island-tracks/`; production build/typecheck
+pass and both revised JPEGs match `dist/postcards/island-tracks/` byte-for-byte.
+
+Earlier focused evidence: all 20 postcard units and the earned-arrival/runtime
+integration case passed. The first browser batch passed seven of eight cases;
+the compound Chromium image/persistence case timed out. After splitting it,
+both engines passed persistence/world isolation and WebKit passed all eight
+full-size photographs. Chromium reached the final journal screenshot after
+the image assertions, then timed out waiting for the scrollable element to
+stabilize. Changed that evidence capture to a viewport screenshot; that final
+test-only change has not yet been rerun. The new offline all-image decode /
+secret-detail case is also still unrun. Do not treat either as passed or claim
+full browser/PWA acceptance. Longer checks remain deferred while the user
+reviews framing; no game physics, deadlines or recognition assertions were
+weakened.
+
+**Next:** apply the user's remaining postcard views, then rerun the affected
+Chromium image case and focused offline coverage sequentially. Broader
+mainland/coastal route and iPad acceptance remain pending. Nothing has been
+committed, pushed or published; the user's existing preview panel was not
+navigated or reset.
+
+### Home tile: Heather Cut view and shorter subtitle - 2026-11-05
+
+Removed the user-rejected `Preview` prefix and separator from the home tile.
+Its subtitle is now **Meadows, coves & crossings**. Updated the production
+picker assertion to require that exact text and aligned the current plan
+and README.
+
+Replaced `public/locations/island-tracks.jpg` with an actual-game view from
+Heather Cut toward Western Beacon. Used the existing photo-mode capture
+workflow, retaining the 476 x 350 JPEG contract and existing asset path.
+Selected a clear ridge view rather than a nearby angle dominated by a
+foreground boulder. Preserved the full capture as
+[Heather Cut toward Western Beacon](west-coast-refinement/heather-cut-western-beacon.png)
+and checked the [actual home tile](west-coast-refinement/home-tile-heather-cut.png)
+at its displayed size. Chromium confirms the exact subtitle and loaded image
+dimensions; production build/typecheck and `git diff --check` pass.
+Long browser/PWA journeys remain deferred. These presentation changes do not
+complete the pending mainland/coastal acceptance or publish the local changes.
+
+### Separate the mainland lights at its north and south tips - 2026-11-05
+
+The user rejected clustering three lights around the western headland.
+Moved the two smaller mainland beacons to naturally supported coastal
+shoulders near the northern tip `(-434, -118.5)` and southern tip
+`(-442, 134)`, about 12 m and 8 m above sea level. They are about 253 m
+apart and each more than 150 m from Western Beacon. The larger western
+landmark, Needle Lighthouse and Seabird Summit light stay unchanged.
+No new land, terrain pads, route changes, named starts or lights were added.
+
+Reference: the existing owned coastal-beacon batch and full-footprint
+support/sightline checks. Adapted the sea-facing ray to north or south for
+these sites, rather than assuming every mainland light faces west.
+Regression checks now require opposite mainland extremities, separation
+from the larger western light, and full-footing clearance outside the
+broad circuit. Both retain the existing less-than-0.3 m support variation.
+
+Eight selected unit checks pass, covering the light placement/physical
+landmarks, terrain/resources, arrival and existing both-car crossing journeys.
+Production build/typecheck and `git diff --check` pass. Actual Chromium
+iPad-emulation driving and seaward captures show both grounded beacons
+with clear outward horizons. Driving samples have four contacts, dry
+ground, unobstructed cameras and no page errors; sampled maximum is
+281,406 rendered triangles / 41 calls. Resident resources remain
+254,056 triangles / 29 colliders. Evidence:
+[tip views and distribution](mainland-tip-beacons/),
+[samples](mainland-tip-beacons/preview-samples.json).
+
+**Next: the user's local preview review.** Longer mainland/coastal acceptance,
+WebKit and PWA checks remain deferred as recorded below. The local server
+stays running; nothing has been committed, pushed or published.
+
+### Coastal refinement, high lights and mainland-first arrival - 2026-11-05
+
+The user rejected the low shore beacons and brick-course watchtower, supplied
+a driving-height screenshot showing the water shelf's straight edge, and
+authorized the hidden discovery. They also requested a light on the other
+islet's highest plateau, a mainland-facing start, a new tile subtitle and a
+much shorter arrival toast.
+
+**Local preview changes:**
+
+- Replaced the ruin with a continuous tapered **Western Beacon**, about
+  10 m high, versus Needle Lighthouse's roughly 20 m. No separated masonry,
+  slit-like course gaps or floating broken blocks. The entry is `west-beacon`,
+  replacing the experimental `watchtower` entry.
+- Moved the two small lights onto exposed approximately 22 m headlands.
+  Added a third on the 67 m Seabird Summit shoulder, outside its accepted
+  approach and turning envelope. Supported each complete footing and checked
+  a clear near-coast seaward ray, not elevation alone. Static emissive lanterns
+  share one owned batch; no new point lights, flashing logic or moving beam.
+- Curved the cliff-foot bed, varied its width and cliff edge, added irregular
+  outer shallow pockets and seven larger rigid outcrops around the three ribs.
+  The ordinary mainland circuit remains a broad dry bypass. West Beach retains
+  its own shallow turning basin and now has a more gradual dry return.
+- Built **Smuggler's Nook** as a recessed open-top rock cleft with a dry turning
+  area, small beached skiff, cargo crates and worn mooring post. Offset its
+  approach behind flanking boulders. No named entry, map marker, collectible,
+  tide timer or extra recovery checkpoint. It is not a new roofed tunnel.
+- Retained the proven Harbor Cove spawn pad, but turned normal arrival and
+  named Harbor Cove toward the grassy circuit, away from the other islet.
+  Ordinary Reset agrees; an entered challenge still owns its own departure.
+  The tile reads **Preview · Meadows, coves & crossings**, with the welcome
+  **Take the long way round**. The arrival toast is now only **Explore the
+  mainland first. Pale water is shallow; dark blue is deep.**
+
+References: the existing continuous Needle Lighthouse mesh, owned scenery
+batching, rigid coastal rocks, exact mixed-resolution bed and fitted water,
+Pebble Cove's full-footprint wet play, and current physical/recovery helpers.
+Extracted the original Harbor skiff geometry unchanged into a reusable helper
+for the smaller discovery boat. The hidden place uses the terrain itself for
+its enclosure, avoiding another roof without a matching shade/lifecycle design.
+The only eastern terrain adjustment is the small summit-light footing;
+accepted climb coordinates, endpoints and shared handling remain unchanged.
+
+**Corrections during this preview:** cubic bed interpolation overshot below its
+wet control points, so clamp the sampled bed to -0.34 m before mesh generation.
+Reworked the basin's abrupt shoreline blend rather than changing wet traction.
+Adapted turning paths that had asked the automatic driver for an impossible
+short U-turn, without weakening upright/depth/contact limits. Reduced the
+western beacon's footing to its actual footprint so its plateau did not steepen
+the approach; enlarged the summit footing locally to remove its overhang.
+Actual-game captures exposed a detached-looking boulder high on the nook wall;
+removed it and refreshed the nook images, rather than accepting a numerical
+grounding check as sufficient.
+
+**Preview evidence only:** typecheck/production build and `git diff --check`
+pass. The initial focused 13-case batch passed 12 and found the approach-slope
+issue above. After corrections, the six selected coast checks all pass, including
+high-site support/sightlines, full-width shelf/turning support, recovery
+separation, and real classic-car wet-loop/dry-return and discovery entry/exit.
+After the final wall-boulder removal, the discovery real-driving check passes
+again with explicit wet travel and dry arrival. Existing targeted resource,
+entry, easy-mainland, seam and landmark ray checks passed in the earlier focused
+batch; this is **not a full unit-suite result**.
+
+Chromium/iPad-emulation actual-game captures confirm the changed home tile,
+westward ordinary-keyboard departure on dry ground, short two-line toast,
+western and summit lights, the user's water-trail angle and the hidden cleft.
+All sampled driving views have four contacts and no obstructed camera or page
+errors. The first fixed-duration departure capture was inconclusive under
+rendering load; the final capture waits for actual westward displacement.
+Final resources are **254,056 resident triangles / 29 colliders**, within
+unchanged budgets. Across the ten-view capture before removal of the final
+36-triangle boulder, the observed maximum was **295,212 rendered triangles /
+63 calls**. These are sample peaks with little headroom, not completed route
+peaks or physical-iPad performance acceptance.
+
+Evidence: [capture samples](west-coast-refinement/preview-samples.json),
+[final nook sample](west-coast-refinement/final-nook-sample.json), and actual
+game images in [west-coast-refinement](west-coast-refinement/). Preserved the
+[user's original screenshot](west-coast-refinement/user-linear-water-feedback.png).
+The main capture JSON precedes the final wall-boulder removal; the final nook
+JSON and refreshed nook images record the current build.
+
+**Next: user visual/driving review on the still-running local server.** Hold
+longer checks until that peek. The complete revised water challenge and Heather
+Cut remain unaccepted: both cars, both directions, steering policies, full
+camera/route/render peaks and both browser engines remain pending. The changed
+home copy/arrival still needs the focused production/PWA scenario before
+publication; no PWA/browser marathon was run during this preview. Nothing has
+been committed, pushed or published.
+
+### Western coast first pass: paused for an immediate look - 2026-11-05
+
+The user chose a ruined western stone watchtower, an accessible beach/wade
+area and an optional challenging cliff-foot water ride, while retaining the
+grassy mainland. They then rejected the benches and suggested smaller beacons.
+Both benches and the dedicated western bench pad are removed. Two small,
+static coastal beacons stand near the beach and northern water-trail ends.
+
+Implemented locally: the tower's broken stone courses, real doorway/window
+gaps and fallen blocks; a coastal headland; dry approaches from the existing
+mainland circuit; West Beach and a separate shallow turning basin; and a
+cliff-foot water line with three matching physical ribs and resting rocks.
+Added `watchtower`, `west-beach` and `north-cove` entries. The water ride has
+bidirectional ordered attempts; dry mid-route rocks do not establish recovery.
+Both ends have easy mainland access, so this is optional traversal rather
+than an exclusively earned destination. No shared handling or world-bound
+changes, commits, pushes or publication.
+
+References inspected: existing tidal fitted water, exact coarse terrain,
+Pebble Cove's full-footprint shallow-water lesson, physical step generation,
+batched solid scenery and Heather Cut's optional-ride recovery. Adaptation:
+reuse the existing resident mesh for the western shelf and cliff, and keep
+easy wet play south of the distinct northbound challenge departure. The world
+still loads its entire 860 x 400 m terrain, water and colliders together; it
+does not stream. Further large expansion should consider the established
+Northern/Mars chunked runtimes rather than assuming resident size is unlimited.
+
+**Limited checks before the latest pause:** typecheck and production build
+passed before the final basin correction. A short nine-case selection passed
+six existing terrain/resource/entry/seam/bypass checks and failed three new
+coastal checks. The measured pre-correction cost was 254,645 resident triangles
+and 27 colliders, under unchanged budgets; final view peaks are not established.
+The wet shelf was too small for a real full-lock turn, and its upper edge was
+not yet uniformly submerged. Enlarged and explicitly graded the turning basin.
+The unordered-exit test also incorrectly assumed a freely accessible mainland
+destination required a completed water ride; it now starts an actual attempt
+before checking that an unordered arrival cannot complete it. These corrections
+have **not been rerun**. The cliff-foot depth assertions following the failed
+basin assertion, complete both-car water drives and visual quality remain
+unverified. Do not claim the new water challenge passes.
+
+The user explicitly repeated: **"Again: let me check briefly before running
+longer tests"**. Stopped validation and opened the existing Browser panel at
+the watchtower. Port 5173 was responsive immediately before this pause.
+Next: wait for their brief inspection and feedback; then address feedback and
+rerun the short coastal checks before any longer acceptance work. Preserve the
+earlier second-mainland preview evidence rather than presenting it as new coast
+evidence. The requested live preview server remains running.
+
+Proposed hidden discovery: **Smuggler's Nook**, a concealed dry cliff alcove
+with old boat remnants and a sheltered sea view. This is only an idea, not an
+implemented feature or newly approved scope.
+
+### Second mainland expansion: early look before long checks - 2026-11-05
+
+After liking the first expansion, the user requested another 2–3x land area
+and more details, explicitly selecting growth relative to the **current**
+42,788 square metres. They then requested a peek once the land was stable,
+before all checks, and added a difficult ride that must not damage the
+mainland's relaxed character.
+
+**Early local implementation:** 114,508 square metres of dry western land on
+the same 2 m measurement lattice, **2.676x** the first expansion and **7.790x**
+the original. New loaded bounds are X=-660..200, Z=-200..200. An **809 m**
+easy mainland circuit surrounds broad grass, a 52 m radius prop-free meadow,
+a small cream farmstead with fence and bench, a sheltered grove, wildflowers
+and a coastal seat. The first lighthouse circuit and optional Whale's Back
+remain in place; no eastern route coordinates or shared handling were changed.
+
+**Heather Cut** is an optional **149 m** rocky shoulder ride with four solid
+offset steps, a 26 m upper section and whole-ride ordered retry. The coastal
+circuit bypasses it. Added `heather-cut` and `west-overlook` entries; both are
+safe home destinations during free roaming. Their departure areas extend 12 m
+before attempt detection, preventing the nearby easy bypass from accidentally
+starting the hard ride. This is a first pass, **not an accepted difficult ride**.
+
+References: the existing tidal exact Float32 bed, fitted ocean, first home
+circuit, wind-bent trees, grounded solid landmarks and owned scenery batching;
+existing crossing/cliff physical-step geometry and ordered retry tests.
+Adaptation: preserve the 2 m original terrain patch and use 4 m new western
+rolling land, splitting coarse seam triangles at each fine-grid vertex.
+Height queries use exactly those split triangles. All technical world meshes,
+water and collision remain one owned bounded runtime; no generic streaming
+or shared-physics change was introduced.
+
+**Preview-only checks:** production build/typecheck pass; six short geometry,
+water, pad, resource, seam and attempt/bypass checks pass. Exhaustive terrain
+triangle-centre comparison measured maximum height disagreement below 1e-12.
+Resident resources are **251,799 triangles / 24 colliders**, under unchanged
+280,000 resident ceiling. A short classic-car grass drive has four contacts,
+no water and no browser errors. Captured classic views measure 282,104
+triangles / 42 calls in the meadow and 290,864 / 53 at Heather Cut.
+These are samples, not verified journey peaks.
+
+The first resource smoke check caught grove/flower loops incorrectly nested
+inside per-site scatter, duplicating geometry. Moved them outside; final six
+smoke checks pass without raising any limit. New named pads have an 8 m flat
+core to support the interpolated wheel footprint on the coarser mesh.
+
+Inspected actual-game grass driving, the farmstead, Heather Cut's departure
+and the wider island/sea balance. Evidence is in
+[mainland-preview](mainland-preview/preview-smoke.json), with driving-height
+and overhead captures. The running local server remains on port 5173 for the
+user's requested early look; the Browser panel is an additional preview.
+
+**Paused for user review, as requested.** Do not run the long suites before
+their peek. Next: incorporate their landscape/detail/ride feedback, then
+validate both cars/directions/steering policies on the new circuit and hard
+ride, full-footprint landmark grounding and clearance, protected old-terrain
+comparison, recovery, both browser engines and actual peak render budgets.
+Existing first-pass acceptance does not carry forward to this larger build.
+No new commit, push or publication has been performed.
+
+### Larger grassy home island and a relaxed lighthouse circuit - 2026-11-05
+
+The user tested the published preview on a physical iPad and reported **"all
+good"**. This accepts the previous build as reviewed; it is not evidence that
+the new expansion has already been tested on-device, nor a set of separately
+measured touch/offline/thermal results.
+
+They observed that the formerly small eastern islet had become large and
+rocky enough to dominate the starting island. They authorized proceeding with
+the retained Harbor Meadow, Whale's Back and Needle Lighthouse ideas, then
+selected **2–3 times the former home-island land area, mainly westward**.
+They explicitly reaffirmed that not every region must be difficult: cruising
+wide grassy hills is an enjoyable alternative in its own right.
+
+**Implemented:** a 574 m reversible, broadly supported home circuit from the
+unchanged Harbor Cove start through rolling grass to Needle Lighthouse and
+back. The 147 m Whale's Back line climbs a rounded 28 m bedrock crest; the easy
+main circuit bypasses it. A reserved grassy meadow supports off-road driving
+and turns. The existing boathouse stays, with a matching solid beached skiff
+outside both approaches. A cream/red lighthouse and dark lantern stand on a
+16 m headland with room to circle outside the solid tower. No new handling,
+moving beacon, missions or persistent progression is introduced.
+
+Relaxed home roaming accepts actual grounded visits to the harbor, crest and
+lighthouse pad as safe Reset destinations, without ordered circuit gates.
+Crossing and eastern challenge attempts keep their ordered whole-journey
+rules; home roaming cannot earn Saltgrass Landing or complete an active
+crossing out of order. Added `whales-back` and `needle-lighthouse` inspection
+starts without changing the existing eight entries.
+
+**References and adaptation:** read the historical region ideas alongside the
+current build plan, guide, tidal terrain/scenery/runtime and real-drive tests.
+Retained exact Float32 sampled terrain, terrain-fitted water, grounded rigid
+scenery, batched matching colliders and owned disposal. Extended only western
+grid columns into a **560 x 400 m** rectangle, X=-360..200 and Z=-200..200,
+with the same 2 m spacing. Parameterized the shared water helper's ocean-apron
+bounds while preserving its existing square default for other worlds. The
+apron must not overlay the new western land.
+
+The same 2 m western sample measures **14,700 -> 42,788 square metres (2.91x)**.
+All protected eastern/crossing height samples from X=-108..190 and
+Z=-190..190 remain exactly unchanged. Current resident cost is **210,853
+triangles / 21 colliders**, within the existing budgets. The lighthouse and
+skiff add two owned collider batches over the previous nineteen colliders.
+See [layout measurements](home-island-layout.json).
+
+**Corrections during development:** the first return approach grazed the
+boathouse corner and trapped both cars, despite passing the outward drive;
+rerouted the broad approach around the building instead of changing handling.
+The optional ridge's grading initially pinched one outer edge of the easy
+lane; reapplied its broad supported core after the ridge blend. Reserved a
+full-footprint lighthouse turning apron, excluded nearby vegetation and kept
+the skiff above dry ground. The open skiff shell renders both sides to agree
+with its matching physical triangles. Landmark downward-ray checks use
+exposed upward-facing faces, avoiding ambiguous rays exactly along a vertical
+gallery edge.
+
+**Final verification:**
+
+- `npm run typecheck` and `npm run build` pass.
+- `node --import tsx --test tests/tidal-tracks.test.ts tests/static-sunlight.test.ts`:
+  **119 pass, no skips**. Includes both cars, both directions, keyboard and
+  analog steering on the new circuit/ridge; off-road meadow and lighthouse
+  turns; exact terrain/water/landmark agreement; recovery ordering, lifecycle
+  and existing crossing/cliff/cove driving regressions.
+- Six affected browser cases pass across Chromium and WebKit, in two
+  sequential batches: home circuit and optional ridge in modern-forward and
+  classic-reverse journeys; all ten named entries, Reset and world switching;
+  off-road grass turns, lighthouse circles and both Reset controls. The
+  circuit reaches all 17 points, the ridge all seven and the apron all 13;
+  no wet travel or obstructed camera frames. Peak across the two-car journeys:
+  **57 calls / 255,497 rendered triangles**, below unchanged 65 / 300,000
+  ceilings. Worst minimum upright component is **0.861**, on the optional
+  ridge; the main circuit stays above **0.965**.
+- Focused production/PWA spec: **5 pass, 1 known WebKit offline-reload skip**.
+  Normal home selection and all three tested regional links (Pebble Cove,
+  Whale's Back, Needle Lighthouse) retain the requested Earth car in both
+  engines. Chromium reload and travel offline pass with the cached tile.
+  Browser and PWA batches ran sequentially.
+
+A superseded browser batch was stopped after the final apron refinement; it
+is not counted as a completed run. The first focused unit batches found stale
+collider expectations and a skiff ray/render discrepancy; those were corrected
+before the final 119/119 run. Full unrelated unit/browser/PWA suites and the
+long eastern browser course marathons were not repeated for this western
+iteration. WebKit automated two-contact touch and offline-reload gaps remain
+manual iPad checks, not passes.
+
+Inspected actual-game driving captures in both engines, including the open
+grass field, both-car circuit/lighthouse approaches and the close tower turn,
+alongside the overhead and across-the-crossing balance views. The new island
+reads as lower, broader grassland with clear space off the painted circuit;
+the rocky eastern island remains the taller dramatic destination. The skiff
+is dry, the lighthouse door is clear and the solid tower does not block the
+circuit or circling space. Capture sets and measured journeys:
+[Chromium](chromium-tablet/home-island-driving-evidence.json),
+[WebKit](webkit-tablet/home-island-driving-evidence.json),
+[Chromium grass/apron](chromium-tablet/home-roaming-evidence.json),
+[WebKit grass/apron](webkit-tablet/home-roaming-evidence.json).
+Existing entry/view evidence was refreshed for the enlarged world; user
+feedback images remain preserved.
+
+**Next:** user review of the enlarged island's visual balance and relaxed
+driving, then publish only when requested and repeat physical-iPad acceptance
+for this expansion. No known failing focused checks remain. This revision
+has not been committed or pushed; previous iPad acceptance applies only to
+the pre-expansion build.
+
 ### Published preview for later iPad review - 2026-11-04
 
 The user requested pushing the accepted work, then explicitly authorized

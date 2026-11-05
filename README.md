@@ -1,10 +1,9 @@
 # Little Roamer
 
-An open-ended 3D toy 4WD playground with five places to explore: sunny hills
+An open-ended 3D toy 4WD playground with seven places to explore: sunny hills
 in **Sunshine Valley**, the volcanic **Iceland Highlands**, the streamed
 1.5 km-wide wilderness of **Northern Reach**, **Samurai Village**, and
-**Mars Outpost**. The home picker also offers an **Island Tracks preview**
-for iPad review.
+**Mars Outpost**, **Moon**, and **Island Tracks**.
 No score, objectives, timers, accounts, audio, or downloads of external artwork.
 
 Built with TypeScript, Vite, Three.js and Rapier. All meshes and trail-sign
@@ -86,8 +85,8 @@ Direct links:
 
 ### Local development menu
 
-The main location picker contains the six released worlds and the published
-Island Tracks preview. On the local
+The main location picker contains seven released worlds, including Island
+Tracks. On the local
 development server, expand **Development** below the normal home controls:
 
 - **Active builds:** unfinished Iceland (`iceland`).
@@ -133,7 +132,8 @@ continuous crawling. The original easy circuits remain available.
 
 The selected direction is a **crossing-first driving adventure**:
 **[drive Island Tracks](https://wroluk.github.io/little-roamer/?area=island-tracks)**
-in the GitHub Pages preview, or choose its home-screen tile. Leave Harbor Cove
+on GitHub Pages, or choose its home-screen tile. The user accepted the world
+as complete on 2026-11-05. Leave Harbor Cove
 and follow the cairns through a winding
 basalt chain: four solid stone ribs, narrow rock gates and three shallow sea
 channels lead to Saltgrass Landing. Climb the eastern island to the 30 m
@@ -144,6 +144,54 @@ bypass or tide timer.
 
 There is just one Island Tracks entry. The old lighthouse/causeway comparison
 has been removed, and the intermediate `tidal-islands` URL is retired.
+
+The expanded starting island is also a place to cruise: **Harbor Meadow**
+has broad grassy hills, open ground for cross-country turns and a **574 m**
+easy circuit to **Needle Lighthouse** and back. The original boathouse and a
+beached skiff give the harbor its identity. The optional **Whale's Back**
+line crosses a rounded 28 m bedrock crest; the wide main loop goes around it.
+There is no requirement to finish the home circuit before taking Rock Passage.
+The first expansion grew the home island to 2.9 times its original land area.
+The western mainland adds another **2.68x** that land: about
+114,500 square metres in total, or 7.8 times the original. An **809 m mainland
+circuit** links grassy rolling country, a small farmstead, a sheltered grove,
+and wildflowers. Wide open meadow remains free of solid props.
+The existing crossing, lighthouse and eastern challenge coordinates stay put.
+
+**Heather Cut** adds an optional 149 m rocky side ride on a western shoulder,
+with offset solid steps and a 26 m high section. The broad coastal circuit
+bypasses it entirely. Choose the wheel line and use a controlled run-up where
+needed; its full-height stones and 26 m summit do not require crawl-only driving.
+[Peek at the western mainland](http://127.0.0.1:5173/?area=island-tracks&start=west-overlook).
+[Inspect Heather Cut](http://127.0.0.1:5173/?area=island-tracks&start=heather-cut).
+
+The western coast replaces the rejected stone ruin with a tapered
+**Western Beacon**, about half Needle Lighthouse's height. Smaller lights
+stand near the mainland's northern and southern tips and on **Seabird Summit**,
+on exposed supported ground rather than down on the beach.
+**West Beach** has a separate shallow-water play area; the optional cliff-foot
+water ride winds around physical outcrops and irregular submerged shelves.
+Easy dry approaches reach both ends; the mainland circuit remains a bypass.
+The benches stay removed. There is also an unmarked coastal discovery.
+Both ends retain whole-challenge retries, separate from free beach play.
+[Look at the western beacon](http://127.0.0.1:5173/?area=island-tracks&start=west-beacon).
+[Try the beach](http://127.0.0.1:5173/?area=island-tracks&start=west-beach).
+
+The normal Harbor Cove arrival now faces the grassy mainland circuit, rather
+than pointing at the sea crossing. Its tile reads **Meadows, coves &
+crossings**. The brief starting toast is deliberately short: **Explore the
+mainland first. Pale water is shallow; dark blue is deep.**
+The tile image looks from Heather Cut toward Western Beacon.
+
+Island Tracks has eight postcard keepsakes: **Mainland Meadows**, **Needle
+Lighthouse**, **Western Beacon**, **West Beach**, **The Other Shore**,
+**Seabird Summit**, **Pebble Cove**, and one anonymous secret until found.
+The three eastern destination cards require their proper earned arrivals;
+the hidden cleft also checks elevation, so passing on the cliff above does
+not reveal it. These use the existing journal and do not add recovery points.
+The development-only [trigger map](artifacts/island-tracks/postcard-trigger-map.png)
+([SVG](artifacts/island-tracks/postcard-trigger-map.svg)) shows the exact
+recognition zones and additional gates.
 
 For the second demanding ride, continue north from Windward Lookout onto
 **Seabird Climb**: another 180 m of exposed cliff ledges, four solid offset
@@ -165,7 +213,7 @@ route. If the car sinks, the driving camera stays at least 1 m above the sea
 instead of exposing a dry-looking underwater landscape. Shallow-water driving,
 the freely positioned photo camera and other worlds are unchanged.
 Gull Rock, Split Saddle and Wind Notch are resting places, not checkpoints.
-**Reset car** always restarts the entire current challenge at its departure,
+On the crossing, eastern rides, Heather Cut and the western cliff-foot water ride, **Reset car** restarts the entire current challenge at its departure,
 even if the car could be righted locally. Rock Passage starts at Harbor Cove
 and ends on the safe far shore after the landing rib: Reset then stays on the
 earned island at **Saltgrass Landing**, including after the first inland turn.
@@ -179,9 +227,15 @@ inspection links also accept `&start=harbor-cove`, `&start=gull-rock`,
 `&start=wind-notch`, `&start=seabird-summit` or `&start=pebble-cove`. Gull Rock, Split Saddle and Wind
 Notch inspection entries still retry from their full challenge's entrance.
 Saltgrass Landing starts on the earned island; the summit entry starts a descent.
+Home-island inspection links also accept `&start=whales-back`,
+`&start=needle-lighthouse`, `&start=heather-cut`, `&start=west-overlook`,
+`&start=west-beacon`, `&start=west-beach` and `&start=north-cove`.
+While freely roaming the home island, grounded
+visits to Harbor Cove, the rock crest, lighthouse pad or western ride entrances establish the safe
+Reset destination, without requiring an ordered route. This does not bypass
+the challenge rules across the sea.
 
-This connected preview is not the full eight-region world. It is included in
-the published build for physical-iPad review, not declared a finished release.
+This accepted world does not adopt the historical eight-region causeway plan.
 Its tile, regional links and offline cache use the normal game lifecycle.
 The other comparison pilots and tropical Island remain local-only.
 See the [current build plan](artifacts/island-tracks/BUILD_PLAN.md)
@@ -414,9 +468,11 @@ return to a start. A brief message distinguishes local righting from returning;
 regional resets cost journey progress without returning you across the whole
 world.
 
-The development **Island Tracks** world deliberately differs: both Reset and R
-restart the whole active challenge from its departure, without local righting
-or intermediate-shelf checkpoints. Other worlds retain the behavior above.
+**Island Tracks** deliberately differs: both Reset and R
+restart an active crossing/cliff challenge from its departure, without local
+righting or intermediate-shelf checkpoints. Relaxed home-island roaming
+returns to the last physically visited home destination. Other worlds retain
+the behavior above.
 
 Tree trunks/canopies, boulders, ramps,
 signposts/boards, and the visible sandstone perimeter are solid. Tiny flowers,
@@ -723,6 +779,8 @@ not whether their experimental terrain works.
 For Island Tracks, run
 `node --import tsx --test tests/tidal-tracks.test.ts`
 and `npx playwright test tests/browser/tidal-tracks.spec.ts`.
+For focused mainland and postcard acceptance, use
+`npx playwright test tests/browser/island-tracks-mainland.spec.ts tests/browser/island-tracks-postcards.spec.ts`.
 Units drive Rock Passage, Seabird Climb and Pebble Cove with both Earth cars,
 analog and keyboard steering, and measure individual solid steps. Both browser engines drive the
 complete passage using keyboard controls, require all three actual wet-wheel
@@ -734,11 +792,21 @@ daylight mouths, actual ceiling-relative camera orbits, final-obstacle arrival,
 both Reset controls and isolation at the Seabird junction. Canonical entry
 checks require one `island-tracks` picker item and reject the retired
 `tidal-islands` ID.
+Home-island coverage measures the 2–3x land-area contract, broad dry lanes,
+off-road meadow turns, both directions around the lighthouse and optional
+ridge, landmark collision, rectangular ocean-apron separation and free-roaming
+recovery without crossing shortcuts.
+The expanded mainland, Heather Cut and western cliff-foot ride have both-car,
+both-direction, analog/keyboard real-driving coverage. Heather Cut uses a
+controlled 5 m/s run-up on its original terrain, not a crawl-speed requirement.
+The focused browser scenarios check safe journeys, camera clearance, unchanged
+render budgets, earned recovery and both Reset controls. The postcard scenarios
+cover grounded discoveries, secret concealment, full-size images and persistence.
 Shared camera collision, optional waterline floors and unchanged recovery are
 covered by `node --import tsx --test tests/physics.test.ts tests/vehicle-recovery.test.ts`.
-Published preview selection, regional links and offline travel are covered by
-`tests/pwa/tidal-tracks.spec.ts`; run PWA checks after
-browser checks, not concurrently.
+Production selection, regional links, offline postcards and offline travel are
+covered by `tests/pwa/tidal-tracks.spec.ts`; run PWA and browser checks
+sequentially, not concurrently.
 
 The new Iceland world has an internal south-coast slice at `/?area=iceland` when
 running `npm run dev`. Start at Skógafoss with
@@ -1159,12 +1227,12 @@ Saved parking positions and accumulated dirt on the car are left for a later upd
 
 ## Postcard journal
 
-Northern Reach and Mars Outpost have a postcard journal on their home and pause
-screens. Each named region has a card, plus an unnamed silhouette for the hidden
-discovery in each world. Drive near a place to unlock its car-free scene, short
+Northern Reach, Mars Outpost, Moon and Island Tracks have a postcard journal
+on their home and pause screens. Regional or selected scenic cards sit beside
+anonymous slots for hidden discoveries. Drive near a place to unlock its car-free scene, short
 field note and first-visit date. The journal saves visits in this browser and
-shows cards for the current world only. Sunshine Valley and the other smaller
-locations have no journal. Secret discoveries use a distinct card until found;
+shows cards for the current world only. Sunshine Valley, Iceland Highlands and
+Samurai Village have no journal. Secret discoveries use a distinct card until found;
 click an unlocked photo for a larger view. A picture notice appears briefly when
 a new postcard unlocks. Postcard images are included in the offline cache.
 

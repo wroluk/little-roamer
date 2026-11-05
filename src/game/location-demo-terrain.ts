@@ -252,7 +252,8 @@ export function demoTerrainGeometry(id: DemoId) {
   return layered;
 }
 
-export function demoWaterGeometry(terrain: THREE.BufferGeometry, level = 0, bounds?: readonly [number, number, number, number], ocean = false) {
+export function demoWaterGeometry(terrain: THREE.BufferGeometry, level = 0, bounds?: readonly [number, number, number, number], ocean = false,
+  oceanBounds: readonly [number, number, number, number] = [-DEMO_HALF, -DEMO_HALF, DEMO_HALF, DEMO_HALF]) {
   const vertices = terrain.getAttribute('position'), index = terrain.getIndex()!;
   const positions: number[] = [], colors: number[] = [];
   const shallow = new THREE.Color('#9ebfba'), deep = new THREE.Color('#3a778c');
@@ -279,8 +280,8 @@ export function demoWaterGeometry(terrain: THREE.BufferGeometry, level = 0, boun
     }
   }
   if (ocean) for (const [x0, z0, x1, z1] of [
-    [-1400, -1400, 1400, -DEMO_HALF], [-1400, DEMO_HALF, 1400, 1400],
-    [-1400, -DEMO_HALF, -DEMO_HALF, DEMO_HALF], [DEMO_HALF, -DEMO_HALF, 1400, DEMO_HALF],
+    [-1400, -1400, 1400, oceanBounds[1]], [-1400, oceanBounds[3], 1400, 1400],
+    [-1400, oceanBounds[1], oceanBounds[0], oceanBounds[3]], [oceanBounds[2], oceanBounds[1], 1400, oceanBounds[3]],
   ]) for (const [x, z] of [[x0, z0], [x0, z1], [x1, z0], [x1, z0], [x0, z1], [x1, z1]]) {
     positions.push(x, level + 0.018, z); deep.toArray(colors, colors.length);
   }

@@ -7,7 +7,8 @@ import { buildTidalScenery } from './tidal-scenery';
 import { StaticSunlight } from './static-sunlight';
 import { demoPathSample, type DemoPoint } from './location-demo-terrain';
 import {
-  TIDAL_HALF, TIDAL_STARTS, TIDAL_ROUTE, SEABIRD_CLIMB, PEBBLE_DESCENT, tidalGroundHeight, tidalSpawn, tidalSurfaceAt, tidalWaterHeight,
+  TIDAL_HALF, TIDAL_BOUNDS, TIDAL_STARTS, TIDAL_ROUTE, SEABIRD_CLIMB, PEBBLE_DESCENT, HEATHER_CUT, CLIFF_WADE,
+  tidalGroundHeight, tidalSpawn, tidalSurfaceAt, tidalWaterHeight,
   tidalTerrainGeometry, tidalWaterGeometry, tidalColor, type TidalStart,
 } from './tidal-terrain';
 
@@ -15,7 +16,9 @@ type ChallengeRide = { entry: TidalStart; exit: TidalStart; points: readonly Dem
 export const TIDAL_SUN_OFFSET: [number, number, number] = [-25, 45, 20];
 // Include the safe shore approaches, but not the final crossing obstacles.
 const restingRadius = (start: TidalStart) =>
-  start.id === 'harbor-cove' ? 55 : start.id === 'saltgrass-landing' ? 18 : start.id === 'pebble-cove' ? 12 : 4.5;
+  start.id === 'harbor-cove' ? 55 : start.id === 'saltgrass-landing' ? 18
+    : ['pebble-cove', 'heather-cut', 'west-overlook', 'west-beach', 'north-cove'].includes(start.id) ? 12 : 4.5;
+const homeStarts = [TIDAL_STARTS[0], ...TIDAL_STARTS.slice(8)];
 const RIDES: readonly ChallengeRide[] = [
   { entry: TIDAL_STARTS[0], exit: TIDAL_STARTS[3], points: TIDAL_ROUTE.slice(0, 19), gateRadius: 7 },
   { entry: TIDAL_STARTS[3], exit: TIDAL_STARTS[4], points: TIDAL_ROUTE.slice(19) },
@@ -25,6 +28,10 @@ const RIDES: readonly ChallengeRide[] = [
   { entry: TIDAL_STARTS[6], exit: TIDAL_STARTS[4], points: [...SEABIRD_CLIMB].reverse() },
   { entry: TIDAL_STARTS[4], exit: TIDAL_STARTS[7], points: PEBBLE_DESCENT },
   { entry: TIDAL_STARTS[7], exit: TIDAL_STARTS[4], points: [...PEBBLE_DESCENT].reverse() },
+  { entry: TIDAL_STARTS[10], exit: TIDAL_STARTS[11], points: HEATHER_CUT },
+  { entry: TIDAL_STARTS[11], exit: TIDAL_STARTS[10], points: [...HEATHER_CUT].reverse() },
+  { entry: TIDAL_STARTS[12], exit: TIDAL_STARTS[13], points: CLIFF_WADE },
+  { entry: TIDAL_STARTS[13], exit: TIDAL_STARTS[12], points: [...CLIFF_WADE].reverse() },
 ];
 
 export class TidalTracksRuntime implements AreaRuntime {
@@ -35,6 +42,7 @@ export class TidalTracksRuntime implements AreaRuntime {
   private disposed = false;
   private triangles = 0;
   private checkpoint: TidalStart = TIDAL_STARTS[0];
+  private readonly arrivals = new Set<TidalStart['id']>();
   private attempt: { ride: ChallengeRide; next: number } | null = null;
   constructor(private readonly scene: THREE.Scene, private readonly world: RAPIER.World) {
     try {
@@ -56,10 +64,12 @@ export class TidalTracksRuntime implements AreaRuntime {
         const indices = source ? Uint32Array.from(source.array) : Uint32Array.from({ length: vertices.length / 3 }, (_, i) => i);
         this.colliders.push(world.createCollider(RAPIER.ColliderDesc.trimesh(vertices, indices).setFriction(0.95)));
       }
-      for (const side of [-1, 1]) for (const axis of ['x', 'z'] as const) {
-        const alongX = axis === 'x', edge = TIDAL_HALF - 6;
-        this.colliders.push(world.createCollider(RAPIER.ColliderDesc.cuboid(alongX ? 0.5 : edge + 1, 65, alongX ? edge + 1 : 0.5)
-          .setTranslation(alongX ? side * edge : 0, 20, alongX ? 0 : side * edge)
+      const [minX, minZ, maxX, maxZ] = TIDAL_BOUNDS;
+      for (const axis of ['x', 'z'] as const) for (const edge of axis === 'x' ? [minX + 6, maxX - 6] : [minZ + 6, maxZ - 6]) {
+        const alongX = axis === 'x';
+        this.colliders.push(world.createCollider(RAPIER.ColliderDesc.cuboid(alongX ? 0.5 : (maxX - minX) / 2, 65,
+          alongX ? (maxZ - minZ) / 2 : 0.5)
+          .setTranslation(alongX ? edge : (minX + maxX) / 2, 20, alongX ? (minZ + maxZ) / 2 : edge)
           .setCollisionGroups(BOUNDARY_COLLISION_GROUPS).setFriction(0)));
       }
       this.group.traverse(object => {
@@ -73,11 +83,12 @@ export class TidalTracksRuntime implements AreaRuntime {
     this.sunlight.applyTo(object);
   }
   get recoveryStart() { return this.checkpoint; }
+  get completedArrivals(): ReadonlySet<TidalStart['id']> { return this.arrivals; }
   beginAt(x: number, z: number) {
     const start = TIDAL_STARTS.find(start => Math.hypot(x - start.position.x, z - start.position.z) < 0.01);
     if (!start) throw new Error('Island Tracks inspection entry must be a named starting place');
     this.attempt = null;
-    if (RIDES.some(ride => ride.entry.id === start.id)) {
+    if (homeStarts.some(home => home.id === start.id) || RIDES.some(ride => ride.entry.id === start.id)) {
       this.checkpoint = start;
       return;
     }
@@ -94,6 +105,11 @@ export class TidalTracksRuntime implements AreaRuntime {
   visit(x: number, z: number) {
     const near = (point: { x: number; z: number }, radius = 4.5) => Math.hypot(x - point.x, z - point.z) < radius;
     const inRestArea = (start: TidalStart) => near(start.position, restingRadius(start)) && tidalGroundHeight(x, z) > 0.6;
+    // Home-island cruising has safe destinations, not an ordered obstacle challenge.
+    if (!this.attempt && homeStarts.some(start => start.id === this.checkpoint.id)) {
+      const arrival = homeStarts.find(start => near(start.position, start.id === 'whales-back' ? 6 : 12));
+      if (arrival) this.checkpoint = arrival;
+    }
     if (inRestArea(this.checkpoint)) {
       this.attempt = null;
       return;
@@ -124,6 +140,7 @@ export class TidalTracksRuntime implements AreaRuntime {
       attempt.next++;
     }
     if (attempt.next === attempt.ride.points.length && inRestArea(attempt.ride.exit)) {
+      this.arrivals.add(attempt.ride.exit.id);
       this.checkpoint = attempt.ride.exit;
       this.attempt = null;
     }
@@ -132,7 +149,9 @@ export class TidalTracksRuntime implements AreaRuntime {
   async ensureReady(x: number, z: number) {
     if (!this.isCollisionReadyAt(x, z)) throw new Error('Island Tracks destination is outside the loaded crossing');
   }
-  isCollisionReadyAt(x: number, z: number) { return !this.disposed && Math.abs(x) < TIDAL_HALF && Math.abs(z) < TIDAL_HALF; }
+  isCollisionReadyAt(x: number, z: number) {
+    return !this.disposed && x > TIDAL_BOUNDS[0] && x < TIDAL_BOUNDS[2] && z > TIDAL_BOUNDS[1] && z < TIDAL_BOUNDS[3];
+  }
   async waitForIdle() { if (this.disposed) throw new Error('Island Tracks has been disposed'); }
   shrubBumpAt() { return 0; }
   get stats() {
@@ -151,11 +170,11 @@ export class TidalTracksRuntime implements AreaRuntime {
 
 export const TIDAL_AREA: Area = {
   id: 'island-tracks', name: 'Island Tracks', label: '13 / ISLAND TRACKS',
-  tagline: 'The other shore is earned.',
-  description: 'Two grassy islands, a broken basalt passage and three shallow sea channels. At Windward Lookout, choose Seabird Climb to the 67 m summit or a rocky descent through a daylight cave to Pebble Cove.',
-  hint: 'Follow cairns across the shallow basalt passage to earn Saltgrass Landing, then climb inland to Windward Lookout. Take the western ledge for Seabird Summit or the eastern ravine for Pebble Cove: offset rock steps, a dry basalt cave and a sheltered shore. Both rides return to the lookout. Pale water is shallow; dark blue is deep. Reset restarts the whole current challenge, even after a roll; completed arrivals are kept.',
-  welcomeEyebrow: 'ISLAND TRACKS / ROCK PASSAGE', welcomeTitle: 'Beyond the shallows.',
-  readyMessage: 'Harbor Cove is ready. The far shore is a driving adventure, not a bridge.',
+  tagline: 'Meadows, coves & crossings.',
+  description: "Roam the broad grassy mainland, its farmstead and sheltered grove. Visit the headland's Western Beacon and sandy West Beach, play in the shallows or thread the optional cliff-foot water trail between outcrops. Heather Cut, Whale's Back and the rocky eastern island offer more demanding lines.",
+  hint: "Explore the mainland first. Pale water is shallow; dark blue is deep.",
+  welcomeEyebrow: 'ISLAND TRACKS / HARBOR COVE', welcomeTitle: 'Take the long way round.',
+  readyMessage: 'Harbor Cove is ready. Follow the mainland loop, or explore the grassy hills at your own pace.',
   get spawn() { return tidalSpawn(); }, spawnHeading: TIDAL_STARTS[0].heading, half: TIDAL_HALF, climbingPower: 1.45,
   ambientLight: '#e5eee4', groundLight: '#72806b', sunlight: '#ffefd3', sky: '#b7d3d9',
   sunOffset: TIDAL_SUN_OFFSET,

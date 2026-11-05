@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import { POSTCARDS, POSTCARD_STORAGE_KEY, PostcardTracker, readPostcardRecords } from '../src/game/postcards';
 import { LAVA_TUBES, TUBES_START, tubePoint } from '../src/game/mars-tubes-layout';
 import { wreckPoint } from '../src/game/mars-wreck-layout';
@@ -31,12 +32,82 @@ test('journal covers existing regions and keeps Moon to three scenic cards and t
   assert.equal(POSTCARDS.filter(card => card.area === 'northern-reach').length, 17);
   assert.equal(POSTCARDS.filter(card => card.area === 'mars').length, 10);
   assert.deepEqual(POSTCARDS.filter(card => card.secret).map(card => card.id),
-    ['stone-circle', 'shuttle-wreck', 'first-landing', 'stranded-surveyor']);
+    ['stone-circle', 'shuttle-wreck', 'first-landing', 'stranded-surveyor', 'smugglers-nook']);
   assert.equal(POSTCARDS.filter(card => card.area === 'moon').length, 5);
   assert.equal(POSTCARDS.filter(card => card.area === 'moon' && !card.secret).length, 3);
   assert.ok(POSTCARDS.filter(card => card.area === 'moon' && card.secret).every(card => card.radius <= 13));
   assert.equal(new Set(POSTCARDS.map(card => card.id)).size, POSTCARDS.length);
   assert.ok(POSTCARDS.every(card => card.note && card.image.endsWith(`${card.id}.jpg`)));
+});
+
+test('Island Tracks has seven scenic postcards and one narrowly hidden discovery', () => {
+  const cards = POSTCARDS.filter(card => card.area === 'island-tracks');
+  assert.equal(cards.length, 8);
+  assert.deepEqual(cards.filter(card => card.secret).map(card => card.id), ['smugglers-nook']);
+  assert.equal(cards[0].name, 'Mainland Meadows');
+  assert.deepEqual(cards.filter(card => card.arrival).map(card => card.arrival),
+    ['saltgrass-landing', 'seabird-summit', 'pebble-cove']);
+});
+
+test('Island Tracks trigger map and saved camera views cover the live postcard definitions exactly', () => {
+  const svg = readFileSync('artifacts/island-tracks/postcard-trigger-map.svg', 'utf8');
+  const views = JSON.parse(readFileSync('artifacts/island-tracks/postcards/photo-views.json', 'utf8'));
+  const cards = POSTCARDS.filter(card => card.area === 'island-tracks');
+  assert.deepEqual(Object.keys(views).sort(), cards.map(card => card.id).sort());
+  assert.equal((svg.match(/data-postcard="/g) ?? []).length, cards.length);
+  for (const card of cards) {
+    const group = svg.match(new RegExp(`<g data-postcard="${card.id}">([\\s\\S]*?)</g>`))?.[1];
+    assert.ok(group, `missing ${card.id}`);
+    for (const zone of [card, ...(card.visitZones ?? [])]) {
+      assert.ok(group.includes(`data-x="${zone.x}" data-z="${zone.z}" data-radius="${zone.radius}"`));
+      const circle = `cx="${1030 + zone.x * 1.5}" cy="${460 + zone.z * 1.5}" r="${zone.radius * 1.5}"`;
+      assert.ok(group.includes(circle), `map projection disagrees for ${card.id}: ${circle}`);
+    }
+    assert.ok(readFileSync(`public/postcards/island-tracks/${card.id}.jpg`).byteLength > 1000);
+  }
+  assert.ok(svg.includes('Arrival/elevation gates also apply'));
+});
+
+test('Island Tracks scenic cards unlock by grounded driving, once, not spawning or teleporting', () => {
+  for (const card of POSTCARDS.filter(card => card.area === 'island-tracks' && !card.arrival)) {
+    const found = new Set<string>(), tracker = new PostcardTracker(found, card.x - 12, card.z);
+    const visit = { y: (card.elevation ?? 10) + 0.5, grounded: true, completedArrivals: new Set<string>() };
+    assert.deepEqual(tracker.update(card.area, card.x - 9, card.z, visit), []);
+    assert.ok(tracker.update(card.area, card.x - 3, card.z, visit).some(item => item.id === card.id), card.id);
+    assert.deepEqual(tracker.update(card.area, card.x, card.z, visit), []);
+    tracker.reset(card.x - 24, card.z);
+    assert.deepEqual(tracker.update(card.area, card.x - 15, card.z, { ...visit, y: card.elevation! + 0.5 }), []);
+    const reset = new PostcardTracker(new Set(), card.x, card.z);
+    assert.deepEqual(reset.update(card.area, card.x, card.z, visit), []);
+    reset.reset(card.x - 100, card.z);
+    assert.deepEqual(reset.update(card.area, card.x, card.z, visit), []);
+    const airborne = new PostcardTracker(new Set(), card.x - 12, card.z);
+    assert.deepEqual(airborne.update(card.area, card.x - 3, card.z, { ...visit, grounded: false }), []);
+  }
+});
+
+test('Island Tracks earned cards require completed arrivals as well as a real destination visit', () => {
+  for (const card of POSTCARDS.filter(card => card.area === 'island-tracks' && card.arrival)) {
+    const found = new Set<string>(), tracker = new PostcardTracker(found, card.x - 12, card.z);
+    const visit = { y: card.elevation! + 0.5, grounded: true, completedArrivals: new Set<string>() };
+    assert.deepEqual(tracker.update(card.area, card.x - 3, card.z, visit), [], card.id);
+    visit.completedArrivals.add(card.arrival!);
+    assert.ok(tracker.update(card.area, card.x, card.z, visit).some(item => item.id === card.id), card.id);
+    assert.deepEqual(tracker.update(card.area, card.x + 1, card.z, visit), []);
+  }
+});
+
+test('Smuggler postcard stays locked on the cliff above, outside the cleft and during resets', () => {
+  const card = POSTCARDS.find(card => card.id === 'smugglers-nook')!;
+  const found = new Set<string>(), tracker = new PostcardTracker(found, card.x - 12, card.z);
+  const visit = { y: 22, grounded: true, completedArrivals: new Set<string>() };
+  assert.deepEqual(tracker.update(card.area, card.x - 3, card.z, visit), []);
+  assert.deepEqual(tracker.update(card.area, card.x, card.z, visit), []);
+  tracker.reset(card.x, card.z);
+  assert.deepEqual(tracker.update(card.area, card.x, card.z, { ...visit, y: card.elevation! + 0.5 }), []);
+  tracker.reset(card.x - 12, card.z);
+  assert.ok(tracker.update(card.area, card.x - 3, card.z, { ...visit, y: card.elevation! + 0.5 })
+    .some(item => item.id === card.id));
 });
 
 test('driving into Pine Hollows reveals its postcard after leaving the Northern start', () => {

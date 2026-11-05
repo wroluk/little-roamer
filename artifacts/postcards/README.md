@@ -5,6 +5,14 @@
 including Pine Hollows and the hidden stone circle. Each entry keeps the copied car pose and camera values. The capture
 script uses the camera position, target, and field of view for car-free images;
 the car pose remains as a reference to the original photo-mode session.
+Island Tracks keeps its eight views in
+[`artifacts/island-tracks/postcards/photo-views.json`](../island-tracks/postcards/photo-views.json).
+Pebble Cove, Seabird Summit, West Beach and Smuggler's Nook use the user's
+supplied framing, preserving the complete copied car and camera poses.
+The user accepted the other four current compositions with the world's
+completion sign-off on 2026-11-05.
+Island Tracks captures verify the rendered camera position, direction and
+field of view, and require the car to be hidden.
 
 With the local development server running, regenerate the images with:
 
@@ -12,9 +20,9 @@ With the local development server running, regenerate the images with:
 POSTCARD_BASE_URL=http://127.0.0.1:5173 node --import tsx artifacts/postcards/capture.mjs
 ```
 
-The script writes images to `public/postcards/mars/` and
-`public/postcards/northern-reach/`. Set `POSTCARD_AREA=northern-reach` or
-`POSTCARD_AREA=mars` to capture one location, or pass postcard IDs as arguments
+The script writes images to `public/postcards/<area>/`; production builds
+copy them to `dist/postcards/<area>/`. Set `POSTCARD_AREA=northern-reach`,
+`POSTCARD_AREA=mars` or `POSTCARD_AREA=island-tracks` to capture one location, or pass postcard IDs as arguments
 to capture selected entries. Saved views must cover every authored postcard.
 
 ## Development trigger maps
@@ -25,6 +33,8 @@ postcard visit circles over their existing region maps. Solid rings mark each
 card's primary trigger; dashed rings mark additional approach zones. Numbered
 markers match the legend. The purple stars show secret discovery triggers for
 development review. The SVG versions are beside the PNGs for zooming.
+The [Island Tracks map](../island-tracks/postcard-trigger-map.png) also shows
+the grounded/upright, shallow-water, elevation and earned-arrival gates.
 
 The circles are generated directly from `src/game/postcards.ts` in world x/z
 coordinates, including each radius. The Northern Reach background shows sampled
@@ -47,4 +57,11 @@ Regenerate these artifact images after changing trigger geometry:
 
 ```sh
 node --import tsx artifacts/postcards/render-trigger-maps.mjs
+```
+
+For Island Tracks, rebuild the sampled terrain background before its overlay:
+
+```sh
+node --import tsx scripts/render-island-tracks-map.ts
+node --import tsx artifacts/postcards/render-trigger-maps.mjs island-tracks
 ```

@@ -27,6 +27,13 @@ sections with breathing space; not every metre needs another obstacle.
 Preserve each world's agreed scope and accessibility rather than retroactively
 making every existing easy route difficult.
 
+The user explicitly reaffirmed on 2026-11-05 that not every region should be
+difficult: cruising a broad area of grassy hills is enjoyable in its own
+right. Island Tracks' enlarged home island provides that contrast, with an
+easy lighthouse circuit, open meadow and optional Whale's Back crest. Do not
+turn the cruising line into another obstacle challenge or require it before
+the accepted sea crossing.
+
 The user explicitly confirmed that some passages should require a controlled
 run-up, rather than always allowing a crawl. Line choice, throttle and earned
 momentum are part of the challenge. Provide readable obstacles and enough safe
@@ -63,7 +70,7 @@ picker counts with production counts, compare compass angles across the
 0/360-degree boundary linearly, or infer missing particles from a missed
 short-lived surface-change CSS cue.
 
-Keep the six released home choices and published Island Tracks preview separate from the local-only Development
+Keep the seven released home choices, including Island Tracks, separate from the local-only Development
 disclosure: active builds, comparison demos and diagnostic tools are different
 groups, not additional released locations. Use the existing radio/travel
 lifecycle and native keyboard-accessible disclosure; production must contain
@@ -77,6 +84,11 @@ The user authorized Island Tracks on the existing GitHub Pages build so it
 can be tested on an iPad. Reuse the normal tile, area validation and offline
 lifecycle together, with an actual-game thumbnail; keep unrelated unfinished
 worlds and diagnostics local-only.
+Check landmark thumbnails at their displayed tile size, not only full resolution;
+nearby foreground rocks can overwhelm an otherwise clear distant landmark.
+The user accepted Island Tracks as complete on 2026-11-05, including its
+enlarged mainland, western coast and postcards. This explicit sign-off
+supersedes its earlier preview-only status, not the exclusion of other builds.
 
 Keep focused menu checks distinct from compound world-capture journeys. A green
 navigation check does not certify the full route or render/recovery scenario.
@@ -176,6 +188,72 @@ samples still let outer wheels drop into deep water during a full-lock turn.
 Use a gradual shore ramp, a bounded submerged bed and the existing fitted
 depth-coloured sea; prove a wet loop and dry return with both cars and steering
 policies. Keep arrival/retry rules separate from optional water play.
+When both ends of an optional ride also have easy mainland approaches, an
+out-of-order completion test must first establish an active ride attempt.
+Free roaming to an accessible destination is not itself a progression bypass.
+
+When expanding one shore of a resident world, extend the actual sampled grid,
+physics bounds and non-overlapping ocean apron together. A wider terrain mesh
+under a square ocean apron puts deep water over the new land. Measure the
+requested land-area ratio, preserve protected route samples and retain the
+existing render budget rather than merely moving a boundary. Home-island
+drives must cover both directions around existing buildings: a broad lane
+that grazed the boathouse corner passed outward but trapped both cars returning.
+
+For a larger easy grassland, preserve the fine grid around accepted technical
+routes and use coarser new rolling terrain only with a fully stitched interface.
+Split seam triangles at every fine-edge vertex and sample those same triangles;
+a T-junction or a different height interpolator is not a finished join.
+Keep new grove/flower generation outside the per-site scatter loop: accidentally
+nesting those loops multiplied identical geometry despite a modest land mesh.
+An optional difficult mainland pocket must have a genuinely broad bypass.
+Separate its departure area from the bypass before detecting a challenge
+attempt, so ordinary cruising cannot silently become an unfinished rock ride.
+Honor an explicit early-preview request: stable geometry and short smoke checks
+are not full route, rendering-peak or on-device acceptance.
+
+Place navigational lights on exposed, supported high ground with a clear
+seaward sightline, not simply beside the route they decorate. Scale secondary
+beacons below the main lighthouse and keep summit fixtures outside the earned
+driving/turning envelope. A continuous tapered mesh is more reliable than
+separated masonry courses when their seams read as floating toy blocks.
+Distribute secondary coastal lights around distinct island extremities, not
+around an existing larger beacon. Use naturally supported outward-facing
+shoulders and test each light toward its own open-sea direction; the northern
+and southern tips need not share the western headland's elevation.
+
+A curved shallow bed needs bounded elevations as well as a pleasing outline:
+cubic interpolation between dry resting rocks can overshoot below every wet
+control point. Clamp the generated bed, then check the rendered full-width
+wheel support. Vary widths and outer rock pockets rather than only adding
+props to a straight strip. Keep the dry-return ramp gradual; abruptly forcing
+a submerged basin flat can make its shore too steep for a wet car.
+Adapt landmark footing checks to the new object's actual footprint. Reusing
+a much larger ruin's platform for a smaller beacon can pinch the nearby
+approach even while the beacon itself is correctly grounded.
+
+Do not turn a short arrival toast into a route manual. Introduce the world in
+one or two sentences and retain detailed route/recovery guidance in its docs.
+
+For keepsakes attached to earned routes, use the runtime's ordered completed
+arrival, not proximity or the current Reset destination. Inspection starts can
+own recovery without earning a journey. A hidden place below a cliff also needs
+grounded height-aware recognition so travel above cannot reveal it. Show these
+non-spatial gates beside the exact circles on development trigger maps; keep
+photograph framing independent of recognition geometry.
+
+When applying a user's copied photo view, preserve its full camera and car
+record. Reuse the saved-view capture pipeline and check rendered position,
+look direction and FOV, not position alone. Keep the vehicle hidden and
+regenerate only the requested cards; do not move recognition zones or revise
+the remaining draft compositions while the user is framing them.
+
+Acceptance requires a safe, repeatable way across an obstacle, not successful
+crawling on every line. The user reaffirmed this during Island Tracks'
+completion checks: try an appropriate run-up, approach angle and wheel line
+before changing accepted terrain. Preserve upright, articulation and water
+limits; neither a stalled crawl nor a temporary grading experiment establishes
+that a demanding obstacle needs easing.
 
 ## World documentation layout
 
@@ -456,6 +534,7 @@ design/progress entry and the current implementation before reusing it.
 | A cliff's flat resting pad steepened its departure, short domed stones compounded the uphill grade, and markers offset from an outgoing bend blocked the incoming leg. | Make the authored route level before and after the resting footprint, lengthen stone ramps along the driving direction, and widen bend footprints rather than the whole exposed ledge. Put shoulder markers away from vertices and check them against the entire route. Clear summit landmarks from both the approach and turning circle. Preserve handling and require both cars to drive up, down and around the actual summit. | [Seabird terrain](src/game/tidal-terrain.ts), [steps/markers/sentinel](src/game/tidal-scenery.ts), [whole-route clearance and real-car checks](tests/tidal-tracks.test.ts), [cliff progress](artifacts/island-tracks/PROGRESS.md) |
 | Steep coastal faces made Float32-rounded shoreline intersections land slightly on dry terrain despite correct double-precision clipping. | Clip conservatively 1 mm inside the wet bed, then restore the original visible sea height. Keep the existing dry-ground tolerance and explicitly check both the inset shoreline and unchanged water plane. Do not lower physical water, relax the geometry check, or change shared water behavior for a local coast. | [Local fitted sea](src/game/tidal-terrain.ts), [exact terrain/sea regression](tests/tidal-tracks.test.ts) |
 | Pale route cairns looked solid but inherited a batching helper's decorative default, so cars passed through them. | Explicitly assign collision ownership to authored stone markers, using their actual rendered triangles rather than an oversized proxy. Preserve the driving envelope and lifecycle ownership. Compare exposed visible/physical faces, drive into a marker and along the adjacent clear line, and inspect a side-on driving capture where the bumper and stones are both visible. A higher collider count or a pile hidden behind the car is not sufficient proof. | [Cairn solid batch](src/game/tidal-scenery.ts), [stone surface-agreement regression](tests/tidal-tracks.test.ts), [dual-engine contact/clearance scenario](tests/browser/tidal-tracks.spec.ts), [current progress](artifacts/island-tracks/PROGRESS.md) |
+| Beach and hidden-discovery drives completed safely but peaked at 66 calls against the unchanged limit of fewer than 65; disabling fine-ground-cover shadows did not solve it. | Profile the actual main/shadow draw contributors at the failing driving pose. Merge nearby pieces only when material, sidedness, shadow flags and collision ownership agree: farm/fence remain solid, harbor roof/trim remain decorative. Keep geometry and shadows intact, and remeasure both calls and rendered triangles; merging distant bounds can save calls while defeating culling. | [Owned scenery batches](src/game/tidal-scenery.ts), [resource and surface checks](tests/tidal-tracks.test.ts), [dual-engine wet-driving budgets](tests/browser/island-tracks-mainland.spec.ts), [final measurements](artifacts/island-tracks/PROGRESS.md#completion-sign-off-and-final-scoped-acceptance---2026-11-05) |
 | Development-only pilots initialized resident height grids during unrelated public-world startup, while a repeated offline-reload scenario was already at its aggregate time limit on main. | Make terrain-backed pilot starts lazy while retaining exact cached sampling when selected. Reproduce a failing long scenario alone and against isolated main before changing game behavior. Give a genuinely multi-reload test an explicit total budget rather than weakening its per-action or behavior assertions. Keep production exclusion and offline checks sequential with browser drives. | [Area starts](src/game/areas.ts), [comparison starts](src/game/location-demos.ts), [fresh starts](src/game/tidal-tracks.ts), [lazy-start regression](tests/tidal-tracks.test.ts), [offline scenario](tests/pwa/offline.spec.ts), [baseline and final evidence](LOCATION_DEMOS.md) |
 | Technical sea crossings stalled at wet exits; rounded flat-bed caps kept wheels in reduced water traction too far into a short climb. | Taper a channel bed longitudinally into its approaches, independently of its transverse shallow width. Let wheels reach dry rock before the demanding grade; retain normal vehicle handling and all driving assertions. Require positive measured water depth at every channel, not merely a safe maximum. | [Channel profiles](src/game/tidal-terrain.ts), [complete forward/reverse real-car journeys](tests/tidal-tracks.test.ts), [crossing progress](artifacts/island-tracks/PROGRESS.md) |
 | A level resting footprint was smaller than its surrounding grid triangles; a lookout pad abruptly raised an approach that had not reached its elevation, and summit props intruded into its turning circle. | Reserve a flat core wider than the full wheel footprint plus interpolation corners. Converge approach elevation before entering a plateau's blending feather; extend the actual driveable approach, not just its photograph. Clear the whole turning envelope, including authored landmarks, and drive actual circles with both cars as well as both journey directions. Do not change handling or weaken tip limits. | [Resting shelves and summit approach](src/game/tidal-terrain.ts), [exact-bed, turning and full-journey checks](tests/tidal-tracks.test.ts) |

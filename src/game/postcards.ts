@@ -17,13 +17,17 @@ import { EMBER_LOOKOUT } from './northern-ember';
 import { MARSH_LOOKOUT } from './northern-marsh';
 import { FOREST_TRAILS } from './northern-forest';
 import { MOON_LANDING_SITE, MOON_SURVEY_ROVER } from './moon-discoveries';
+import { MAINLAND_MEADOW, MAINLAND_FARM, NEEDLE_LIGHTHOUSE, WEST_BEACON, WEST_BEACH, WEST_WADE,
+  SMUGGLERS_NOOK, TIDAL_STARTS } from './tidal-terrain';
 
-export type PostcardArea = Extract<AreaId, 'northern-reach' | 'mars' | 'moon'>;
+export type PostcardArea = Extract<AreaId, 'northern-reach' | 'mars' | 'moon' | 'island-tracks'>;
 export type Postcard = {
   id: string; area: PostcardArea; name: string; note: string;
   x: number; z: number; radius: number; visitZones?: readonly { x: number; z: number; radius: number }[];
   secret?: boolean; image: string;
+  elevation?: number; arrival?: string;
 };
+type PostcardVisit = { y: number; grounded: boolean; completedArrivals: ReadonlySet<string> };
 export type PostcardRecord = { id: string; discoveredAt: string };
 export const POSTCARD_STORAGE_KEY = 'little-roamer-postcards-v1';
 
@@ -155,6 +159,36 @@ export const POSTCARDS: readonly Postcard[] = [
   { id: 'stranded-surveyor', area: 'moon', name: 'Stranded Surveyor',
     note: 'Before Earthview Base was built, this surveyor searched for a safe crossing of Silver Rille. Its maps reached home; the rover never did.',
     ...MOON_SURVEY_ROVER, secret: true, image: image('moon', 'stranded-surveyor') },
+  { id: 'mainland-meadows', area: 'island-tracks', name: 'Mainland Meadows',
+    note: 'Beyond the little farm, the grassy hills leave room to take the long way round.',
+    ...MAINLAND_MEADOW, radius: 58, visitZones: [visitZone(MAINLAND_FARM, 24)],
+    image: image('island-tracks', 'mainland-meadows') },
+  { id: 'needle-lighthouse', area: 'island-tracks', name: 'Needle Lighthouse',
+    note: 'A tall light keeps watch where the meadow meets the sea.',
+    ...NEEDLE_LIGHTHOUSE, radius: 24, image: image('island-tracks', 'needle-lighthouse') },
+  { id: 'western-beacon', area: 'island-tracks', name: 'Western Beacon',
+    note: 'From the rocky cut, a warm light marks the far edge of the mainland.',
+    ...WEST_BEACON, radius: 20, elevation: WEST_BEACON.y, image: image('island-tracks', 'western-beacon') },
+  { id: 'west-beach', area: 'island-tracks', name: 'West Beach',
+    note: 'Pale water laps the sand beneath the cliffs. There is time for one more slow turn.',
+    ...WEST_BEACH, radius: 22, visitZones: [visitZone(WEST_WADE, 16)],
+    image: image('island-tracks', 'west-beach') },
+  { id: 'other-shore', area: 'island-tracks', name: 'The Other Shore',
+    note: 'The broken line of rock lies behind you now. This shore was earned.',
+    ...TIDAL_STARTS[3].position, radius: 18, elevation: TIDAL_STARTS[3].position.y, arrival: 'saltgrass-landing',
+    image: image('island-tracks', 'other-shore') },
+  { id: 'seabird-summit', area: 'island-tracks', name: 'Seabird Summit',
+    note: 'Above the last ledge, the islands and their crossing fit into one long view.',
+    ...TIDAL_STARTS[6].position, radius: 11, elevation: TIDAL_STARTS[6].position.y, arrival: 'seabird-summit',
+    image: image('island-tracks', 'seabird-summit') },
+  { id: 'pebble-cove', area: 'island-tracks', name: 'Pebble Cove',
+    note: 'Beyond the dark stone passage, a quiet shore opens to the light.',
+    ...TIDAL_STARTS[7].position, radius: 12, elevation: TIDAL_STARTS[7].position.y, arrival: 'pebble-cove',
+    image: image('island-tracks', 'pebble-cove') },
+  { id: 'smugglers-nook', area: 'island-tracks', name: "Smuggler's Nook",
+    note: 'Someone once brought their cargo ashore where no passing ship would think to look.',
+    ...SMUGGLERS_NOOK, radius: 8, elevation: SMUGGLERS_NOOK.y, secret: true,
+    image: image('island-tracks', 'smugglers-nook') },
 ];
 
 export function readPostcardRecords(storage: Pick<Storage, 'getItem'>): PostcardRecord[] {
@@ -184,7 +218,7 @@ export class PostcardTracker {
   private traveled = 0;
   constructor(private readonly found: Set<string>, x: number, z: number) { this.previous = { x, z }; }
   reset(x: number, z: number) { this.previous = { x, z }; this.traveled = 0; }
-  update(area: AreaId, x: number, z: number): Postcard[] {
+  update(area: AreaId, x: number, z: number, visit?: PostcardVisit): Postcard[] {
     const distance = Math.hypot(x - this.previous.x, z - this.previous.z);
     // A teleport is not an explored path; movement must come from actual driving.
     if (distance > 25) { this.reset(x, z); return []; }
@@ -193,6 +227,9 @@ export class PostcardTracker {
     this.traveled += distance;
     if (this.traveled < 8) return [];
     const visits = POSTCARDS.filter(card => card.area === area && !this.found.has(card.id)
+      && (card.area !== 'island-tracks' || visit?.grounded === true)
+      && (card.elevation === undefined || (visit !== undefined && Math.abs(visit.y - card.elevation) < 2))
+      && (card.arrival === undefined || visit?.completedArrivals.has(card.arrival) === true)
       && [{ x: card.x, z: card.z, radius: card.radius }, ...(card.visitZones ?? [])].some(zone =>
         segmentDistanceSquared(before.x, before.z, x, z, zone.x, zone.z) <= zone.radius ** 2));
     for (const card of visits) this.found.add(card.id);
