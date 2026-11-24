@@ -258,6 +258,28 @@ test('fresh Island Tracks: Reset and R restart the challenge upright, overturned
   expect(errors).toEqual([]);
 });
 
+test('Island Tracks: both reset controls retry Rock Passage at Harbor Cove after West Beach', async ({ page }) => {
+  test.setTimeout(120_000);
+  const harbor = TIDAL_STARTS[0];
+  for (const control of ['button', 'keyboard'] as const) {
+    await boot(page, 'west-beach');
+    expect((await demoState(page)).recoveryStart).toBe('west-beach');
+    await page.evaluate(point => (window as unknown as { __ROAMER__: DemoGame }).__ROAMER__
+      .placeVehicle(point.x, point.z, -Math.PI / 2), TIDAL_ROUTE[3]);
+    await expect.poll(async () => (await demoState(page)).recoveryStart).toBe(harbor.id);
+    const shelf = TIDAL_STARTS[2].position;
+    await page.evaluate(point => (window as unknown as { __ROAMER__: DemoGame }).__ROAMER__
+      .placeVehicle(point.x, point.z, 0), shelf);
+    if (control === 'button') await page.locator('#reset').click();
+    else await page.keyboard.press('KeyR');
+    await expect(page.locator('#toast')).toHaveText('Back at Harbor Cove');
+    await expect.poll(async () => {
+      const { position } = await demoState(page);
+      return Math.hypot(position.x - harbor.position.x, position.z - harbor.position.z);
+    }).toBeLessThan(0.5);
+  }
+});
+
 test('fresh Island Tracks: earned shore survives R on arrival and after the first inland left turn', async ({ page }, info) => {
   test.setTimeout(900_000);
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));

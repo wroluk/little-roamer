@@ -10,6 +10,18 @@ later decisions supersede earlier scope and recovery policies.
 
 ## Progress
 
+### Rock Passage retry after mainland exploration - 2026-11-24
+
+Drivers approaching from West Beach or another mainland checkpoint can enter
+Rock Passage without driving through the Harbor Cove spawn. The runtime now
+uses the existing crossing gate to set Harbor Cove as the retry destination on
+that approach. Reaching Saltgrass Landing still requires the ordered crossing.
+
+The regression reproduced West Beach on the baseline. The Island Tracks unit
+suite, typecheck, production build and Chromium tablet regression passed.
+The browser regression stages the car at the crossing gate and checks both
+Reset car and R from an unfinished crossing.
+
 ### Completion sign-off and final scoped acceptance - 2026-11-05
 
 The user accepted **Island Tracks as complete**, including the mainland,

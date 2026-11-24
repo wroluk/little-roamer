@@ -113,6 +113,9 @@ Challenge boundaries must match what the player has earned. Finishing the sea
 crossing means reaching the safe far shore after its final obstacle, not
 climbing an unrelated inland hill. Keep subsequent approaches separate so
 Reset cannot erase a completed journey or skip an unfinished obstacle.
+Where a free-roaming region feeds into a challenge, recognize entry at the
+route gate even if the player last saved a different local checkpoint. Check
+an approach that bypasses the challenge's spawn as well as a fresh start.
 
 An earned destination needs physical route isolation, not only ordered
 checkpoint tracking. Pebble Cove's retry logic rejected an out-of-order arrival,
