@@ -382,6 +382,23 @@ test('relaxed home destinations accept free roaming without unlocking the sea cr
   } finally { runtime.dispose(); world.free(); }
 });
 
+test('entering Rock Passage from West Beach restarts at Harbor Cove after a failed crossing', () => {
+  const scene = new THREE.Scene(), world = new RAPIER.World({ x: 0, y: -18, z: 0 });
+  const runtime = new TidalTracksRuntime(scene, world);
+  const visit = ({ x, z }: { x: number; z: number }) => runtime.visit(x, z);
+  try {
+    visit(WEST_BEACH);
+    visit(TIDAL_ROUTE[2]);
+    assert.equal(runtime.recoveryStart.id, 'west-beach', 'the dry approach is still free roaming');
+    for (const point of TIDAL_ROUTE.slice(3, 7)) visit(point);
+    visit(TIDAL_ROUTE[19]);
+    const retry = runtime.restart();
+    assert.equal(retry.id, 'harbor-cove');
+    assert.deepEqual(retry.position, TIDAL_STARTS[0].position);
+    assert.ok(!runtime.completedArrivals.has('saltgrass-landing'));
+  } finally { runtime.dispose(); world.free(); }
+});
+
 for (const [name, points, entry, exit] of [
   ['Rock Passage outward', TIDAL_ROUTE.slice(0, 19), 'harbor-cove', 'saltgrass-landing'],
   ['Rock Passage return', TIDAL_ROUTE.slice(2, 20).reverse(), 'saltgrass-landing', 'harbor-cove'],

@@ -105,8 +105,10 @@ export class TidalTracksRuntime implements AreaRuntime {
   visit(x: number, z: number) {
     const near = (point: { x: number; z: number }, radius = 4.5) => Math.hypot(x - point.x, z - point.z) < radius;
     const inRestArea = (start: TidalStart) => near(start.position, restingRadius(start)) && tidalGroundHeight(x, z) > 0.6;
+    const harbor = TIDAL_STARTS[0];
+    const hasHomeCheckpoint = homeStarts.some(start => start.id === this.checkpoint.id);
     // Home-island cruising has safe destinations, not an ordered obstacle challenge.
-    if (!this.attempt && homeStarts.some(start => start.id === this.checkpoint.id)) {
+    if (!this.attempt && hasHomeCheckpoint) {
       const arrival = homeStarts.find(start => near(start.position, start.id === 'whales-back' ? 6 : 12));
       if (arrival) this.checkpoint = arrival;
     }
@@ -117,7 +119,10 @@ export class TidalTracksRuntime implements AreaRuntime {
     if (!this.attempt) {
       let candidate: { ride: ChallengeRide; next: number; distance: number } | null = null;
       for (const ride of RIDES) {
-        if (ride.entry.id !== this.checkpoint.id) continue;
+        // Mainland drivers can enter Rock Passage without passing the Harbor Cove spawn.
+        const approachingFromMainland = hasHomeCheckpoint && ride.entry.id === harbor.id;
+        if (ride.entry.id !== this.checkpoint.id && !approachingFromMainland) continue;
+        if (approachingFromMainland && inRestArea(harbor)) continue;
         // The safe shore approach is not a new crossing attempt until the car leaves it.
         const next = ride.points.findIndex((point, index) => index > 0
           && Math.hypot(point.x - ride.entry.position.x, point.z - ride.entry.position.z) >= restingRadius(ride.entry));
